@@ -46,10 +46,10 @@
     "cac": "^7.0.0"
   },
   "devDependencies": {
-    "@types/node": "^26.4.1",
+    "@types/node": "^26.5.1",
     "tsup": "^8.4.0",
     "typescript": "^6.0.3",
-    "@vitest/coverage-v8": "^4.1.11",
-    "vitest": "^4.1.11"
+    "@vitest/coverage-v8": "^5.0.0",
+    "vitest": "^5.0.0"
   }
 }
