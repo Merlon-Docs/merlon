@@ -1,5 +1,13 @@
 # @bwilliamson/mdcp-core
 
+## 0.8.1
+
+### Patch Changes
+
+- 95a0120: Update runtime dependencies: `zod` 4.6.5, `ignore` 7.0.10 and `semver` 7.8.5.
+- 9039614: Remove bare digit-range matching from `lineRangeFromText` — `1-2` no longer produces `#L1-L2`. An explicit prefix (`L`, `:`, or a locale word cue) is required to avoid ambiguity with non-line-range number ranges.
+- a9342ce: Audit remaining regexes for ReDoS risk: linear line-range scanner and Phase B inventory after prose cues moved to Vale (#201, #230). Line-range word cues (`line`/`lines`) and the about-this-guide preamble title come from the en-US locale pack (single `locales/en-US.json`) so other locales can supply their own; `#L…` output stays GitHub protocol shape.
+
 ## 0.8.0
 
 ### Minor Changes
