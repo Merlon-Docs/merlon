@@ -4,15 +4,11 @@ packages:
 # pnpm supply-chain (2026 best practice)
 minimumReleaseAge: 10080
 # Security patches published inside the age gate (must be allowed through explicitly).
-# - fast-uri@3.1.5: GHSA-7p8r-x3mc-p8w7 (ajv → fast-uri)
-# - brace-expansion@5.0.9: GHSA-rgw5-rvv9-x895 (eslint → minimatch → brace-expansion)
 # - js-yaml@5.2.2: GHSA-pm4m-ph32-ghv5 (markdownlint-cli2 → js-yaml)
 # - js-yaml@3.15.1: CVE-2026-59870 (slidev → gray-matter → js-yaml 3.x)
 # - nanoid@3.3.18: GHSA-2v37-7h3g-55p8 (slidev → postcss → nanoid)
 # - browserslist@4.28.7: GHSA-c83g-rgw3-j3cx (slidev → @babel → browserslist)
 minimumReleaseAgeExclude:
-  - fast-uri@3.1.6
-  - brace-expansion@5.0.9
   - js-yaml@5.2.2
   - js-yaml@4.3.2
   - js-yaml@3.15.2
@@ -26,10 +22,15 @@ allowBuilds:
 # resolution deterministic and avoid floating to vulnerable or newer-major versions.
 overrides:
   # GHSA-7p8r-x3mc-p8w7 + IDN canonicalization: patched >=3.1.6.
-  # Pin the patched 3.x line (bare >=3.1.6 can float to vulnerable 4.1.0).
-  fast-uri: 3.1.6
-  # GHSA-rgw5-rvv9-x895: DoS via unbounded intermediate arrays, patched >=5.0.9.
-  brace-expansion@<5.0.9: 5.0.9
+  # GHSA-qw65-cvwx-89v3 (<3.1.7) and GHSA-58mr-gqgx-xq4g (=3.1.6): patched >=3.1.7.
+  # Pin the patched 3.x line (a bare range can float to vulnerable 4.1.0).
+  fast-uri: 3.1.8
+  # GHSA-rgw5-rvv9-x895 (<5.0.9), GHSA-6j4f-fj2g-mc7p (<5.0.10) and
+  # GHSA-qhr7-859c-m2p7 (<5.0.11): patched >=5.0.11.
+  brace-expansion@<5.0.12: 5.0.12
+  # Slidev → mermaid → chevrotain → lodash-es (dev-only presentation tooling).
+  # GHSA-r5fr-rjxr-66jc: vulnerable <=4.17.23, patched >=4.18.1.
+  lodash-es@<4.18.1: 4.18.1
   # GHSA-r28c-9q8g-f849: vulnerable <=8.5.17, patched >=8.5.18.
   postcss@<8.5.18: 8.5.18
   # GHSA-pm4m-ph32-ghv5: vulnerable >=5.0.0 <=5.2.1, patched >=5.2.2.
