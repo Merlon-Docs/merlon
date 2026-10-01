@@ -55,7 +55,7 @@ flowchart TB
   shards --> check["mdcp check — validation gate"]
 ```
 
-- **[Skill](https://agentskills.io)** ([MDCP sense](../glossary/skill.md)) — instructions your agent follows (`/mdcp`, helpers).
+- **[Skill](https://agentskills.io)** ([MDCP sense](../glossary/skill.md)) — instructions your agent follows (`/mdcp`, which picks a workflow for each task).
 - **[Shards](../glossary/shard.md)** — source of truth; compiled READMEs are generated — do not hand-edit them.
 - **[Check](../glossary/check.md)** — keeps the docs system honest as it grows.
 

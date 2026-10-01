@@ -1,6 +1,6 @@
 # Parent `mdcp` live evals
 
-Fixtures and prompts for the optional [skill-creator](../../../.agents/skills/skill-creator/SKILL.md) loop. Not a CI gate.
+Fixtures and prompts for the optional [skill-creator](../../../../.agents/skills/skill-creator/SKILL.md) loop. Not a CI gate.
 
 ## Layout
 
@@ -8,7 +8,7 @@ Fixtures and prompts for the optional [skill-creator](../../../.agents/skills/sk
 | -------------------------------------- | ---------------------------------------------------------------------------- |
 | `evals.json`                           | Prompts + `expected_output` (add `expectations` after first with-skill runs) |
 | `files/hygiene/`                       | Stale backlog + code-in-docs anti-patterns (eval 7)                          |
-| `files/routing/`                       | Minimal guides so helper routing is observable (evals 8–9)                   |
+| `files/routing/`                       | Minimal guides so workflow routing is observable (evals 8–9)                 |
 | `triggers.json` / `trigger_evals.json` | Description-trigger tuning only                                              |
 
 ## Run path (skill-creator)
@@ -35,4 +35,4 @@ Fixtures and prompts for the optional [skill-creator](../../../.agents/skills/sk
 6. Eval 10 (`eval-10-atomic-commit-groups`) uses **with_skill** vs **old_skill**
    (snapshot of `skills/mdcp` from `main` before Atomic commit groups QA).
 
-Child suites: [`mdcp-getting-started`](../../mdcp-getting-started/evals/README.md), [`mdcp-doc-only`](../../mdcp-doc-only/evals/README.md), [`mdcp-design-architecture`](../../mdcp-design-architecture/evals/README.md), [`mdcp-feature-level`](../../mdcp-feature-level/evals/README.md), [`mdcp-ux`](../../mdcp-ux/evals/README.md). Maintainer index: [`docs/developer/live-skill-evals.md`](../../../../docs/developer/live-skill-evals.md).
+Workflow suites: [getting-started](getting-started/README.md), [doc-only](doc-only/README.md), [design-architecture](design-architecture/README.md), [feature-level](feature-level/README.md), [ux](ux/README.md). Maintainer index: [`docs/developer/live-skill-evals.md`](../../../../docs/developer/live-skill-evals.md).

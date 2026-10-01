@@ -16,7 +16,7 @@ pnpm vale:sync            # once — requires Vale on PATH; syncs styles for doc
 
 ## Work-item tracking setup step
 
-If you use coding agents with helper skills ([helper skills](../../docs/skills.md)), document how to load tracker issues **once per repo**. This project maintains that in [Agent work-item tracking](./agent-work-item-tracking.md) — add it to your setup checklist alongside install and build steps. Consumer repos should add a similar shard under `docs/developer/` and link it from local setup.
+If you use coding agents with the MDCP skill ([skills index](../../docs/skills.md)), document how to load tracker issues **once per repo**. This project maintains that in [Agent work-item tracking](./agent-work-item-tracking.md) — add it to your setup checklist alongside install and build steps. Consumer repos should add a similar shard under `docs/developer/` and link it from local setup.
 
 ## Daily commands
 

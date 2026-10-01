@@ -24,11 +24,11 @@ Filter for new capabilities: [Direct value bar](../design-constraints/direct-val
 
 ## Phased delivery
 
-| Phase  | Surface                                                                                            | Access model                                                                                              |
-| ------ | -------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| **V1** | **Agent Skills** pack (`skills/mdcp` via `npx skills add`) + `mdcp compile`/`check` + task helpers | **V1 transport:** repo access (git clone, SSH, IDE) — delivery surface for shards, not the content domain |
-| **V2** | MDCP MCP server (shard read, glossary search)                                                      | Repo access                                                                                               |
-| **V3** | Hosted context API (OpenAPI spec, API keys, polyglot clients)                                      | Opt-in publish                                                                                            |
+| Phase  | Surface                                                                                              | Access model                                                                                              |
+| ------ | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| **V1** | **Agent Skills** pack (`skills/mdcp` via `npx skills add`) + `mdcp compile`/`check` + task workflows | **V1 transport:** repo access (git clone, SSH, IDE) — delivery surface for shards, not the content domain |
+| **V2** | MDCP MCP server (shard read, glossary search)                                                        | Repo access                                                                                               |
+| **V3** | Hosted context API (OpenAPI spec, API keys, polyglot clients)                                        | Opt-in publish                                                                                            |
 
 ```text
   V1 authoring     shards → compile → check → Agent Skill (/mdcp)

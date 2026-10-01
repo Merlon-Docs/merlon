@@ -1,6 +1,6 @@
 # Agent Skill
 
-MDCP ships as a portable **documentation system** Agent Skills pack so projects inherit docs-as-code guardrails without a host-specific IDE extension. The **parent skill** is the intended agent entrypoint for people who want maintainable sharded docs as ideas keep coming.
+MDCP ships as one portable **documentation system** Agent Skill so projects inherit docs-as-code guardrails without a host-specific IDE extension. People install that one skill; it picks the workflow for each task (bootstrap, docs-only, design, feature, UX, doc review) and loads only that workflow's file.
 
 ## Why Agent Skills
 
@@ -9,14 +9,14 @@ Agent Skills give:
 - **Lower friction** — zero-install in the repo, or `npx skills add`
 - **Host interoperability** — Cursor, Copilot, Claude Code, VS Code, and CLI hosts
 - **Simpler maintenance** — markdown skill directories agents load from the repo
-- **Composition** — parent skill plus complementary helpers (catalog: [Helper Skills](./protocol/agent-task-prompts.md); hardened boundaries: [helper skill shards](./protocol/skills/mdcp-getting-started.md); archetype skills are WIP)
+- **Composition** — one skill with task workflows inside it (catalog: [Skill workflows](./protocol/agent-task-prompts.md); hardened boundaries per workflow under `protocol/workflows/`); archetype skills are WIP
 - **Reviewable instructions** — vendored in your agent's skills directory and committed with the project
 
-## Parent skill and complementary skills
+## The skill and complementary skills
 
 **Upstream source** (this repository, publishable):
 
-- [`skills/mdcp/`](../../skills/mdcp/) — parent documentation system (supported consumer entrypoint)
+- [`skills/mdcp/`](../../skills/mdcp/) — the documentation system skill and its workflows (the supported consumer install)
 - [`skills/mdcp-arch-oss-library/`](../../skills/mdcp-arch-oss-library/) — OSS library documentation architecture (**WIP**, not ready for consumer install)
 - [`skills/mdcp-arch-product-docs-site/`](../../skills/mdcp-arch-product-docs-site/) — product docs site architecture (**WIP**, not ready for consumer install)
 
@@ -63,7 +63,7 @@ When applying MDCP, you must act as a complementary partner to other skills and 
 - **Always reference doc shards:** Insert yourself into the process to ensure the current task references the correct documentation shards.
 - **Update as you go:** Continuously update documentation as work progresses.
 - **Small batches / one focused feature:** Prefer one shippable slice per branch or session. Oversized requests produce tangled diffs and half-updated docs; split the request (and the shards) before coding so each change stays reviewable. Pair with [Atomic commit groups](../glossary/atomic-commit-groups.md) when the plan has more than one logical change.
-- **Atomic commit groups:** Before waiting for human review / “go”, coding and multi-concern plans MUST include numbered commit groups. Each group: id/name, one concern, exact files, and the intended conventional commit subject. After approval: implement and `git commit` one group at a time; do not squash unrelated concerns into one commit. Why: reviewable diffs, one concern per commit, and it matches small batches. Day-to-day helpers that produce plans require this section in Step 1 ([Helper Skills](./protocol/agent-task-prompts.md)).
+- **Atomic commit groups:** Before waiting for human review / “go”, coding and multi-concern plans MUST include numbered commit groups. Each group: id/name, one concern, exact files, and the intended conventional commit subject. After approval: implement and `git commit` one group at a time; do not squash unrelated concerns into one commit. Why: reviewable diffs, one concern per commit, and it matches small batches. Day-to-day workflows that produce plans require this section in Step 1 ([Skill workflows](./protocol/agent-task-prompts.md)).
 - **Current docs only:** Shards must describe the product **as it works now**. When behavior or guidance changes, remove superseded or stale text from durable docs — do not leave “old way” sections for archaeology. Git history preserves prior wording; consumer notice of breaking or removed behavior belongs in the **changeset** (folded into package CHANGELOGs at release), not in feature/client/developer shards. Never link durable shards or ADRs to pending `.changeset/*.md` files — those notes are temporary.
 - **Capture ambiguity:** Identify ambiguous terms or language and write down the clarified details into specific shards.
 - **[Shard single responsibility](../glossary/shard-single-responsibility.md):** Each durable shard has one primary concern, for one audience tier, serving one job (explain **or** instruct how-to **or** define/look up — not several). If you cannot state that responsibility in one sentence, split or narrow the shard before shipping it. Depth: [Shard single responsibility and idea mitosis](./protocol/shard-srp-and-mitosis.md).
@@ -81,7 +81,7 @@ Primary discovery: [skills.sh](https://skills.sh) via `npx skills`. There is no 
 Landing identity for skills.sh:
 
 - Root [README](../../README.md) includes the [install-count badge](https://www.skills.sh/docs#badge) (`https://skills.sh/b/betsalel-williamson/mdcp`) and `npx skills add` install commands.
-- Repo-root [`skills.sh.json`](../../skills.sh.json) lists the parent and release-ready helpers in the **Documentation system** group on the [skills.sh repo page](https://www.skills.sh/docs/customize). WIP `mdcp-arch-*` skills stay `metadata.internal` and out of groupings until ready to release.
+- Repo-root [`skills.sh.json`](../../skills.sh.json) lists `mdcp` in the **Documentation system** group on the [skills.sh repo page](https://www.skills.sh/docs/customize). WIP `mdcp-arch-*` skills stay `metadata.internal` and out of groupings until ready to release.
 
-Maintainer detail (what the file does and does not control, helper vs internal
+Maintainer detail (what the file does and does not control, release-ready vs internal
 policy, telemetry refresh): [Agent Skill development — skills.sh.json](../developer/agent-skill.md#skillsshjson-repo-page-layout).

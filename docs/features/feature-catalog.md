@@ -18,21 +18,22 @@ Heading-slug **registry** for validation after compile — see [Refs registry pa
 
 ## Agent Skill
 
-Parent Agent Skill at `skills/mdcp/SKILL.md` (install via `npx skills add` into your agent's skills directory). See [Agent Skill](./agent-skill.md).
+One Agent Skill at `skills/mdcp/SKILL.md` (install via `npx skills add` into your agent's skills directory). See [Agent Skill](./agent-skill.md).
 
-Helper skills extend the parent for specific authoring jobs — catalog and intake:
-[Helper Skills](./protocol/agent-task-prompts.md). Hardened is/isn’t boundaries:
-[Getting-started](./protocol/skills/mdcp-getting-started.md),
-[Feature-level](./protocol/skills/mdcp-feature-level.md),
-[Doc-only](./protocol/skills/mdcp-doc-only.md),
-[Design-architecture](./protocol/skills/mdcp-design-architecture.md),
-[UX](./protocol/skills/mdcp-ux.md).
+The skill picks a workflow for each authoring job and loads only that file. Catalog and intake:
+[Skill workflows](./protocol/agent-task-prompts.md). Hardened is/isn’t boundaries:
+[Getting-started](./protocol/workflows/getting-started.md),
+[Feature-level](./protocol/workflows/feature-level.md),
+[Doc-only](./protocol/workflows/doc-only.md),
+[Design-architecture](./protocol/workflows/design-architecture.md),
+[UX](./protocol/workflows/ux.md),
+[Doc-review](./protocol/workflows/doc-review.md).
 
 ```bash
 npx skills add betsalel-williamson/mdcp --skill mdcp
 ```
 
-Optional local with/without-skill grading for helpers is maintainer workflow — see [Live skill evals](../developer/live-skill-evals.md). Not a CI gate.
+Optional local with/without-skill grading for each workflow is maintainer work — see [Live skill evals](../developer/live-skill-evals.md). Not a CI gate.
 
 ## Check gate (P0.4)
 

@@ -3,13 +3,13 @@ name: mdcp
 description: >-
   Documentation system Agent Skill for MDCP (MarkDown Context Protocol): keep
   specs, architecture notes, and product ideas in small Markdown shards so
-  docs stay maintainable as ideas keep arriving. Teaches agents docs-as-code
-  discipline — update shards before coding, compile/check the docs tree, and
-  validate refs — so people searching for a documentation system can keep
-  trustworthy context without drowning in monolith READMEs. Use PROACTIVELY
-  for documentation systems, docs-as-code, feature docs, mdcp.config.json,
-  glossary shards, refs, or when the user mentions MDCP, sharded docs, or
-  agent documentation workflows.
+  docs stay maintainable as ideas keep arriving. One skill that picks its own
+  workflow: bootstrap a repo, docs-only edits, design and ADRs, docs-first
+  features, UX journeys, and a whole-set doc review that catches sprawl,
+  duplication, and shards that should split or merge. Use PROACTIVELY for any
+  feature, bugfix, or design task in a repo with docs, for docs-as-code,
+  mdcp.config.json, glossary shards, refs, reorganizing or reviewing docs, or
+  when the user mentions MDCP, sharded docs, or agent documentation workflows.
 license: MIT
 compatibility: >-
   Requires Node.js 18+ for @bwilliamson/mdcp-cli (docs compile,
@@ -26,14 +26,16 @@ metadata:
     cliHelp: 'mdcp --help'
 ---
 
-# MDCP (parent skill)
+# MDCP
 
 Host-agnostic **documentation system** Agent Skill for MDCP. Prefer this over
 IDE extensions when you want durable, sharded docs that agents and humans can
 maintain as ideas keep coming.
 
-This **parent skill** is the intended agent entrypoint. Complementary archetype
-skills extend it for specific documentation architectures.
+This is the only skill a project installs. It chooses a workflow for the task in
+front of it (see [Pick the workflow](#5-pick-the-workflow)) and loads just that
+workflow's file. Complementary archetype skills can extend it for specific
+documentation architectures.
 
 Install help: [references/install.md](references/install.md).
 What compile / check / refs mean and CLI commands:
@@ -143,16 +145,13 @@ _(Note: The MDCP engine itself is domain-agnostic. Non-code projects can define 
 
 - **PROACTIVELY on ANY feature, bugfix, or architectural task:** MDCP must be involved in the entire process. Before writing code, trace the requirement back to documentation. Consider the end-user problems and ensure helpful docs exist or are created.
 - Authoring or refactoring sharded markdown under a docs root
-- Bootstrapping MDCP agent guidance (install parent skill first)
+- Bootstrapping MDCP in a repository, or reviewing and reorganizing an existing docs set
 - Cross-links / refs while writing docs
 - Extending guidance via complementary skills or local `docs/extensions/` when needed
 
 ## Execution steps
 
-### 1. Prefer the parent skill
-
-1. Follow this skill’s workflow.
-2. Install / rediscover via:
+### 1. Install or rediscover
 
 ```bash
 npx skills add betsalel-williamson/mdcp --skill mdcp
@@ -193,49 +192,61 @@ To run prose linting (requires Vale):
 mdcp prose
 ```
 
-### 5. Helper Commands
+### 5. Pick the workflow
 
-Task-type instructions live in independent helper skills. Once the MDCP CLI is installed, you can invoke these helpers directly.
+Each kind of work has its own workflow file. Pick **one** for the current
+`WORK_ITEM` (one focused batch per branch), read that file, and follow its
+Process. Do not load the others.
 
-| Helper Skill               | Description                                            |
-| -------------------------- | ------------------------------------------------------ |
-| `mdcp-getting-started`     | Bootstrap MDCP + optional first-feature tutorial       |
-| `mdcp-doc-only`            | Documentation-only work                                |
-| `mdcp-design-architecture` | High-level design and planning (RFCs, ADRs)            |
-| `mdcp-feature-level`       | Implement and document features (docs-first, then TDD) |
-| `mdcp-ux`                  | User experience design and client-guide updates        |
+| The task                                                            | Workflow                                                           |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| No `mdcp.config.json` yet, or the user asks to set up MDCP          | [getting-started](references/workflows/getting-started.md)         |
+| Documentation only, no product code                                 | [doc-only](references/workflows/doc-only.md)                       |
+| Architecture, RFC, or ADR before code exists                        | [design-architecture](references/workflows/design-architecture.md) |
+| A feature or bugfix that changes product code                       | [feature-level](references/workflows/feature-level.md)             |
+| End-user journeys, client guides, UI that serves them               | [ux](references/workflows/ux.md)                                   |
+| Review, tidy, or reorganize docs; or a sprawl trigger below matches | [doc-review](references/workflows/doc-review.md)                   |
 
-**Helper routing (task → skill → artifacts):** Pick **one** helper for the current `WORK_ITEM` (one focused batch per branch). Edit only the artifact paths that helper owns; keep shards current; put no implementation code in durable docs; run `mdcp check` before trusting compiled output.
+When a request spans several rows (for example "design it, build it, and write
+the user guide"), take the first row that applies as this `WORK_ITEM`, say which
+parts you are deferring, and name the workflow each one needs.
 
 ```mermaid
 flowchart TB
   Q{What kind of work?}
 
-  Q -->|Bootstrap MDCP in a repo| GS[mdcp-getting-started]
-  Q -->|Docs / technical writing only| DO[mdcp-doc-only]
-  Q -->|ADR / RFC / high-level design| DA[mdcp-design-architecture]
-  Q -->|Feature: docs-first then TDD| FL[mdcp-feature-level]
-  Q -->|UX / end-user experience| UX[mdcp-ux]
+  Q -->|Bootstrap MDCP in a repo| GS[getting-started]
+  Q -->|Docs / technical writing only| DO[doc-only]
+  Q -->|ADR / RFC / high-level design| DA[design-architecture]
+  Q -->|Feature: docs-first then TDD| FL[feature-level]
+  Q -->|UX / end-user experience| UX[ux]
+  Q -->|Review or tidy the docs set| DR[doc-review]
 
-  GS --> GSa["docs/features/, docs/client/, docs/developer/, docs/glossary/<br/>+ mdcp.config.json + skill install"]
-  DO --> DOa["docs/features/, docs/client/, docs/developer/<br/>(no product code unless WORK_ITEM says so)"]
+  GS --> GSa["docs/features/, docs/client/, docs/developer/, docs/glossary/<br/>+ mdcp.config.json"]
+  DO --> DOa["docs/features/, docs/client/, docs/developer/<br/>(no product code)"]
   DA --> DAa["docs/features/ (incl. protocol / ADRs)<br/>design shards only"]
   FL --> FLa["docs/features/, docs/client/<br/>then source + tests"]
   UX --> UXa["docs/client/<br/>then UI as needed"]
+  DR --> DRa["any guide: merge, split, move, reword, link<br/>+ guide indexes"]
 ```
 
-Bootstrap example:
+Hosts that can fork work (Task tool, `context: fork`, and similar) may run the
+chosen workflow in an isolated agent; otherwise follow it in the main session.
 
-```text
-/mdcp-getting-started
-```
+### 6. Sprawl triggers
 
-Hosts that can fork work (Task tool, `context: fork`, and similar) may run the chosen helper in an isolated agent; otherwise follow it in the main session.
+Docs sprawl gradually, and nobody notices until a reader gets lost. Do not wait
+for the user to spot it. When any of these is true at the end of a workflow,
+run `mdcp review` and, if it reports findings, offer the
+[doc-review workflow](references/workflows/doc-review.md) as the next
+`WORK_ITEM`:
 
-When no `mdcp.config.json` yet: create docs root + config + guide dirs, install
-the parent skill via `npx skills add betsalel-williamson/mdcp --skill mdcp`
-(see [references/install.md](references/install.md)), optionally add
-`@bwilliamson/mdcp-presets`, then compile and check.
+- The session added three or more shards, or added a shard to a guide index that
+  already had about a dozen entries.
+- You wrote a rule or definition and found the same idea already stated in
+  another shard.
+- A shard you edited now serves a second audience or job.
+- The change renamed, moved, or deleted a shard.
 
 ## Zero-install
 

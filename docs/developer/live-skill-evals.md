@@ -2,7 +2,7 @@
 
 Optional local workflow that runs an agent **with** and **without** a subject
 Agent Skill, grades behavior against named assertions, and reviews results in a
-viewer. Maintainers use it to tune skill instructions and prove helper scope
+viewer. Maintainers use it to tune skill instructions and prove each workflow's scope
 (for example design-only vs product code).
 
 This is **maintainer workflow**, not a product capability — it belongs in the
@@ -41,35 +41,30 @@ Live eval fixtures live under `tests/skills/<skill>/evals/` so publishable packs
 under `skills/` stay eval-free (`npx skills` / `pnpm skill:validate` only touch
 `skills/`).
 
-- [mdcp](../../tests/skills/mdcp/evals/README.md) — subject `mdcp`; workspace
-  `.agents/skills/mdcp-workspace/`
-- [mdcp-getting-started](../../tests/skills/mdcp-getting-started/evals/README.md) —
-  subject `mdcp-getting-started`; workspace
-  `.agents/skills/mdcp-getting-started-workspace/`
-- [mdcp-doc-only](../../tests/skills/mdcp-doc-only/evals/README.md) — subject
-  `mdcp-doc-only`; workspace `.agents/skills/mdcp-doc-only-workspace/`
-- [mdcp-design-architecture](../../tests/skills/mdcp-design-architecture/evals/README.md) —
-  subject `mdcp-design-architecture`; workspace
-  `.agents/skills/mdcp-design-architecture-workspace/`
-- [mdcp-feature-level](../../tests/skills/mdcp-feature-level/evals/README.md) —
-  subject `mdcp-feature-level`; workspace
-  `.agents/skills/mdcp-feature-level-workspace/`
-- [mdcp-ux](../../tests/skills/mdcp-ux/evals/README.md) — subject `mdcp-ux`;
-  workspace `.agents/skills/mdcp-ux-workspace/`
+- [mdcp](../../tests/skills/mdcp/evals/README.md) — subject `mdcp`; routing and
+  QA principles; workspace `.agents/skills/mdcp-workspace/`
+- One suite per workflow under `tests/skills/mdcp/evals/<workflow>/`, each with
+  subject `mdcp`:
+  [getting-started](../../tests/skills/mdcp/evals/getting-started/README.md),
+  [doc-only](../../tests/skills/mdcp/evals/doc-only/README.md),
+  [design-architecture](../../tests/skills/mdcp/evals/design-architecture/README.md),
+  [feature-level](../../tests/skills/mdcp/evals/feature-level/README.md),
+  [ux](../../tests/skills/mdcp/evals/ux/README.md); workspace
+  `.agents/skills/mdcp-<workflow>-workspace/`
 
 Each suite README holds operational run steps and discrimination notes. This
 shard is the maintainer index.
 
 ## Layout contract
 
-Shared shape for helper suites:
+Shared shape for workflow suites:
 
-| Path                  | Purpose                                                                 |
-| --------------------- | ----------------------------------------------------------------------- |
-| `evals/evals.json`    | `skill_name`, prompts, `expected_output`, `files[]`, named `assertions` |
-| `evals/files/`        | Isolated fixture trees for run workspaces (not real monorepo `docs/`)   |
-| `evals/triggers.json` | Optional description-trigger tuning (parent suite)                      |
-| `evals/README.md`     | How to run and grade that suite                                         |
+| Path            | Purpose                                                                 |
+| --------------- | ----------------------------------------------------------------------- |
+| `evals.json`    | `skill_name`, prompts, `expected_output`, `files[]`, named `assertions` |
+| `files/`        | Isolated fixture trees for run workspaces (not real monorepo `docs/`)   |
+| `triggers.json` | Optional description-trigger tuning (top-level suite only)              |
+| `README.md`     | How to run and grade that suite                                         |
 
-Helper intake and write obligations stay in
-[Agent helper skills](../features/protocol/agent-task-prompts.md).
+Workflow intake and write obligations stay in
+[Skill workflows](../features/protocol/agent-task-prompts.md).

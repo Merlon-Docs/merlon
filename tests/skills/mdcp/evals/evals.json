@@ -131,7 +131,7 @@
     {
       "id": 8,
       "prompt": "Improve the onboarding checklist so new users understand how to get value from the product. Using the routing fixture, update the right MDCP guides and say which helper skill should own this WORK_ITEM.",
-      "expected_output": "Routes to mdcp-ux per the helper Mermaid map. Primary edits under docs/client/ with outcome/usage focus. Avoids dumping maintainer architecture into client guides and avoids implementation code in shards.",
+      "expected_output": "Routes to the ux workflow per the workflow table. Primary edits under docs/client/ with outcome/usage focus. Avoids dumping maintainer architecture into client guides and avoids implementation code in shards.",
       "files": [
         "evals/files/routing/mdcp.config.json",
         "evals/files/routing/docs/client/index.md",
@@ -142,7 +142,7 @@
       "assertions": [
         {
           "name": "routes_to_ux",
-          "description": "Routes to mdcp-ux per the helper Mermaid map"
+          "description": "Routes to the ux workflow per the workflow table"
         },
         {
           "name": "edits_client_docs",
@@ -161,7 +161,7 @@
     {
       "id": 9,
       "prompt": "We need an ADR for splitting the compile pipeline into stages. Using the routing fixture, document the architecture decision in the right place; do not implement code yet.",
-      "expected_output": "Routes to mdcp-design-architecture. Edits docs/features/ (design/ADR intent) only. No application source or tests; no large implementation code dumps in the design shard.",
+      "expected_output": "Routes to the design-architecture workflow. Edits docs/features/ (design/ADR intent) only. No application source or tests; no large implementation code dumps in the design shard.",
       "files": [
         "evals/files/routing/mdcp.config.json",
         "evals/files/routing/docs/client/index.md",
@@ -172,7 +172,7 @@
       "assertions": [
         {
           "name": "routes_to_design",
-          "description": "Routes to mdcp-design-architecture"
+          "description": "Routes to the design-architecture workflow"
         },
         {
           "name": "edits_features_only",

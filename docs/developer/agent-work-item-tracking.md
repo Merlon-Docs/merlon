@@ -1,6 +1,6 @@
 # Agent work-item tracking
 
-How coding agents load tracker issues and delivery conventions **for this repository**. Helper skills in [Helper Skills](../../docs/skills.md) (installed alongside the MDCP CLI) point here via `WORK_ITEM_LOOKUP`.
+How coding agents load tracker issues and delivery conventions **for this repository**. The work-item workflows of the [MDCP skill](../../docs/skills.md) (installed alongside the MDCP CLI) point here via `WORK_ITEM_LOOKUP`.
 
 **This repo’s work-item lookup system uses GitHub** for both **issues** (acceptance, discussion, `Closes #N`) and **project planning** (the Project board below — status, track, roadmap grouping). Do not invent a second tracker or stuff tickets / sprint backlogs into durable `docs/` shards; load scope from GitHub via this shard.
 

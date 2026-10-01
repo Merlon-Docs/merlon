@@ -31,9 +31,9 @@ The MDCP engine itself is agnostic. Other documentation systems (e.g., Legal Ope
 
 ## 3. Agent task subagents
 
-Helper skills are part of the MDCP 1.0 authoring profile. Activate via the skill trigger (e.g. `/mdcp-feature-level`). See [Agent helper skills](./agent-task-prompts.md).
+Skill workflows are part of the MDCP 1.0 authoring profile. The `mdcp` skill selects one per task (e.g. the feature-level workflow for a code change). See [Skill workflows](./agent-task-prompts.md).
 
-Helper skills **MUST** collect `WORK_ITEM` and `WORK_ITEM_LOOKUP` via interactive intake before editing. Feature work **SHOULD** use [mdcp-feature-level](../../skills/mdcp-feature-level/SKILL.md).
+Work-item workflows **MUST** collect `WORK_ITEM` and `WORK_ITEM_LOOKUP` via interactive intake before editing. Feature work **SHOULD** use the [feature-level workflow](./workflows/feature-level.md).
 
 ## 4. Skills and immutability
 

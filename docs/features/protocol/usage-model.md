@@ -29,7 +29,7 @@ Multi-guide `compileOrder`, publish outputs (`compile.outputFile`).
 
 ### Agent-native
 
-Above plus three-tier shards (`features` / `client` / `developer`), helper skills.
+Above plus three-tier shards (`features` / `client` / `developer`), the `mdcp` skill's workflows.
 
 ## Coexistence
 
@@ -46,4 +46,4 @@ Above plus three-tier shards (`features` / `client` / `developer`), helper skill
 3. Discover the shard with host tools (`rg`, IDE search, guide `index.md`) and **read one shard**
 4. Rely on `mdcp check` for broken `#` cross-links (optionally inspect `mdcp refs-list`)
 
-Read [`docs/skills.md`](../../../docs/skills.md) for the helper skills catalog and workflow index.
+Read [`docs/skills.md`](../../../docs/skills.md) for the skill and its workflow index.

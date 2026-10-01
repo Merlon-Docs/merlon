@@ -1,6 +1,6 @@
 # Agent Skill development
 
-Zero-friction MDCP delivery for AI agents uses the portable **parent** Agent Skill. Upstream source of truth is [`skills/mdcp/SKILL.md`](../../skills/mdcp/SKILL.md). After install (or local dogfood in **this** monorepo), agents load it from `.agents/skills/mdcp/` — that path is this repo's vendor-managed dogfood layout, not the universal consumer install path (consumers get an agent-specific directory via `npx skills add`; see [Agent Skill](../features/agent-skill.md)). Complementary helper skills under `skills/mdcp-*` (except WIP archetypes) ship in the same pack and are listed in [`skills.sh.json`](../../skills.sh.json) under **Documentation system**. Archetype skills (`skills/mdcp-arch-*`) are **not ready to release**: they carry `metadata.internal: true` and stay **out** of `skills.sh.json` until intentionally published. Maintainers can surface them locally with `INSTALL_INTERNAL_SKILLS=1`.
+Zero-friction MDCP delivery for AI agents uses one portable Agent Skill. Upstream source of truth is [`skills/mdcp/SKILL.md`](../../skills/mdcp/SKILL.md). After install (or local dogfood in **this** monorepo), agents load it from `.agents/skills/mdcp/` — that path is this repo's vendor-managed dogfood layout, not the universal consumer install path (consumers get an agent-specific directory via `npx skills add`; see [Agent Skill](../features/agent-skill.md)). Task workflows (bootstrap, doc-only, design-architecture, feature-level, UX, doc review) live inside that skill under `skills/mdcp/references/workflows/`, so consumers install one skill. It is the only skill listed in [`skills.sh.json`](../../skills.sh.json) under **Documentation system**. Archetype skills (`skills/mdcp-arch-*`) are **not ready to release**: they carry `metadata.internal: true` and stay **out** of `skills.sh.json` until intentionally published. Maintainers can surface them locally with `INSTALL_INTERNAL_SKILLS=1`.
 
 ## Local dogfood
 
@@ -26,9 +26,8 @@ agent load path). They are **not** the source of truth.
 | Run `pnpm skill:update` after skill edits so agents pick them up | Commit one-off edits that only exist under `.agents/`             |
 | Propose lasting skill changes as PRs against `skills/`           | Treat `.agents/skills/mdcp*` as durable docs or authoring surface |
 
-Parent and archetype dogfood trees (`.agents/skills/mdcp/`,
-`.agents/skills/mdcp-arch-*`) are gitignored. Helper installs may still appear
-in git when the install tool records them — refresh those with
+The skill and archetype dogfood trees (`.agents/skills/mdcp/`,
+`.agents/skills/mdcp-arch-*`) are gitignored. Refresh them with
 `pnpm skill:update` rather than editing files in place. Eval workspaces under
 `.agents/skills/*-workspace/` stay gitignored; see [Live skill evals](./live-skill-evals.md).
 
@@ -37,7 +36,7 @@ bootstrap: `/mdcp help me get started`.
 
 When changing skill instructions:
 
-1. Edit `skills/mdcp/SKILL.md` (and `references/` as needed) — keep the activation body under 500 lines; put depth in `references/`.
+1. Edit `skills/mdcp/SKILL.md` (and `references/` as needed) — keep the activation body under 500 lines; put depth in `references/`. A new kind of task gets a workflow file under `references/workflows/` and a row in the skill's workflow table, not a new skill.
 2. Do **not** invent new protocol in the skill — CLI and schemas stay in packages.
 3. For archetypes (WIP), edit `skills/mdcp-arch-*` instead of growing the parent forever — do not highlight them in consumer install docs or `skills.sh.json` yet.
 4. Run `pnpm skill:update` after skill edits so local agents pick up changes, then `pnpm skill:validate` and `pnpm docs:check`.
@@ -57,16 +56,16 @@ Qualitative with/without-skill grading is documented in [Live skill evals](./liv
 
 ## Acceptance criteria
 
-1. Parent skill is a valid Agent Skills package (`name: mdcp` matches folder under `skills/`).
-2. Install documents the parent skill via `npx skills add` (complementary archetype skills stay unpublished in consumer docs until ready).
-3. Parent skill encodes bootstrap / smallest-context / hard rules for docs-as-code agents.
+1. The skill is a valid Agent Skills package (`name: mdcp` matches folder under `skills/`).
+2. Install documents the one skill via `npx skills add` (complementary archetype skills stay unpublished in consumer docs until ready).
+3. The skill encodes bootstrap / smallest-context / hard rules for docs-as-code agents and routes each task to one workflow file.
 4. Skill is host-agnostic — no Marketplace-only required steps.
 5. `pnpm skill:validate` ([skills-ref](https://github.com/agentskills/agentskills/tree/main/skills-ref)) passes locally and in CI for changes under `skills/`.
-6. [`skills.sh.json`](../../skills.sh.json) lists the parent and release-ready helpers in the **Documentation system** group — not WIP `mdcp-arch-*` packs.
+6. [`skills.sh.json`](../../skills.sh.json) lists `mdcp` in the **Documentation system** group — not WIP `mdcp-arch-*` packs.
 
 ## Publishing the skill pack
 
-Ship `skills/mdcp/` as the consumer entrypoint; helper skills install from the same GitHub repo. Prefer:
+Ship `skills/mdcp/` as the consumer entrypoint and the only consumer install:
 
 ```bash
 npx skills add betsalel-williamson/mdcp --skill mdcp
@@ -108,10 +107,8 @@ pnpm skill:validate         CI/static gate on skills/ (not on skills.sh.json)
 
 Current policy:
 
-1. **Group release-ready packs** — the **Documentation system** grouping lists
-   parent `mdcp` and helpers (`mdcp-getting-started`, `mdcp-doc-only`,
-   `mdcp-design-architecture`, `mdcp-feature-level`, `mdcp-ux`). Keep parent
-   first; order the rest for scanability.
+1. **One release-ready skill** — the **Documentation system** grouping lists
+   `mdcp` only. Its workflows are files inside the skill, not separate skills.
 2. **Omit WIP archetypes** — `skills/mdcp-arch-*` keep `metadata.internal:
 true` and stay **out** of `skills.sh.json` until intentionally published.
    Maintainers use `INSTALL_INTERNAL_SKILLS=1` to install them locally.

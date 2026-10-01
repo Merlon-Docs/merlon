@@ -1,24 +1,25 @@
 # Skills Index
 
-The MDCP documentation system is a human/machine interface tool. To make it easy for AI agents to adopt the discipline, the system is shipped as a suite of modular Agent Skills.
+The MDCP documentation system is a human/machine interface tool. To make it easy for AI agents to adopt the discipline, the system is published as one Agent Skill. Install it once, and it picks the right workflow for each task.
 
-## Core System
+## The skill
 
-| Skill                           | Description                                                                                               |
-| ------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| [mdcp](../skills/mdcp/SKILL.md) | Parent skill. Teaches the core docs-as-code discipline, what belongs where, and how to use the CLI tools. |
+| Skill                           | Description                                                                                                                             |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| [mdcp](../skills/mdcp/SKILL.md) | Teaches the docs-as-code discipline, what belongs where, and the CLI, then routes each task to one of the workflows below and loads it. |
 
-## Helper Commands
+## Workflows
 
-Specialized workflows that build on the parent skill. Use these to trigger specific types of work.
+Each workflow is a file inside the skill. The agent loads only the one the task needs.
 
-| Skill                                                                   | Description                                                                                                                                                                         |
-| ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [mdcp-getting-started](../skills/mdcp-getting-started/SKILL.md)         | Bootstrap MDCP in a new repository. See [Getting-started helper](./features/protocol/skills/mdcp-getting-started.md).                                                               |
-| [mdcp-doc-only](../skills/mdcp-doc-only/SKILL.md)                       | Documentation-only work. Act as a Technical Writer. See [Doc-only helper](./features/protocol/skills/mdcp-doc-only.md).                                                             |
-| [mdcp-design-architecture](../skills/mdcp-design-architecture/SKILL.md) | Record architecture as MDCP shards (RFCs/ADRs); not deep design critique or product code. See [Design-architecture helper](./features/protocol/skills/mdcp-design-architecture.md). |
-| [mdcp-feature-level](../skills/mdcp-feature-level/SKILL.md)             | Implement and document features (docs-first, then TDD). Act as a Software Engineer. See [Feature-level helper](./features/protocol/skills/mdcp-feature-level.md).                   |
-| [mdcp-ux](../skills/mdcp-ux/SKILL.md)                                   | User-centric design: end-user value, processes, and workflows (UI when it serves those flows). See [UX helper](./features/protocol/skills/mdcp-ux.md).                              |
+| Workflow                                                                          | Description                                                                                                                                                         |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [getting-started](../skills/mdcp/references/workflows/getting-started.md)         | Bootstrap MDCP in a repository. See [Getting-started workflow](./features/protocol/workflows/getting-started.md).                                                   |
+| [doc-only](../skills/mdcp/references/workflows/doc-only.md)                       | Documentation-only work as a technical writer. See [Doc-only workflow](./features/protocol/workflows/doc-only.md).                                                  |
+| [design-architecture](../skills/mdcp/references/workflows/design-architecture.md) | Record architecture as MDCP shards (RFCs/ADRs), without product code. See [Design-architecture workflow](./features/protocol/workflows/design-architecture.md).     |
+| [feature-level](../skills/mdcp/references/workflows/feature-level.md)             | Implement and document features (docs first, then TDD). See [Feature-level workflow](./features/protocol/workflows/feature-level.md).                               |
+| [ux](../skills/mdcp/references/workflows/ux.md)                                   | End-user value, processes, and workflows (UI when it serves those flows). See [UX workflow](./features/protocol/workflows/ux.md).                                   |
+| [doc-review](../skills/mdcp/references/workflows/doc-review.md)                   | Review the docs as a set: catch sprawl and duplication, then merge, split, move, or reword. See [Doc-review workflow](./features/protocol/workflows/doc-review.md). |
 
 ## Architecture Extensions
 

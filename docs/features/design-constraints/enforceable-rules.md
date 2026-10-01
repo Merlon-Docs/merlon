@@ -42,7 +42,7 @@ The advisory rows are stated in the [Agent Skill](../agent-skill.md#quality-assu
 
 ## Applies to
 
-- Rules stated in the MDCP Agent Skill and helper skills
+- Rules stated in the MDCP Agent Skill and its workflows
 - Rules a consuming repository layers on top of MDCP in its own skills or contributor docs
 - Proposed CLI verbs and checks: a proposal that makes an advisory rule partly gated clears the [direct value bar](./direct-value-bar.md) more easily than one that restates the rule
 

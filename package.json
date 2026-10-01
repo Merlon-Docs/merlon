@@ -45,7 +45,7 @@
     "release:build": "node scripts/release-build.mjs",
     "sync:skill-versions": "node scripts/sync-skill-versions.mjs",
     "prepare": "husky",
-    "skill:validate": "node scripts/lint-skill-frontmatter.mjs && skills-ref validate ./skills/mdcp && skills-ref validate ./skills/mdcp-getting-started && skills-ref validate ./skills/mdcp-doc-only && skills-ref validate ./skills/mdcp-design-architecture && skills-ref validate ./skills/mdcp-feature-level && skills-ref validate ./skills/mdcp-ux && skills-ref validate ./skills/mdcp-arch-oss-library && skills-ref validate ./skills/mdcp-arch-product-docs-site && skills-ref validate ./skills/mdcp-arch-gtm",
+    "skill:validate": "node scripts/lint-skill-frontmatter.mjs && skills-ref validate ./skills/mdcp && skills-ref validate ./skills/mdcp-arch-oss-library && skills-ref validate ./skills/mdcp-arch-product-docs-site && skills-ref validate ./skills/mdcp-arch-gtm",
     "skill:install": "npx skills add .",
     "skill:update": "pnpm run skill:install",
     "skill:evals:view": "bash scripts/view-skill-evals.sh",

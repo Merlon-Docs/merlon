@@ -6,7 +6,7 @@
  *
  * Usage:
  *   node scripts/release-build.mjs --packages mdcp-cli,mdcp-core
- *   node scripts/release-build.mjs --skills mdcp,mdcp-ux
+ *   node scripts/release-build.mjs --skills mdcp,mdcp-arch-gtm
  *   node scripts/release-build.mjs --packages mdcp-cli --dry-run
  */
 import { execSync } from 'node:child_process';

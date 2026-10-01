@@ -6,7 +6,7 @@ Per-repository glossary shards under `docs/glossary/` for acronyms and product v
 
 Choosing what belongs in the glossary is an art — not every uncommon word deserves an entry, and not every acronym is obvious to the audience. Each repository **MUST** record its own **inclusion bar** in the glossary (typically the preamble of `docs/glossary/index.md`): which kinds of terms to add, which to omit, and whose understanding counts (client persona, contributors, or both).
 
-[Getting-started](../features/protocol/skills/mdcp-getting-started.md) establishes that bar with the end user during bootstrap. Day-to-day helpers apply it whenever they introduce non-universal language — see [Helper Skills](../features/protocol/agent-task-prompts.md#glossary-obligation-every-helper).
+The [getting-started workflow](../features/protocol/workflows/getting-started.md) establishes that bar with the end user during bootstrap. Day-to-day workflows apply it whenever they introduce non-universal language — see [Skill workflows](../features/protocol/agent-task-prompts.md#glossary-obligation-every-workflow).
 
 ## One term per shard
 

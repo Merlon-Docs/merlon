@@ -134,16 +134,6 @@ importers:
 
   packages/skill-mdcp-arch-product-docs-site: {}
 
-  packages/skill-mdcp-design-architecture: {}
-
-  packages/skill-mdcp-doc-only: {}
-
-  packages/skill-mdcp-feature-level: {}
-
-  packages/skill-mdcp-getting-started: {}
-
-  packages/skill-mdcp-ux: {}
-
 packages:
 
   '@antfu/install-pkg@1.1.0':

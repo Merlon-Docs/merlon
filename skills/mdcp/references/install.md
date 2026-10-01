@@ -1,6 +1,6 @@
-# Install the MDCP skill pack
+# Install the MDCP skill
 
-## Parent skill
+## Install
 
 ```bash
 npx skills add betsalel-williamson/mdcp --skill mdcp
@@ -20,25 +20,20 @@ agent discovers** (same Supported Agents list), not a single fixed path.
 
 ## After install
 
-The `mdcp` parent skill provides the core system. To perform specific tasks, you should install the helper skills alongside it (e.g., `mdcp-getting-started`, `mdcp-feature-level`, `mdcp-doc-only`, `mdcp-design-architecture`, `mdcp-ux`):
+The `mdcp` skill is the whole pack: it picks the workflow for each task
+(bootstrap, docs-only, design, feature, UX, doc review) and loads only that
+workflow's file. There is nothing else to install.
 
-```bash
-npx skills add betsalel-williamson/mdcp --skill mdcp-getting-started
-```
-
-Use the same `-a` / `--agent` flag when targeting a host. Replace the skill name
-for other helpers.
-
-Start a bootstrap session with a natural-language turn under the getting-started helper skill:
+Start a bootstrap session in natural language:
 
 ```text
-/mdcp-getting-started
+/mdcp help me get started
 ```
 
-The agent asks for `FEATURE` and
-`PERSONA` before installing or writing shards. After bootstrap succeeds, it can
-offer a guided first feature (design → feature → UX → doc-only) using a
-recommended example or one you choose.
+The agent asks for `FEATURE`, `PERSONA`, and `EXPERIENCE` before installing or
+writing shards. After bootstrap succeeds, it can offer a guided first feature
+(design → feature → UX → doc-only) using a recommended example or one you
+choose.
 
 Optional archetype skills under `skills/mdcp-arch-*` are WIP and are not part of
 the consumer install path yet.
@@ -61,11 +56,13 @@ This provides the `mdcp` commands for:
 - **refs** — inspect/regenerate the cross-link fragment registry
 - **fix** — format shards (Prettier / markdownlint auto-fix)
 - **prose** — Vale prose lint
+- **review** — report doc sprawl (oversized indexes, long shards, duplicated paragraphs, matching titles)
 
 ```bash
 mdcp compile --config <config> --docs-root <docs-root>
 mdcp check --config <config> --docs-root <docs-root>
 mdcp refs list --config <config> --docs-root <docs-root>
+mdcp review --config <config> --docs-root <docs-root>
 ```
 
 Details: `cli-and-scripts.md` in this folder (linked from `SKILL.md`).

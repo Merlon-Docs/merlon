@@ -1,25 +1,25 @@
-# Helper Skills
+# Skill workflows
 
-Normative profile for **helper skills** that extend the parent MDCP Agent Skill and drive shard authoring across the three-tier guide layout. Parent spec: [MDCP 1.0 (draft)](./mdcp-1.0-spec.md).
+Normative profile for the **workflows** inside the MDCP Agent Skill that drive shard authoring across the three-tier guide layout. Parent spec: [MDCP 1.0 (draft)](./mdcp-1.0-spec.md).
 
 ## Purpose
 
-Helper skills are part of the MDCP **authoring protocol** — not host-specific rules. They tell agents how to load a `WORK_ITEM`, which guides to write, and how to validate before merge. You can invoke them directly using their skill names (e.g. `/mdcp-feature-level`).
+Workflows are part of the MDCP **authoring protocol** — not host-specific rules. They tell agents how to load a `WORK_ITEM`, which guides to write, and how to validate before merge. People install one skill (`mdcp`) and invoke it as `/mdcp` with the task in plain words; the skill picks the workflow from its routing table and loads only that workflow's file.
 
-Reference copies live in the `skills/` directory (e.g., `skills/mdcp-feature-level/SKILL.md`). The canonical catalog is summarized below. **Do not edit** the `skills/` copies directly if you want changes to persist — propose upstream or add extensions.
+Workflow files live in the skill under `skills/mdcp/references/workflows/` (e.g., `feature-level.md`). The canonical catalog is summarized below. **Do not edit** an installed copy of the skill if you want changes to persist — propose upstream or add extensions.
 
 ## Required intake
 
-Every helper skill **MUST** open with an **Intake (ask before editing)** section. The agent **MUST** ask the user for any missing required fields and **MUST** wait for answers before branching or editing shards. Skip a question only when the user already provided that value in the conversation. Do not invent values.
+Every work-item workflow **MUST** open with an **Intake (ask before editing)** section. The agent **MUST** ask the user for any missing required fields and **MUST** wait for answers before branching or editing shards. Skip a question only when the user already provided that value in the conversation. Do not invent values.
 
-Required fields for work-item-driven helpers:
+Required fields for work-item workflows:
 
 | Field              | Meaning                                                                                   | Example intake question                                                                   |
 | ------------------ | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
 | `WORK_ITEM`        | Enough to resolve the task — tracker id, URL, or short issue name/description             | What issue, ticket URL, or task should this session cover?                                |
 | `WORK_ITEM_LOOKUP` | Where to load scope and delivery conventions — shard path or plain location (e.g. GitHub) | Where should you load scope and delivery conventions? (Prefer a `docs/developer/` shard.) |
 
-Bootstrap (`mdcp-getting-started`) **MUST** ask for `FEATURE`, `PERSONA`, and `EXPERIENCE` (novice vs expert onboarding depth) instead of `WORK_ITEM`. After a successful bootstrap, it **MUST** offer an optional **first-feature tutorial** (`RUN_FIRST_FEATURE_TUTORIAL`, default yes for novice) and, when accepted, resolve **EXAMPLE_MODE** (recommended `hello-greeting` or bring-your-own) before walking design → feature → UX → doc-only. Detail: [Getting-started helper](./skills/mdcp-getting-started.md).
+The getting-started workflow **MUST** ask for `FEATURE`, `PERSONA`, and `EXPERIENCE` (novice vs expert onboarding depth) instead of `WORK_ITEM`. After a successful bootstrap, it **MUST** offer an optional **first-feature tutorial** (`RUN_FIRST_FEATURE_TUTORIAL`, default yes for novice) and, when accepted, resolve **EXAMPLE_MODE** (recommended `hello-greeting` or bring-your-own) before walking design → feature → UX → doc-only. Detail: [Getting-started workflow](./workflows/getting-started.md).
 
 Agents **MUST** load the issue (or equivalent) before editing shards or code. One `WORK_ITEM` per branch.
 
@@ -29,33 +29,35 @@ Coding and multi-concern plans **MUST** include an **[Atomic commit groups](../.
 
 Why: reviewable diffs, one concern per commit, and it matches small batches (parent [QA Principles](../agent-skill.md#quality-assurance-qa-principles)).
 
-Day-to-day helpers that produce a plan (`mdcp-feature-level`, `mdcp-doc-only`, `mdcp-design-architecture`, `mdcp-ux`) **MUST** require this section in Step 1. Bootstrap scaffold (`mdcp-getting-started` steps 1–6) stays out of scope for commit grouping; when the optional first-feature tutorial runs, each phase follows the matching day-to-day helper (including commit groups).
+Day-to-day workflows that produce a plan (feature-level, doc-only, design-architecture, UX, doc-review) **MUST** require this section in Step 1. Bootstrap scaffold (getting-started steps 1–6) stays out of scope for commit grouping; when the optional first-feature tutorial runs, each phase follows the matching day-to-day workflow (including commit groups).
 
-## Standard helper skills
+## Standard workflows
 
-| Helper Skill                                                               | Role                               | Primary guides                       |
-| -------------------------------------------------------------------------- | ---------------------------------- | ------------------------------------ |
-| [mdcp-getting-started](../../skills/mdcp-getting-started/SKILL.md)         | Bootstrap + first-feature tutorial | all tiers                            |
-| [mdcp-feature-level](../../skills/mdcp-feature-level/SKILL.md)             | Feature engineering                | `features/`, `client/`, code + tests |
-| [mdcp-doc-only](../../skills/mdcp-doc-only/SKILL.md)                       | Technical writing                  | `features/`, `client/`, `developer/` |
-| [mdcp-design-architecture](../../skills/mdcp-design-architecture/SKILL.md) | Architecture as MDCP shards        | `features/protocol/`, `features/`    |
-| [mdcp-ux](../../skills/mdcp-ux/SKILL.md)                                   | User-centric journeys              | `client/`, glossary                  |
+| Workflow            | Role                                         | Primary guides                       |
+| ------------------- | -------------------------------------------- | ------------------------------------ |
+| getting-started     | Bootstrap + first-feature tutorial           | all tiers                            |
+| feature-level       | Feature engineering                          | `features/`, `client/`, code + tests |
+| doc-only            | Technical writing                            | `features/`, `client/`, `developer/` |
+| design-architecture | Architecture as MDCP shards                  | `features/protocol/`, `features/`    |
+| ux                  | User-centric journeys                        | `client/`, glossary                  |
+| doc-review          | Whole-set review: merge, split, move, reword | any guide and its index              |
 
-Goals and hard boundaries for each helper (what it is / is not):
+Goals and hard boundaries for each workflow (what it is / is not):
 
-- [Getting-started helper](./skills/mdcp-getting-started.md)
-- [Feature-level helper](./skills/mdcp-feature-level.md)
-- [Doc-only helper](./skills/mdcp-doc-only.md)
-- [Design-architecture helper](./skills/mdcp-design-architecture.md)
-- [UX helper](./skills/mdcp-ux.md)
+- [Getting-started workflow](./workflows/getting-started.md)
+- [Feature-level workflow](./workflows/feature-level.md)
+- [Doc-only workflow](./workflows/doc-only.md)
+- [Design-architecture workflow](./workflows/design-architecture.md)
+- [UX workflow](./workflows/ux.md)
+- [Doc-review workflow](./workflows/doc-review.md)
 
-Index: [skills.md](../../docs/skills.md). Some helpers also have optional [live skill eval](../../developer/live-skill-evals.md) suites under `tests/skills/`.
+Index: [skills.md](../../docs/skills.md). Most workflows also have optional [live skill eval](../../developer/live-skill-evals.md) suites under `tests/skills/mdcp/evals/`.
 
 ## Three-tier authoring obligations
 
 Place each shard by **audience and job**, not by topic keyword. The same subject (for example Agent Skills) can span tiers: product delivery in `features/`, consumer install in `client/`, maintainer evals in `developer/`.
 
-| Guide             | Holds (put here)                                                                                    | Keep out                                                        | Helpers that write here                      |
+| Guide             | Holds (put here)                                                                                    | Keep out                                                        | Workflows that write here                    |
 | ----------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | -------------------------------------------- |
 | `docs/features/`  | What the product does — capabilities, design/ADRs, contracts, acceptance criteria                   | Maintainer runbooks, CI/eval loops, contributor setup           | feature-level, doc-only, design-architecture |
 | `docs/client/`    | How consumers use it — end-user value, install/config/usage for the shipped tool                    | Internal contributor process, skill-authoring, live eval suites | feature-level, doc-only, ux                  |
@@ -63,9 +65,9 @@ Place each shard by **audience and job**, not by topic keyword. The same subject
 
 **Placement test:** If removing the shard would confuse a **consumer** of the tool, it is features or client. If only **contributors** to this monorepo need it, it is developer.
 
-## Glossary obligation (every helper)
+## Glossary obligation (every workflow)
 
-Every helper skill **MUST** treat glossary hygiene as part of its session — not
+Every workflow **MUST** treat glossary hygiene as part of its session — not
 an optional afterthought for doc-only or UX alone.
 
 - **Non-universal language** — If a shard introduces jargon, acronyms, or
@@ -73,8 +75,8 @@ an optional afterthought for doc-only or UX alone.
   define them under `docs/glossary/` (one term per shard) and link from first use.
 - **Project inclusion bar** — What does / does not belong in the glossary is a
   judgment call. The **project’s** bar is recorded in the glossary itself
-  (typically the `docs/glossary/index.md` preamble). Helpers **MUST** follow
-  that bar; when none exists yet, [getting-started](./skills/mdcp-getting-started.md)
+  (typically the `docs/glossary/index.md` preamble). Workflows **MUST** follow
+  that bar; when none exists yet, [getting-started](./workflows/getting-started.md)
   establishes it with the end user.
 - **Not a dump of everyday words** — Do not glossary terms that are already
   unambiguous for the stated audience; prefer a short entry over unexplained
@@ -84,8 +86,8 @@ Shared layout and term mechanics: [domain glossary](../../glossary/domain-glossa
 
 ## Feature-level workflow (normative summary)
 
-When using [mdcp-feature-level](../../skills/mdcp-feature-level/SKILL.md)
-(detail: [Feature-level helper](./skills/mdcp-feature-level.md)):
+When the skill routes to the feature-level workflow
+(detail: [Feature-level workflow](./workflows/feature-level.md)):
 
 1. Complete intake (`WORK_ITEM`, `WORK_ITEM_LOOKUP`)
 2. Outline the plan with [Atomic commit groups](../../glossary/atomic-commit-groups.md) before “go”
@@ -98,22 +100,23 @@ When using [mdcp-feature-level](../../skills/mdcp-feature-level/SKILL.md)
 
 ## Design-architecture workflow (normative summary)
 
-When using [mdcp-design-architecture](../../skills/mdcp-design-architecture/SKILL.md)
-(detail: [Design-architecture helper](./skills/mdcp-design-architecture.md)):
+When the skill routes to the design-architecture workflow
+(detail: [Design-architecture workflow](./workflows/design-architecture.md)):
 
 1. Complete intake (`WORK_ITEM`, `WORK_ITEM_LOOKUP`)
 2. Outline the plan with [Atomic commit groups](../../glossary/atomic-commit-groups.md) before “go”
 3. Branch from updated `main` for `WORK_ITEM`
 4. Draft or split architecture intent under `docs/features/` (and ADRs under `docs/features/adr/` when appropriate); update indexes
-5. Retire superseded design text from durable shards; leave product code and client guides to other helpers
+5. Retire superseded design text from durable shards; leave product code and client guides to other workflows
 6. **Validate** — `mdcp check` (and repo docs validation)
 7. **Wrap-up** — link `WORK_ITEM`; defer implementation / UX polish explicitly when the ask was oversized
 
 ## Entrypoint chain
 
 ```text
-/mdcp-feature-level → intake questions → shards → mdcp check
-/mdcp-design-architecture → intake → feature/ADR shards → mdcp check
+/mdcp <feature request> → feature-level workflow → intake questions → shards → mdcp check
+/mdcp <design request>  → design-architecture workflow → intake → feature/ADR shards → mdcp check
+/mdcp review the docs   → doc-review workflow → mdcp review → decisions → shards → mdcp check
 ```
 
-The helper skill collects `WORK_ITEM_LOOKUP` via intake for scope.
+The chosen workflow collects `WORK_ITEM_LOOKUP` via intake for scope.

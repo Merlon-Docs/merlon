@@ -87,7 +87,7 @@ pnpm vale:sync            # once — requires Vale on PATH; syncs styles for doc
 
 ### Work-item tracking setup step
 
-If you use coding agents with helper skills ([helper skills](docs/skills.md)), document how to load tracker issues **once per repo**. This project maintains that in [Agent work-item tracking](#agent-work-item-tracking) — add it to your setup checklist alongside install and build steps. Consumer repos should add a similar shard under `docs/developer/` and link it from local setup.
+If you use coding agents with the MDCP skill ([skills index](docs/skills.md)), document how to load tracker issues **once per repo**. This project maintains that in [Agent work-item tracking](#agent-work-item-tracking) — add it to your setup checklist alongside install and build steps. Consumer repos should add a similar shard under `docs/developer/` and link it from local setup.
 
 ### Daily commands
 
@@ -171,7 +171,7 @@ Because the agent cannot open GitHub issues, capture work items as ready-to-past
 
 ## Agent work-item tracking
 
-How coding agents load tracker issues and delivery conventions **for this repository**. Helper skills in [Helper Skills](docs/skills.md) (installed alongside the MDCP CLI) point here via `WORK_ITEM_LOOKUP`.
+How coding agents load tracker issues and delivery conventions **for this repository**. The work-item workflows of the [MDCP skill](docs/skills.md) (installed alongside the MDCP CLI) point here via `WORK_ITEM_LOOKUP`.
 
 **This repo’s work-item lookup system uses GitHub** for both **issues** (acceptance, discussion, `Closes #N`) and **project planning** (the Project board below — status, track, roadmap grouping). Do not invent a second tracker or stuff tickets / sprint backlogs into durable `docs/` shards; load scope from GitHub via this shard.
 
@@ -417,8 +417,7 @@ mdcp/
 ├── README.md               # Compiled from docs/repo-readme/ (committed)
 ├── DEVELOPERS.md           # Compiled from docs/developer/ (committed)
 ├── skills/                 # Agent Skills install surface only (npx skills add)
-│   ├── mdcp/               # Parent skill (no package.json / CHANGELOG here)
-│   ├── mdcp-*/             # Helper skills
+│   ├── mdcp/               # The MDCP skill + workflows (no package.json / CHANGELOG here)
 │   └── mdcp-arch-*/        # WIP archetypes (metadata.internal)
 ├── tests/skills/           # Live eval fixtures (optional; not publishable packs)
 ├── skills.sh.json          # skills.sh repo page layout
@@ -638,7 +637,7 @@ _Note: GitHub and GitHub Flavored Markdown are trademarks of GitHub, Inc. This p
 
 ## Agent Skill development
 
-Zero-friction MDCP delivery for AI agents uses the portable **parent** Agent Skill. Upstream source of truth is [`skills/mdcp/SKILL.md`](skills/mdcp/SKILL.md). After install (or local dogfood in **this** monorepo), agents load it from `.agents/skills/mdcp/` — that path is this repo's vendor-managed dogfood layout, not the universal consumer install path (consumers get an agent-specific directory via `npx skills add`; see [Agent Skill](docs/features/agent-skill.md)). Complementary helper skills under `skills/mdcp-*` (except WIP archetypes) ship in the same pack and are listed in [`skills.sh.json`](skills.sh.json) under **Documentation system**. Archetype skills (`skills/mdcp-arch-*`) are **not ready to release**: they carry `metadata.internal: true` and stay **out** of `skills.sh.json` until intentionally published. Maintainers can surface them locally with `INSTALL_INTERNAL_SKILLS=1`.
+Zero-friction MDCP delivery for AI agents uses one portable Agent Skill. Upstream source of truth is [`skills/mdcp/SKILL.md`](skills/mdcp/SKILL.md). After install (or local dogfood in **this** monorepo), agents load it from `.agents/skills/mdcp/` — that path is this repo's vendor-managed dogfood layout, not the universal consumer install path (consumers get an agent-specific directory via `npx skills add`; see [Agent Skill](docs/features/agent-skill.md)). Task workflows (bootstrap, doc-only, design-architecture, feature-level, UX, doc review) live inside that skill under `skills/mdcp/references/workflows/`, so consumers install one skill. It is the only skill listed in [`skills.sh.json`](skills.sh.json) under **Documentation system**. Archetype skills (`skills/mdcp-arch-*`) are **not ready to release**: they carry `metadata.internal: true` and stay **out** of `skills.sh.json` until intentionally published. Maintainers can surface them locally with `INSTALL_INTERNAL_SKILLS=1`.
 
 ### Local dogfood
 
@@ -664,9 +663,8 @@ agent load path). They are **not** the source of truth.
 | Run `pnpm skill:update` after skill edits so agents pick them up | Commit one-off edits that only exist under `.agents/`             |
 | Propose lasting skill changes as PRs against `skills/`           | Treat `.agents/skills/mdcp*` as durable docs or authoring surface |
 
-Parent and archetype dogfood trees (`.agents/skills/mdcp/`,
-`.agents/skills/mdcp-arch-*`) are gitignored. Helper installs may still appear
-in git when the install tool records them — refresh those with
+The skill and archetype dogfood trees (`.agents/skills/mdcp/`,
+`.agents/skills/mdcp-arch-*`) are gitignored. Refresh them with
 `pnpm skill:update` rather than editing files in place. Eval workspaces under
 `.agents/skills/*-workspace/` stay gitignored; see [Live skill evals](#live-skill-evals).
 
@@ -675,7 +673,7 @@ bootstrap: `/mdcp help me get started`.
 
 When changing skill instructions:
 
-1. Edit `skills/mdcp/SKILL.md` (and `references/` as needed) — keep the activation body under 500 lines; put depth in `references/`.
+1. Edit `skills/mdcp/SKILL.md` (and `references/` as needed) — keep the activation body under 500 lines; put depth in `references/`. A new kind of task gets a workflow file under `references/workflows/` and a row in the skill's workflow table, not a new skill.
 2. Do **not** invent new protocol in the skill — CLI and schemas stay in packages.
 3. For archetypes (WIP), edit `skills/mdcp-arch-*` instead of growing the parent forever — do not highlight them in consumer install docs or `skills.sh.json` yet.
 4. Run `pnpm skill:update` after skill edits so local agents pick up changes, then `pnpm skill:validate` and `pnpm docs:check`.
@@ -695,16 +693,16 @@ Qualitative with/without-skill grading is documented in [Live skill evals](#live
 
 ### Acceptance criteria
 
-1. Parent skill is a valid Agent Skills package (`name: mdcp` matches folder under `skills/`).
-2. Install documents the parent skill via `npx skills add` (complementary archetype skills stay unpublished in consumer docs until ready).
-3. Parent skill encodes bootstrap / smallest-context / hard rules for docs-as-code agents.
+1. The skill is a valid Agent Skills package (`name: mdcp` matches folder under `skills/`).
+2. Install documents the one skill via `npx skills add` (complementary archetype skills stay unpublished in consumer docs until ready).
+3. The skill encodes bootstrap / smallest-context / hard rules for docs-as-code agents and routes each task to one workflow file.
 4. Skill is host-agnostic — no Marketplace-only required steps.
 5. `pnpm skill:validate` ([skills-ref](https://github.com/agentskills/agentskills/tree/main/skills-ref)) passes locally and in CI for changes under `skills/`.
-6. [`skills.sh.json`](skills.sh.json) lists the parent and release-ready helpers in the **Documentation system** group — not WIP `mdcp-arch-*` packs.
+6. [`skills.sh.json`](skills.sh.json) lists `mdcp` in the **Documentation system** group — not WIP `mdcp-arch-*` packs.
 
 ### Publishing the skill pack
 
-Ship `skills/mdcp/` as the consumer entrypoint; helper skills install from the same GitHub repo. Prefer:
+Ship `skills/mdcp/` as the consumer entrypoint and the only consumer install:
 
 ```bash
 npx skills add betsalel-williamson/mdcp --skill mdcp
@@ -746,10 +744,8 @@ pnpm skill:validate         CI/static gate on skills/ (not on skills.sh.json)
 
 Current policy:
 
-1. **Group release-ready packs** — the **Documentation system** grouping lists
-   parent `mdcp` and helpers (`mdcp-getting-started`, `mdcp-doc-only`,
-   `mdcp-design-architecture`, `mdcp-feature-level`, `mdcp-ux`). Keep parent
-   first; order the rest for scanability.
+1. **One release-ready skill** — the **Documentation system** grouping lists
+   `mdcp` only. Its workflows are files inside the skill, not separate skills.
 2. **Omit WIP archetypes** — `skills/mdcp-arch-*` keep `metadata.internal:
 true` and stay **out** of `skills.sh.json` until intentionally published.
    Maintainers use `INSTALL_INTERNAL_SKILLS=1` to install them locally.
@@ -775,7 +771,7 @@ Consumer-facing landing identity (badge, README install commands) stays in
 
 Optional local workflow that runs an agent **with** and **without** a subject
 Agent Skill, grades behavior against named assertions, and reviews results in a
-viewer. Maintainers use it to tune skill instructions and prove helper scope
+viewer. Maintainers use it to tune skill instructions and prove each workflow's scope
 (for example design-only vs product code).
 
 This is **maintainer workflow**, not a product capability — it belongs in the
@@ -814,38 +810,33 @@ Live eval fixtures live under `tests/skills/<skill>/evals/` so publishable packs
 under `skills/` stay eval-free (`npx skills` / `pnpm skill:validate` only touch
 `skills/`).
 
-- [mdcp](tests/skills/mdcp/evals/README.md) — subject `mdcp`; workspace
-  `.agents/skills/mdcp-workspace/`
-- [mdcp-getting-started](tests/skills/mdcp-getting-started/evals/README.md) —
-  subject `mdcp-getting-started`; workspace
-  `.agents/skills/mdcp-getting-started-workspace/`
-- [mdcp-doc-only](tests/skills/mdcp-doc-only/evals/README.md) — subject
-  `mdcp-doc-only`; workspace `.agents/skills/mdcp-doc-only-workspace/`
-- [mdcp-design-architecture](tests/skills/mdcp-design-architecture/evals/README.md) —
-  subject `mdcp-design-architecture`; workspace
-  `.agents/skills/mdcp-design-architecture-workspace/`
-- [mdcp-feature-level](tests/skills/mdcp-feature-level/evals/README.md) —
-  subject `mdcp-feature-level`; workspace
-  `.agents/skills/mdcp-feature-level-workspace/`
-- [mdcp-ux](tests/skills/mdcp-ux/evals/README.md) — subject `mdcp-ux`;
-  workspace `.agents/skills/mdcp-ux-workspace/`
+- [mdcp](tests/skills/mdcp/evals/README.md) — subject `mdcp`; routing and
+  QA principles; workspace `.agents/skills/mdcp-workspace/`
+- One suite per workflow under `tests/skills/mdcp/evals/<workflow>/`, each with
+  subject `mdcp`:
+  [getting-started](tests/skills/mdcp/evals/getting-started/README.md),
+  [doc-only](tests/skills/mdcp/evals/doc-only/README.md),
+  [design-architecture](tests/skills/mdcp/evals/design-architecture/README.md),
+  [feature-level](tests/skills/mdcp/evals/feature-level/README.md),
+  [ux](tests/skills/mdcp/evals/ux/README.md); workspace
+  `.agents/skills/mdcp-<workflow>-workspace/`
 
 Each suite README holds operational run steps and discrimination notes. This
 shard is the maintainer index.
 
 ### Layout contract
 
-Shared shape for helper suites:
+Shared shape for workflow suites:
 
-| Path                  | Purpose                                                                 |
-| --------------------- | ----------------------------------------------------------------------- |
-| `evals/evals.json`    | `skill_name`, prompts, `expected_output`, `files[]`, named `assertions` |
-| `evals/files/`        | Isolated fixture trees for run workspaces (not real monorepo `docs/`)   |
-| `evals/triggers.json` | Optional description-trigger tuning (parent suite)                      |
-| `evals/README.md`     | How to run and grade that suite                                         |
+| Path            | Purpose                                                                 |
+| --------------- | ----------------------------------------------------------------------- |
+| `evals.json`    | `skill_name`, prompts, `expected_output`, `files[]`, named `assertions` |
+| `files/`        | Isolated fixture trees for run workspaces (not real monorepo `docs/`)   |
+| `triggers.json` | Optional description-trigger tuning (top-level suite only)              |
+| `README.md`     | How to run and grade that suite                                         |
 
-Helper intake and write obligations stay in
-[Agent helper skills](docs/features/protocol/agent-task-prompts.md).
+Workflow intake and write obligations stay in
+[Skill workflows](docs/features/protocol/agent-task-prompts.md).
 
 <!-- mdcp-shard: end docs/developer/live-skill-evals.md -->
 
@@ -1308,7 +1299,7 @@ Per-repository glossary shards under `docs/glossary/` for acronyms and product v
 
 Choosing what belongs in the glossary is an art — not every uncommon word deserves an entry, and not every acronym is obvious to the audience. Each repository **MUST** record its own **inclusion bar** in the glossary (typically the preamble of `docs/glossary/index.md`): which kinds of terms to add, which to omit, and whose understanding counts (client persona, contributors, or both).
 
-[Getting-started](docs/features/protocol/skills/mdcp-getting-started.md) establishes that bar with the end user during bootstrap. Day-to-day helpers apply it whenever they introduce non-universal language — see [Helper Skills](docs/features/protocol/agent-task-prompts.md#glossary-obligation-every-helper).
+The [getting-started workflow](docs/features/protocol/workflows/getting-started.md) establishes that bar with the end user during bootstrap. Day-to-day workflows apply it whenever they introduce non-universal language — see [Skill workflows](docs/features/protocol/agent-task-prompts.md#glossary-obligation-every-workflow).
 
 ### One term per shard
 
