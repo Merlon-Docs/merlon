@@ -73,6 +73,13 @@ docs/presentation-la-devops/assets/*.svg
 # Sample guides fixture output
 examples/sample-guides/_build/
 
+# Docs site (packages/mdcp-site): Astro cache plus pages and sidebar generated
+# from docs/ shards by scripts/sync-content.mjs. Only the landing page is authored.
+packages/mdcp-site/.astro/
+packages/mdcp-site/.generated/
+packages/mdcp-site/src/content/docs/*
+!packages/mdcp-site/src/content/docs/index.mdx
+
 # OS
 .DS_Store
 

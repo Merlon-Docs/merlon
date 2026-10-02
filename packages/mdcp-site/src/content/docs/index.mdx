@@ -1,0 +1,93 @@
+---
+title: Docs that stay true while agents write the code
+description: Keep repository docs accurate while agents write the code. mdcp compiles small Markdown shards into the READMEs people read and fails CI when they drift.
+template: splash
+editUrl: false
+hero:
+  tagline: mdcp keeps your repository docs in small Markdown shards and compiles them into the READMEs people read. Its check fails the build when a cross-link breaks or a compiled file goes stale.
+  actions:
+    - text: Get started
+      link: /mdcp/guide/install-and-quick-start/
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/betsalel-williamson/mdcp
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+## Why repository docs rot
+
+Docs fall behind as a project grows. Every merge can change behavior, and the README changes only when someone remembers to update it. When coding agents write most of the code, merges arrive faster than anyone rereads the docs they affect.
+
+## How mdcp keeps them accurate
+
+<CardGrid>
+  <Card title="Small shards" icon="document">
+    Each topic lives in its own Markdown file under `docs/`. People and agents open the one shard a
+    task needs, so doc changes stay small and easy to review.
+  </Card>
+  <Card title="Compiled READMEs" icon="open-book">
+    `mdcp compile` stitches shards into the README and guide files that readers open on GitHub and
+    npm. Those files are compiler output, so every edit starts from a shard.
+  </Card>
+  <Card title="A check that fails CI" icon="approve-check">
+    `mdcp check` fails the build when a cross-link points at a missing heading or a compiled file is
+    out of date, so drift surfaces in the pull request that caused it.
+  </Card>
+  <Card title="One agent skill" icon="puzzle">
+    The mdcp skill teaches your agent when to update the docs and how. It runs in any host that
+    supports Agent Skills, including Claude Code and Cursor.
+  </Card>
+</CardGrid>
+
+## One skill picks the workflow
+
+Install the skill into your repository:
+
+```bash
+npx skills add betsalel-williamson/mdcp --skill mdcp
+```
+
+Then ask your agent for what you need, for example `/mdcp help me get started`. The skill reads the request and chooses the workflow itself:
+
+- **Bootstrap** sets up the config and guide layout in a new or existing repository, then adds the check to CI.
+- **Docs-only** writes or refactors shards without touching product code.
+- **Design** records architecture decisions as shards, one concern per file.
+- **Feature** documents a feature first, then implements it test-first.
+- **UX** documents user workflows in the client guides.
+- **Doc review** reads the whole doc set to find sprawl and duplication, and says when a shard should split or two shards should merge.
+
+Commit the installed skill so every teammate and agent works from the same instructions.
+
+## Works alongside Superpowers
+
+[Superpowers](https://github.com/obra/superpowers) is a library of 15 workflow skills for coding agents, covering brainstorming, planning, plan execution, test-driven development, debugging, code review, and git worktrees. Its brainstorming and planning skills save dated design and plan files under `docs/superpowers/specs/` and `docs/superpowers/plans/`. Those files guide the work while it is in progress.
+
+mdcp covers what comes after: the product documentation that has to stay accurate once the work ships. Use Superpowers to plan and build a change, and mdcp to keep the docs true after it merges. This repository uses both, with Superpowers plans in a gitignored `docs/superpowers/` folder and the durable docs in mdcp shards.
+
+## Explore the docs
+
+<CardGrid>
+  <LinkCard
+    title="Install and quick start"
+    href="/mdcp/guide/install-and-quick-start/"
+    description="Add the mdcp CLI to a repository and run your first compile."
+  />
+  <LinkCard
+    title="How mdcp fits together"
+    href="/mdcp/concepts/overview/"
+    description="The mental model behind shards and the compile pipeline."
+  />
+  <LinkCard
+    title="Why mdcp for coding agents"
+    href="/mdcp/guide/why-mdcp-for-agents/"
+    description="Common docs failures when agents edit a repository, and the command that addresses each."
+  />
+  <LinkCard
+    title="Library API"
+    href="/mdcp/api/overview/"
+    description="Compile and validate docs from your own code with @bwilliamson/mdcp-core."
+  />
+</CardGrid>

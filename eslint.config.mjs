@@ -5,7 +5,15 @@ export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    ignores: ['**/dist/**', '**/node_modules/**', 'legacy/**', '.agents/**'],
+    ignores: [
+      '**/dist/**',
+      '**/node_modules/**',
+      'legacy/**',
+      '.agents/**',
+      // Docs site: Astro cache and content generated from docs/ shards.
+      'packages/mdcp-site/.astro/**',
+      'packages/mdcp-site/.generated/**',
+    ],
   },
   {
     files: ['packages/**/*.ts'],
@@ -24,6 +32,18 @@ export default tseslint.config(
       globals: {
         console: 'readonly',
         process: 'readonly',
+      },
+    },
+  },
+  {
+    files: ['packages/mdcp-site/**/*.mjs'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+        URL: 'readonly',
       },
     },
   },

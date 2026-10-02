@@ -50,7 +50,10 @@
     "skill:update": "pnpm run skill:install",
     "skill:evals:view": "bash scripts/view-skill-evals.sh",
     "docs:compile:examples": "node packages/mdcp-cli/dist/cli.js compile --config examples/sample-guides/mdcp.config.json --docs-root examples/sample-guides --warn-broken-links",
-    "docs:compile": "pnpm run docs:compile:repo && pnpm run docs:compile:examples"
+    "docs:compile": "pnpm run docs:compile:repo && pnpm run docs:compile:examples",
+    "site:prepare": "pnpm run build && pnpm run docs:compile:repo",
+    "site:dev": "pnpm run site:prepare && pnpm --filter @bwilliamson/mdcp-site run dev",
+    "site:build": "pnpm run site:prepare && pnpm --filter @bwilliamson/mdcp-site run build:site"
   },
   "engines": {
     "node": ">=18.0.0"
