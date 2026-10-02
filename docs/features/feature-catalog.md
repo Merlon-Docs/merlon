@@ -67,6 +67,10 @@ en-US writing cues such as an unlinked "See Chapter…" mention, and dogfood war
 
 Report markdown files that no guide accounts for. Register single files as [standalone guides](../glossary/standalone-guide.md) or fold them into a compiled guide. Reported in `mdcp check`; fails the gate when `scan.strict: true`. See [Documentation coverage scan](./coverage-scan.md).
 
+## Sprawl review
+
+`mdcp review` reports documentation sprawl signals (oversized index groups, long shards, paragraphs duplicated across shards, and same-titled shards in one guide) without failing unless you pass `--strict`. See [Commands reference](../client-cli/commands-reference.md#sprawl-review).
+
 ## Peer linters (P2.1)
 
 Orchestrate markdownlint-cli2, Vale, Prettier, markdown-link-check from host repo. Shard markdownlint and Vale prose only touch registered guide shard trees (`compileOrder`); optional `shardsGlobs` / `vale.scanGlobs` narrow scope further.

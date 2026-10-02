@@ -111,7 +111,24 @@ export {
   type LintLinksOptions,
 } from './links/lint.js';
 export { checkOrphansForGuides, type OrphanIssue, type GuideDirEntry } from './validate/orphans.js';
-export { computeCoverage, type CoverageResult, type CoverageOptions } from './validate/coverage.js';
+export {
+  computeCoverage,
+  filterScanIgnored,
+  type CoverageResult,
+  type CoverageOptions,
+} from './validate/coverage.js';
+export {
+  reviewDocs,
+  formatReviewReport,
+  DEFAULT_REVIEW_THRESHOLDS,
+  REVIEW_SIGNALS,
+  REVIEW_FIXES,
+  type ReviewFinding,
+  type ReviewOptions,
+  type ReviewResult,
+  type ReviewSignal,
+  type ReviewThresholds,
+} from './validate/review.js';
 export {
   abbreviateProtocolVersion,
   expandProtocolVersion,

@@ -170,6 +170,28 @@ When a manifest has preamble prose with example inline links before an ordered `
 }
 ```
 
+## Review thresholds
+
+`mdcp review` reads optional thresholds from a top-level `review` object. Each value is a positive integer; omitted keys keep their defaults.
+
+```json
+{
+  "review": {
+    "maxIndexEntries": 12,
+    "maxShardWords": 2500,
+    "minDuplicateWords": 25
+  }
+}
+```
+
+| Field                      | Default | Role                                                                                  |
+| -------------------------- | ------- | ------------------------------------------------------------------------------------- |
+| `review.maxIndexEntries`   | `12`    | Most shard links one index group lists before `index-size` fires                      |
+| `review.maxShardWords`     | `2500`  | Most prose words one shard holds before `long-shard` fires                            |
+| `review.minDuplicateWords` | `25`    | Fewest words a paragraph needs before `duplicate-paragraph` compares it across shards |
+
+`mdcp review` also honors `scan.ignore` and `scan.root`, so paths the coverage scan skips stay out of the review. Signal definitions: [Commands reference](./commands-reference.md#sprawl-review).
+
 ## Schema-only fields
 
 | Field                | Notes                                             |

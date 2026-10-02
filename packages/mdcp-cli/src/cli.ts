@@ -24,6 +24,8 @@ import {
   runPeer,
   shardFromMonolith,
   formatLinkIssue,
+  reviewDocs,
+  formatReviewReport,
   type LinkIssue,
   type LinkSeverity,
   type MdcpConfig,
@@ -539,6 +541,28 @@ cli
       console.log('mdcp check passed');
     },
   );
+
+cli
+  .command('review', 'Report documentation sprawl signals (report-only)')
+  .option('--json', 'Print findings as a JSON array')
+  .option('--strict', 'Exit 1 when there is any finding')
+  .action((opts: GlobalOpts & { json?: boolean; strict?: boolean }) => {
+    const config = getConfig(opts);
+    const docsRoot = getDocsRoot(opts);
+    const result = reviewDocs({
+      guides: guideEntries(config, docsRoot),
+      docsRoot,
+      scanRoot: getScanRoot(config),
+      ignore: config.scan?.ignore ?? [],
+      thresholds: config.review,
+    });
+    if (opts.json) {
+      console.log(JSON.stringify(result.findings, null, 2));
+    } else {
+      console.log(formatReviewReport(result));
+    }
+    if (opts.strict && result.findings.length > 0) process.exitCode = 1;
+  });
 
 try {
   // Backwards compatibility for `refs <subcommand>` -> `refs-<subcommand>`

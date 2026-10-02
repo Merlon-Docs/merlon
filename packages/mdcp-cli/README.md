@@ -318,6 +318,28 @@ When a manifest has preamble prose with example inline links before an ordered `
 }
 ```
 
+### Review thresholds
+
+`mdcp review` reads optional thresholds from a top-level `review` object. Each value is a positive integer; omitted keys keep their defaults.
+
+```json
+{
+  "review": {
+    "maxIndexEntries": 12,
+    "maxShardWords": 2500,
+    "minDuplicateWords": 25
+  }
+}
+```
+
+| Field                      | Default | Role                                                                                  |
+| -------------------------- | ------- | ------------------------------------------------------------------------------------- |
+| `review.maxIndexEntries`   | `12`    | Most shard links one index group lists before `index-size` fires                      |
+| `review.maxShardWords`     | `2500`  | Most prose words one shard holds before `long-shard` fires                            |
+| `review.minDuplicateWords` | `25`    | Fewest words a paragraph needs before `duplicate-paragraph` compares it across shards |
+
+`mdcp review` also honors `scan.ignore` and `scan.root`, so paths the coverage scan skips stay out of the review. Signal definitions: [Commands reference](#sprawl-review).
+
 ### Schema-only fields
 
 | Field                | Notes                                             |
@@ -370,12 +392,40 @@ When `mdcp check` fails after continuing through peer linters, it prints a stder
 | ---------------- | -------------------------------------------------------------------------------------------------- |
 | `mdcp compile`   | Regenerate compiled outputs and `refs.json` under `outputDir` (exits 1 on broken links by default) |
 | `mdcp check`     | Full gate: orphans → compile → refs → links; optional peer linters; non-fatal coverage report      |
+| `mdcp review`    | Report documentation sprawl signals across guide shards (report-only; `--strict` to fail)          |
 | `mdcp shard`     | Split a monolith into shards (requires `config.source`)                                            |
 | `mdcp refs-list` | List heading slugs from `refs.json` as JSON                                                        |
 | `mdcp lint`      | markdownlint-cli2 on shards and compiled output (peer, if installed)                               |
 | `mdcp prose`     | Vale prose lint (peer, if installed)                                                               |
 | `mdcp links`     | markdown-link-check on compiled output (peer, if installed)                                        |
 | `mdcp fix`       | Prettier + markdownlint `--fix` (install peers in host repo first)                                 |
+
+### Sprawl review
+
+`mdcp review` reads every shard compile reads for the guides in `compileOrder`, including nested shards and each guide manifest (`index.md` by default), and reports signals that a shard or index needs a human or agent to look at it. It never writes files and skips paths matched by `scan.ignore`. The signals point at [idea mitosis](#idea-mitosis) candidates; deciding whether to split, merge, or regroup stays with the reviewer (see [Shard single responsibility and idea mitosis](../../docs/features/protocol/shard-srp-and-mitosis.md)).
+
+```bash
+mdcp review --config docs/mdcp.config.json --docs-root docs
+mdcp review --config docs/mdcp.config.json --docs-root docs --json
+```
+
+| Signal                | Fires when                                                                                                                                                              | Fix                                                                               |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `index-size`          | One group of an index lists more than `review.maxIndexEntries` shard links. A group is the links under one `##` or deeper heading, or the links before any such heading | Group entries under headings named for the reader's task                          |
+| `long-shard`          | A shard holds more than `review.maxShardWords` prose words                                                                                                              | Check whether it serves two audiences or jobs; split it if so (idea mitosis)      |
+| `duplicate-paragraph` | The same paragraph of at least `review.minDuplicateWords` words appears in two or more shards                                                                           | Keep the paragraph in the shard that owns the rule and link to it from the others |
+| `similar-titles`      | Two shards in one guide have the same first `#` heading                                                                                                                 | Merge the shards, or retitle them so each title names its one job                 |
+
+Prose words exclude fenced code, front matter, HTML comments, and link targets. Table cell text and headings count as prose. Paragraphs and titles compare after folding case and whitespace and dropping emphasis markers and link targets; titles also drop punctuation. Each list item is its own paragraph.
+
+Text output groups findings by signal and lists docs-root-relative paths. `--json` prints an array of `{ signal, severity, files, detail, fix }` objects, where `severity` is always `"warning"`. A duplicate paragraph's `detail` names every `path:line` location.
+
+| Option     | Effect                                    |
+| ---------- | ----------------------------------------- |
+| `--json`   | Print findings as a JSON array            |
+| `--strict` | Exit 1 when there is at least one finding |
+
+Without `--strict`, `mdcp review` exits 0. Thresholds live under `review` in config; see [Config essentials](#review-thresholds).
 
 ### Refs subcommands
 
@@ -717,6 +767,18 @@ The **MDCP Agent Skill** is a separate install from `@bwilliamson/mdcp-cli`.
 The skill does **not** ship the `mdcp` binary. Keep this package (or [Agent integration](#agent-integration) scripts) for `mdcp compile` / `mdcp check`.
 
 <!-- mdcp-shard: end ../../docs/client-cli/agent-skill.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/idea-mitosis.md -->
+
+## idea mitosis
+
+**Idea mitosis** is splitting a documentation shard when it grows a second responsibility — a second audience, job (explain vs how-to vs look-up), or independent concern — or when reading the file alone misleads. After a split, update the guide index and cross-link the daughter shards.
+
+Do not split only because a file is long. Prefer one primary concern per shard.
+
+See [Shard single responsibility and idea mitosis](../../docs/features/protocol/shard-srp-and-mitosis.md).
+
+<!-- mdcp-shard: end ../../docs/glossary/idea-mitosis.md -->
 
 <!-- mdcp-shard: start ../../docs/glossary/heading-slug.md -->
 

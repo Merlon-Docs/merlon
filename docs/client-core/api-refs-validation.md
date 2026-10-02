@@ -58,7 +58,8 @@ CLI authoring rules: [Cross-links and refs — heading slugs](../client-cli/cros
 
 ## Validation
 
-| Export                  | Purpose                                |
-| ----------------------- | -------------------------------------- |
-| `checkOrphansForGuides` | Detect unlinked or missing shard files |
-| `lintLinks`             | Internal markdown link validation      |
+| Export                  | Purpose                                                                            |
+| ----------------------- | ---------------------------------------------------------------------------------- |
+| `checkOrphansForGuides` | Detect unlinked or missing shard files                                             |
+| `lintLinks`             | Internal markdown link validation                                                  |
+| `reviewDocs`            | Sprawl signals behind `mdcp review` (`formatReviewReport` renders the text report) |

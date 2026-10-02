@@ -162,6 +162,18 @@ export const MdcpConfigSchema = z.object({
       scanGlobs: z.array(z.string()).optional(),
     })
     .optional(),
+
+  /** Thresholds for `mdcp review` sprawl signals. */
+  review: z
+    .object({
+      /** Most shard links one index group may list before `index-size` fires. */
+      maxIndexEntries: z.number().int().positive().default(12),
+      /** Most prose words a shard may hold before `long-shard` fires. */
+      maxShardWords: z.number().int().positive().default(2500),
+      /** Fewest words a paragraph needs before `duplicate-paragraph` compares it. */
+      minDuplicateWords: z.number().int().positive().default(25),
+    })
+    .default({ maxIndexEntries: 12, maxShardWords: 2500, minDuplicateWords: 25 }),
 });
 
 export type MdcpConfig = z.infer<typeof MdcpConfigSchema>;

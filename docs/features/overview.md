@@ -158,6 +158,7 @@ This repository dogfoods under `docs/`: the features guide compiles into `docs/_
 | Shard split orchestration       | `src/shard/orchestrator.ts` | `shard`                         |
 | Slugs + refs registry           | `src/refs/`                 | `refs`                          |
 | Orphan validation               | `src/validate/orphans.ts`   | `check`                         |
+| Sprawl review                   | `src/validate/review.ts`    | `review`                        |
 | Peer binary resolution          | `src/peers/resolve.ts`      | `lint`, `prose`, `links`, `fix` |
 
 Start with `assemble.ts` and `cli.ts` if you are tracing a compile from config to disk.

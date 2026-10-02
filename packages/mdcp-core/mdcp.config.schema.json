@@ -212,6 +212,30 @@
         "scanGlobs": { "type": "array", "items": { "type": "string" } }
       }
     },
+    "review": {
+      "type": "object",
+      "description": "Thresholds for mdcp review sprawl signals.",
+      "properties": {
+        "maxIndexEntries": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 12,
+          "description": "Most shard links one index group (links under one ## or deeper heading, or before any) may list before index-size fires."
+        },
+        "maxShardWords": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 2500,
+          "description": "Most prose words a shard may hold before long-shard fires."
+        },
+        "minDuplicateWords": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 25,
+          "description": "Fewest words a paragraph needs before duplicate-paragraph compares it across shards."
+        }
+      }
+    },
     "export": {
       "type": "object",
       "properties": {

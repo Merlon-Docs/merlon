@@ -36,6 +36,37 @@ function toPosix(p: string): string {
   return p.split(sep).join('/');
 }
 
+/**
+ * Drop absolute paths matched by `scan.ignore` globs (plus the built-in ignores), using the
+ * same fast-glob matching as {@link computeCoverage}. Globs are relative to `root`; paths
+ * outside `root` are kept because no scan glob can name them.
+ */
+export function filterScanIgnored(root: string, absPaths: string[], ignore: string[]): string[] {
+  const base = resolve(root);
+  const inside: string[] = [];
+  const kept = new Set<string>();
+  for (const abs of absPaths) {
+    const rel = toPosix(relative(base, abs));
+    if (rel === '' || rel.startsWith('..')) kept.add(abs);
+    else inside.push(rel);
+  }
+  if (inside.length > 0) {
+    // Static (escaped) patterns: fast-glob checks each file and applies `ignore` exactly as the scan does.
+    const visible = fg.sync(
+      inside.map((rel) => fg.escapePath(rel)),
+      {
+        cwd: base,
+        dot: true,
+        onlyFiles: true,
+        followSymbolicLinks: false,
+        ignore: [...BUILT_IN_IGNORE, ...ignore],
+      },
+    );
+    for (const rel of visible) kept.add(resolve(base, rel));
+  }
+  return absPaths.filter((p) => kept.has(p));
+}
+
 function sortedUnique(paths: string[]): string[] {
   return [...new Set(paths)].sort();
 }

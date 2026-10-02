@@ -242,10 +242,11 @@ CLI authoring rules: [Cross-links and refs — heading slugs](../mdcp-cli/README
 
 ### Validation
 
-| Export                  | Purpose                                |
-| ----------------------- | -------------------------------------- |
-| `checkOrphansForGuides` | Detect unlinked or missing shard files |
-| `lintLinks`             | Internal markdown link validation      |
+| Export                  | Purpose                                                                            |
+| ----------------------- | ---------------------------------------------------------------------------------- |
+| `checkOrphansForGuides` | Detect unlinked or missing shard files                                             |
+| `lintLinks`             | Internal markdown link validation                                                  |
+| `reviewDocs`            | Sprawl signals behind `mdcp review` (`formatReviewReport` renders the text report) |
 
 <!-- mdcp-shard: end ../../docs/client-core/api-refs-validation.md -->
 
