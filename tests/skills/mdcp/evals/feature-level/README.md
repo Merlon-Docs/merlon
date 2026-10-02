@@ -1,6 +1,6 @@
 # `mdcp` feature-level workflow live evals
 
-Fixtures and prompts for the optional [skill-creator](../../../../../.agents/skills/skill-creator/SKILL.md) loop against the feature-engineering helper. Not a CI gate.
+Fixtures and prompts for the optional [skill-creator](../../../../../.agents/skills/skill-creator/SKILL.md) loop against the `mdcp` skill's feature-level workflow. Not a CI gate.
 
 Parent suite: [`tests/skills/mdcp/evals/`](../README.md). Maintainer index: [`docs/developer/live-skill-evals.md`](../../../../../docs/developer/live-skill-evals.md).
 
@@ -35,6 +35,8 @@ Parent suite: [`tests/skills/mdcp/evals/`](../README.md). Maintainer index: [`do
    groups with required fields and stop for human review.
 
 ## Red → green (eval 1)
+
+Results in this section were recorded against the separate `mdcp-feature-level` helper skill, before the workflows merged into `mdcp`. Paths such as `skills/mdcp-feature-level/SKILL.md` now live at `skills/mdcp/references/workflows/feature-level.md`.
 
 This suite demos the real failure from the live session: a maintainer-only
 **live skill evals** runbook was added under `docs/features/` because the helper

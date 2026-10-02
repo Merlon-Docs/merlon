@@ -1,6 +1,6 @@
 # `mdcp` design-architecture workflow live evals
 
-Fixtures and prompts for the optional [skill-creator](../../../../../.agents/skills/skill-creator/SKILL.md) loop against the architecture-docs helper. Not a CI gate.
+Fixtures and prompts for the optional [skill-creator](../../../../../.agents/skills/skill-creator/SKILL.md) loop against the `mdcp` skill's design-architecture workflow. Not a CI gate.
 
 Parent suite: [`tests/skills/mdcp/evals/`](../README.md). Maintainer index: [`docs/developer/live-skill-evals.md`](../../../../../docs/developer/live-skill-evals.md).
 
@@ -17,12 +17,14 @@ Parent suite: [`tests/skills/mdcp/evals/`](../README.md). Maintainer index: [`do
 
 1. **Greenfield shard capture** — create focused feature/ADR shards + indexes (not one mega-file); advise pairing for deep design critique
 2. **Brownfield monolith split** — break `ARCHITECTURE.md` into related shards/ADR; retire superseded planning text
-3. **Design-only scope** — oversized “build the feature” ask stays on architecture-doc helper boundaries
+3. **Design-only scope** — oversized “build the feature” ask stays within the design-architecture workflow's boundaries
 4. **Atomic commit groups (plan-only)** — ADR + design shard + indexes under “squash / skip polish” pressure; must include numbered commit groups and stop for review
 
-Focus is **MDCP documentation-system** behavior (small shards, links, indexes, no drive-by product code) — not grading systems-design brilliance. A separate design-thinking skill is out of scope; prompts only check that this helper advises pairing when deep critique is requested.
+Focus is **MDCP documentation-system** behavior (small shards, links, indexes, no drive-by product code) — not grading systems-design brilliance. A separate design-thinking skill is out of scope; prompts only check that the workflow advises pairing when deep critique is requested.
 
 ## Discrimination notes (iteration-2)
+
+Results in this section were recorded against the separate `mdcp-design-architecture` helper skill, before the workflows merged into `mdcp`. Paths such as `skills/mdcp-design-architecture/SKILL.md` now live at `skills/mdcp/references/workflows/design-architecture.md`.
 
 | Eval                        | With skill | Without skill | Notes                                                                  |
 | --------------------------- | ---------- | ------------- | ---------------------------------------------------------------------- |

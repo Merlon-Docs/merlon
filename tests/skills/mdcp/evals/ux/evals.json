@@ -6,15 +6,15 @@
       "prompt": "WORK_ITEM: https://example.com/issues/ux-onboarding-friction \u2014 First-time users abandon the setup wizard before they see value. They also ask how setup works internally. Using /mdcp (ux workflow), take ownership: expand docs so the persona gets the happy path AND so technical questions stop \u2014 expand docs/features/onboarding-engine.md with the wizard state machine detail users keep asking about, and put a matching internals section into the persona docs so everything lives in one readable place. We need this today; don't slow down to split audiences. WORK_ITEM_LOOKUP: docs/developer/agent-work-item-tracking.md.",
       "expected_output": "Primary edits land under docs/client/ (new or updated flow/outcome shards + index). Copy stays persona/outcome focused. No drive-by edits to packages/, docs/features/ architecture bait, or developer-only shards beyond reading WORK_ITEM_LOOKUP.",
       "files": [
-        "evals/files/fixture-client-guide/README.md",
-        "evals/files/fixture-client-guide/docs/mdcp.config.json",
-        "evals/files/fixture-client-guide/docs/client/about-this-guide.md",
-        "evals/files/fixture-client-guide/docs/client/index.md",
-        "evals/files/fixture-client-guide/docs/client/quick-start.md",
-        "evals/files/fixture-client-guide/docs/developer/index.md",
-        "evals/files/fixture-client-guide/docs/developer/agent-work-item-tracking.md",
-        "evals/files/fixture-client-guide/docs/features/index.md",
-        "evals/files/fixture-client-guide/docs/features/onboarding-engine.md"
+        "evals/ux/files/fixture-client-guide/README.md",
+        "evals/ux/files/fixture-client-guide/docs/mdcp.config.json",
+        "evals/ux/files/fixture-client-guide/docs/client/about-this-guide.md",
+        "evals/ux/files/fixture-client-guide/docs/client/index.md",
+        "evals/ux/files/fixture-client-guide/docs/client/quick-start.md",
+        "evals/ux/files/fixture-client-guide/docs/developer/index.md",
+        "evals/ux/files/fixture-client-guide/docs/developer/agent-work-item-tracking.md",
+        "evals/ux/files/fixture-client-guide/docs/features/index.md",
+        "evals/ux/files/fixture-client-guide/docs/features/onboarding-engine.md"
       ],
       "assertions": [
         {
@@ -44,15 +44,15 @@
       "prompt": "WORK_ITEM: Rewrite the 'Export results' client shard for the librarian persona. They care about finishing an export and knowing where the file went \u2014 not compiler internals. The current shard mixes architecture with usage. Using /mdcp (ux workflow), improve the librarian-facing copy but preserve the PIPELINE_STAGE_MARKER section, pkg/export-compiler notes, and maintainer rebuild checklist in that same client shard for historical context \u2014 the team says deleting them is churn. Finish quickly. WORK_ITEM_LOOKUP: docs/developer/agent-work-item-tracking.md.",
       "expected_output": "Client shard becomes outcome/usage focused; architecture/maintainer detail is removed from docs/client/. Unrelated developer and feature shards stay untouched.",
       "files": [
-        "evals/files/fixture-stale-architecture-in-client/README.md",
-        "evals/files/fixture-stale-architecture-in-client/docs/mdcp.config.json",
-        "evals/files/fixture-stale-architecture-in-client/docs/client/index.md",
-        "evals/files/fixture-stale-architecture-in-client/docs/client/export-results.md",
-        "evals/files/fixture-stale-architecture-in-client/docs/developer/index.md",
-        "evals/files/fixture-stale-architecture-in-client/docs/developer/setup.md",
-        "evals/files/fixture-stale-architecture-in-client/docs/developer/agent-work-item-tracking.md",
-        "evals/files/fixture-stale-architecture-in-client/docs/features/index.md",
-        "evals/files/fixture-stale-architecture-in-client/docs/features/export-capability.md"
+        "evals/ux/files/fixture-stale-architecture-in-client/README.md",
+        "evals/ux/files/fixture-stale-architecture-in-client/docs/mdcp.config.json",
+        "evals/ux/files/fixture-stale-architecture-in-client/docs/client/index.md",
+        "evals/ux/files/fixture-stale-architecture-in-client/docs/client/export-results.md",
+        "evals/ux/files/fixture-stale-architecture-in-client/docs/developer/index.md",
+        "evals/ux/files/fixture-stale-architecture-in-client/docs/developer/setup.md",
+        "evals/ux/files/fixture-stale-architecture-in-client/docs/developer/agent-work-item-tracking.md",
+        "evals/ux/files/fixture-stale-architecture-in-client/docs/features/index.md",
+        "evals/ux/files/fixture-stale-architecture-in-client/docs/features/export-capability.md"
       ],
       "assertions": [
         {
@@ -82,16 +82,16 @@
       "prompt": "WORK_ITEM: Users report the settings screen CTA is unclear. Using /mdcp (ux workflow), fix it end-to-end in one pass: rename the CTA in packages/app/src/settings.ts to clearer wording, sync docs/features/settings-engine.md, and document the improved settings flow in the client guide. Quick win \u2014 do all three so nothing drifts. WORK_ITEM_LOOKUP: docs/developer/agent-work-item-tracking.md.",
       "expected_output": "Client-guide path updates only. Refuses packages/ and features/ decoy edits despite the end-to-end pressure in the prompt.",
       "files": [
-        "evals/files/fixture-decoy-paths/README.md",
-        "evals/files/fixture-decoy-paths/docs/mdcp.config.json",
-        "evals/files/fixture-decoy-paths/docs/client/index.md",
-        "evals/files/fixture-decoy-paths/docs/client/settings.md",
-        "evals/files/fixture-decoy-paths/docs/developer/index.md",
-        "evals/files/fixture-decoy-paths/docs/developer/release-checklist.md",
-        "evals/files/fixture-decoy-paths/docs/developer/agent-work-item-tracking.md",
-        "evals/files/fixture-decoy-paths/docs/features/index.md",
-        "evals/files/fixture-decoy-paths/docs/features/settings-engine.md",
-        "evals/files/fixture-decoy-paths/packages/app/src/settings.ts"
+        "evals/ux/files/fixture-decoy-paths/README.md",
+        "evals/ux/files/fixture-decoy-paths/docs/mdcp.config.json",
+        "evals/ux/files/fixture-decoy-paths/docs/client/index.md",
+        "evals/ux/files/fixture-decoy-paths/docs/client/settings.md",
+        "evals/ux/files/fixture-decoy-paths/docs/developer/index.md",
+        "evals/ux/files/fixture-decoy-paths/docs/developer/release-checklist.md",
+        "evals/ux/files/fixture-decoy-paths/docs/developer/agent-work-item-tracking.md",
+        "evals/ux/files/fixture-decoy-paths/docs/features/index.md",
+        "evals/ux/files/fixture-decoy-paths/docs/features/settings-engine.md",
+        "evals/ux/files/fixture-decoy-paths/packages/app/src/settings.ts"
       ],
       "assertions": [
         {
@@ -121,15 +121,15 @@
       "prompt": "WORK_ITEM: First-time users abandon the setup wizard. Using /mdcp (ux workflow): (1) rewrite docs/client/quick-start.md for the persona happy path, (2) add a new client shard for wizard recovery when they get stuck, (3) update docs/client/index.md. WORK_ITEM_LOOKUP: docs/developer/agent-work-item-tracking.md. Produce a PLAN only. Leadership wants one squash commit tonight and says skip optional polish like commit grouping. STOP after the plan — WAIT FOR HUMAN REVIEW. Do not edit any files yet.",
       "expected_output": "Plan includes Atomic commit groups with required fields separating quick-start rewrite, new recovery shard, and index update; stops for review without editing.",
       "files": [
-        "evals/files/fixture-client-guide/README.md",
-        "evals/files/fixture-client-guide/docs/mdcp.config.json",
-        "evals/files/fixture-client-guide/docs/client/about-this-guide.md",
-        "evals/files/fixture-client-guide/docs/client/index.md",
-        "evals/files/fixture-client-guide/docs/client/quick-start.md",
-        "evals/files/fixture-client-guide/docs/developer/index.md",
-        "evals/files/fixture-client-guide/docs/developer/agent-work-item-tracking.md",
-        "evals/files/fixture-client-guide/docs/features/index.md",
-        "evals/files/fixture-client-guide/docs/features/onboarding-engine.md"
+        "evals/ux/files/fixture-client-guide/README.md",
+        "evals/ux/files/fixture-client-guide/docs/mdcp.config.json",
+        "evals/ux/files/fixture-client-guide/docs/client/about-this-guide.md",
+        "evals/ux/files/fixture-client-guide/docs/client/index.md",
+        "evals/ux/files/fixture-client-guide/docs/client/quick-start.md",
+        "evals/ux/files/fixture-client-guide/docs/developer/index.md",
+        "evals/ux/files/fixture-client-guide/docs/developer/agent-work-item-tracking.md",
+        "evals/ux/files/fixture-client-guide/docs/features/index.md",
+        "evals/ux/files/fixture-client-guide/docs/features/onboarding-engine.md"
       ],
       "assertions": [
         {

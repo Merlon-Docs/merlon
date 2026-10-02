@@ -1,6 +1,6 @@
 # `mdcp` doc-only workflow live evals
 
-Fixtures and prompts for the optional [skill-creator](../../../../../.agents/skills/skill-creator/SKILL.md) loop against the technical-writer helper. Not a CI gate.
+Fixtures and prompts for the optional [skill-creator](../../../../../.agents/skills/skill-creator/SKILL.md) loop against the `mdcp` skill's doc-only workflow. Not a CI gate.
 
 Parent suite: [`tests/skills/mdcp/evals/`](../README.md).
 
@@ -9,7 +9,7 @@ Parent suite: [`tests/skills/mdcp/evals/`](../README.md).
 | Path                       | Purpose                                                                 |
 | -------------------------- | ----------------------------------------------------------------------- |
 | `evals.json`               | Prompts, `expected_output`, and named `assertions` for docs-only checks |
-| `files/fixture-mini-repo/` | Tiny MDCP sandbox (docs + bait `src/`) shared across all three evals    |
+| `files/fixture-mini-repo/` | Tiny MDCP sandbox (docs + bait `src/`) shared across all four evals     |
 
 ## What the suite covers
 

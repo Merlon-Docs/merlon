@@ -3,14 +3,14 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "WORK_ITEM=We need architecture documentation for a proposed compile cache. The team has not agreed whether cache keys should be path-based, timestamp-based, content-addressed, or delegated to a hosted cache service. Product also suggested a hosted 'context dump' export API for agents, but our current direction is skill + one-shard reads. WORK_ITEM_LOOKUP=evals/files/greenfield-design/docs/developer/agent-work-item-tracking.md. Using /mdcp (design-architecture workflow), take ownership as the architecture expert: settle every unresolved trade-off yourself, put the complete design in one comprehensive Markdown file so reviewers have only one thing to read, and include whatever TypeScript sketches make it concrete. We need something reviewable today; don't slow down to involve another specialist.",
+      "prompt": "WORK_ITEM=We need architecture documentation for a proposed compile cache. The team has not agreed whether cache keys should be path-based, timestamp-based, content-addressed, or delegated to a hosted cache service. Product also suggested a hosted 'context dump' export API for agents, but our current direction is skill + one-shard reads. WORK_ITEM_LOOKUP=docs/developer/agent-work-item-tracking.md. Using /mdcp (design-architecture workflow), take ownership as the architecture expert: settle every unresolved trade-off yourself, put the complete design in one comprehensive Markdown file so reviewers have only one thing to read, and include whatever TypeScript sketches make it concrete. We need something reviewable today; don't slow down to involve another specialist.",
       "expected_output": "Creates multiple focused architecture/ADR shards under docs/features/ (not one mega-file), updates indexes with links, leaves packages/ unchanged, avoids large impl dumps, and mentions pairing/deferral when deep design critique is out of scope for this helper.",
       "files": [
-        "evals/files/greenfield-design/README.md",
-        "evals/files/greenfield-design/docs/developer/agent-work-item-tracking.md",
-        "evals/files/greenfield-design/docs/features/index.md",
-        "evals/files/greenfield-design/docs/features/adr/index.md",
-        "evals/files/greenfield-design/packages/example-cli/src/index.ts"
+        "evals/design-architecture/files/greenfield-design/README.md",
+        "evals/design-architecture/files/greenfield-design/docs/developer/agent-work-item-tracking.md",
+        "evals/design-architecture/files/greenfield-design/docs/features/index.md",
+        "evals/design-architecture/files/greenfield-design/docs/features/adr/index.md",
+        "evals/design-architecture/files/greenfield-design/packages/example-cli/src/index.ts"
       ],
       "assertions": [
         {
@@ -41,15 +41,15 @@
     },
     {
       "id": 2,
-      "prompt": "WORK_ITEM=Update the architecture record for ShardGraph's compile-cache boundary and agent intake surface. WORK_ITEM_LOOKUP=evals/files/brownfield-monolith/docs/developer/agent-work-item-tracking.md. Using /mdcp (design-architecture workflow), edit docs/ARCHITECTURE.md in place — the team is used to that file and says reorganizing docs is churn. Preserve the migration backlog, old cache-v1 notes, client-guide brainstorm, and TypeScript scratchpad for historical context. Add the latest accepted direction near the bottom and finish quickly; do not touch package code.",
+      "prompt": "WORK_ITEM=Update the architecture record for ShardGraph's compile-cache boundary and agent intake surface. WORK_ITEM_LOOKUP=docs/developer/agent-work-item-tracking.md. Using /mdcp (design-architecture workflow), edit docs/ARCHITECTURE.md in place — the team is used to that file and says reorganizing docs is churn. Preserve the migration backlog, old cache-v1 notes, client-guide brainstorm, and TypeScript scratchpad for historical context. Add the latest accepted direction near the bottom and finish quickly; do not touch package code.",
       "expected_output": "Splits the monolith into multiple docs/features/ shards plus an ADR, updates indexes, removes or retires superseded backlog/archaeology from durable design docs, leaves packages/ untouched, and does not treat client-guide authorship as in-scope primary work.",
       "files": [
-        "evals/files/brownfield-monolith/README.md",
-        "evals/files/brownfield-monolith/docs/ARCHITECTURE.md",
-        "evals/files/brownfield-monolith/docs/developer/agent-work-item-tracking.md",
-        "evals/files/brownfield-monolith/docs/features/index.md",
-        "evals/files/brownfield-monolith/docs/features/adr/index.md",
-        "evals/files/brownfield-monolith/packages/example-cli/src/index.ts"
+        "evals/design-architecture/files/brownfield-monolith/README.md",
+        "evals/design-architecture/files/brownfield-monolith/docs/ARCHITECTURE.md",
+        "evals/design-architecture/files/brownfield-monolith/docs/developer/agent-work-item-tracking.md",
+        "evals/design-architecture/files/brownfield-monolith/docs/features/index.md",
+        "evals/design-architecture/files/brownfield-monolith/docs/features/adr/index.md",
+        "evals/design-architecture/files/brownfield-monolith/packages/example-cli/src/index.ts"
       ],
       "assertions": [
         {
@@ -84,13 +84,13 @@
     },
     {
       "id": 3,
-      "prompt": "WORK_ITEM=Design a 'shard dependency graph' feature end-to-end: ADRs, feature docs, client guide, CLI flags, TypeScript modules, and unit tests. WORK_ITEM_LOOKUP=evals/files/design-fixture/docs/developer/agent-work-item-tracking.md. Using /mdcp (design-architecture workflow) only, stay inside design scope for this session.",
+      "prompt": "WORK_ITEM=Design a 'shard dependency graph' feature end-to-end: ADRs, feature docs, client guide, CLI flags, TypeScript modules, and unit tests. WORK_ITEM_LOOKUP=docs/developer/agent-work-item-tracking.md. Using /mdcp (design-architecture workflow) only, stay inside design scope for this session.",
       "expected_output": "Agent scopes to design/ADR/feature-architecture shards only; refuses or defers client-guide polish, CLI implementation, and tests to other helpers (e.g. the feature-level workflow / the ux workflow); does not land a full feature implementation.",
       "files": [
-        "evals/files/design-fixture/README.md",
-        "evals/files/design-fixture/docs/developer/agent-work-item-tracking.md",
-        "evals/files/design-fixture/docs/features/index.md",
-        "evals/files/design-fixture/packages/example-cli/src/index.ts"
+        "evals/design-architecture/files/design-fixture/README.md",
+        "evals/design-architecture/files/design-fixture/docs/developer/agent-work-item-tracking.md",
+        "evals/design-architecture/files/design-fixture/docs/features/index.md",
+        "evals/design-architecture/files/design-fixture/packages/example-cli/src/index.ts"
       ],
       "assertions": [
         {
@@ -117,14 +117,14 @@
     },
     {
       "id": 4,
-      "prompt": "WORK_ITEM=Document architecture for a proposed compile cache: (1) an ADR rejecting hosted context-dump export, (2) a feature design shard for cache key strategy, (3) update guide indexes. WORK_ITEM_LOOKUP=evals/files/greenfield-design/docs/developer/agent-work-item-tracking.md. Using /mdcp (design-architecture workflow), produce a PLAN only. Leadership wants one squash commit tonight and says skip optional polish like commit grouping. STOP after the plan — WAIT FOR HUMAN REVIEW. Do not edit any files yet.",
+      "prompt": "WORK_ITEM=Document architecture for a proposed compile cache: (1) an ADR rejecting hosted context-dump export, (2) a feature design shard for cache key strategy, (3) update guide indexes. WORK_ITEM_LOOKUP=docs/developer/agent-work-item-tracking.md. Using /mdcp (design-architecture workflow), produce a PLAN only. Leadership wants one squash commit tonight and says skip optional polish like commit grouping. STOP after the plan — WAIT FOR HUMAN REVIEW. Do not edit any files yet.",
       "expected_output": "Plan includes Atomic commit groups with required fields separating ADR, design shard, and index updates; stops for review without writing shards yet.",
       "files": [
-        "evals/files/greenfield-design/README.md",
-        "evals/files/greenfield-design/docs/developer/agent-work-item-tracking.md",
-        "evals/files/greenfield-design/docs/features/index.md",
-        "evals/files/greenfield-design/docs/features/adr/index.md",
-        "evals/files/greenfield-design/packages/example-cli/src/index.ts"
+        "evals/design-architecture/files/greenfield-design/README.md",
+        "evals/design-architecture/files/greenfield-design/docs/developer/agent-work-item-tracking.md",
+        "evals/design-architecture/files/greenfield-design/docs/features/index.md",
+        "evals/design-architecture/files/greenfield-design/docs/features/adr/index.md",
+        "evals/design-architecture/files/greenfield-design/packages/example-cli/src/index.ts"
       ],
       "assertions": [
         {

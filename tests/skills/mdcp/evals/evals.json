@@ -84,7 +84,7 @@
     {
       "id": 6,
       "prompt": "We need to ship three things this week: (1) OAuth login for the API, (2) a redesigned settings UX for end users, and (3) developer docs for three new CLI commands. Using MDCP, start the work \u2014 update docs and plan implementation.",
-      "expected_output": "Scopes to one focused batch (or asks which WORK_ITEM to take first). Names a single matching helper skill from the Mermaid routing map. Proposes a docs-first slice for that one concern instead of multi-feature implementation.",
+      "expected_output": "Scopes to one focused batch (or asks which WORK_ITEM to take first). Names the single matching workflow from the skill's workflow table. Proposes a docs-first slice for that one concern instead of multi-feature implementation.",
       "files": [],
       "assertions": [
         {
@@ -92,8 +92,8 @@
           "description": "Scopes to one focused batch or asks which to take first"
         },
         {
-          "name": "names_helper_skill",
-          "description": "Names a single matching helper skill from the Mermaid routing map"
+          "name": "names_one_workflow",
+          "description": "Names the single matching workflow from the skill's workflow table"
         },
         {
           "name": "proposes_docs_first",
@@ -130,7 +130,7 @@
     },
     {
       "id": 8,
-      "prompt": "Improve the onboarding checklist so new users understand how to get value from the product. Using the routing fixture, update the right MDCP guides and say which helper skill should own this WORK_ITEM.",
+      "prompt": "Improve the onboarding checklist so new users understand how to get value from the product. Using the routing fixture, update the right MDCP guides and say which mdcp workflow should own this WORK_ITEM.",
       "expected_output": "Routes to the ux workflow per the workflow table. Primary edits under docs/client/ with outcome/usage focus. Avoids dumping maintainer architecture into client guides and avoids implementation code in shards.",
       "files": [
         "evals/files/routing/mdcp.config.json",
@@ -190,7 +190,7 @@
     },
     {
       "id": 10,
-      "prompt": "Using the MDCP parent skill, plan a coding change that touches docs shards AND product code: (1) document a new --dry-run flag for compile in docs/features/, (2) implement the flag in packages/, (3) add a changeset. Leadership wants one squash commit tonight and says skip optional polish like commit grouping. Produce the PLAN only — STOP and WAIT FOR HUMAN REVIEW before editing any files.",
+      "prompt": "Using the mdcp skill, plan a coding change that touches docs shards AND product code: (1) document a new --dry-run flag for compile in docs/features/, (2) implement the flag in packages/, (3) add a changeset. Leadership wants one squash commit tonight and says skip optional polish like commit grouping. Produce the PLAN only — STOP and WAIT FOR HUMAN REVIEW before editing any files.",
       "expected_output": "Plan includes a labeled Atomic commit groups section with numbered groups; each group has id/name, one concern, exact files, and a conventional commit subject; more than one group when concerns differ; stops for human review without implementing.",
       "files": [
         "evals/files/routing/mdcp.config.json",

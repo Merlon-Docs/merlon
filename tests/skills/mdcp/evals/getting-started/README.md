@@ -1,6 +1,6 @@
 # `mdcp` getting-started workflow live evals
 
-Fixtures and prompts for the optional [skill-creator](../../../../../.agents/skills/skill-creator/SKILL.md) loop against the getting-started helper. Not a CI gate.
+Fixtures and prompts for the optional [skill-creator](../../../../../.agents/skills/skill-creator/SKILL.md) loop against the `mdcp` skill's getting-started workflow. Not a CI gate.
 
 Parent suite: [`tests/skills/mdcp/evals/`](../README.md).
 

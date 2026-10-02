@@ -1,4 +1,4 @@
-# Parent `mdcp` live evals
+# `mdcp` live evals
 
 Fixtures and prompts for the optional [skill-creator](../../../../.agents/skills/skill-creator/SKILL.md) loop. Not a CI gate.
 
@@ -14,7 +14,7 @@ Fixtures and prompts for the optional [skill-creator](../../../../.agents/skills
 ## Run path (skill-creator)
 
 1. Ensure `.agents/skills/skill-creator/` is present (vendored in this repo).
-2. Dogfood the parent skill: `pnpm skill:install` → `.agents/skills/mdcp/`.
+2. Dogfood the skill: `pnpm skill:install` → `.agents/skills/mdcp/`.
 3. Follow skill-creator: prompts first, then spawn **with-skill** and **without_skill** baselines together.
 4. Write results under `.agents/skills/mdcp-workspace/iteration-N/` (gitignored via `*-workspace/`).
 

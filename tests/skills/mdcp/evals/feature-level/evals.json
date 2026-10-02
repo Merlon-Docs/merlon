@@ -6,14 +6,14 @@
       "prompt": "WORK_ITEM=Add documentation for live skill evals — how maintainers run the optional skill-creator loop to grade helper skills before release. This accompanies our skills feature (see docs/features/skills.md). WORK_ITEM_LOOKUP=docs/developer/agent-work-item-tracking.md. Using /mdcp (feature-level workflow), follow the skill's docs-first process and add the documentation. Keep the docs tree consistent.",
       "expected_output": "Agent applies an audience placement test before writing: live skill evals are maintainer-only workflow with no end-user surface, so the shard lands under docs/developer/ (index updated). It does NOT create docs/features/live-skill-evals.md (or similar) just because Step 3 mentions features/ or because the topic sits next to the shipped skills feature, and it does NOT invent a docs/client/ shard.",
       "files": [
-        "evals/files/feature-fixture/README.md",
-        "evals/files/feature-fixture/docs/mdcp.config.json",
-        "evals/files/feature-fixture/docs/developer/agent-work-item-tracking.md",
-        "evals/files/feature-fixture/docs/developer/index.md",
-        "evals/files/feature-fixture/docs/developer/local-tooling.md",
-        "evals/files/feature-fixture/docs/features/index.md",
-        "evals/files/feature-fixture/docs/features/skills.md",
-        "evals/files/feature-fixture/docs/client/index.md"
+        "evals/feature-level/files/feature-fixture/README.md",
+        "evals/feature-level/files/feature-fixture/docs/mdcp.config.json",
+        "evals/feature-level/files/feature-fixture/docs/developer/agent-work-item-tracking.md",
+        "evals/feature-level/files/feature-fixture/docs/developer/index.md",
+        "evals/feature-level/files/feature-fixture/docs/developer/local-tooling.md",
+        "evals/feature-level/files/feature-fixture/docs/features/index.md",
+        "evals/feature-level/files/feature-fixture/docs/features/skills.md",
+        "evals/feature-level/files/feature-fixture/docs/client/index.md"
       ],
       "assertions": [
         {
@@ -39,14 +39,14 @@
       "prompt": "WORK_ITEM=Add a --format=csv option to `example-cli export` so people can open reports in a spreadsheet. WORK_ITEM_LOOKUP=docs/developer/agent-work-item-tracking.md. Using /mdcp (feature-level workflow), ship the feature docs-first, then implement it. Keep the docs tree consistent.",
       "expected_output": "Agent treats this as a user-facing capability: updates a maintainer capability/contract shard in docs/features/ AND an end-user usage shard in docs/client/ (with both index.md updates), then implements the option in packages/. It does NOT bury a user-facing capability in docs/developer/.",
       "files": [
-        "evals/files/feature-fixture/README.md",
-        "evals/files/feature-fixture/docs/mdcp.config.json",
-        "evals/files/feature-fixture/docs/developer/agent-work-item-tracking.md",
-        "evals/files/feature-fixture/docs/features/index.md",
-        "evals/files/feature-fixture/docs/features/export-command.md",
-        "evals/files/feature-fixture/docs/client/index.md",
-        "evals/files/feature-fixture/docs/client/export-report.md",
-        "evals/files/feature-fixture/packages/example-cli/src/index.ts"
+        "evals/feature-level/files/feature-fixture/README.md",
+        "evals/feature-level/files/feature-fixture/docs/mdcp.config.json",
+        "evals/feature-level/files/feature-fixture/docs/developer/agent-work-item-tracking.md",
+        "evals/feature-level/files/feature-fixture/docs/features/index.md",
+        "evals/feature-level/files/feature-fixture/docs/features/export-command.md",
+        "evals/feature-level/files/feature-fixture/docs/client/index.md",
+        "evals/feature-level/files/feature-fixture/docs/client/export-report.md",
+        "evals/feature-level/files/feature-fixture/packages/example-cli/src/index.ts"
       ],
       "assertions": [
         {
@@ -76,18 +76,18 @@
       "prompt": "Use /mdcp (feature-level workflow). WORK_ITEM_LOOKUP=docs/developer/agent-work-item-tracking.md. The team dumped several asks into one chat — please knock them out in this session so we can close the week: (1) Add an export-to-CSV button on the reports page (acceptance: button visible when a report is selected; clicking downloads CSV). (2) Redesign the settings page while you're in docs/features/settings.md. (3) Add SSO login (see docs/features/sso.md). (4) Refactor the billing module (docs/features/billing.md). Ship whatever you can of all four; leadership wants progress on each.",
       "expected_output": "Agent treats export-to-CSV as the sole in-scope feature for /mdcp (feature-level workflow) (small batch / one WORK_ITEM). Explicitly declines or defers settings redesign, SSO, and billing despite leadership pressure. Creates/updates docs/features/ (+ docs/client/ value) for CSV export before functional product code.",
       "files": [
-        "evals/files/fixture-scope-bait/README.md",
-        "evals/files/fixture-scope-bait/docs/mdcp.config.json",
-        "evals/files/fixture-scope-bait/docs/developer/agent-work-item-tracking.md",
-        "evals/files/fixture-scope-bait/docs/developer/index.md",
-        "evals/files/fixture-scope-bait/docs/features/index.md",
-        "evals/files/fixture-scope-bait/docs/features/reports-page.md",
-        "evals/files/fixture-scope-bait/docs/features/settings.md",
-        "evals/files/fixture-scope-bait/docs/features/sso.md",
-        "evals/files/fixture-scope-bait/docs/features/billing.md",
-        "evals/files/fixture-scope-bait/docs/client/index.md",
-        "evals/files/fixture-scope-bait/docs/client/reports.md",
-        "evals/files/fixture-scope-bait/packages/reports-ui/src/reports.ts"
+        "evals/feature-level/files/fixture-scope-bait/README.md",
+        "evals/feature-level/files/fixture-scope-bait/docs/mdcp.config.json",
+        "evals/feature-level/files/fixture-scope-bait/docs/developer/agent-work-item-tracking.md",
+        "evals/feature-level/files/fixture-scope-bait/docs/developer/index.md",
+        "evals/feature-level/files/fixture-scope-bait/docs/features/index.md",
+        "evals/feature-level/files/fixture-scope-bait/docs/features/reports-page.md",
+        "evals/feature-level/files/fixture-scope-bait/docs/features/settings.md",
+        "evals/feature-level/files/fixture-scope-bait/docs/features/sso.md",
+        "evals/feature-level/files/fixture-scope-bait/docs/features/billing.md",
+        "evals/feature-level/files/fixture-scope-bait/docs/client/index.md",
+        "evals/feature-level/files/fixture-scope-bait/docs/client/reports.md",
+        "evals/feature-level/files/fixture-scope-bait/packages/reports-ui/src/reports.ts"
       ],
       "assertions": [
         {
@@ -113,17 +113,17 @@
       "prompt": "Use /mdcp (feature-level workflow). WORK_ITEM=Add a 'last synced at' timestamp to the sync status panel (acceptance: show ISO timestamp when sync completes; hide when never synced). WORK_ITEM_LOOKUP=docs/developer/agent-work-item-tracking.md. Proceed through docs-first then TDD for this one feature. The repo already uses tests.",
       "expected_output": "Agent follows docs-first: feature (+ client) shards and index updates, mdcp check, then failing tests, then implementation. No functional product code lands before the documented contract exists. Does not expand into unrelated sync features (e.g. sync scheduler).",
       "files": [
-        "evals/files/fixture-docs-first-tdd/README.md",
-        "evals/files/fixture-docs-first-tdd/docs/mdcp.config.json",
-        "evals/files/fixture-docs-first-tdd/docs/developer/agent-work-item-tracking.md",
-        "evals/files/fixture-docs-first-tdd/docs/developer/index.md",
-        "evals/files/fixture-docs-first-tdd/docs/features/index.md",
-        "evals/files/fixture-docs-first-tdd/docs/features/sync-status-panel.md",
-        "evals/files/fixture-docs-first-tdd/docs/features/sync-scheduler.md",
-        "evals/files/fixture-docs-first-tdd/docs/client/index.md",
-        "evals/files/fixture-docs-first-tdd/docs/client/sync-status.md",
-        "evals/files/fixture-docs-first-tdd/packages/example-cli/src/sync-status.ts",
-        "evals/files/fixture-docs-first-tdd/packages/example-cli/src/sync-status.test.ts"
+        "evals/feature-level/files/fixture-docs-first-tdd/README.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/mdcp.config.json",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/developer/agent-work-item-tracking.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/developer/index.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/features/index.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/features/sync-status-panel.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/features/sync-scheduler.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/client/index.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/client/sync-status.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/packages/example-cli/src/sync-status.ts",
+        "evals/feature-level/files/fixture-docs-first-tdd/packages/example-cli/src/sync-status.test.ts"
       ],
       "assertions": [
         {
@@ -149,16 +149,16 @@
       "prompt": "Use /mdcp (feature-level workflow). WORK_ITEM=Replace the deprecated 'legacy sync' flag with the new 'syncMode' setting (acceptance: remove legacySync from public API; document syncMode). An existing feature shard still describes the old legacySync workflow and a migration backlog. Finish wrap-up for this feature only: update as-built docs and remove stale guidance.",
       "expected_output": "Agent updates feature/client shards to describe syncMode as current behavior, removes legacySync / migration-backlog text from durable docs (changeset/history for removed behavior), and does not start unrelated features (e.g. alerts) while wrapping up.",
       "files": [
-        "evals/files/fixture-stale-wrapup/README.md",
-        "evals/files/fixture-stale-wrapup/docs/mdcp.config.json",
-        "evals/files/fixture-stale-wrapup/docs/developer/agent-work-item-tracking.md",
-        "evals/files/fixture-stale-wrapup/docs/developer/index.md",
-        "evals/files/fixture-stale-wrapup/docs/features/index.md",
-        "evals/files/fixture-stale-wrapup/docs/features/sync-mode.md",
-        "evals/files/fixture-stale-wrapup/docs/features/alerts.md",
-        "evals/files/fixture-stale-wrapup/docs/client/index.md",
-        "evals/files/fixture-stale-wrapup/docs/client/configure-sync.md",
-        "evals/files/fixture-stale-wrapup/packages/sync-lib/src/sync.ts"
+        "evals/feature-level/files/fixture-stale-wrapup/README.md",
+        "evals/feature-level/files/fixture-stale-wrapup/docs/mdcp.config.json",
+        "evals/feature-level/files/fixture-stale-wrapup/docs/developer/agent-work-item-tracking.md",
+        "evals/feature-level/files/fixture-stale-wrapup/docs/developer/index.md",
+        "evals/feature-level/files/fixture-stale-wrapup/docs/features/index.md",
+        "evals/feature-level/files/fixture-stale-wrapup/docs/features/sync-mode.md",
+        "evals/feature-level/files/fixture-stale-wrapup/docs/features/alerts.md",
+        "evals/feature-level/files/fixture-stale-wrapup/docs/client/index.md",
+        "evals/feature-level/files/fixture-stale-wrapup/docs/client/configure-sync.md",
+        "evals/feature-level/files/fixture-stale-wrapup/packages/sync-lib/src/sync.ts"
       ],
       "assertions": [
         {
@@ -184,17 +184,17 @@
       "prompt": "Use /mdcp (feature-level workflow). WORK_ITEM=Add a 'last synced at' timestamp to the sync status panel (acceptance: show ISO timestamp when sync completes; hide when never synced). WORK_ITEM_LOOKUP=docs/developer/agent-work-item-tracking.md. Produce a complete docs-first + TDD PLAN only. Leadership wants one squash commit tonight and says skip optional polish like commit grouping. STOP after the plan — WAIT FOR HUMAN REVIEW. Do not edit any files yet.",
       "expected_output": "Plan includes Atomic commit groups with required fields covering distinct concerns (e.g. feature/client shards, tests, implementation); stops for review without coding.",
       "files": [
-        "evals/files/fixture-docs-first-tdd/README.md",
-        "evals/files/fixture-docs-first-tdd/docs/mdcp.config.json",
-        "evals/files/fixture-docs-first-tdd/docs/developer/agent-work-item-tracking.md",
-        "evals/files/fixture-docs-first-tdd/docs/developer/index.md",
-        "evals/files/fixture-docs-first-tdd/docs/features/index.md",
-        "evals/files/fixture-docs-first-tdd/docs/features/sync-status-panel.md",
-        "evals/files/fixture-docs-first-tdd/docs/features/sync-scheduler.md",
-        "evals/files/fixture-docs-first-tdd/docs/client/index.md",
-        "evals/files/fixture-docs-first-tdd/docs/client/sync-status.md",
-        "evals/files/fixture-docs-first-tdd/packages/example-cli/src/sync-status.ts",
-        "evals/files/fixture-docs-first-tdd/packages/example-cli/src/sync-status.test.ts"
+        "evals/feature-level/files/fixture-docs-first-tdd/README.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/mdcp.config.json",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/developer/agent-work-item-tracking.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/developer/index.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/features/index.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/features/sync-status-panel.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/features/sync-scheduler.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/client/index.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/client/sync-status.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/packages/example-cli/src/sync-status.ts",
+        "evals/feature-level/files/fixture-docs-first-tdd/packages/example-cli/src/sync-status.test.ts"
       ],
       "assertions": [
         {

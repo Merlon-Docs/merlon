@@ -1,6 +1,6 @@
 # `mdcp` ux workflow live evals
 
-Fixtures and prompts for the optional [skill-creator](../../../../../.agents/skills/skill-creator/SKILL.md) loop against the UX / client-guide helper. Not a CI gate.
+Fixtures and prompts for the optional [skill-creator](../../../../../.agents/skills/skill-creator/SKILL.md) loop against the `mdcp` skill's ux workflow. Not a CI gate.
 
 Parent suite: [`tests/skills/mdcp/evals/`](../README.md). Maintainer index: [`docs/developer/live-skill-evals.md`](../../../../../docs/developer/live-skill-evals.md).
 
@@ -24,6 +24,8 @@ Dogfood repos may map persona guides to other names (`client-cli`, `client-core`
 
 ## Discrimination notes
 
+Results in this section were recorded against the separate `mdcp-ux` helper skill, before the workflows merged into `mdcp`. Paths such as `skills/mdcp-ux/SKILL.md` now live at `skills/mdcp/references/workflows/ux.md`.
+
 ### Iteration-1 (soft prompts — non-discriminating)
 
 All three evals: with_skill **and** without_skill scored **5/5**. Soft “client guide” wording was too leading; baselines already stayed on-path. Evidence under `.agents/skills/mdcp-ux-workspace/iteration-1/` (local only).
@@ -45,7 +47,7 @@ Workspace (gitignored): `.agents/skills/mdcp-ux-workspace/iteration-2/`.
 1. Ensure `.agents/skills/skill-creator/` is present (vendored in this repo).
 2. Load the subject skill from `skills/mdcp/` (workflow: `references/workflows/ux.md`).
 3. Copy the listed `files` into an isolated working tree per run (do not edit this monorepo’s real `docs/`).
-4. Spawn **with_skill** and **without_skill** baselines together. Do **not** load mdcp-ux / parent routing into without_skill arms.
+4. Spawn **with_skill** and **without_skill** baselines together. Do **not** load the `mdcp` skill into without_skill arms.
 5. Write results under `.agents/skills/mdcp-ux-workspace/iteration-N/` (gitignored via `*-workspace/`).
 
 ```text

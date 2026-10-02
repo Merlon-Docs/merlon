@@ -5,7 +5,10 @@
       "id": 1,
       "prompt": "Set up MDCP documentation in this brand-new Node project. FEATURE is \"inventory-sync\". PERSONA is \"ops engineers who configure sync jobs\". EXPERIENCE is \"expert\" (I already read the MDCP docs and want automated setup only — no tutorial shards, no concept lectures). Install what you need, create the docs root and mdcp.config.json, scaffold the standard guide layout, seed a minimal glossary and starter shards, wire package scripts, then run mdcp compile and mdcp check until both succeed. Do not invent other feature names or personas.",
       "expected_output": "Expert greenfield bootstrap: deps + mdcp.config.json under docs/, four-tier guides with index.md shards, client about-this-guide naming the ops persona, package scripts for compile/check, successful mdcp compile + mdcp check, and no tutorial/onboarding lecture shards.",
-      "files": ["evals/files/greenfield-npm/package.json", "evals/files/greenfield-npm/README.md"],
+      "files": [
+        "evals/getting-started/files/greenfield-npm/package.json",
+        "evals/getting-started/files/greenfield-npm/README.md"
+      ],
       "assertions": [
         {
           "name": "creates_mdcp_config",
@@ -42,8 +45,8 @@
       "prompt": "Bootstrap MDCP in this empty pnpm repo for FEATURE \"billing-webhooks\" and PERSONA \"finance admins reviewing webhook deliveries\". EXPERIENCE is \"novice\" — first time using an agent skill and I am not confident with Markdown. Prefer the repo's package manager. Create docs layout and config; add tutorial-style shards that explain shards, compile, and check; pause to explain concepts as you go; run mdcp compile and mdcp check and fix any failures.",
       "expected_output": "Novice greenfield: pnpm-aware install, four-tier layout, tutorial shards present, client about-this-guide for finance admins, interactive concept explanations in the agent transcript, compile and check exit 0.",
       "files": [
-        "evals/files/greenfield-pnpm/package.json",
-        "evals/files/greenfield-pnpm/README.md"
+        "evals/getting-started/files/greenfield-pnpm/package.json",
+        "evals/getting-started/files/greenfield-pnpm/README.md"
       ],
       "assertions": [
         {
@@ -78,9 +81,12 @@
     },
     {
       "id": 3,
-      "prompt": "I already decided FEATURE=\"notifications\", PERSONA=\"product managers\", and EXPERIENCE=\"expert\". Use /mdcp (getting-started workflow) (or the the getting-started workflow skill) to bootstrap sharded docs here. After the layout exists, add one glossary term shard for \"shard\", link guides from glossary/index.md, then validate with mdcp compile and mdcp check.",
+      "prompt": "I already decided FEATURE=\"notifications\", PERSONA=\"product managers\", and EXPERIENCE=\"expert\". Use /mdcp (getting-started workflow) to bootstrap sharded docs here. After the layout exists, add one glossary term shard for \"shard\", link guides from glossary/index.md, then validate with mdcp compile and mdcp check.",
       "expected_output": "Intake values honored without re-asking; glossary term shard present and indexed; full guide layout; no tutorial lecture shards; compile/check green; shards treated as source of truth (no hand-edits to generated compile output or refs.json).",
-      "files": ["evals/files/greenfield-npm/package.json", "evals/files/greenfield-npm/README.md"],
+      "files": [
+        "evals/getting-started/files/greenfield-npm/package.json",
+        "evals/getting-started/files/greenfield-npm/README.md"
+      ],
       "assertions": [
         {
           "name": "skips_intake_when_provided",
@@ -109,10 +115,10 @@
       "prompt": "This repo already has legacy docs under docs/ARCHITECTURE.md and docs/USER_GUIDE.md. FEATURE is \"inventory-sync\". PERSONA is \"ops engineers who configure sync jobs\". EXPERIENCE is \"expert\". Bootstrap MDCP without deleting or overwriting those legacy files. Scaffold the four-tier MDCP layout alongside them, pull useful content into new shards, mark the legacy files as ready to archive after review, then run mdcp compile and mdcp check until both succeed.",
       "expected_output": "Brownfield bootstrap: legacy ARCHITECTURE.md and USER_GUIDE.md still present (not deleted), MDCP four-tier guides + config created, migrated content in new shards, legacy paths marked ready to archive after review, compile/check green.",
       "files": [
-        "evals/files/brownfield/package.json",
-        "evals/files/brownfield/README.md",
-        "evals/files/brownfield/docs/ARCHITECTURE.md",
-        "evals/files/brownfield/docs/USER_GUIDE.md"
+        "evals/getting-started/files/brownfield/package.json",
+        "evals/getting-started/files/brownfield/README.md",
+        "evals/getting-started/files/brownfield/docs/ARCHITECTURE.md",
+        "evals/getting-started/files/brownfield/docs/USER_GUIDE.md"
       ],
       "assertions": [
         {
@@ -141,7 +147,10 @@
       "id": 5,
       "prompt": "Bootstrap MDCP in this brand-new npm project. FEATURE is \"inventory-sync\". PERSONA is \"ops engineers who configure sync jobs\". EXPERIENCE is \"novice\". After mdcp compile and mdcp check succeed, run the first-feature tutorial: choose EXAMPLE_MODE recommended (hello-greeting). Treat every between-phase pause as approved (\"go\"). Follow the helper circuit in order — design-architecture, then feature-level, then ux, then doc-only — for hello-greeting (docs shards plus a minimal greeting implementation and test). End with the Closing CTA (star the repo, leave a review/feedback, share, explore DORA AI capabilities, join the DORA community). Write SESSION.md capturing: tutorial offer, EXAMPLE_MODE, phases completed, and the exact CTA URLs you shared.",
       "expected_output": "Novice bootstrap then first-feature tutorial with recommended hello-greeting: four helper phases executed in order, minimal greeting delivered, SESSION.md records offer/EXAMPLE_MODE/phases, Closing CTA includes GitHub star/feedback, dora.dev/ai, and dora.community/join.",
-      "files": ["evals/files/greenfield-npm/package.json", "evals/files/greenfield-npm/README.md"],
+      "files": [
+        "evals/getting-started/files/greenfield-npm/package.json",
+        "evals/getting-started/files/greenfield-npm/README.md"
+      ],
       "assertions": [
         {
           "name": "offers_first_feature_tutorial",
