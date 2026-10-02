@@ -19,6 +19,7 @@
 - [Safe markdown parsing](./safe-markdown-parsing.md)
 - [Agent Skill](./agent-skill.md)
 - [Live skill evals](./live-skill-evals.md)
+- [Documentation site](./docs-site.md)
 
 ## Release
 

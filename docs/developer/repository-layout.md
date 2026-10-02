@@ -15,6 +15,7 @@ mdcp/
 │   ├── mdcp-core/          # @bwilliamson/mdcp-core
 │   ├── mdcp-cli/           # @bwilliamson/mdcp-cli
 │   ├── mdcp-presets/       # @bwilliamson/mdcp-presets
+│   ├── mdcp-site/          # Starlight docs site (private, unversioned)
 │   └── skill-*/            # Private @bwilliamson/skill-* version carriers + CHANGELOGs
 ├── docs/                   # Sharded docs (mdcp.config.json) — dogfood target
 │   ├── glossary/           # Shared acronyms and terms (cross-guide, like insert libraries)
