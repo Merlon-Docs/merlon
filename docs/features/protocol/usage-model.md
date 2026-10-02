@@ -21,7 +21,7 @@ Agents should load the parent **Agent Skill** (`/mdcp`, installed in your agent'
 
 ### Minimal
 
-One guide, `compile` + `check`, monolith output. Install the parent skill (`npx skills add betsalel-williamson/mdcp --skill mdcp`).
+One guide, `compile` + `check`, monolith output. Install the skill (`npx skills add betsalel-williamson/mdcp --skill mdcp`).
 
 ### Typical
 
@@ -42,7 +42,7 @@ Above plus three-tier shards (`features` / `client` / `developer`), the `mdcp` s
 ## Query preference order
 
 1. Activate the parent Agent Skill (`/mdcp`) when available
-2. Load a helper skill; complete intake for `WORK_ITEM` — see [Agent helper skills](./agent-task-prompts.md)
+2. Invoke `/mdcp` with the task; the skill picks a workflow and runs intake for `WORK_ITEM` — see [Skill workflows](./skill-workflows.md)
 3. Discover the shard with host tools (`rg`, IDE search, guide `index.md`) and **read one shard**
 4. Rely on `mdcp check` for broken `#` cross-links (optionally inspect `mdcp refs-list`)
 

@@ -21,7 +21,7 @@ Heading-slug **registry** for validation after compile — see [Refs registry pa
 One Agent Skill at `skills/mdcp/SKILL.md` (install via `npx skills add` into your agent's skills directory). See [Agent Skill](./agent-skill.md).
 
 The skill picks a workflow for each authoring job and loads only that file. Catalog and intake:
-[Skill workflows](./protocol/agent-task-prompts.md). Hardened is/isn’t boundaries:
+[Skill workflows](./protocol/skill-workflows.md). Hardened is/isn’t boundaries:
 [Getting-started](./protocol/workflows/getting-started.md),
 [Feature-level](./protocol/workflows/feature-level.md),
 [Doc-only](./protocol/workflows/doc-only.md),

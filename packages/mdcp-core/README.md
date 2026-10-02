@@ -83,6 +83,29 @@ Use `writeCompiledGuides` when you need to write the monolith and per-guide publ
 
 <!-- mdcp-shard: end ../../docs/client-core/quick-example.md -->
 
+<!-- mdcp-shard: start ../../docs/client-core/related-packages.md -->
+
+## Related packages
+
+| Package                                                                                | Use                           |
+| -------------------------------------------------------------------------------------- | ----------------------------- |
+| [`@bwilliamson/mdcp-cli`](https://www.npmjs.com/package/@bwilliamson/mdcp-cli)         | `mdcp` command-line interface |
+| [`@bwilliamson/mdcp-presets`](https://www.npmjs.com/package/@bwilliamson/mdcp-presets) | Starter markdownlint configs  |
+
+The [Agent Skill](../../README.md) is a separate install (`npx skills add`) — not an npm dependency of this library.
+
+### Further reading
+
+- [CLI package docs](https://www.npmjs.com/package/@bwilliamson/mdcp-cli)
+- [Project README](../../README.md) — Agent Skill landing
+- [Design constraints](../../docs/features/design-constraints/index.md)
+
+### License
+
+MIT
+
+<!-- mdcp-shard: end ../../docs/client-core/related-packages.md -->
+
 <!-- mdcp-shard: start ../../docs/client-core/api-config.md -->
 
 ## API — Config
@@ -1027,29 +1050,6 @@ Link validation accepts those shard paths when the target guide is listed in `ig
 - [codeEvidence](#codeevidence) — separate path rebase for repo source evidence links
 
 <!-- mdcp-shard: end ../../docs/client-core/compile-hooks/publish-relative-links.md -->
-
-<!-- mdcp-shard: start ../../docs/client-core/related-packages.md -->
-
-## Related packages
-
-| Package                                                                                | Use                           |
-| -------------------------------------------------------------------------------------- | ----------------------------- |
-| [`@bwilliamson/mdcp-cli`](https://www.npmjs.com/package/@bwilliamson/mdcp-cli)         | `mdcp` command-line interface |
-| [`@bwilliamson/mdcp-presets`](https://www.npmjs.com/package/@bwilliamson/mdcp-presets) | Starter markdownlint configs  |
-
-The [Agent Skill](../../README.md) is a separate install (`npx skills add`) — not an npm dependency of this library.
-
-### Further reading
-
-- [CLI package docs](https://www.npmjs.com/package/@bwilliamson/mdcp-cli)
-- [Project README](../../README.md) — Agent Skill landing
-- [Design constraints](../../docs/features/design-constraints/index.md)
-
-### License
-
-MIT
-
-<!-- mdcp-shard: end ../../docs/client-core/related-packages.md -->
 
 <!-- mdcp-shard: start ../../docs/glossary/ignore-guides.md -->
 

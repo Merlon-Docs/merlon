@@ -5,7 +5,7 @@ MDCP shards as a technical-writer pass — durable guide content without changin
 functional product code.
 
 Workflow file: [`skills/mdcp/references/workflows/doc-only.md`](../../../../skills/mdcp/references/workflows/doc-only.md).
-Shared workflow contract (intake, guide placement, glossary): [Skill workflows](../agent-task-prompts.md).
+Shared workflow contract (intake, guide placement, glossary): [Skill workflows](../skill-workflows.md).
 
 ## End-user value
 
@@ -27,9 +27,6 @@ See [Atomic commit groups](../../../glossary/atomic-commit-groups.md) for the pl
 | Indexes and validation | Update guide `index.md` files; run `mdcp check` (do not hand-edit compile output or `refs.json`)        |
 | Current docs only      | Remove superseded workflows, planning backlogs, and pending `.changeset/*.md` links from durable shards |
 | Hard scope boundary    | No `src/` edits, unit tests, or “just fix the code too” — defer code work to feature-level              |
-
-Intake is the same as other work-item workflows: `WORK_ITEM` and
-`WORK_ITEM_LOOKUP` before branching or editing.
 
 ## What this workflow is not
 

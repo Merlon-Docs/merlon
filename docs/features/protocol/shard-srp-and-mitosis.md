@@ -100,5 +100,5 @@ GTM/marketing/sales documentation is a separate WIP archetype (`mdcp-arch-gtm`),
 
 - [Agent Skill — QA principles](../agent-skill.md#quality-assurance-qa-principles)
 - [Extensions and archetypes](./extensions-and-archetypes.md)
-- [Helper Skills](./agent-task-prompts.md)
+- [Skill workflows](./skill-workflows.md)
 - [Acknowledgments](./acknowledgments.md)

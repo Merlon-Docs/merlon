@@ -126,7 +126,7 @@ Deeper model: [Overview](docs/features/overview.md). Install path: [Get started]
 
 MDCP has **three separate surfaces**. Each has its own docs — do not treat them as one install or one README.
 
-- **Agent Skill** — `npx skills add … --skill mdcp`. How agents maintain shards (`/mdcp`, subagents). Docs: **this README**.
+- **Agent Skill** — `npx skills add … --skill mdcp`. How agents maintain shards (`/mdcp` and its workflows). Docs: **this README**.
 - **CLI** — `npm i -D @bwilliamson/mdcp-cli`. Shell commands only. Docs: [`@bwilliamson/mdcp-cli`](./packages/mdcp-cli/README.md).
 - **Core** — `npm i @bwilliamson/mdcp-core`. Programmatic API only. Docs: [`@bwilliamson/mdcp-core`](./packages/mdcp-core/README.md).
 

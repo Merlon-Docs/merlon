@@ -16,7 +16,7 @@ This npm package is **not** the MDCP Agent Skill.
 
 - **This CLI** — shell/`npx` tool (`mdcp compile`, `mdcp check`, …) via `@bwilliamson/mdcp-cli` on npm
 - **Core** — programmatic library used by the CLI: [`@bwilliamson/mdcp-core`](https://www.npmjs.com/package/@bwilliamson/mdcp-core)
-- **Agent Skill** — host instructions (`SKILL.md`, subagents): [root README](../../README.md) / `npx skills add … --skill mdcp`
+- **Agent Skill** — host instructions (`SKILL.md` and its workflows): [root README](../../README.md) / `npx skills add … --skill mdcp`
 
 Slash `/mdcp` in an agent host loads the **skill**. The shell command `mdcp` runs **this CLI**. They are separate installs and separate docs.
 
@@ -350,6 +350,71 @@ Full schema and examples: [mdcp.config.json in sample-guides](../../examples/sam
 
 <!-- mdcp-shard: end ../../docs/client-cli/config-essentials.md -->
 
+<!-- mdcp-shard: start ../../docs/client-cli/consumer-migration.md -->
+
+## Consumer migration
+
+Add `source` to your config pointing at your existing monolith, then:
+
+```bash
+mdcp shard
+mdcp compile
+mdcp check
+```
+
+### Guide manifests and compile order
+
+Compile order comes from link order in each guide's `index.md` or `shards.md`. List shards in the manifest in the order you want them stitched.
+
+When a manifest has preamble prose with example inline links (not section shards), set `compile.sectionsHeading` — see [Manifest compile order](../../docs/features/manifest-compile-order.md).
+
+After changing a guide's `index.md`, run `mdcp compile` and `mdcp check` — there is no separate manifest sync step.
+
+### Output layout
+
+MDCP uses an NPM-style two-root layout.
+
+| Concept          | Default                            | Notes                                                                    |
+| ---------------- | ---------------------------------- | ------------------------------------------------------------------------ |
+| Docs root        | `--docs-root`                      | One subdirectory per guide; `compileOrder` selects which folders compile |
+| Output root      | `outputDir: "_build"`              | Safe to delete; all generated paths relative here unless absolute        |
+| Per-guide output | `{name}.md` under `_build`         | Or `guide.md` when only one guide                                        |
+| Monolith         | Opt-in via top-level `outputFile`  | Omitted by default                                                       |
+| Refs registry    | `.caches/refs.json` under `_build` | Derived state, not publish-facing                                        |
+
+Path resolution details: [Config essentials — path layout](#path-layout).
+
+### Compile hooks and multi-guide links
+
+Built-in hooks run by default — omit `compile.hooks` for the common case. Specs and multi-guide / `ignoreGuides` examples live in **core** docs (not duplicated here):
+
+- [Default compile hooks](../../docs/features/default-compile-hooks.md)
+- [Compile hooks](../mdcp-core/README.md#compile-hooks)
+- [Cross-guide links](../mdcp-core/README.md#cross-guide-link-rewriting)
+
+CLI config path rules remain in [Config essentials](#config-essentials).
+
+### Steps for a new consumer repo
+
+1. Add `mdcp.config.json` to your docs shard directory
+2. Add repo-root npm scripts, for example `mdcp compile --config docs/mdcp.config.json --docs-root docs` (see [Config essentials](#--config-vs---docs-root))
+3. Add `mdcp check --require-lint` (and `--require-vale` when Vale is configured)
+4. Discover shards with host search; validate cross-link slugs with `mdcp check` (optional `mdcp refs-list`; prefer GitHub auto-slugs over ``)
+5. Update CI to build and invoke `@bwilliamson/mdcp-cli`
+
+Upgrade notes from earlier MDCP releases are in package **CHANGELOGs** (and GitHub Releases), not in the feature catalog.
+
+### Verification checklist
+
+After setting up a consumer repo:
+
+1. **`mdcp compile`** — per-guide outputs under `_build/` (or explicit `compile.outputFile` targets); optional monolith when `outputFile` is set
+2. **`mdcp check --require-lint`** — orphans, refs, links, and markdownlint on in-scope guide shards
+3. **`mdcp check --require-vale`** — when Vale is configured
+4. **Hook output** — diagram tables inlined (`inlineInserts`), code evidence blocks resolved (`codeEvidence`), cross-guide links rewritten to monolith `#slug` targets (or left as shard `.md` paths for guides in `compile.crossGuideLinks.ignoreGuides`)
+
+<!-- mdcp-shard: end ../../docs/client-cli/consumer-migration.md -->
+
 <!-- mdcp-shard: start ../../docs/client-cli/commands-reference.md -->
 
 ## Commands reference
@@ -615,71 +680,6 @@ The `@bwilliamson/mdcp-presets` shard config supplies **rules and exclusions** (
 
 <!-- mdcp-shard: end ../../docs/client-cli/optional-linters.md -->
 
-<!-- mdcp-shard: start ../../docs/client-cli/consumer-migration.md -->
-
-## Consumer migration
-
-Add `source` to your config pointing at your existing monolith, then:
-
-```bash
-mdcp shard
-mdcp compile
-mdcp check
-```
-
-### Guide manifests and compile order
-
-Compile order comes from link order in each guide's `index.md` or `shards.md`. List shards in the manifest in the order you want them stitched.
-
-When a manifest has preamble prose with example inline links (not section shards), set `compile.sectionsHeading` — see [Manifest compile order](../../docs/features/manifest-compile-order.md).
-
-After changing a guide's `index.md`, run `mdcp compile` and `mdcp check` — there is no separate manifest sync step.
-
-### Output layout
-
-MDCP uses an NPM-style two-root layout.
-
-| Concept          | Default                            | Notes                                                                    |
-| ---------------- | ---------------------------------- | ------------------------------------------------------------------------ |
-| Docs root        | `--docs-root`                      | One subdirectory per guide; `compileOrder` selects which folders compile |
-| Output root      | `outputDir: "_build"`              | Safe to delete; all generated paths relative here unless absolute        |
-| Per-guide output | `{name}.md` under `_build`         | Or `guide.md` when only one guide                                        |
-| Monolith         | Opt-in via top-level `outputFile`  | Omitted by default                                                       |
-| Refs registry    | `.caches/refs.json` under `_build` | Derived state, not publish-facing                                        |
-
-Path resolution details: [Config essentials — path layout](#path-layout).
-
-### Compile hooks and multi-guide links
-
-Built-in hooks run by default — omit `compile.hooks` for the common case. Specs and multi-guide / `ignoreGuides` examples live in **core** docs (not duplicated here):
-
-- [Default compile hooks](../../docs/features/default-compile-hooks.md)
-- [Compile hooks](../mdcp-core/README.md#compile-hooks)
-- [Cross-guide links](../mdcp-core/README.md#cross-guide-link-rewriting)
-
-CLI config path rules remain in [Config essentials](#config-essentials).
-
-### Steps for a new consumer repo
-
-1. Add `mdcp.config.json` to your docs shard directory
-2. Add repo-root npm scripts, for example `mdcp compile --config docs/mdcp.config.json --docs-root docs` (see [Config essentials](#--config-vs---docs-root))
-3. Add `mdcp check --require-lint` (and `--require-vale` when Vale is configured)
-4. Discover shards with host search; validate cross-link slugs with `mdcp check` (optional `mdcp refs-list`; prefer GitHub auto-slugs over ``)
-5. Update CI to build and invoke `@bwilliamson/mdcp-cli`
-
-Upgrade notes from earlier MDCP releases are in package **CHANGELOGs** (and GitHub Releases), not in the feature catalog.
-
-### Verification checklist
-
-After setting up a consumer repo:
-
-1. **`mdcp compile`** — per-guide outputs under `_build/` (or explicit `compile.outputFile` targets); optional monolith when `outputFile` is set
-2. **`mdcp check --require-lint`** — orphans, refs, links, and markdownlint on in-scope guide shards
-3. **`mdcp check --require-vale`** — when Vale is configured
-4. **Hook output** — diagram tables inlined (`inlineInserts`), code evidence blocks resolved (`codeEvidence`), cross-guide links rewritten to monolith `#slug` targets (or left as shard `.md` paths for guides in `compile.crossGuideLinks.ignoreGuides`)
-
-<!-- mdcp-shard: end ../../docs/client-cli/consumer-migration.md -->
-
 <!-- mdcp-shard: start ../../docs/client-cli/why-mdcp-for-agents.md -->
 
 ## Why mdcp for coding agents
@@ -696,7 +696,7 @@ Which **CLI commands** address common docs failures when agents edit the repo:
 
 Typical loop: edit shards → `mdcp compile` → `mdcp check` → optional `mdcp refs-list` → read one shard when the next turn needs doc context.
 
-Install and flags: [Install and quick start](#install-and-quick-start). Agent **behavior** (when to edit docs, subagents) is the [Agent Skill](../../README.md), not this package.
+Install and flags: [Install and quick start](#install-and-quick-start). Agent **behavior** (when to edit docs, which workflow to follow) is the [Agent Skill](../../README.md), not this package.
 
 <!-- mdcp-shard: end ../../docs/client-cli/why-mdcp-for-agents.md -->
 
@@ -745,7 +745,7 @@ MIT
 
 ## LLM collaboration
 
-Agent workflow (subagents, intake, docs-first turns) lives in the **Agent Skill**, not this CLI package.
+Agent workflow (task workflows, intake, docs-first turns) lives in the **Agent Skill**, not this CLI package.
 
 - Skill landing: [root README](../../README.md)
 - Skill and workflow catalog: [`docs/skills.md`](../../docs/skills.md)

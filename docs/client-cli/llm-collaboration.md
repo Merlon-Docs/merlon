@@ -1,6 +1,6 @@
 # LLM collaboration
 
-Agent workflow (subagents, intake, docs-first turns) lives in the **Agent Skill**, not this CLI package.
+Agent workflow (task workflows, intake, docs-first turns) lives in the **Agent Skill**, not this CLI package.
 
 - Skill landing: [root README](../../README.md)
 - Skill and workflow catalog: [`docs/skills.md`](../../docs/skills.md)

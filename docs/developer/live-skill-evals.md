@@ -67,4 +67,4 @@ Shared shape for workflow suites:
 | `README.md`     | How to run and grade that suite                                         |
 
 Workflow intake and write obligations stay in
-[Skill workflows](../features/protocol/agent-task-prompts.md).
+[Skill workflows](../features/protocol/skill-workflows.md).

@@ -7,7 +7,7 @@ Interfaces and UI implementation are in scope when they serve those flows, not
 as the sole focus.
 
 Workflow file: [`skills/mdcp/references/workflows/ux.md`](../../../../skills/mdcp/references/workflows/ux.md).
-Shared workflow contract (intake, guide placement, glossary): [Skill workflows](../agent-task-prompts.md).
+Shared workflow contract (intake, guide placement, glossary): [Skill workflows](../skill-workflows.md).
 
 ## End-user value
 
@@ -30,9 +30,6 @@ See [Atomic commit groups](../../../glossary/atomic-commit-groups.md) for the pl
 | Glossary hygiene            | Follow the shared glossary obligation; define non-universal jargon per the inclusion bar                         |
 | Align as-built docs         | Update client-guide shards to match the shipped experience; remove superseded journey or UI references           |
 | Validate and wrap-up        | Run repo tests + docs validation; release notes per repo conventions; link `WORK_ITEM`                           |
-
-Intake is the same as other work-item workflows: `WORK_ITEM` and
-`WORK_ITEM_LOOKUP` before branching or editing.
 
 ## What this workflow is not
 

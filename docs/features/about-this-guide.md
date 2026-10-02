@@ -11,4 +11,4 @@ For how to contribute to this repository (setup, tests, changesets, releases, an
 
 Consumer adoption docs compile separately into npm package READMEs under `docs/client-cli/` and `docs/client-core/`. The root [README](../../README.md) compiles from `docs/repo-readme/`.
 
-Guide placement rules for helpers: [Agent helper skills](./protocol/agent-task-prompts.md#three-tier-authoring-obligations).
+Guide placement rules for skill workflows: [Skill workflows](./protocol/skill-workflows.md#three-tier-authoring-obligations).

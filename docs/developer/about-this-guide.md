@@ -11,4 +11,4 @@ For what mdcp **does** as a tool (commands, design, consumer migration), read th
 
 Contributors are expected to follow the [Contributor Covenant Code of Conduct](../../CODE_OF_CONDUCT.md).
 
-Guide placement rules for helpers: [Agent helper skills](../features/protocol/agent-task-prompts.md#three-tier-authoring-obligations).
+Guide placement rules for skill workflows: [Skill workflows](../features/protocol/skill-workflows.md#three-tier-authoring-obligations).

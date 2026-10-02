@@ -5,7 +5,7 @@ documents shipped features using a **docs-first** then **TDD** loop so MDCP
 shards stay the contract before product code changes.
 
 Workflow file: [`skills/mdcp/references/workflows/feature-level.md`](../../../../skills/mdcp/references/workflows/feature-level.md).
-Shared workflow contract (intake, guide placement, glossary): [Skill workflows](../agent-task-prompts.md).
+Shared workflow contract (intake, guide placement, glossary): [Skill workflows](../skill-workflows.md).
 
 ## End-user value
 
@@ -28,9 +28,6 @@ See [Atomic commit groups](../../../glossary/atomic-commit-groups.md) for the pl
 | TDD when code changes | Write failing tests first where the repo uses tests, then implement, then refactor; skip TDD when docs-only |
 | Current docs only     | Align shards to as-built behavior; no superseded-workflow archaeology in durable docs                       |
 | Validate and wrap-up  | Run repo tests + `mdcp check`; changeset/release notes per repo conventions; link `WORK_ITEM`               |
-
-Intake is the same as other work-item workflows: `WORK_ITEM` and
-`WORK_ITEM_LOOKUP` before branching or editing.
 
 ## What this workflow is not
 

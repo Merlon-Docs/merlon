@@ -5,7 +5,7 @@ architecture and design decisions as **MDCP shards** so agents and humans can
 load one concern at a time instead of growing a single architecture monolith.
 
 Workflow file: [`skills/mdcp/references/workflows/design-architecture.md`](../../../../skills/mdcp/references/workflows/design-architecture.md).
-Shared workflow contract (intake, guide placement, glossary): [Skill workflows](../agent-task-prompts.md).
+Shared workflow contract (intake, guide placement, glossary): [Skill workflows](../skill-workflows.md).
 
 ## End-user value
 
@@ -19,6 +19,7 @@ See [Atomic commit groups](../../../glossary/atomic-commit-groups.md) for the pl
 
 | Obligation                  | As-built expectation                                                                                    |
 | --------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Work-item intake            | Ask for `WORK_ITEM` and `WORK_ITEM_LOOKUP` before branching or editing                                  |
 | Capture architecture intent | Draft system diagrams, API/data contracts, and boundaries as shards under `docs/features/`              |
 | Atomic commit groups        | Include numbered Atomic commit groups in the plan before “go”; one commit per group after approval      |
 | Land durable decisions      | Record accepted choices as ADRs under `docs/features/adr/` when the repo uses that layout               |
@@ -26,10 +27,7 @@ See [Atomic commit groups](../../../glossary/atomic-commit-groups.md) for the pl
 | Brownfield hygiene          | Split or retire legacy architecture monoliths; remove superseded planning from durable design shards    |
 | Stay design-doc scoped      | No product/CLI/TypeScript implementation, no unit tests as delivery, no primary `docs/client/` work     |
 | Glossary hygiene            | Follow the shared glossary obligation; define non-universal design jargon per the inclusion bar         |
-| Parent QA                   | Current intended architecture only; no large implementation dumps; run repo `mdcp check` / docs scripts |
-
-Intake is the same as other work-item workflows: `WORK_ITEM` and
-`WORK_ITEM_LOOKUP` before branching or editing.
+| Skill QA                    | Current intended architecture only; no large implementation dumps; run repo `mdcp check` / docs scripts |
 
 ## What this workflow is not
 

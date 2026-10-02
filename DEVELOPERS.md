@@ -15,7 +15,7 @@ For what mdcp **does** as a tool (commands, design, consumer migration), read th
 
 Contributors are expected to follow the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md).
 
-Guide placement rules for helpers: [Agent helper skills](docs/features/protocol/agent-task-prompts.md#three-tier-authoring-obligations).
+Guide placement rules for skill workflows: [Skill workflows](docs/features/protocol/skill-workflows.md#three-tier-authoring-obligations).
 
 <!-- mdcp-shard: end docs/developer/about-this-guide.md -->
 
@@ -166,6 +166,119 @@ These are cloud-agent constraints discovered in practice. Plan work around them 
 Because the agent cannot open GitHub issues, capture work items as ready-to-paste issue text (title, body with acceptance criteria, labels, and project fields per [Agent work-item tracking](#agent-work-item-tracking)) inside the pull request that delivers the work. A maintainer creates the issue and links it with `Closes #N`.
 
 <!-- mdcp-shard: end docs/developer/cursor-cloud-environment.md -->
+
+<!-- mdcp-shard: start docs/developer/repository-layout.md -->
+
+## Repository layout
+
+```text
+mdcp/
+├── CODE_OF_CONDUCT.md      # Contributor Covenant (committed)
+├── README.md               # Compiled from docs/repo-readme/ (committed)
+├── DEVELOPERS.md           # Compiled from docs/developer/ (committed)
+├── skills/                 # Agent Skills install surface only (npx skills add)
+│   ├── mdcp/               # The MDCP skill + workflows (no package.json / CHANGELOG here)
+│   └── mdcp-arch-*/        # WIP archetypes (metadata.internal)
+├── tests/skills/           # Live eval fixtures (optional; not publishable packs)
+├── skills.sh.json          # skills.sh repo page layout
+├── .agents/skills/         # Dogfood installs (pnpm skill:update) + skill-creator
+├── packages/
+│   ├── mdcp-core/          # @bwilliamson/mdcp-core
+│   ├── mdcp-cli/           # @bwilliamson/mdcp-cli
+│   ├── mdcp-presets/       # @bwilliamson/mdcp-presets
+│   └── skill-*/            # Private @bwilliamson/skill-* version carriers + CHANGELOGs
+├── docs/                   # Sharded docs (mdcp.config.json) — dogfood target
+│   ├── glossary/           # Shared acronyms and terms (cross-guide, like insert libraries)
+│   ├── features/           # Tool capabilities → docs/_build/guides.md (local review, gitignored)
+│   ├── developer/          # This guide → DEVELOPERS.md
+│   ├── client-cli/         # → packages/mdcp-cli/README.md
+│   ├── client-core/        # → packages/mdcp-core/README.md
+│   ├── repo-readme/        # → README.md (publish landing)
+│   ├── vale-local/         # Dogfood-only Vale styles (MDCP-PandocId)
+│   └── .vale.ini           # Peer Vale config
+├── examples/sample-guides/ # Minimal consumer fixture for tests and tutorials
+├── legacy/                 # Original bash/Python reference implementation
+├── .changeset/             # Changesets for semver releases
+└── .github/workflows/      # CI and release automation
+```
+
+### Published packages
+
+Each npm package and each Agent Skill versions independently via Changesets. npm packages ship `dist/` and READMEs. Skill **carriers** live under `packages/skill-*` (private; GitHub Releases + CHANGELOG). The `skills/` tree is install content only.
+
+`mdcp-presets` README is hand-authored for now. Root `README.md`, CLI, and core READMEs are **compiled** from `docs/repo-readme/`, `docs/client-cli/`, and `docs/client-core/` shards.
+
+<!-- mdcp-shard: end docs/developer/repository-layout.md -->
+
+<!-- mdcp-shard: start docs/developer/packages-and-tests.md -->
+
+## Packages and tests
+
+### mdcp-core
+
+Library source: [`packages/mdcp-core/src/`](packages/mdcp-core/src).
+
+| Area               | Path                          |
+| ------------------ | ----------------------------- |
+| Config schema      | `src/config/`                 |
+| Compile / assemble | `src/compile/`                |
+| Markdown helpers   | `src/markdown/`               |
+| Locale packs       | `src/locale/`                 |
+| Refs / slugs       | `src/refs/`                   |
+| Validation         | `src/validate/`, `src/links/` |
+| Shard (split)      | `src/shard/`                  |
+| Protocol helpers   | `src/export/`                 |
+| Peer linters       | `src/peers/`                  |
+
+Shared heading/link helpers live under `src/markdown/` and `src/refs/` (`parseHeading` with ATX kind today, plain-text cleanup, GitHub-style **slugify**). They stay **language-agnostic**. Heading recognition is an ATX subset of GFM — see [GFM scope](docs/features/design-constraints/gfm-scope.md#headings). Compile-time wording lives under `src/locale/` (one BCP 47 JSON file per locale). Peer Vale owns prose cues and Pandoc ID authoring opinion — see [Locale and language boundary](docs/features/design-constraints/locale-and-language.md).
+
+```bash
+pnpm --filter @bwilliamson/mdcp-core test
+pnpm --filter @bwilliamson/mdcp-core run typecheck
+```
+
+Tests live under `packages/mdcp-core/test/`. Integration tests invoke the built CLI against `examples/sample-guides/`.
+
+### mdcp-cli
+
+Thin [CAC](https://github.com/cacjs/cac) wrapper around `mdcp-core`. Source: [`packages/mdcp-cli/src/cli.ts`](packages/mdcp-cli/src/cli.ts).
+
+```bash
+pnpm --filter @bwilliamson/mdcp-cli run build
+node packages/mdcp-cli/dist/cli.js --help
+```
+
+### Test code coverage
+
+Vitest coverage for `@bwilliamson/mdcp-core` and `@bwilliamson/mdcp-cli` (not root `scripts/` tests). This is **test** coverage of TypeScript sources — distinct from the [documentation coverage scan](docs/features/coverage-scan.md). Note that CLI package totals are understated because smoke tests drive the built binary out-of-process (V8 coverage does not follow that subprocess).
+
+```bash
+pnpm test:coverage
+```
+
+Local runs print a text summary and write HTML/lcov under each package’s `coverage/` directory (gitignored). CI runs the same command in a separate **coverage** job, appends package totals to the Actions job summary, and uploads those `coverage/` trees as artifacts. Default `pnpm test` / `pnpm check` do not collect coverage and do not enforce percentage thresholds.
+
+### mdcp-presets
+
+JSONC markdownlint configs plus the shippable `MDCP` Vale style (`vale/MDCP/`). Dogfood-only styles live under [`docs/vale-local/`](docs/vale-local/README.md). Edit preset files directly — no TypeScript build.
+
+### Pull request checklist
+
+1. `pnpm run build && pnpm test`
+2. `pnpm run lint && pnpm run format:check`
+3. `pnpm docs:compile:repo && pnpm docs:check` if you touched `docs/` shards
+4. `pnpm changeset` if you changed published package behavior (see [Versioning and releases](#versioning-and-releases))
+
+CI runs the same core gates as `pnpm run check` (typecheck, lint, format, build, test, `docs:check`), plus:
+
+- `pnpm run verify:peers` — confirm markdownlint-cli2 and Vale are on PATH
+- `pnpm audit --audit-level=high` — dependency vulnerability scan
+- `pnpm run prepare:docs` — `verify:peers` + `vale:sync` before `docs:check`
+- a separate **coverage** job runs `pnpm test:coverage`, appends package totals to the Actions job summary, and uploads `coverage/` artifacts (informational; no threshold enforcement)
+
+Pull requests also run the **changeset** job when package sources change.
+
+<!-- mdcp-shard: end docs/developer/packages-and-tests.md -->
 
 <!-- mdcp-shard: start docs/developer/agent-work-item-tracking.md -->
 
@@ -376,7 +489,7 @@ ADRs=docs/features/adr/ (scope/removal decisions; link CHANGELOGs, never pending
 Code review=gh pr create; link WORK_ITEM in PR body (Closes #N when appropriate)
 ```
 
-Parent skill QA and day-to-day helpers encode the same rule so plan-only agents inherit it: [Agent Skill](docs/features/agent-skill.md#quality-assurance-qa-principles), [Helper Skills](docs/features/protocol/agent-task-prompts.md).
+The skill's QA principles and its day-to-day workflows encode the same rule so plan-only agents inherit it: [Agent Skill](docs/features/agent-skill.md#quality-assurance-qa-principles), [Skill workflows](docs/features/protocol/skill-workflows.md).
 
 ### Workflow best practices
 
@@ -406,119 +519,6 @@ WORK_ITEM_LOOKUP=GitHub
 `WORK_ITEM` may be an issue number, URL, or a short name/description the agent can resolve. `WORK_ITEM_LOOKUP` may be this shard path or a plain location (e.g. GitHub) that points the agent at the tracker conventions here. For the helper skills catalog and invoke recipes, read [`docs/skills.md`](docs/skills.md).
 
 <!-- mdcp-shard: end docs/developer/agent-work-item-tracking.md -->
-
-<!-- mdcp-shard: start docs/developer/repository-layout.md -->
-
-## Repository layout
-
-```text
-mdcp/
-├── CODE_OF_CONDUCT.md      # Contributor Covenant (committed)
-├── README.md               # Compiled from docs/repo-readme/ (committed)
-├── DEVELOPERS.md           # Compiled from docs/developer/ (committed)
-├── skills/                 # Agent Skills install surface only (npx skills add)
-│   ├── mdcp/               # The MDCP skill + workflows (no package.json / CHANGELOG here)
-│   └── mdcp-arch-*/        # WIP archetypes (metadata.internal)
-├── tests/skills/           # Live eval fixtures (optional; not publishable packs)
-├── skills.sh.json          # skills.sh repo page layout
-├── .agents/skills/         # Dogfood installs (pnpm skill:update) + skill-creator
-├── packages/
-│   ├── mdcp-core/          # @bwilliamson/mdcp-core
-│   ├── mdcp-cli/           # @bwilliamson/mdcp-cli
-│   ├── mdcp-presets/       # @bwilliamson/mdcp-presets
-│   └── skill-*/            # Private @bwilliamson/skill-* version carriers + CHANGELOGs
-├── docs/                   # Sharded docs (mdcp.config.json) — dogfood target
-│   ├── glossary/           # Shared acronyms and terms (cross-guide, like insert libraries)
-│   ├── features/           # Tool capabilities → docs/_build/guides.md (local review, gitignored)
-│   ├── developer/          # This guide → DEVELOPERS.md
-│   ├── client-cli/         # → packages/mdcp-cli/README.md
-│   ├── client-core/        # → packages/mdcp-core/README.md
-│   ├── repo-readme/        # → README.md (publish landing)
-│   ├── vale-local/         # Dogfood-only Vale styles (MDCP-PandocId)
-│   └── .vale.ini           # Peer Vale config
-├── examples/sample-guides/ # Minimal consumer fixture for tests and tutorials
-├── legacy/                 # Original bash/Python reference implementation
-├── .changeset/             # Changesets for semver releases
-└── .github/workflows/      # CI and release automation
-```
-
-### Published packages
-
-Each npm package and each Agent Skill versions independently via Changesets. npm packages ship `dist/` and READMEs. Skill **carriers** live under `packages/skill-*` (private; GitHub Releases + CHANGELOG). The `skills/` tree is install content only.
-
-`mdcp-presets` README is hand-authored for now. Root `README.md`, CLI, and core READMEs are **compiled** from `docs/repo-readme/`, `docs/client-cli/`, and `docs/client-core/` shards.
-
-<!-- mdcp-shard: end docs/developer/repository-layout.md -->
-
-<!-- mdcp-shard: start docs/developer/packages-and-tests.md -->
-
-## Packages and tests
-
-### mdcp-core
-
-Library source: [`packages/mdcp-core/src/`](packages/mdcp-core/src).
-
-| Area               | Path                          |
-| ------------------ | ----------------------------- |
-| Config schema      | `src/config/`                 |
-| Compile / assemble | `src/compile/`                |
-| Markdown helpers   | `src/markdown/`               |
-| Locale packs       | `src/locale/`                 |
-| Refs / slugs       | `src/refs/`                   |
-| Validation         | `src/validate/`, `src/links/` |
-| Shard (split)      | `src/shard/`                  |
-| Protocol helpers   | `src/export/`                 |
-| Peer linters       | `src/peers/`                  |
-
-Shared heading/link helpers live under `src/markdown/` and `src/refs/` (`parseHeading` with ATX kind today, plain-text cleanup, GitHub-style **slugify**). They stay **language-agnostic**. Heading recognition is an ATX subset of GFM — see [GFM scope](docs/features/design-constraints/gfm-scope.md#headings). Compile-time wording lives under `src/locale/` (one BCP 47 JSON file per locale). Peer Vale owns prose cues and Pandoc ID authoring opinion — see [Locale and language boundary](docs/features/design-constraints/locale-and-language.md).
-
-```bash
-pnpm --filter @bwilliamson/mdcp-core test
-pnpm --filter @bwilliamson/mdcp-core run typecheck
-```
-
-Tests live under `packages/mdcp-core/test/`. Integration tests invoke the built CLI against `examples/sample-guides/`.
-
-### mdcp-cli
-
-Thin [CAC](https://github.com/cacjs/cac) wrapper around `mdcp-core`. Source: [`packages/mdcp-cli/src/cli.ts`](packages/mdcp-cli/src/cli.ts).
-
-```bash
-pnpm --filter @bwilliamson/mdcp-cli run build
-node packages/mdcp-cli/dist/cli.js --help
-```
-
-### Test code coverage
-
-Vitest coverage for `@bwilliamson/mdcp-core` and `@bwilliamson/mdcp-cli` (not root `scripts/` tests). This is **test** coverage of TypeScript sources — distinct from the [documentation coverage scan](docs/features/coverage-scan.md). Note that CLI package totals are understated because smoke tests drive the built binary out-of-process (V8 coverage does not follow that subprocess).
-
-```bash
-pnpm test:coverage
-```
-
-Local runs print a text summary and write HTML/lcov under each package’s `coverage/` directory (gitignored). CI runs the same command in a separate **coverage** job, appends package totals to the Actions job summary, and uploads those `coverage/` trees as artifacts. Default `pnpm test` / `pnpm check` do not collect coverage and do not enforce percentage thresholds.
-
-### mdcp-presets
-
-JSONC markdownlint configs plus the shippable `MDCP` Vale style (`vale/MDCP/`). Dogfood-only styles live under [`docs/vale-local/`](docs/vale-local/README.md). Edit preset files directly — no TypeScript build.
-
-### Pull request checklist
-
-1. `pnpm run build && pnpm test`
-2. `pnpm run lint && pnpm run format:check`
-3. `pnpm docs:compile:repo && pnpm docs:check` if you touched `docs/` shards
-4. `pnpm changeset` if you changed published package behavior (see [Versioning and releases](#versioning-and-releases))
-
-CI runs the same core gates as `pnpm run check` (typecheck, lint, format, build, test, `docs:check`), plus:
-
-- `pnpm run verify:peers` — confirm markdownlint-cli2 and Vale are on PATH
-- `pnpm audit --audit-level=high` — dependency vulnerability scan
-- `pnpm run prepare:docs` — `verify:peers` + `vale:sync` before `docs:check`
-- a separate **coverage** job runs `pnpm test:coverage`, appends package totals to the Actions job summary, and uploads `coverage/` artifacts (informational; no threshold enforcement)
-
-Pull requests also run the **changeset** job when package sources change.
-
-<!-- mdcp-shard: end docs/developer/packages-and-tests.md -->
 
 <!-- mdcp-shard: start docs/developer/docs-dogfooding.md -->
 
@@ -632,6 +632,91 @@ To help avoid formatting errors and enforce consistent style, we recommend using
 _Note: GitHub and GitHub Flavored Markdown are trademarks of GitHub, Inc. This project is not affiliated with, sponsored by, or endorsed by GitHub, Inc._
 
 <!-- mdcp-shard: end docs/developer/markdown-formatting.md -->
+
+<!-- mdcp-shard: start docs/developer/safe-markdown-parsing.md -->
+
+## Safe markdown parsing (heading helpers)
+
+Maintainer note for why `mdcp-core` centralizes heading parsing and related cleanup in shared **language-agnostic** helpers instead of ad-hoc regular expressions, and how remaining package regexes were audited for [ReDoS](#redos) risk.
+
+Work is tracked under [#200](https://github.com/betsalel-williamson/mdcp/issues/200) (Phase A, v0.7 release gate) and [#201](https://github.com/betsalel-williamson/mdcp/issues/201) (Phase B follow-up audit), as children of epic [#173 — Repository security posture](https://github.com/betsalel-williamson/mdcp/issues/173). CodeQL setup that surfaces these findings is [#174](https://github.com/betsalel-williamson/mdcp/issues/174). Prose chapter-cue lint moved to Vale in [#230](https://github.com/betsalel-williamson/mdcp/issues/230) / [Locale and language boundary](docs/features/design-constraints/locale-and-language.md).
+
+### Why this is necessary
+
+GitHub CodeQL’s `js/polynomial-redos` rule flagged several `mdcp-core` paths that parse headings and strip leftover `{#…}` markers. The patterns used overlapping or unbounded quantifiers (`\s*` next to `{#…}`, `\s+` with a greedy remainder, non-greedy `.*?` between braces) on library-controlled strings. On adversarial input those matches can take time that grows badly with length — a [ReDoS](#redos) class of denial-of-service risk.
+
+Even when everyday docs never hit the pathological case, the open alerts block a clean security dashboard, and the same regex shapes were copied across compile, refs, and links. Fixing call sites one-by-one without a shared parse path invites the class to return.
+
+### What we do instead (Phase A)
+
+Phase A introduces shared **linear** helpers for:
+
+- recognizing headings via `parseHeading` (ATX kind today; see [GFM scope](docs/features/design-constraints/gfm-scope.md#headings))
+- demoting recognized headings (rewrite emits ATX)
+- stripping leftover Pandoc IDs (`{#…}`) when cleaning compiled output (defensive cleanup — authoring opinion to avoid them is Vale `MDCP-PandocId`)
+- producing plain heading text for language-agnostic [heading slug](#heading-slug) generation
+
+Public package APIs keep their existing names; call sites delegate to the helpers. Duration-budget regression tests exercise the known CodeQL pump classes so a future regex reintroduction fails CI.
+
+See [Packages and tests](#packages-and-tests) for where the helper module lives under `mdcp-core`.
+
+### Phase B inventory (remaining regexes)
+
+Phase B inventories remaining regexes in `packages/mdcp-core/src/` after Phase A **and** after prose chapter-cue lint moved to [Vale](https://vale.sh/) (`@bwilliamson/mdcp-presets` `vale/MDCP`, [#230](https://github.com/betsalel-williamson/mdcp/pull/230)). Decision rule: **keep** when the shape is clearly linear; **rewrite** when polynomial-adjacent (`\s*` / overlapping optional groups next to digits, or the CodeQL class); **dismiss** when a conservative checker flags a standard markdown-link idiom that stays empirically linear; **out of scope** when the concern is language/prose opinion (belongs in Vale, not core).
+
+Duration-budget tests cover rewritten paths. Link extract/rewrite patterns stay as regexes with the dismissals below — not a full parser purge. Alternatives such as ripgrep, Peggy, or Rust for these scanners are declined for now; see [ADR 0005](docs/features/adr/0005-keep-ts-scanners-over-rg-peggy-rust.md).
+
+#### Rewritten (linear scanners)
+
+| Location                         | Former risk shape                                    | Disposition                                                                           |
+| -------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `compile/hooks/code-evidence.ts` | `LINE_RANGE_RE` optional `L`/`lines?` + `\s*` + alts | Imperative `lineRangeFromText`; word cues from the locale pack (not hardcoded)        |
+| `compile/headings.ts` About H1   | `^#\s+About…\s*$` (safe but heading-regex sprawl)    | `parseHeading` + locale `aboutThisGuideTitle` (case-insensitive; not hardcoded en-US) |
+
+#### Moved out of core (Vale)
+
+| Former core concern                       | Home now                                                                    |
+| ----------------------------------------- | --------------------------------------------------------------------------- |
+| Bare / unlinked “See Chapter…” prose cues | `@bwilliamson/mdcp-presets` Vale style `MDCP` ([vale.sh](https://vale.sh/)) |
+| Pandoc heading-ID authoring opinion       | Dogfood Vale `MDCP-PandocId`                                                |
+
+Do **not** reintroduce `lintXrefs` or chapter-cue regexes in `mdcp-core`.
+
+#### Kept (clearly linear)
+
+| Location                         | Pattern role                   | Rationale                                       |
+| -------------------------------- | ------------------------------ | ----------------------------------------------- |
+| `compile/headings.ts` `FENCE_RE` | Fence open/close markers       | Anchored; `` `{3,}` `` / `~{3,}` then remainder |
+| `refs/slugs.ts` slug cleanup     | `[^a-z0-9]+`, trim dashes      | Single character-class replace                  |
+| `export/protocol-version.ts`     | `mdcp.v…llms.txt` filenames    | Anchored filename; `[\d.]+` is linear           |
+| `compile/section-slug.ts`        | `FIND-N.md`, `.md` suffix      | Anchored / suffix only                          |
+| `compile/section-manifest.ts`    | Dynamic `##` sections heading  | Escaped literal; anchored `^##\s+…\s*$`         |
+| `links/validate.ts`              | `https?://`, `.md` suffix      | Anchored / suffix                               |
+| `compile/assemble.ts`            | Collapse `\n{3,}`              | Bounded quantifier on one character             |
+| `shard/orchestrator.ts`          | Demote leading H1 marker       | Fixed two-character `#` + space prefix          |
+| Misc adornment / path trims      | Bold stars, inline ticks, `./` | Literal or single-class                         |
+
+#### Dismissed (link idioms — keep regex)
+
+| Location                                      | Pattern role                      | Rationale                                                                                       |
+| --------------------------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `links/extract.ts` `MD_LINK_RE`               | Non-image `[label](target)`       | Standard GFM link extract; character-class stars; line-scoped; empirically linear at 40k+ chars |
+| `code-evidence.ts` link match                 | `[…](…)` rewrite                  | Same class; simpler `[^)]*` form already passes conservative checkers                           |
+| `compile/section-manifest.ts` file/slug links | Manifest `.md` / `#slug` links    | Same link idiom; used on small manifests                                                        |
+| `compile/publish-links.ts` rewrite REs        | Intra/cross-guide / publish paths | Nested lookarounds + `.md` suffix; conservative checkers may flag; V8 timings stay linear       |
+| `compile/hooks/inline-inserts.ts`             | Insert-library link match         | Same as publish-links; library-dir alternation is fixed                                         |
+
+These dismissals are intentional: Phase B does **not** replace every regex with parsers. If CodeQL later opens `js/polynomial-redos` on a dismissed site, treat that alert as a new fix ticket (same TDD pattern as Phase A).
+
+### Authoring implications
+
+- Prefer the shared helpers for new heading or slug logic; do not add new polynomial-risk regexes for those jobs.
+- Prefer imperative scanners when adding line-range style matchers (optional whitespace next to digits or overlapping alternatives). Authored **word** cues for line ranges belong in the locale pack; keep `L` / `:` forms and `#L…` output language-neutral in the scanner.
+- Prefer GFM auto-slugs; do not author Pandoc IDs on headings (Vale warns in this repo). Compile stripping stays available for legacy content.
+- Unlinked chapter/section prose cues are Vale’s job — not a new `mdcp-core` lint path.
+- After merge to the default branch, confirm CodeQL alerts for the heading/anchor class stay closed on the next scan of `main`.
+
+<!-- mdcp-shard: end docs/developer/safe-markdown-parsing.md -->
 
 <!-- mdcp-shard: start docs/developer/agent-skill.md -->
 
@@ -836,7 +921,7 @@ Shared shape for workflow suites:
 | `README.md`     | How to run and grade that suite                                         |
 
 Workflow intake and write obligations stay in
-[Skill workflows](docs/features/protocol/agent-task-prompts.md).
+[Skill workflows](docs/features/protocol/skill-workflows.md).
 
 <!-- mdcp-shard: end docs/developer/live-skill-evals.md -->
 
@@ -887,7 +972,7 @@ Packages and Agent Skills are **pre-1.0** while on `0.x.y`. Until a given item r
 ### Release checklist (maintainers)
 
 1. Confirm pending `.changeset/*.md` files name only the packages/skills that should bump.
-2. **Skills policy:** parent `mdcp` remains the consumer entrypoint; keep `skills/mdcp-arch-*` as `metadata.internal: true` until intentionally published (see [Agent Skill development](#skillsshjson-repo-page-layout)).
+2. **Skills policy:** `mdcp` remains the only consumer skill; keep `skills/mdcp-arch-*` as `metadata.internal: true` until intentionally published (see [Agent Skill development](#skillsshjson-repo-page-layout)).
 3. Ensure secret **`RELEASE_GITHUB_TOKEN`** is set (maintainer PAT with Contents + metadata for releases/push) — see [Publishing](#publishing).
 4. Merge feature PRs to `main`. Approve the **`release` environment** deployment when prompted.
 5. Verify GitHub Releases for each bumped item (npm packages and `@bwilliamson/skill-*`) and npm for public packages.
@@ -1072,91 +1157,6 @@ Never unpublish a version that other packages or consumers legitimately depend o
 
 <!-- mdcp-shard: end docs/developer/security-incident-triage.md -->
 
-<!-- mdcp-shard: start docs/developer/safe-markdown-parsing.md -->
-
-## Safe markdown parsing (heading helpers)
-
-Maintainer note for why `mdcp-core` centralizes heading parsing and related cleanup in shared **language-agnostic** helpers instead of ad-hoc regular expressions, and how remaining package regexes were audited for [ReDoS](#redos) risk.
-
-Work is tracked under [#200](https://github.com/betsalel-williamson/mdcp/issues/200) (Phase A, v0.7 release gate) and [#201](https://github.com/betsalel-williamson/mdcp/issues/201) (Phase B follow-up audit), as children of epic [#173 — Repository security posture](https://github.com/betsalel-williamson/mdcp/issues/173). CodeQL setup that surfaces these findings is [#174](https://github.com/betsalel-williamson/mdcp/issues/174). Prose chapter-cue lint moved to Vale in [#230](https://github.com/betsalel-williamson/mdcp/issues/230) / [Locale and language boundary](docs/features/design-constraints/locale-and-language.md).
-
-### Why this is necessary
-
-GitHub CodeQL’s `js/polynomial-redos` rule flagged several `mdcp-core` paths that parse headings and strip leftover `{#…}` markers. The patterns used overlapping or unbounded quantifiers (`\s*` next to `{#…}`, `\s+` with a greedy remainder, non-greedy `.*?` between braces) on library-controlled strings. On adversarial input those matches can take time that grows badly with length — a [ReDoS](#redos) class of denial-of-service risk.
-
-Even when everyday docs never hit the pathological case, the open alerts block a clean security dashboard, and the same regex shapes were copied across compile, refs, and links. Fixing call sites one-by-one without a shared parse path invites the class to return.
-
-### What we do instead (Phase A)
-
-Phase A introduces shared **linear** helpers for:
-
-- recognizing headings via `parseHeading` (ATX kind today; see [GFM scope](docs/features/design-constraints/gfm-scope.md#headings))
-- demoting recognized headings (rewrite emits ATX)
-- stripping leftover Pandoc IDs (`{#…}`) when cleaning compiled output (defensive cleanup — authoring opinion to avoid them is Vale `MDCP-PandocId`)
-- producing plain heading text for language-agnostic [heading slug](#heading-slug) generation
-
-Public package APIs keep their existing names; call sites delegate to the helpers. Duration-budget regression tests exercise the known CodeQL pump classes so a future regex reintroduction fails CI.
-
-See [Packages and tests](#packages-and-tests) for where the helper module lives under `mdcp-core`.
-
-### Phase B inventory (remaining regexes)
-
-Phase B inventories remaining regexes in `packages/mdcp-core/src/` after Phase A **and** after prose chapter-cue lint moved to [Vale](https://vale.sh/) (`@bwilliamson/mdcp-presets` `vale/MDCP`, [#230](https://github.com/betsalel-williamson/mdcp/pull/230)). Decision rule: **keep** when the shape is clearly linear; **rewrite** when polynomial-adjacent (`\s*` / overlapping optional groups next to digits, or the CodeQL class); **dismiss** when a conservative checker flags a standard markdown-link idiom that stays empirically linear; **out of scope** when the concern is language/prose opinion (belongs in Vale, not core).
-
-Duration-budget tests cover rewritten paths. Link extract/rewrite patterns stay as regexes with the dismissals below — not a full parser purge. Alternatives such as ripgrep, Peggy, or Rust for these scanners are declined for now; see [ADR 0005](docs/features/adr/0005-keep-ts-scanners-over-rg-peggy-rust.md).
-
-#### Rewritten (linear scanners)
-
-| Location                         | Former risk shape                                    | Disposition                                                                           |
-| -------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `compile/hooks/code-evidence.ts` | `LINE_RANGE_RE` optional `L`/`lines?` + `\s*` + alts | Imperative `lineRangeFromText`; word cues from the locale pack (not hardcoded)        |
-| `compile/headings.ts` About H1   | `^#\s+About…\s*$` (safe but heading-regex sprawl)    | `parseHeading` + locale `aboutThisGuideTitle` (case-insensitive; not hardcoded en-US) |
-
-#### Moved out of core (Vale)
-
-| Former core concern                       | Home now                                                                    |
-| ----------------------------------------- | --------------------------------------------------------------------------- |
-| Bare / unlinked “See Chapter…” prose cues | `@bwilliamson/mdcp-presets` Vale style `MDCP` ([vale.sh](https://vale.sh/)) |
-| Pandoc heading-ID authoring opinion       | Dogfood Vale `MDCP-PandocId`                                                |
-
-Do **not** reintroduce `lintXrefs` or chapter-cue regexes in `mdcp-core`.
-
-#### Kept (clearly linear)
-
-| Location                         | Pattern role                   | Rationale                                       |
-| -------------------------------- | ------------------------------ | ----------------------------------------------- |
-| `compile/headings.ts` `FENCE_RE` | Fence open/close markers       | Anchored; `` `{3,}` `` / `~{3,}` then remainder |
-| `refs/slugs.ts` slug cleanup     | `[^a-z0-9]+`, trim dashes      | Single character-class replace                  |
-| `export/protocol-version.ts`     | `mdcp.v…llms.txt` filenames    | Anchored filename; `[\d.]+` is linear           |
-| `compile/section-slug.ts`        | `FIND-N.md`, `.md` suffix      | Anchored / suffix only                          |
-| `compile/section-manifest.ts`    | Dynamic `##` sections heading  | Escaped literal; anchored `^##\s+…\s*$`         |
-| `links/validate.ts`              | `https?://`, `.md` suffix      | Anchored / suffix                               |
-| `compile/assemble.ts`            | Collapse `\n{3,}`              | Bounded quantifier on one character             |
-| `shard/orchestrator.ts`          | Demote leading H1 marker       | Fixed two-character `#` + space prefix          |
-| Misc adornment / path trims      | Bold stars, inline ticks, `./` | Literal or single-class                         |
-
-#### Dismissed (link idioms — keep regex)
-
-| Location                                      | Pattern role                      | Rationale                                                                                       |
-| --------------------------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `links/extract.ts` `MD_LINK_RE`               | Non-image `[label](target)`       | Standard GFM link extract; character-class stars; line-scoped; empirically linear at 40k+ chars |
-| `code-evidence.ts` link match                 | `[…](…)` rewrite                  | Same class; simpler `[^)]*` form already passes conservative checkers                           |
-| `compile/section-manifest.ts` file/slug links | Manifest `.md` / `#slug` links    | Same link idiom; used on small manifests                                                        |
-| `compile/publish-links.ts` rewrite REs        | Intra/cross-guide / publish paths | Nested lookarounds + `.md` suffix; conservative checkers may flag; V8 timings stay linear       |
-| `compile/hooks/inline-inserts.ts`             | Insert-library link match         | Same as publish-links; library-dir alternation is fixed                                         |
-
-These dismissals are intentional: Phase B does **not** replace every regex with parsers. If CodeQL later opens `js/polynomial-redos` on a dismissed site, treat that alert as a new fix ticket (same TDD pattern as Phase A).
-
-### Authoring implications
-
-- Prefer the shared helpers for new heading or slug logic; do not add new polynomial-risk regexes for those jobs.
-- Prefer imperative scanners when adding line-range style matchers (optional whitespace next to digits or overlapping alternatives). Authored **word** cues for line ranges belong in the locale pack; keep `L` / `:` forms and `#L…` output language-neutral in the scanner.
-- Prefer GFM auto-slugs; do not author Pandoc IDs on headings (Vale warns in this repo). Compile stripping stays available for legacy content.
-- Unlinked chapter/section prose cues are Vale’s job — not a new `mdcp-core` lint path.
-- After merge to the default branch, confirm CodeQL alerts for the heading/anchor class stay closed on the next scan of `main`.
-
-<!-- mdcp-shard: end docs/developer/safe-markdown-parsing.md -->
-
 <!-- mdcp-shard: start docs/developer/github-actions-security.md -->
 
 ## GitHub Actions security posture
@@ -1299,7 +1299,7 @@ Per-repository glossary shards under `docs/glossary/` for acronyms and product v
 
 Choosing what belongs in the glossary is an art — not every uncommon word deserves an entry, and not every acronym is obvious to the audience. Each repository **MUST** record its own **inclusion bar** in the glossary (typically the preamble of `docs/glossary/index.md`): which kinds of terms to add, which to omit, and whose understanding counts (client persona, contributors, or both).
 
-The [getting-started workflow](docs/features/protocol/workflows/getting-started.md) establishes that bar with the end user during bootstrap. Day-to-day workflows apply it whenever they introduce non-universal language — see [Skill workflows](docs/features/protocol/agent-task-prompts.md#glossary-obligation-every-workflow).
+The [getting-started workflow](docs/features/protocol/workflows/getting-started.md) establishes that bar with the end user during bootstrap. Day-to-day workflows apply it whenever they introduce non-universal language — see [Skill workflows](docs/features/protocol/skill-workflows.md#glossary-obligation-every-workflow).
 
 ### One term per shard
 
@@ -1361,7 +1361,7 @@ The CLI (`compile`, `check`, and [refs](#refs) registry maintenance) implements 
 
 Numbered plan sections that split multi-concern work into one-concern git commits. Each group lists an id/name, one concern, the exact files, and an intended conventional commit subject. After plan approval, agents implement and `git commit` one group at a time instead of squashing unrelated concerns.
 
-Part of parent `mdcp` [QA Principles](docs/features/agent-skill.md#quality-assurance-qa-principles). Day-to-day helpers require the section in plan / Step 1 ([Helper Skills](docs/features/protocol/agent-task-prompts.md)). This repo’s delivery conventions: [Agent work-item tracking](#agent-work-item-tracking).
+Part of the `mdcp` skill's [QA Principles](docs/features/agent-skill.md#quality-assurance-qa-principles). Day-to-day workflows require the section in plan / Step 1 ([Skill workflows](docs/features/protocol/skill-workflows.md)). This repo’s delivery conventions: [Agent work-item tracking](#agent-work-item-tracking).
 
 <!-- mdcp-shard: end docs/glossary/atomic-commit-groups.md -->
 

@@ -43,7 +43,7 @@ Packages and Agent Skills are **pre-1.0** while on `0.x.y`. Until a given item r
 ## Release checklist (maintainers)
 
 1. Confirm pending `.changeset/*.md` files name only the packages/skills that should bump.
-2. **Skills policy:** parent `mdcp` remains the consumer entrypoint; keep `skills/mdcp-arch-*` as `metadata.internal: true` until intentionally published (see [Agent Skill development](./agent-skill.md#skillsshjson-repo-page-layout)).
+2. **Skills policy:** `mdcp` remains the only consumer skill; keep `skills/mdcp-arch-*` as `metadata.internal: true` until intentionally published (see [Agent Skill development](./agent-skill.md#skillsshjson-repo-page-layout)).
 3. Ensure secret **`RELEASE_GITHUB_TOKEN`** is set (maintainer PAT with Contents + metadata for releases/push) — see [Publishing](./publishing.md).
 4. Merge feature PRs to `main`. Approve the **`release` environment** deployment when prompted.
 5. Verify GitHub Releases for each bumped item (npm packages and `@bwilliamson/skill-*`) and npm for public packages.

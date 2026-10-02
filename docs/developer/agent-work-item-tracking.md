@@ -205,7 +205,7 @@ ADRs=docs/features/adr/ (scope/removal decisions; link CHANGELOGs, never pending
 Code review=gh pr create; link WORK_ITEM in PR body (Closes #N when appropriate)
 ```
 
-Parent skill QA and day-to-day helpers encode the same rule so plan-only agents inherit it: [Agent Skill](../features/agent-skill.md#quality-assurance-qa-principles), [Helper Skills](../features/protocol/agent-task-prompts.md).
+The skill's QA principles and its day-to-day workflows encode the same rule so plan-only agents inherit it: [Agent Skill](../features/agent-skill.md#quality-assurance-qa-principles), [Skill workflows](../features/protocol/skill-workflows.md).
 
 ## Workflow best practices
 

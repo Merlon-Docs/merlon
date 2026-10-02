@@ -27,7 +27,7 @@ Agents **MUST** load the issue (or equivalent) before editing shards or code. On
 
 Coding and multi-concern plans **MUST** include an **[Atomic commit groups](../../glossary/atomic-commit-groups.md)** section before waiting for human review / “go”. Each group lists id/name, one concern, exact files, and an intended conventional commit subject. After approval, implement and `git commit` one group at a time — do not squash unrelated concerns.
 
-Why: reviewable diffs, one concern per commit, and it matches small batches (parent [QA Principles](../agent-skill.md#quality-assurance-qa-principles)).
+Why: reviewable diffs, one concern per commit, and it matches small batches (the skill's [QA Principles](../agent-skill.md#quality-assurance-qa-principles)).
 
 Day-to-day workflows that produce a plan (feature-level, doc-only, design-architecture, UX, doc-review) **MUST** require this section in Step 1. Bootstrap scaffold (getting-started steps 1–6) stays out of scope for commit grouping; when the optional first-feature tutorial runs, each phase follows the matching day-to-day workflow (including commit groups).
 

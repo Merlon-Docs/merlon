@@ -9,7 +9,7 @@ Agent Skills give:
 - **Lower friction** — zero-install in the repo, or `npx skills add`
 - **Host interoperability** — Cursor, Copilot, Claude Code, VS Code, and CLI hosts
 - **Simpler maintenance** — markdown skill directories agents load from the repo
-- **Composition** — one skill with task workflows inside it (catalog: [Skill workflows](./protocol/agent-task-prompts.md); hardened boundaries per workflow under `protocol/workflows/`); archetype skills are WIP
+- **Composition** — one skill with task workflows inside it (catalog: [Skill workflows](./protocol/skill-workflows.md); hardened boundaries per workflow under `protocol/workflows/`); archetype skills are WIP
 - **Reviewable instructions** — vendored in your agent's skills directory and committed with the project
 
 ## The skill and complementary skills
@@ -58,21 +58,19 @@ Qualitative checks of skill behavior (with vs without the skill) are maintainer 
 
 ## Quality Assurance (QA) Principles
 
-When applying MDCP, you must act as a complementary partner to other skills and systems, enforcing docs-as-code hygiene:
+The skill states its QA principles once, in
+[`skills/mdcp/SKILL.md`](../../skills/mdcp/SKILL.md#quality-assurance-qa-principles),
+because that file travels with every install and an agent in another repository
+has no copy of these docs. They cover referencing shards before work spreads,
+small batches, [atomic commit groups](../glossary/atomic-commit-groups.md),
+current docs only, [shard single responsibility](../glossary/shard-single-responsibility.md),
+[idea mitosis](../glossary/idea-mitosis.md), two-level review, no code or
+temporary information in durable docs, and recording where plans live.
 
-- **Always reference doc shards:** Insert yourself into the process to ensure the current task references the correct documentation shards.
-- **Update as you go:** Continuously update documentation as work progresses.
-- **Small batches / one focused feature:** Prefer one shippable slice per branch or session. Oversized requests produce tangled diffs and half-updated docs; split the request (and the shards) before coding so each change stays reviewable. Pair with [Atomic commit groups](../glossary/atomic-commit-groups.md) when the plan has more than one logical change.
-- **Atomic commit groups:** Before waiting for human review / “go”, coding and multi-concern plans MUST include numbered commit groups. Each group: id/name, one concern, exact files, and the intended conventional commit subject. After approval: implement and `git commit` one group at a time; do not squash unrelated concerns into one commit. Why: reviewable diffs, one concern per commit, and it matches small batches. Day-to-day workflows that produce plans require this section in Step 1 ([Skill workflows](./protocol/agent-task-prompts.md)).
-- **Current docs only:** Shards must describe the product **as it works now**. When behavior or guidance changes, remove superseded or stale text from durable docs — do not leave “old way” sections for archaeology. Git history preserves prior wording; consumer notice of breaking or removed behavior belongs in the **changeset** (folded into package CHANGELOGs at release), not in feature/client/developer shards. Never link durable shards or ADRs to pending `.changeset/*.md` files — those notes are temporary.
-- **Capture ambiguity:** Identify ambiguous terms or language and write down the clarified details into specific shards.
-- **[Shard single responsibility](../glossary/shard-single-responsibility.md):** Each durable shard has one primary concern, for one audience tier, serving one job (explain **or** instruct how-to **or** define/look up — not several). If you cannot state that responsibility in one sentence, split or narrow the shard before shipping it. Depth: [Shard single responsibility and idea mitosis](./protocol/shard-srp-and-mitosis.md).
-- **[Idea mitosis](../glossary/idea-mitosis.md):** When a shard grows a second audience, job, or concern — or reading it alone misleads — **split** it, update the guide index, and cross-link. Do not split only because a file is long. Unsettled discovery stays in the issue tracker, not beside durable current truth.
-- **Break it down:** Organize information into the smallest useful pieces (shards). Prefer mitosis over mini-monoliths.
-- **Two-level review:** Review each changed idea or shard **in isolation** for local correctness and single responsibility. Then review it **comprehensively against related shards and guides** — flag duplication, better splits/merges/relocations, and drift between what guides promise and what the change does. When a change touches a guide, the review is complete only when the change and its guides agree. Guide-specific application: [Comprehensive review when guides are involved](../developer/docs-dogfooding.md#comprehensive-review-when-guides-are-involved).
-- **No code in docs:** Never include implementation code or examples in the documentation shards; code belongs in the codebase.
-- **No temp info:** Do not record temporary project information, tickets, incident logs, or migration backlogs and planning in the durable documentation. That information belongs in issue tracking and project planning tools. Pending `.changeset/*.md` files are temporary release notes — write them for the release pipeline; do not link them from ADRs or other durable docs.
-- **Record planning locations:** Make sure to record where planning documents and architectural decisions are placed.
+Depth on single responsibility and mitosis:
+[Shard single responsibility and idea mitosis](./protocol/shard-srp-and-mitosis.md).
+How this repository applies two-level review to guide changes:
+[Comprehensive review when guides are involved](../developer/docs-dogfooding.md#comprehensive-review-when-guides-are-involved).
 
 ## Ecosystem publication
 

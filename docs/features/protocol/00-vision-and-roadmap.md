@@ -58,7 +58,7 @@ MDCP is **not** an MCP server. MCP delivers runtime access; MDCP enforces shard 
 
 MDCP authoring is [GFM-only](../design-constraints/gfm-scope.md). Compiled GFM output can feed Pandoc, MkDocs, Docusaurus, or other publish pipelines. Agent-only guides and publish-only guides may differ in scope.
 
-Helper skills are part of the V1 authoring profile — [Agent helper skills](./agent-task-prompts.md).
+Skill workflows are part of the V1 authoring profile — [Skill workflows](./skill-workflows.md).
 
 ## Related issues
 

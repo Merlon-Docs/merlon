@@ -6,7 +6,7 @@ list, or a shard serving a second audience or job, then merges, splits, moves,
 rewords, or links them.
 
 Workflow file: [`skills/mdcp/references/workflows/doc-review.md`](../../../../skills/mdcp/references/workflows/doc-review.md).
-Shared workflow contract (intake, guide placement, glossary): [Skill workflows](../agent-task-prompts.md).
+Shared workflow contract (intake, guide placement, glossary): [Skill workflows](../skill-workflows.md).
 
 ## End-user value
 

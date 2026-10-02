@@ -12,4 +12,4 @@ Which **CLI commands** address common docs failures when agents edit the repo:
 
 Typical loop: edit shards → `mdcp compile` → `mdcp check` → optional `mdcp refs-list` → read one shard when the next turn needs doc context.
 
-Install and flags: [Install and quick start](./install-and-quick-start.md). Agent **behavior** (when to edit docs, subagents) is the [Agent Skill](../../README.md), not this package.
+Install and flags: [Install and quick start](./install-and-quick-start.md). Agent **behavior** (when to edit docs, which workflow to follow) is the [Agent Skill](../../README.md), not this package.
