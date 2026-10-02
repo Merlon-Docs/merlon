@@ -19,6 +19,12 @@ runs `mdcp review` at the end of a workflow when a sprawl trigger matches (sever
 new shards, a crowded index, a rule found twice) and offers this workflow
 without being asked.
 
+For projects whose docs change every week, the skill also recommends a weekly
+routine that runs this workflow once per guide (`mdcp review --guide <name>`,
+then a read of that guide) to settle where each duplicated rule belongs. For
+one-off projects or projects that change only now and then, it says the
+routine is not needed.
+
 ## What this workflow is for
 
 | Obligation               | As-built expectation                                                                                        |
@@ -29,6 +35,7 @@ without being asked.
 | Atomic commit groups     | One concern per group: moves, then merges and splits, then rewording, then index changes                    |
 | Links keep working       | Every move, merge, or split updates incoming links in the same commit; `mdcp check` passes after each group |
 | Raise the floor          | A finding that keeps recurring becomes a `review` threshold, a glossary entry, or a prose rule              |
+| Weekly routine           | Recommended only for projects with changes every week; one run per guide, duplicates first                  |
 
 ## What this workflow is not
 

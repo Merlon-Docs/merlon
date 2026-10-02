@@ -76,6 +76,20 @@ describe('mdcp review', () => {
     }
   });
 
+  it('reviews one guide with --guide and rejects an unknown name', () => {
+    const project = writeReviewFixture();
+    try {
+      const r = review(project, '--guide', 'g');
+      expect(r.status).toBe(0);
+      expect(r.stdout).toContain('mdcp review: 1 finding(s) in 4 shard(s)');
+      const bad = review(project, '--guide', 'nope');
+      expect(bad.status).toBe(1);
+      expect(bad.stderr).toContain('Unknown guide "nope". Guides: g');
+    } finally {
+      rmSync(project, { recursive: true, force: true });
+    }
+  });
+
   it('skips scan.ignore paths and passes --strict when clean', () => {
     const project = writeReviewFixture({
       scan: { gitignore: false, ignore: ['docs/g/b.md'] },

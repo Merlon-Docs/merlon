@@ -204,8 +204,8 @@ describe('reviewDocs', () => {
       const long = `${SENTENCE} and more words here for the threshold today.`;
       const docs = writeDocs({
         'g/index.md': '# G\n\n- [A](./a.md)\n- [B](./b.md)\n',
-        'g/a.md': `# A\n\n${long}\n\n${long}\n\n${SENTENCE}\n\n\`\`\`\n${words(30)}\n\`\`\`\n`,
-        'g/b.md': `# B\n\n${SENTENCE}\n\n~~~\n${words(30)}\n~~~\n`,
+        'g/a.md': `# A\n\n${long}\n\n${long}\n\n${SENTENCE}\n\n\`\`\`\n${words(60)}\n\`\`\`\n`,
+        'g/b.md': `# B\n\n${SENTENCE}\n\n~~~\n${words(60)}\n~~~\n`,
       });
       expect(run(docs, ['g']).findings).toEqual([]);
     });
@@ -263,6 +263,42 @@ describe('reviewDocs', () => {
         'g/b.md': '# Same\n',
       });
       expect(run(docs, ['g']).findings).toEqual([]);
+    });
+  });
+
+  describe('guide filter', () => {
+    function twoGuides(): string {
+      return writeDocs({
+        'g/index.md': '# G\n\n- [A](./a.md)\n- [B](./b.md)\n',
+        'g/a.md': `# Setup\n\n${SENTENCE} and more words here for the threshold today.\n`,
+        'g/b.md': '# Setup\n\nOther body.\n',
+        'h/index.md': '# H\n\n- [C](./c.md)\n- [D](./d.md)\n',
+        'h/c.md': `# C\n\n${SENTENCE} and more words here for the threshold today.\n`,
+        'h/d.md': `# D\n\n${words(60)}\n`,
+      });
+    }
+
+    it('keeps findings that touch the guide, including duplicates shared with other guides', () => {
+      const docs = twoGuides();
+      const all = run(docs, ['g', 'h'], { thresholds: { maxShardWords: 40 } });
+      expect(all.findings.map((f) => f.signal)).toEqual([
+        'long-shard',
+        'duplicate-paragraph',
+        'similar-titles',
+      ]);
+      const h = run(docs, ['g', 'h'], { guide: 'h', thresholds: { maxShardWords: 40 } });
+      expect(h.findings.map((f) => [f.signal, f.files])).toEqual([
+        ['long-shard', ['h/d.md']],
+        ['duplicate-paragraph', ['g/a.md', 'h/c.md']],
+      ]);
+      expect(h.shardCount).toBe(3);
+    });
+
+    it('throws on a guide name that is not in compileOrder', () => {
+      const docs = twoGuides();
+      expect(() => run(docs, ['g', 'h'], { guide: 'nope' })).toThrow(
+        'Unknown guide "nope". Guides: g, h',
+      );
     });
   });
 

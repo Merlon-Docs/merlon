@@ -66,11 +66,16 @@ export interface ReviewOptions {
   /** `scan.ignore` globs, relative to `scanRoot`. Applied only when `scanRoot` is set. */
   ignore?: string[];
   thresholds?: Partial<ReviewThresholds>;
+  /**
+   * Review one guide (by `compileOrder` name): keep findings that involve at least one of its
+   * shards, including duplicates whose other copies sit in other guides. Unknown names throw.
+   */
+  guide?: string;
 }
 
 export interface ReviewResult {
   findings: ReviewFinding[];
-  /** Number of distinct shard files read (indexes included). */
+  /** Number of distinct shard files reviewed (indexes included); only the chosen guide's with `guide`. */
   shardCount: number;
   thresholds: ReviewThresholds;
 }
@@ -289,6 +294,10 @@ export function reviewDocs(options: ReviewOptions): ReviewResult {
     if (typeof v === 'number') thresholds[key] = v;
   }
   const docsRoot = resolve(options.docsRoot);
+  if (options.guide !== undefined && !options.guides.some((g) => g.name === options.guide)) {
+    const names = options.guides.map((g) => g.name).join(', ');
+    throw new Error(`Unknown guide "${options.guide}". Guides: ${names}`);
+  }
 
   const owners = collectShardOwners(options.guides);
   let paths = [...owners.keys()];
@@ -383,6 +392,14 @@ export function reviewDocs(options: ReviewOptions): ReviewResult {
     });
   }
 
+  if (options.guide !== undefined) {
+    const inGuide = new Set(shards.filter((s) => s.guide === options.guide).map((s) => s.rel));
+    return {
+      findings: sortFindings(findings.filter((f) => f.files.some((rel) => inGuide.has(rel)))),
+      shardCount: inGuide.size,
+      thresholds,
+    };
+  }
   return { findings: sortFindings(findings), shardCount: shards.length, thresholds };
 }
 

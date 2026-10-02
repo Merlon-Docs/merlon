@@ -546,10 +546,12 @@ cli
   .command('review', 'Report documentation sprawl signals (report-only)')
   .option('--json', 'Print findings as a JSON array')
   .option('--strict', 'Exit 1 when there is any finding')
-  .action((opts: GlobalOpts & { json?: boolean; strict?: boolean }) => {
+  .option('--guide <name>', 'Review one guide from compileOrder (cross-guide duplicates included)')
+  .action((opts: GlobalOpts & { json?: boolean; strict?: boolean; guide?: string }) => {
     const config = getConfig(opts);
     const docsRoot = getDocsRoot(opts);
     const result = reviewDocs({
+      guide: opts.guide,
       guides: guideEntries(config, docsRoot),
       docsRoot,
       scanRoot: getScanRoot(config),

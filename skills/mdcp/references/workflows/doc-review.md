@@ -22,7 +22,8 @@ writer, and designer. Each catches what the others miss.
 Ask only for what you cannot discover:
 
 1. **SCOPE**: the whole docs root (default), one guide, or the shards a recent
-   change touched.
+   change touched. For one guide, run `mdcp review --guide <name>` in Step 1
+   and read that guide in Step 2. Its duplicates with other guides still count.
 2. **WORK_ITEM_LOOKUP**: where delivery conventions live (branching, review),
    when you will commit changes.
 
@@ -101,6 +102,16 @@ does not depend on someone reading closely: tune the `review` thresholds in
 `mdcp.config.json`, add a glossary entry for the term that keeps drifting, or add
 a Vale rule for the wording. Narrow a rule that flags the wrong thing; do not
 switch it off wholesale.
+
+## Weekly routine
+
+For a project whose docs change every week, the `mdcp` skill recommends running
+this workflow weekly, once per guide, with **SCOPE** set to that guide (see
+**Weekly review routine** in `SKILL.md`). Reviewing guides one at a time keeps
+each run small enough to read every shard. Duplicates are the main target:
+pick the one shard that states each repeated rule and link to it from the others.
+Skip the routine for one-off projects and projects that change only now and
+then.
 
 ## Never
 

@@ -89,6 +89,10 @@ Seed domain terms that meet the inclusion bar; one `.md` per term + index.
 `mdcp compile` then `mdcp check` until clean. After cross-links, re-check;
 fragments must match **compiled** output (`mdcp refs list` if needed).
 
+If the project is under active development, with changes landing every week,
+recommend the weekly review routine from `SKILL.md`. For a one-off project, say
+it is not needed.
+
 ### 7. First feature tutorial (optional)
 
 Follow [first-feature-tutorial.md](first-feature-tutorial.md):

@@ -53,6 +53,7 @@ When `mdcp check` fails after continuing through peer linters, it prints a stder
 ```bash
 mdcp review --config docs/mdcp.config.json --docs-root docs
 mdcp review --config docs/mdcp.config.json --docs-root docs --json
+mdcp review --config docs/mdcp.config.json --docs-root docs --guide client-cli
 ```
 
 | Signal                | Fires when                                                                                                                                                              | Fix                                                                               |
@@ -66,10 +67,13 @@ Prose words exclude fenced code, front matter, HTML comments, and link targets. 
 
 Text output groups findings by signal and lists docs-root-relative paths. `--json` prints an array of `{ signal, severity, files, detail, fix }` objects, where `severity` is always `"warning"`. A duplicate paragraph's `detail` names every `path:line` location.
 
-| Option     | Effect                                    |
-| ---------- | ----------------------------------------- |
-| `--json`   | Print findings as a JSON array            |
-| `--strict` | Exit 1 when there is at least one finding |
+| Option           | Effect                                                                                      |
+| ---------------- | ------------------------------------------------------------------------------------------- |
+| `--json`         | Print findings as a JSON array                                                              |
+| `--strict`       | Exit 1 when there is at least one finding                                                   |
+| `--guide <name>` | Review one guide from `compileOrder`; keep findings that involve at least one of its shards |
+
+With `--guide`, a duplicate paragraph is reported when any copy sits in that guide, so duplication across guides still shows up. The shard count covers that guide only. An unknown guide name exits 1 and lists the guide names.
 
 Without `--strict`, `mdcp review` exits 0. Thresholds live under `review` in config; see [Config essentials](./config-essentials.md#review-thresholds).
 

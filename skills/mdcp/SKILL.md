@@ -248,6 +248,26 @@ run `mdcp review` and, if it reports findings, offer the
 - A shard you edited now serves a second audience or job.
 - The change renamed, moved, or deleted a shard.
 
+### 7. Weekly review routine (actively changing projects only)
+
+Sprawl triggers catch what one session adds. In a project whose docs change
+every week, small additions from many sessions still pile up between them. For
+those projects, recommend a weekly routine. The user sets it up in whatever
+scheduler their agent host or CI offers. Each run reviews every guide in
+`compileOrder` separately:
+
+1. `mdcp review --guide <name>` for the mechanical signals. Duplicates shared
+   with other guides are included.
+2. The [doc-review workflow](references/workflows/doc-review.md) with **SCOPE**
+   set to that guide. Decide where each duplicated rule belongs, keep it there,
+   and link to it from the other shards.
+
+Recommend it only when docs or code changed in most weeks of the last month,
+such as commits in at least three different weeks of
+`git log --since="4 weeks ago" -- docs/`. For a one-off project or one that
+changes now and then, say the routine is not needed. The sprawl triggers above
+cover it.
+
 ## Zero-install
 
 Copy the `mdcp` skill folder into the skills directory **your agent discovers**
