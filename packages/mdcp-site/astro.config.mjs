@@ -29,12 +29,13 @@ export default defineConfig({
     starlight({
       title: 'mdcp',
       description:
-        'Keep repository docs accurate while agents write the code. mdcp compiles small Markdown shards into the READMEs people read and fails CI when they drift.',
+        'Keep repository docs accurate while agents write the code. mdcp (MarkDown Context Protocol) compiles small Markdown shards into the READMEs people read and fails CI when they drift.',
       social: [{ icon: 'github', label: 'GitHub', href: REPO_URL }],
       // Generated pages set their own editUrl (the shard under docs/); this base
       // covers hand-authored pages in this package.
       editLink: { baseUrl: `${REPO_URL}/edit/${DEFAULT_BRANCH}/packages/mdcp-site/` },
       customCss: ['./src/styles/custom.css'],
+      components: { Head: './src/components/Head.astro' },
       sidebar,
     }),
   ],

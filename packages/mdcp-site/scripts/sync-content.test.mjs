@@ -9,6 +9,7 @@ import {
   buildSlugOwners,
   extractTitle,
   maskInline,
+  mermaidToHtml,
   pageAnchors,
   parseManifest,
   plainText,
@@ -30,6 +31,14 @@ function fakeRegistry(text) {
 }
 
 describe('markdown scanning', () => {
+  it('mermaidToHtml turns mermaid fences into escaped pre blocks and leaves other fences', () => {
+    const md = 'a\n```mermaid\nflowchart LR\n  A[x<y] --> B\n```\n```js\n1 < 2\n```';
+    assert.equal(
+      mermaidToHtml(md),
+      'a\n<pre class="mermaid">flowchart LR\n  A[x&lt;y] --&gt; B</pre>\n```js\n1 < 2\n```',
+    );
+  });
+
   it('plainText strips nested tags until none can reassemble', () => {
     assert.equal(plainText('Use <<b>script>alert(1)<</b>/script> **here**'), 'Use alert(1) here');
     assert.equal(plainText('A <code>tag</code> and a \\< b'), 'A tag and a < b');

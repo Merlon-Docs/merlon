@@ -92,6 +92,25 @@ export function splitFences(markdown) {
   return segments;
 }
 
+const HTML_ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;' };
+
+/**
+ * Turn ```mermaid fences into `<pre class="mermaid">` blocks, which skip syntax
+ * highlighting and are drawn in the browser by src/components/Head.astro.
+ */
+export function mermaidToHtml(markdown) {
+  return splitFences(markdown)
+    .map((seg) => {
+      const lines = seg.value.split('\n');
+      if (seg.type !== 'code' || !/^\s*(`{3,}|~{3,})\s*mermaid\s*$/.test(lines[0]))
+        return seg.value;
+      const closed = lines.length > 1 && /^\s*(`{3,}|~{3,})\s*$/.test(lines.at(-1));
+      const source = lines.slice(1, closed ? -1 : undefined).join('\n');
+      return `<pre class="mermaid">${source.replace(/[&<>]/g, (c) => HTML_ESCAPES[c])}</pre>`;
+    })
+    .join('\n');
+}
+
 /** Apply `fn` to the text (non-fenced) segments only. */
 export function mapTextSegments(markdown, fn) {
   return splitFences(markdown)
@@ -708,8 +727,10 @@ export function syncContent(opts) {
       rmSync(join(contentDir, entry), { recursive: true, force: true });
   }
   for (const page of pages.values()) {
-    const body = mapTextSegments(page.body, (text) =>
-      rewriteLinksInText(text, (dest, { image }) => rewriteDest(page, dest, image)),
+    const body = mermaidToHtml(
+      mapTextSegments(page.body, (text) =>
+        rewriteLinksInText(text, (dest, { image }) => rewriteDest(page, dest, image)),
+      ),
     );
     const sourceRel = toPosix(relative(repoRoot, page.abs));
     const description = firstParagraph(page.body);
