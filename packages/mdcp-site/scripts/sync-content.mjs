@@ -276,12 +276,21 @@ export function rewriteLinksInText(text, rewrite) {
   return out + text.slice(pos);
 }
 
+/** Remove inline HTML tags until none are left, so `<<b>script>` cannot reassemble one. */
+function stripTags(text) {
+  let prev;
+  do {
+    prev = text;
+    text = text.replace(/<[^<>]+>/g, '');
+  } while (text !== prev);
+  return text;
+}
+
 /** Visible text of a heading/label as GitHub or Astro would slug it. */
 export function plainText(markdown) {
-  return markdown
-    .replace(/\s*\{#[^}]*\}\s*$/, '')
-    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
-    .replace(/<[^>]+>/g, '')
+  return stripTags(
+    markdown.replace(/\s*\{#[^}]*\}\s*$/, '').replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1'),
+  )
     .replace(/`+/g, '')
     .replace(/\*\*|__/g, '')
     .replace(/(^|[^\w*])\*(?=\S)([^*]*\S)\*(?!\w)/g, '$1$2')

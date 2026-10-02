@@ -21,6 +21,11 @@ describe('check-links', () => {
     assert.deepEqual(hrefs, ['/b/x/?q=1&r=2']);
   });
 
+  it('scanHtml decodes entities once, so an escaped entity stays literal', () => {
+    const { ids } = scanHtml('<h2 id="a&amp;lt;b">x</h2>');
+    assert.ok(ids.has('a&lt;b'));
+  });
+
   it('accepts valid pages, files and anchors; reports the rest', () => {
     write('index.html', '<a href="/b/guide/#usage">ok</a><a href="https://example.com">ext</a>');
     write(

@@ -11,13 +11,10 @@ import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { BASE } from '../site.config.mjs';
 
-const decodeEntities = (s) =>
-  s
-    .replace(/&amp;/g, '&')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>');
+const ENTITIES = { '&amp;': '&', '&quot;': '"', '&#39;': "'", '&lt;': '<', '&gt;': '>' };
+
+/** Decode the entities Astro emits in attributes, in one pass so `&amp;lt;` stays `&lt;`. */
+const decodeEntities = (s) => s.replace(/&(?:amp|quot|#39|lt|gt);/g, (e) => ENTITIES[e]);
 
 function walkHtml(dir) {
   const out = [];

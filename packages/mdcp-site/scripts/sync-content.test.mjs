@@ -11,6 +11,7 @@ import {
   maskInline,
   pageAnchors,
   parseManifest,
+  plainText,
   resolveUnderOutputDir,
   rewriteLinksInText,
   splitFences,
@@ -29,6 +30,11 @@ function fakeRegistry(text) {
 }
 
 describe('markdown scanning', () => {
+  it('plainText strips nested tags until none can reassemble', () => {
+    assert.equal(plainText('Use <<b>script>alert(1)<</b>/script> **here**'), 'Use alert(1) here');
+    assert.equal(plainText('A <code>tag</code> and a \\< b'), 'A tag and a < b');
+  });
+
   it('splitFences separates fenced code and round-trips the input', () => {
     const md = 'a\n```js\n[x](y.md)\n```\nb\n~~~~\n```\n~~~~\nc';
     const segs = splitFences(md);
