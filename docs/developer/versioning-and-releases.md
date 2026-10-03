@@ -26,7 +26,7 @@ Pushing to a branch named `claude/**` or `land/**` runs the [land workflow](../.
 - **Evidence lives with the work.** Put what was measured or verified in the commit message, or in a research record for larger results. The run summary lists the commits each landing brought in.
 - **A failed gate lands nothing.** Fix the branch and push again. The same applies when the branch conflicts with `develop` or when `develop` moved during the run.
 - **Landings run one at a time**, so `develop` only ever moves to a tree that passed the gate.
-- **Scans run after landing.** CodeQL, Zizmor and Gitleaks run on `develop` itself, so a finding there is fixed forward on `develop`.
+- **Some scans wait for the release PR.** Gitleaks scans the pushed branch before it lands. The landing is pushed with the workflow's own `GITHUB_TOKEN`, and GitHub starts no workflows for such pushes, so CodeQL and Zizmor first see landed work on the release PR. A finding there is fixed forward on `develop`.
 - **Review happens once**, on the release PR from `develop` to `main`.
 
 Dependabot still opens PRs against `develop`, because its changes come from outside the project.
@@ -42,7 +42,7 @@ There is **no calendar cadence** and **no Version Packages PR**. A release is a 
 1. Contributors add a changeset with each change landed on `develop` that affects a published package or skill.
 2. When `develop` is tested and ready, open a PR from `develop` to `main` and merge it with a **merge commit**. Squashing would give `main` history that `develop` lacks.
 3. The merge runs the [release workflow](../../.github/workflows/release.yml) (`pnpm release:main`). After the **Release plan** job posts pending changesets (and any **missing GitHub Releases**) to the run summary, approve the **`release` environment**. The version job **resets to the current `origin/main` tip** (so post-approval work includes all merged changesets), then **sequentially**: applies changesets → syncs skill `metadata.version` → builds (so husky can run) → commits `chore: release` → **pushes to `main`** → publishes public packages to npm → **pushes tags** → creates GitHub Releases (including skill carriers).
-4. Every push to `main` runs the [sync workflow](../../.github/workflows/sync-develop.yml), which merges `main` back into `develop` so the release commit and any hotfix reach the trunk. A clean merge is pushed with `RELEASE_GITHUB_TOKEN`. A conflict opens a PR from `main` to `develop` instead.
+4. Every push to `main` runs the [sync workflow](../../.github/workflows/sync-develop.yml), which merges `main` back into `develop` so the release commit and any hotfix reach the trunk. A clean merge is pushed with the workflow's own `GITHUB_TOKEN`. A conflict opens a PR from `main` to `develop` instead.
 
 **Latest main wins:** concurrency does **not** cancel an in-flight publish (`cancel-in-progress: false`). The Release plan job **cancels** other Release runs on `main` that are still **waiting** (env approval) or **queued**. If `main` moves during the short version window, `pnpm release:main` aborts the push with a superseded message (no force-push).
 

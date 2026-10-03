@@ -114,7 +114,7 @@ jobs:
     if: needs.gate.outputs.skip == 'false'
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write # Push the tested merge to develop
     steps:
       # Harden-Runner: audit mode only — logs egress; block mode is follow-up (#179).
       - uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
@@ -132,15 +132,11 @@ jobs:
           BRANCH: ${{ github.ref_name }}
           DEVELOP_SHA: ${{ needs.gate.outputs.develop_sha }}
           TESTED_TREE: ${{ needs.gate.outputs.tree }}
-          # Maintainer PAT shared with the release job. A push made with
-          # GITHUB_TOKEN would not start CI on develop.
-          RELEASE_GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
+          # GITHUB_TOKEN, so no maintainer PAT is exposed to branch pushes. Its
+          # push does not start CI on develop; the gate above already ran it.
+          PUSH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          if [ -z "${RELEASE_GITHUB_TOKEN}" ]; then
-            echo "::error::Set repository secret RELEASE_GITHUB_TOKEN to land on develop."
-            exit 1
-          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin develop
@@ -156,7 +152,7 @@ jobs:
             echo "::error::The rebuilt tree differs from the tested tree. Not landing."
             exit 1
           fi
-          git remote set-url origin "https://x-access-token:${RELEASE_GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git remote set-url origin "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git push origin "HEAD:refs/heads/develop"
           {
             echo "## Landed ${BRANCH} on develop"
