@@ -94,5 +94,5 @@ A clause with no record behind it is a guess presented as a standard. Say so in 
 
 ## Extension hooks
 
-- Add `docs/extensions/research-provenance.md` for organization-specific rules on attribution, anonymity, embargo, and how contributed evidence is licensed.
+- Add a `research-provenance.md` shard under `docs/extensions/` for organization-specific rules on attribution, anonymity, embargo, and how contributed evidence is licensed.
 - Data files a record cites (CSV, JSON) sit beside it and are referenced by link, so `mdcp check` validates their existence.
