@@ -364,7 +364,7 @@ If none of the above apply, inspect enabled MCP tool descriptors or run `gh --he
 ### Git and delivery
 
 ```text
-Integration branch=develop (pull before branching; PRs target develop, never main)
+Integration branch=develop (pull before branching; work lands by pushing a claude/** or land/** branch, never a PR to main)
 Feature branches=descriptive (e.g. feature/issue-29-default-compile-hooks)
 One branch per WORK_ITEM=do not mix unrelated features, designs, or doc scopes in one PR
 Branch before work=create the feature branch before shards, tests, or code
@@ -373,7 +373,7 @@ Atomic commit groups=coding and multi-concern plans MUST list numbered groups be
 Release notes=changeset in .changeset/ for published package changes (temporary until versioned into CHANGELOGs)
 Docs=describe current behavior only; removed or breaking behavior belongs in changeset → package CHANGELOG, not feature/client shards
 ADRs=docs/features/adr/ (scope/removal decisions; link CHANGELOGs, never pending .changeset/*.md)
-Code review=gh pr create; link WORK_ITEM in PR body (Closes #N when appropriate)
+Landing=push the branch; the land workflow gates and merges it into develop (no PR). Put evidence and "Closes #N" in the commit message. Review happens on the develop → main release PR
 ```
 
 Parent skill QA and day-to-day helpers encode the same rule so plan-only agents inherit it: [Agent Skill](docs/features/agent-skill.md#quality-assurance-qa-principles), [Helper Skills](docs/features/protocol/agent-task-prompts.md).
@@ -381,7 +381,7 @@ Parent skill QA and day-to-day helpers encode the same rule so plan-only agents 
 ### Workflow best practices
 
 1. **Load scope** — fetch WORK_ITEM (title, body, acceptance criteria) before planning or editing.
-2. **Branch first** — `git checkout develop`, pull, then `git checkout -b feature/...` tied to the issue. Never start on `develop` or `main`, and open the PR against `develop`.
+2. **Branch first** — `git checkout develop`, pull, then `git checkout -b land/...` tied to the issue (agent sessions use their `claude/...` branch). Never commit on `develop` or `main` directly. Pushing the branch lands it on `develop` when the gate passes.
 3. **Stay focused** — one feature or design at a time. Treat acceptance criteria as the boundary unless WORK_ITEM explicitly expands scope.
 4. **Plan Atomic commit groups** — before waiting for human review / implementation, include numbered commit groups for multi-concern work (see [Git and delivery](#git-and-delivery)). After approval, land one group per commit.
 5. **Docs describe now** — update shards to match as-built behavior. Do not document superseded workflows in `docs/features/` or `docs/client/`; record consumer notice in the changeset (lands in package CHANGELOGs). Never link durable shards or ADRs to pending `.changeset/*.md` files.
@@ -866,13 +866,25 @@ Independent versioning is configured in [`.changeset/config.json`](.changeset/co
 
 ### Branches
 
-| Branch     | Role                                                                     | Who merges into it                                     |
-| ---------- | ------------------------------------------------------------------------ | ------------------------------------------------------ |
-| `develop`  | Integration trunk. Every feature, fix, docs and Dependabot PR targets it | Short-lived branches, once CI is green                 |
-| `main`     | Protected release branch. `npx skills add` and the docs site read it     | Release PRs from `develop`, and `hotfix/*` branches    |
-| `hotfix/*` | An urgent fix cut from `main` that can't wait for the next release       | Merged to `main`; the sync job carries it to `develop` |
+| Branch     | Role                                                                    | Who merges into it                                     |
+| ---------- | ----------------------------------------------------------------------- | ------------------------------------------------------ |
+| `develop`  | Integration trunk. Work lands here without a PR once it passes the gate | `claude/**` and `land/**` pushes, and Dependabot PRs   |
+| `main`     | Protected release branch. `npx skills add` and the docs site read it    | Release PRs from `develop`, and `hotfix/*` branches    |
+| `hotfix/*` | An urgent fix cut from `main` that can't wait for the next release      | Merged to `main`; the sync job carries it to `develop` |
 
-`main` stays the repository's default branch because skills.sh installs from it. GitHub therefore proposes `main` as the base of a new PR, so set the base to `develop` by hand. The **Release source** CI check fails any PR into `main` whose head is not `develop` or `hotfix/*`.
+#### Landing on `develop`
+
+Pushing to a branch named `claude/**` or `land/**` runs the [land workflow](.github/workflows/land-develop.yml). It merges the current `develop` into the pushed commit, runs the same gate as CI's Check and Changeset jobs on the result, and pushes that tested merge to `develop`. There is no PR to open, review or merge.
+
+- **Evidence lives with the work.** Put what was measured or verified in the commit message, or in a research record for larger results. The run summary lists the commits each landing brought in.
+- **A failed gate lands nothing.** Fix the branch and push again. The same applies when the branch conflicts with `develop` or when `develop` moved during the run.
+- **Landings run one at a time**, so `develop` only ever moves to a tree that passed the gate.
+- **Scans run after landing.** CodeQL, Zizmor and Gitleaks run on `develop` itself, so a finding there is fixed forward on `develop`.
+- **Review happens once**, on the release PR from `develop` to `main`.
+
+Dependabot still opens PRs against `develop`, because its changes come from outside the project.
+
+`main` stays the repository's default branch because skills.sh installs from it. GitHub therefore proposes `main` as the base of a new PR. The **Release source** CI check fails any PR into `main` whose head is not `develop` or `hotfix/*`.
 
 Changesets accumulate on `develop` with the work they describe. Nothing is versioned or published until a release PR reaches `main`.
 
@@ -880,7 +892,7 @@ Changesets accumulate on `develop` with the work they describe. Nothing is versi
 
 There is **no calendar cadence** and **no Version Packages PR**. A release is a PR from `develop` to `main`, followed by **one CI job**:
 
-1. Contributors add a changeset with each PR to `develop` that affects a published package or skill.
+1. Contributors add a changeset with each change landed on `develop` that affects a published package or skill.
 2. When `develop` is tested and ready, open a PR from `develop` to `main` and merge it with a **merge commit**. Squashing would give `main` history that `develop` lacks.
 3. The merge runs the [release workflow](.github/workflows/release.yml) (`pnpm release:main`). After the **Release plan** job posts pending changesets (and any **missing GitHub Releases**) to the run summary, approve the **`release` environment**. The version job **resets to the current `origin/main` tip** (so post-approval work includes all merged changesets), then **sequentially**: applies changesets → syncs skill `metadata.version` → builds (so husky can run) → commits `chore: release` → **pushes to `main`** → publishes public packages to npm → **pushes tags** → creates GitHub Releases (including skill carriers).
 4. Every push to `main` runs the [sync workflow](.github/workflows/sync-develop.yml), which merges `main` back into `develop` so the release commit and any hotfix reach the trunk. A clean merge is pushed with `RELEASE_GITHUB_TOKEN`. A conflict opens a PR from `main` to `develop` instead.

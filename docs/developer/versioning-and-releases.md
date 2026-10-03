@@ -13,13 +13,25 @@ Independent versioning is configured in [`.changeset/config.json`](../../.change
 
 ## Branches
 
-| Branch     | Role                                                                     | Who merges into it                                     |
-| ---------- | ------------------------------------------------------------------------ | ------------------------------------------------------ |
-| `develop`  | Integration trunk. Every feature, fix, docs and Dependabot PR targets it | Short-lived branches, once CI is green                 |
-| `main`     | Protected release branch. `npx skills add` and the docs site read it     | Release PRs from `develop`, and `hotfix/*` branches    |
-| `hotfix/*` | An urgent fix cut from `main` that can't wait for the next release       | Merged to `main`; the sync job carries it to `develop` |
+| Branch     | Role                                                                    | Who merges into it                                     |
+| ---------- | ----------------------------------------------------------------------- | ------------------------------------------------------ |
+| `develop`  | Integration trunk. Work lands here without a PR once it passes the gate | `claude/**` and `land/**` pushes, and Dependabot PRs   |
+| `main`     | Protected release branch. `npx skills add` and the docs site read it    | Release PRs from `develop`, and `hotfix/*` branches    |
+| `hotfix/*` | An urgent fix cut from `main` that can't wait for the next release      | Merged to `main`; the sync job carries it to `develop` |
 
-`main` stays the repository's default branch because skills.sh installs from it. GitHub therefore proposes `main` as the base of a new PR, so set the base to `develop` by hand. The **Release source** CI check fails any PR into `main` whose head is not `develop` or `hotfix/*`.
+### Landing on `develop`
+
+Pushing to a branch named `claude/**` or `land/**` runs the [land workflow](../../.github/workflows/land-develop.yml). It merges the current `develop` into the pushed commit, runs the same gate as CI's Check and Changeset jobs on the result, and pushes that tested merge to `develop`. There is no PR to open, review or merge.
+
+- **Evidence lives with the work.** Put what was measured or verified in the commit message, or in a research record for larger results. The run summary lists the commits each landing brought in.
+- **A failed gate lands nothing.** Fix the branch and push again. The same applies when the branch conflicts with `develop` or when `develop` moved during the run.
+- **Landings run one at a time**, so `develop` only ever moves to a tree that passed the gate.
+- **Scans run after landing.** CodeQL, Zizmor and Gitleaks run on `develop` itself, so a finding there is fixed forward on `develop`.
+- **Review happens once**, on the release PR from `develop` to `main`.
+
+Dependabot still opens PRs against `develop`, because its changes come from outside the project.
+
+`main` stays the repository's default branch because skills.sh installs from it. GitHub therefore proposes `main` as the base of a new PR. The **Release source** CI check fails any PR into `main` whose head is not `develop` or `hotfix/*`.
 
 Changesets accumulate on `develop` with the work they describe. Nothing is versioned or published until a release PR reaches `main`.
 
@@ -27,7 +39,7 @@ Changesets accumulate on `develop` with the work they describe. Nothing is versi
 
 There is **no calendar cadence** and **no Version Packages PR**. A release is a PR from `develop` to `main`, followed by **one CI job**:
 
-1. Contributors add a changeset with each PR to `develop` that affects a published package or skill.
+1. Contributors add a changeset with each change landed on `develop` that affects a published package or skill.
 2. When `develop` is tested and ready, open a PR from `develop` to `main` and merge it with a **merge commit**. Squashing would give `main` history that `develop` lacks.
 3. The merge runs the [release workflow](../../.github/workflows/release.yml) (`pnpm release:main`). After the **Release plan** job posts pending changesets (and any **missing GitHub Releases**) to the run summary, approve the **`release` environment**. The version job **resets to the current `origin/main` tip** (so post-approval work includes all merged changesets), then **sequentially**: applies changesets → syncs skill `metadata.version` → builds (so husky can run) → commits `chore: release` → **pushes to `main`** → publishes public packages to npm → **pushes tags** → creates GitHub Releases (including skill carriers).
 4. Every push to `main` runs the [sync workflow](../../.github/workflows/sync-develop.yml), which merges `main` back into `develop` so the release commit and any hotfix reach the trunk. A clean merge is pushed with `RELEASE_GITHUB_TOKEN`. A conflict opens a PR from `main` to `develop` instead.

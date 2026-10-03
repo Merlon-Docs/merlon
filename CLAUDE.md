@@ -28,11 +28,13 @@ editing shards: `pnpm docs:compile:repo`.
 
 ## Branches
 
-`develop` is the integration trunk; open every PR against `develop`. `main` is the
-protected release branch that `npx skills add` installs from, and it only takes
-release PRs from `develop` (merge commit) or `hotfix/*` branches. GitHub suggests
-`main` as the PR base because it stays the default branch, so set the base by hand.
-See `docs/developer/versioning-and-releases.md`.
+`develop` is the integration trunk, and work lands on it without a PR. Push a
+`claude/**` or `land/**` branch: the land workflow merges `develop` in, runs the
+CI gate, and pushes the tested result to `develop`. Put evidence (what was
+measured or verified) in the commit message. `main` is the protected release
+branch that `npx skills add` installs from. It only takes release PRs from
+`develop` (merge commit) or `hotfix/*` branches. See
+`docs/developer/versioning-and-releases.md`.
 
 ## Build before running
 
