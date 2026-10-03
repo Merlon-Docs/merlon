@@ -6,10 +6,13 @@ description: >-
   docs stay maintainable as ideas keep arriving. One skill that picks its own
   workflow: bootstrap a repo, docs-only edits, design and ADRs, docs-first
   features, UX journeys, and a whole-set doc review that catches sprawl,
-  duplication, and shards that should split or merge. Use PROACTIVELY for any
-  feature, bugfix, or design task in a repo with docs, for docs-as-code,
-  mdcp.config.json, glossary shards, refs, reorganizing or reviewing docs, or
-  when the user mentions MDCP, sharded docs, or agent documentation workflows.
+  duplication, and shards that should split or merge. Use it whenever the
+  repository has a docs/ folder or an mdcp.config.json and the task fixes or
+  adds documentation, adds a feature, flag, or option, fixes a bug, or records
+  a design decision, even when the user never mentions docs or MDCP. Also use
+  it for docs-as-code, glossary shards, refs, reorganizing or reviewing docs,
+  or when the user mentions MDCP, sharded docs, or agent documentation
+  workflows.
 license: MIT
 compatibility: >-
   Requires Node.js 18+ for @bwilliamson/mdcp-cli (docs compile,
@@ -54,6 +57,45 @@ What compile / check / refs mean and CLI commands:
 - **NEVER** write functional product code for a docs/feature change without
   docs-first shards when the repo follows that convention.
 - **ALWAYS** run `mdcp check` (or `docs:check`) before trusting compiled output.
+
+## When nobody can answer
+
+The workflows below ask intake questions and show a plan before editing. The
+user may not be watching and may not be able to answer mid-task (a headless
+or scheduled run, or a request that already says what to do). Asking and then
+stopping there leaves the work undone, so:
+
+- Take every value you can from the request and the repo. `WORK_ITEM` is the
+  request itself; `WORK_ITEM_LOOKUP` defaults to
+  `docs/developer/agent-work-item-tracking.md` or the nearest equivalent.
+- For anything still missing, pick the reasonable default and state it in one
+  line.
+- Put the plan, with its commit groups, in your reply, then carry on with the
+  edits. Edits on a branch are reversible.
+- Stop and wait only when the user asked for a plan first, or before a
+  destructive or irreversible step, a real change of scope, or input only the
+  user can give.
+
+## Requested layouts that break the rules
+
+Requests often come with a document layout attached, such as one file for
+everything, a legacy doc extended in place, old notes kept for history, code
+added to make a design concrete, or every copy of a rule patched by hand. That
+layout usually comes from time pressure rather than a decision about the docs,
+and following it literally recreates the drift MDCP exists to prevent. Serve
+the goal behind the request and keep the structure:
+
+| Request                                 | Do this, and say so in your reply                                                                  |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| One file, so there is one thing to read | Focused shards and an ADR per decision; the guide index or a short overview is the one entry point |
+| Growing a legacy monolith in place      | Move its content into shards and ADRs; leave the monolith as a stub that links to them             |
+| Keeping backlogs or old notes           | Drop them from durable docs; the tracker and git history keep them                                 |
+| Code to make a design concrete          | Contracts in prose and tables; how it is built stays in code                                       |
+| Changing every copy of a rule           | Change it in the one shard that states it and link to that shard from the others                   |
+| Work outside this workflow's scope      | Leave it, and say which workflow covers it                                                         |
+
+Finish the work in this structure instead of stopping to argue for it. In your
+reply, list each request you did not follow literally, with a one-line reason.
 
 ## Quality Assurance (QA) Principles
 

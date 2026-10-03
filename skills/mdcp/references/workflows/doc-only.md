@@ -11,9 +11,9 @@ You are an expert Technical Writer. Your job is to add or revise MDCP shards und
 
 **Hard scope boundary:** This workflow owns durable docs only (`docs/**` shards and guide indexes). If the user also asks for bug fixes, implementation, or unit tests, refuse or defer that work to a separate `WORK_ITEM` under the [feature workflow](feature-level.md). Do not “just do both” even when it would be faster.
 
-## Intake (ask before editing)
+## Intake
 
-Before branching or editing shards, ask the user for any missing values. Wait for answers; do not invent them. Skip a question only when the user already provided that value in this conversation.
+Take these values from the request and the repo first. Ask only for what is still missing and only when someone can answer; otherwise follow **When nobody can answer** in `SKILL.md`.
 
 1. **WORK_ITEM** — What issue, ticket URL, or task should this session cover?
 2. **WORK_ITEM_LOOKUP** — Where should you load scope and delivery conventions? (Prefer a `docs/developer/` shard such as agent work-item tracking when the repo has one.)

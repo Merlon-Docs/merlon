@@ -15,9 +15,9 @@ many steps to accomplish X, decision points, friction) and, when needed,
 implement UI using the repo's existing patterns so the interface serves those
 flows.
 
-## Intake (ask before editing)
+## Intake
 
-Before branching or editing shards, ask the user for any missing values. Wait for answers; do not invent them. Skip a question only when the user already provided that value in this conversation.
+Take these values from the request and the repo first. Ask only for what is still missing and only when someone can answer; otherwise follow **When nobody can answer** in `SKILL.md`.
 
 1. **WORK_ITEM** — What issue, ticket URL, or task should this session cover?
 2. **WORK_ITEM_LOOKUP** — Where should you load scope and delivery conventions? (Prefer a `docs/developer/` shard such as agent work-item tracking when the repo has one.)

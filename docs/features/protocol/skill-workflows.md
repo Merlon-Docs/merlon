@@ -10,7 +10,7 @@ Workflow files live in the skill under `skills/mdcp/references/workflows/` (e.g.
 
 ## Required intake
 
-Every work-item workflow **MUST** open with an **Intake (ask before editing)** section. The agent **MUST** ask the user for any missing required fields and **MUST** wait for answers before branching or editing shards. Skip a question only when the user already provided that value in the conversation. Do not invent values.
+Every work-item workflow **MUST** open with an **Intake** section listing the fields below. The agent takes each value from the request and the repository first, and asks only for what is still missing when someone can answer. When nobody can answer, as in a headless or scheduled run, it states a default in one line and continues. `WORK_ITEM` is then the request itself. It stops to wait only when the user asked for a plan first, or before a destructive or irreversible step, a real change of scope, or input only the user can give. The skill's **When nobody can answer** section in `SKILL.md` holds these defaults.
 
 Required fields for work-item workflows:
 
@@ -19,7 +19,7 @@ Required fields for work-item workflows:
 | `WORK_ITEM`        | Enough to resolve the task — tracker id, URL, or short issue name/description             | What issue, ticket URL, or task should this session cover?                                |
 | `WORK_ITEM_LOOKUP` | Where to load scope and delivery conventions — shard path or plain location (e.g. GitHub) | Where should you load scope and delivery conventions? (Prefer a `docs/developer/` shard.) |
 
-The getting-started workflow **MUST** ask for `FEATURE`, `PERSONA`, and `EXPERIENCE` (novice vs expert onboarding depth) instead of `WORK_ITEM`. After a successful bootstrap, it **MUST** offer an optional **first-feature tutorial** (`RUN_FIRST_FEATURE_TUTORIAL`, default yes for novice) and, when accepted, resolve **EXAMPLE_MODE** (recommended `hello-greeting` or bring-your-own) before walking design → feature → UX → doc-only. Detail: [Getting-started workflow](./workflows/getting-started.md).
+The getting-started workflow **MUST** collect `FEATURE`, `PERSONA`, and `EXPERIENCE` (novice vs expert onboarding depth) instead of `WORK_ITEM`. `EXPERIENCE` defaults to expert when nobody can answer. After a successful bootstrap, it **MUST** offer an optional **first-feature tutorial** (`RUN_FIRST_FEATURE_TUTORIAL`, default yes for novice) and, when accepted, resolve **EXAMPLE_MODE** (recommended `hello-greeting` or bring-your-own) before walking design → feature → UX → doc-only. Detail: [Getting-started workflow](./workflows/getting-started.md).
 
 Agents **MUST** load the issue (or equivalent) before editing shards or code. One `WORK_ITEM` per branch.
 

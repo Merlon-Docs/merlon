@@ -16,9 +16,9 @@ doc-only). Adapt teaching depth to **EXPERIENCE**.
 **Bootstrap out of scope:** inventing TDD rituals or atomic commit grouping
 during scaffold only — the day-to-day workflows own those when the tutorial runs.
 
-## Intake (ask before editing)
+## Intake
 
-Ask for missing values; wait; do not invent. Skip only if already provided.
+Ask only for values the request does not give, and only when someone can answer; otherwise follow **When nobody can answer** in `SKILL.md` (default **EXPERIENCE** is expert).
 
 1. **FEATURE** — feature or project name for initial docs
 2. **PERSONA** — primary audience for the client / end-user guide
