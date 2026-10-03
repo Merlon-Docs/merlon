@@ -56,7 +56,10 @@ overrides:
 # `pnpm audit --audit-level=high` exits 0 without --ignore-unfixable.
 # - GHSA-w3rx-r6r6-pgpr: image-size — patched >=2.0.3, but 2.0.3 not published
 # - GHSA-5p2g-fcmc-qvqq: image-size — patched >=2.0.3, but 2.0.3 not published
+# - GHSA-vfj7-8cjw-p6xm: braces <=3.0.3, no patched version (slidev → chokidar 3,
+#   dev-only presentation tooling). Added 2026-10-03; recheck 2026-11-03.
 audit:
   ignore:
     - GHSA-w3rx-r6r6-pgpr
     - GHSA-5p2g-fcmc-qvqq
+    - GHSA-vfj7-8cjw-p6xm

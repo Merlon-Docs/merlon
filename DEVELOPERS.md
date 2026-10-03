@@ -364,7 +364,7 @@ If none of the above apply, inspect enabled MCP tool descriptors or run `gh --he
 ### Git and delivery
 
 ```text
-Integration branch=main (pull before branching)
+Integration branch=develop (pull before branching; PRs target develop, never main)
 Feature branches=descriptive (e.g. feature/issue-29-default-compile-hooks)
 One branch per WORK_ITEM=do not mix unrelated features, designs, or doc scopes in one PR
 Branch before work=create the feature branch before shards, tests, or code
@@ -381,7 +381,7 @@ Parent skill QA and day-to-day helpers encode the same rule so plan-only agents 
 ### Workflow best practices
 
 1. **Load scope** — fetch WORK_ITEM (title, body, acceptance criteria) before planning or editing.
-2. **Branch first** — `git checkout main`, pull, then `git checkout -b feature/...` tied to the issue. Never start on `main`.
+2. **Branch first** — `git checkout develop`, pull, then `git checkout -b feature/...` tied to the issue. Never start on `develop` or `main`, and open the PR against `develop`.
 3. **Stay focused** — one feature or design at a time. Treat acceptance criteria as the boundary unless WORK_ITEM explicitly expands scope.
 4. **Plan Atomic commit groups** — before waiting for human review / implementation, include numbered commit groups for multi-concern work (see [Git and delivery](#git-and-delivery)). After approval, land one group per commit.
 5. **Docs describe now** — update shards to match as-built behavior. Do not document superseded workflows in `docs/features/` or `docs/client/`; record consumer notice in the changeset (lands in package CHANGELOGs). Never link durable shards or ADRs to pending `.changeset/*.md` files.
@@ -864,13 +864,26 @@ mdcp uses [Semantic Versioning 2.0.0](https://semver.org/) and [Changesets](http
 
 Independent versioning is configured in [`.changeset/config.json`](.changeset/config.json) (`fixed` is empty). Dependents of a bumped workspace package still get a **patch** internal dependency update (`updateInternalDependencies`).
 
-### Release schedule (single step on `main`)
+### Branches
 
-There is **no calendar cadence** and **no Version Packages PR**. Releases are **one CI job** after merge to `main`:
+| Branch     | Role                                                                     | Who merges into it                                     |
+| ---------- | ------------------------------------------------------------------------ | ------------------------------------------------------ |
+| `develop`  | Integration trunk. Every feature, fix, docs and Dependabot PR targets it | Short-lived branches, once CI is green                 |
+| `main`     | Protected release branch. `npx skills add` and the docs site read it     | Release PRs from `develop`, and `hotfix/*` branches    |
+| `hotfix/*` | An urgent fix cut from `main` that can't wait for the next release       | Merged to `main`; the sync job carries it to `develop` |
 
-1. Contributors add a changeset with each PR that affects a published package or skill.
-2. Merging that PR to `main` runs the [release workflow](.github/workflows/release.yml) (`pnpm release:main`).
-3. After the **Release plan** job posts pending changesets (and any **missing GitHub Releases**) to the run summary, approve the **`release` environment**. The version job **resets to the current `origin/main` tip** (so post-approval work includes all merged changesets), then **sequentially**: applies changesets → syncs skill `metadata.version` → builds (so husky can run) → commits `chore: release` → **pushes to `main`** → publishes public packages to npm → **pushes tags** → creates GitHub Releases (including skill carriers).
+`main` stays the repository's default branch because skills.sh installs from it. GitHub therefore proposes `main` as the base of a new PR, so set the base to `develop` by hand. The **Release source** CI check fails any PR into `main` whose head is not `develop` or `hotfix/*`.
+
+Changesets accumulate on `develop` with the work they describe. Nothing is versioned or published until a release PR reaches `main`.
+
+### Release schedule (release PR from `develop` to `main`)
+
+There is **no calendar cadence** and **no Version Packages PR**. A release is a PR from `develop` to `main`, followed by **one CI job**:
+
+1. Contributors add a changeset with each PR to `develop` that affects a published package or skill.
+2. When `develop` is tested and ready, open a PR from `develop` to `main` and merge it with a **merge commit**. Squashing would give `main` history that `develop` lacks.
+3. The merge runs the [release workflow](.github/workflows/release.yml) (`pnpm release:main`). After the **Release plan** job posts pending changesets (and any **missing GitHub Releases**) to the run summary, approve the **`release` environment**. The version job **resets to the current `origin/main` tip** (so post-approval work includes all merged changesets), then **sequentially**: applies changesets → syncs skill `metadata.version` → builds (so husky can run) → commits `chore: release` → **pushes to `main`** → publishes public packages to npm → **pushes tags** → creates GitHub Releases (including skill carriers).
+4. Every push to `main` runs the [sync workflow](.github/workflows/sync-develop.yml), which merges `main` back into `develop` so the release commit and any hotfix reach the trunk. A clean merge is pushed with `RELEASE_GITHUB_TOKEN`. A conflict opens a PR from `main` to `develop` instead.
 
 **Latest main wins:** concurrency does **not** cancel an in-flight publish (`cancel-in-progress: false`). The Release plan job **cancels** other Release runs on `main` that are still **waiting** (env approval) or **queued**. If `main` moves during the short version window, `pnpm release:main` aborts the push with a superseded message (no force-push).
 
@@ -898,8 +911,9 @@ Packages and Agent Skills are **pre-1.0** while on `0.x.y`. Until a given item r
 1. Confirm pending `.changeset/*.md` files name only the packages/skills that should bump.
 2. **Skills policy:** parent `mdcp` remains the consumer entrypoint; keep `skills/mdcp-arch-*` as `metadata.internal: true` until intentionally published (see [Agent Skill development](#skillsshjson-repo-page-layout)).
 3. Ensure secret **`RELEASE_GITHUB_TOKEN`** is set (maintainer PAT with Contents + metadata for releases/push) — see [Publishing](#publishing).
-4. Merge feature PRs to `main`. Approve the **`release` environment** deployment when prompted.
+4. Merge a release PR from `develop` to `main` with a merge commit. Approve the **`release` environment** deployment when prompted.
 5. Verify GitHub Releases for each bumped item (npm packages and `@bwilliamson/skill-*`) and npm for public packages.
+6. Confirm the **Sync develop** run merged the release commit into `develop`.
 
 ### Durable docs vs pending changesets
 
@@ -979,7 +993,7 @@ Before approving the **`release` environment**, open the **Release plan** job su
 
 ### Routine releases (one step)
 
-1. Merge feature PRs that include changesets to `main`.
+1. Merge a release PR from `develop` to `main` with a merge commit ([Branches](#branches)).
 2. Open the **latest** Release workflow run → read the **Release plan** job summary (pending changesets and/or missing GitHub Releases). Older runs still waiting for approval are cancelled when a newer plan starts.
 3. Approve the **`release` environment** deployment on that latest run.
 4. After approval, CI **resets to `origin/main` tip**, then runs **`pnpm release:main`**: with pending changesets — version → sync skill frontmatter → build → commit → **push to `main`** → `changeset publish` → **push tags** → GitHub Releases (npm packages **and** skill carriers). With no changesets but missing tags/Releases — create those git tags and Releases idempotently at each package’s version-bump commit (`--target`). If `main` moved during versioning, the push aborts as superseded (no force-push).
