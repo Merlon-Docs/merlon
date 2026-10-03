@@ -3,12 +3,14 @@ import { stripExplicitAnchorMarkers } from '../src/compile/anchors.js';
 import { headingTextToPlain } from '../src/refs/slugs.js';
 import { demoteHeadings } from '../src/compile/headings.js';
 import { lineRangeFromText } from '../src/compile/hooks/line-range.js';
-import { manySpaces, nestedOpenAnchors, timeMs } from './helpers/redos-pumps.js';
+import { isPathClaim, probePathClaims } from '../src/validate/path-probe.js';
+import { manySpaces, nestedOpenAnchors, timeMs, trailingSlashRun } from './helpers/redos-pumps.js';
 
 /** Tight budget: safe linear parsers finish well under this; polynomial paths blow it. */
 const BUDGET_MS = 50;
 const SPACE_N = 40_000;
 const ANCHOR_N = 25_000;
+const SLASH_N = 20_000;
 
 describe('ReDoS budget demos (CodeQL js/polynomial-redos)', () => {
   it('stripExplicitAnchorMarkers stays under budget on long leading spaces + incomplete {#', () => {
@@ -50,6 +52,27 @@ describe('ReDoS budget demos (CodeQL js/polynomial-redos)', () => {
     const input = 'lines' + manySpaces(SPACE_N) + 'x';
     const ms = timeMs(() => {
       lineRangeFromText(input);
+    });
+    expect(ms).toBeLessThan(BUDGET_MS);
+  });
+
+  // A backtick span is documentation text, so a span of slashes reaches
+  // isPathClaim as-is. The regex forms this replaced took 138 ms at this n.
+  it('isPathClaim stays under budget on a long trailing slash run', () => {
+    const input = trailingSlashRun(SLASH_N);
+    const ms = timeMs(() => {
+      isPathClaim(input);
+    });
+    expect(ms).toBeLessThan(BUDGET_MS);
+  });
+
+  it('declaration matching stays under budget on a long trailing slash run', () => {
+    const ms = timeMs(() => {
+      probePathClaims('/x/shard.md', 'See `docs/a.md`.\n', {
+        searchRoots: [],
+        generated: [trailingSlashRun(SLASH_N)],
+        vocabulary: [trailingSlashRun(SLASH_N)],
+      });
     });
     expect(ms).toBeLessThan(BUDGET_MS);
   });

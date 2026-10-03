@@ -23,7 +23,9 @@
     },
     "compileOrder": {
       "type": "array",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "minItems": 1
     },
     "banner": {
@@ -39,19 +41,36 @@
       "items": {
         "type": "object",
         "properties": {
-          "name": { "type": "string" },
-          "path": { "type": "string" },
-          "splitLevel": { "type": "integer", "default": 2, "minimum": 1, "maximum": 6 },
+          "name": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "splitLevel": {
+            "type": "integer",
+            "default": 2,
+            "minimum": 1,
+            "maximum": 6
+          },
           "source": {
             "oneOf": [
               {
                 "type": "object",
                 "properties": {
-                  "type": { "const": "h1Extract" },
-                  "index": { "type": "integer" },
+                  "type": {
+                    "const": "h1Extract"
+                  },
+                  "index": {
+                    "type": "integer"
+                  },
                   "preamble": {
                     "type": "object",
-                    "properties": { "promoteToH2": { "type": "string" } }
+                    "properties": {
+                      "promoteToH2": {
+                        "type": "string"
+                      }
+                    }
                   }
                 },
                 "required": ["type", "index"]
@@ -59,21 +78,31 @@
               {
                 "type": "object",
                 "properties": {
-                  "type": { "const": "merge" },
+                  "type": {
+                    "const": "merge"
+                  },
                   "parts": {
                     "type": "array",
                     "items": {
                       "type": "object",
                       "properties": {
-                        "fromH1Extract": { "type": "integer" },
-                        "demoteFirstH1": { "type": "boolean" }
+                        "fromH1Extract": {
+                          "type": "integer"
+                        },
+                        "demoteFirstH1": {
+                          "type": "boolean"
+                        }
                       },
                       "required": ["fromH1Extract"]
                     }
                   },
                   "preamble": {
                     "type": "object",
-                    "properties": { "promoteToH2": { "type": "string" } }
+                    "properties": {
+                      "promoteToH2": {
+                        "type": "string"
+                      }
+                    }
                   }
                 },
                 "required": ["type", "parts"]
@@ -81,8 +110,12 @@
               {
                 "type": "object",
                 "properties": {
-                  "type": { "const": "directory" },
-                  "path": { "type": "string" }
+                  "type": {
+                    "const": "directory"
+                  },
+                  "path": {
+                    "type": "string"
+                  }
                 },
                 "required": ["type", "path"]
               }
@@ -91,24 +124,57 @@
           "compile": {
             "type": "object",
             "properties": {
-              "preambleSection": { "type": "string", "default": "about-this-guide.md" },
-              "manifest": { "type": "string", "default": "index.md" },
-              "sectionsHeading": { "type": "string" },
-              "title": { "type": "string" },
-              "scopeRoot": { "type": "string" },
-              "outputFile": { "type": "string" },
-              "includeBanner": { "type": "boolean" },
-              "sourceTags": { "type": "boolean" },
+              "preambleSection": {
+                "type": "string",
+                "default": "about-this-guide.md"
+              },
+              "manifest": {
+                "type": "string",
+                "default": "index.md"
+              },
+              "sectionsHeading": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "scopeRoot": {
+                "type": "string"
+              },
+              "outputFile": {
+                "type": "string"
+              },
+              "includeBanner": {
+                "type": "boolean"
+              },
+              "sourceTags": {
+                "type": "boolean"
+              },
               "hooks": {
                 "anyOf": [
-                  { "type": "array", "items": { "type": "string" } },
-                  { "type": "object", "additionalProperties": { "type": "boolean" } }
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "boolean"
+                    }
+                  }
                 ]
               },
               "crossGuideLinks": {
                 "type": "object",
                 "properties": {
-                  "ignoreGuides": { "type": "array", "items": { "type": "string" } }
+                  "ignoreGuides": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
                 }
               },
               "hooksConfig": {
@@ -117,16 +183,27 @@
                   "inlineInserts": {
                     "type": "object",
                     "properties": {
-                      "searchRoots": { "type": "array", "items": { "type": "string" } }
+                      "searchRoots": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
                     }
                   }
                 }
               },
-              "stripAnchors": { "type": "boolean", "default": true },
+              "stripAnchors": {
+                "type": "boolean",
+                "default": true
+              },
               "links": {
                 "type": "object",
                 "properties": {
-                  "markBroken": { "type": "boolean", "default": true }
+                  "markBroken": {
+                    "type": "boolean",
+                    "default": true
+                  }
                 }
               }
             }
@@ -137,9 +214,11 @@
     },
     "standaloneGuides": {
       "type": "array",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "default": [],
-      "description": "Files or globs (relative to scan root) registered as standalone guides — captured, never compiled."
+      "description": "Files or globs (relative to scan root) registered as standalone guides \u2014 captured, never compiled."
     },
     "scan": {
       "type": "object",
@@ -152,7 +231,9 @@
         },
         "ignore": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "default": [],
           "description": "Extra ignore globs beyond the built-in defaults (.git, node_modules, .agents)."
         },
@@ -170,16 +251,32 @@
     "backup": {
       "type": "object",
       "properties": {
-        "enabled": { "type": "boolean", "default": false },
-        "dir": { "type": "string", "default": ".caches/backups" },
-        "ext": { "type": "string", "default": "" }
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "dir": {
+          "type": "string",
+          "default": ".caches/backups"
+        },
+        "ext": {
+          "type": "string",
+          "default": ""
+        }
       }
     },
     "refs": {
       "type": "object",
       "properties": {
-        "registryFile": { "type": "string", "default": ".caches/refs.json" },
-        "slugAlgorithm": { "type": "string", "enum": ["github"], "default": "github" }
+        "registryFile": {
+          "type": "string",
+          "default": ".caches/refs.json"
+        },
+        "slugAlgorithm": {
+          "type": "string",
+          "enum": ["github"],
+          "default": "github"
+        }
       }
     },
     "lint": {
@@ -188,18 +285,84 @@
         "markdownlint": {
           "type": "object",
           "properties": {
-            "shardsConfig": { "type": "string" },
-            "compiledConfig": { "type": "string" },
-            "shardsGlobs": { "type": "array", "items": { "type": "string" } }
+            "shardsConfig": {
+              "type": "string"
+            },
+            "compiledConfig": {
+              "type": "string"
+            },
+            "shardsGlobs": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           }
         },
         "links": {
           "type": "object",
           "properties": {
-            "enabled": { "type": "boolean", "default": true },
-            "severity": { "type": "string", "enum": ["error", "warn"], "default": "error" },
-            "target": { "type": "string" },
-            "config": { "type": "string" }
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "severity": {
+              "type": "string",
+              "enum": ["error", "warn"],
+              "default": "error"
+            },
+            "target": {
+              "type": "string"
+            },
+            "config": {
+              "type": "string"
+            }
+          }
+        },
+        "codeExtensions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Extra code extensions, added to the built-in defaults. Validated for existence and citable by line."
+        },
+        "dataExtensions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Extra data extensions, added to the built-in defaults. Validated for existence, never cited by line."
+        },
+        "paths": {
+          "type": "object",
+          "description": "Backtick-path resolution in documentation prose.",
+          "properties": {
+            "severity": {
+              "type": "string",
+              "enum": ["off", "warn", "error"],
+              "default": "off"
+            },
+            "searchRoots": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Extra resolution roots relative to the scan root."
+            },
+            "generated": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Prefixes that are real but absent in a clean checkout: build output, caches, vendor-managed installs."
+            },
+            "vocabulary": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Exact names this repository documents without having, such as a protocol tier a consumer creates."
+            }
           }
         }
       }
@@ -207,9 +370,20 @@
     "vale": {
       "type": "object",
       "properties": {
-        "config": { "type": "string", "default": ".vale.ini" },
-        "strictMinAlertLevel": { "type": "string", "default": "error" },
-        "scanGlobs": { "type": "array", "items": { "type": "string" } }
+        "config": {
+          "type": "string",
+          "default": ".vale.ini"
+        },
+        "strictMinAlertLevel": {
+          "type": "string",
+          "default": "error"
+        },
+        "scanGlobs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
       }
     },
     "export": {
@@ -218,11 +392,26 @@
         "llm": {
           "type": "object",
           "properties": {
-            "stripHtmlComments": { "type": "boolean", "default": true },
-            "stripFrontmatter": { "type": "boolean", "default": true },
-            "stripBanner": { "type": "boolean", "default": true },
-            "skipIndexFiles": { "type": "boolean", "default": true },
-            "collapseBlankLines": { "type": "boolean", "default": true }
+            "stripHtmlComments": {
+              "type": "boolean",
+              "default": true
+            },
+            "stripFrontmatter": {
+              "type": "boolean",
+              "default": true
+            },
+            "stripBanner": {
+              "type": "boolean",
+              "default": true
+            },
+            "skipIndexFiles": {
+              "type": "boolean",
+              "default": true
+            },
+            "collapseBlankLines": {
+              "type": "boolean",
+              "default": true
+            }
           }
         }
       }

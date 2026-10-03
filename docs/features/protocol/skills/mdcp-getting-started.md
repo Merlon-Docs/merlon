@@ -13,7 +13,7 @@ Invoke (after the parent skill is installed):
 
 Upstream pack: [`skills/mdcp-getting-started/`](../../../../skills/mdcp-getting-started/SKILL.md)
 (tutorial script:
-[`references/first-feature-tutorial.md`](../../../../skills/mdcp-getting-started/references/first-feature-tutorial.md)).
+[`skills/mdcp-getting-started/references/first-feature-tutorial.md`](../../../../skills/mdcp-getting-started/references/first-feature-tutorial.md)).
 Shared helper contract (intake, guide placement, glossary): [Helper Skills](../agent-task-prompts.md).
 
 ## End-user value

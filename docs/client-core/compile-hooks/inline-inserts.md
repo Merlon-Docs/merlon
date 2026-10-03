@@ -1,5 +1,7 @@
 # inlineInserts
 
+<!-- mdcp-paths: illustrative -->
+
 Specification for the `inlineInserts` compile hook. Tests in `packages/mdcp-core/test/inline-inserts.test.ts` map to the sections below (docs first, then TDD).
 
 ## inlineInserts purpose

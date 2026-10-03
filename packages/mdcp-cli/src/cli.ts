@@ -22,11 +22,15 @@ import {
   readRefsRegistry,
   findPeerBinary,
   runPeer,
+  probeDocumentPaths,
+  formatPathProbeIssue,
+  pathProbeInputs,
   shardFromMonolith,
   formatLinkIssue,
   type LinkIssue,
   type LinkSeverity,
   type MdcpConfig,
+  ILLUSTRATIVE_MARKER,
 } from '@bwilliamson/mdcp-core';
 import {
   compileWorkspace,
@@ -137,8 +141,9 @@ function collectBuiltInLinkIssues(
   docsRoot: string,
   globalOpts: GlobalOpts,
   workspace: ReturnType<typeof compileWorkspace>,
+  scanRoot?: string,
 ): { issues: LinkIssue[]; severity: LinkSeverity } {
-  const issues = runBuiltInLinkLintFromWorkspace(config, docsRoot, workspace);
+  const issues = runBuiltInLinkLintFromWorkspace(config, docsRoot, workspace, scanRoot);
   const severity = resolveLinkSeverity(globalOpts.warnBrokenLinks, config);
   return { issues, severity };
 }
@@ -429,6 +434,7 @@ cli
         docsRoot,
         opts,
         workspace,
+        getScanRoot(config),
       );
       if (reportLinkIssues(linkIssues, linkSeverity)) {
         failures.push({
@@ -508,6 +514,28 @@ cli
             detail: 'peer exited non-zero (see Vale output above)',
             hints: [
               'Fix prose style alerts, or use `--skip-vale` only when prose is intentionally out of scope.',
+            ],
+          });
+        }
+      }
+
+      const pathSeverity = config.lint?.paths?.severity ?? 'off';
+      if (pathSeverity !== 'off') {
+        const pathIssues = probeDocumentPaths(
+          pathProbeInputs(config, getDocsRoot(opts), getScanRoot(config)),
+        );
+        for (const issue of pathIssues) {
+          console.error(formatPathProbeIssue(issue, pathSeverity));
+        }
+        if (pathIssues.length > 0 && pathSeverity === 'error') {
+          failures.push({
+            step: 'path resolution',
+            detail: `${pathIssues.length} unresolved path(s) in prose (see \`path:\` lines above)`,
+            hints: [
+              'Update the path to what the repository now contains, or delete the claim when the thing it names is gone.',
+              `Add ${ILLUSTRATIVE_MARKER} on its own line when a file's paths teach syntax instead of describing this repository.`,
+              'Add lint.paths.generated for paths that only exist after a build or install.',
+              'Add lint.paths.vocabulary for a name this repository documents without having.',
             ],
           });
         }

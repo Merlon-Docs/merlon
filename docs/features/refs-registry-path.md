@@ -8,7 +8,7 @@ The refs registry is derived state under `outputDir`, not co-located with per-gu
 
 ## Path resolution
 
-`refs.registryFile` resolves relative to **`outputDir`** only — the same rule as `resolveRefsPath` in `@bwilliamson/mdcp-core`. Per-guide `compile.outputFile` values (including subdirectory prefixes such as `compiled/guide-a.md`) do not change the registry base.
+`refs.registryFile` resolves relative to **`outputDir`** only — the same rule as `resolveRefsPath` in `@bwilliamson/mdcp-core`. Per-guide `compile.outputFile` values (including subdirectory prefixes such as `compiled/guide-a.md`) do not change the registry base. <!-- mdcp-paths: illustrative -->
 
 | Config                                                                   | Resolved path (`--docs-root docs`)                |
 | ------------------------------------------------------------------------ | ------------------------------------------------- |

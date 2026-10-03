@@ -1,6 +1,6 @@
 {
   "name": "@bwilliamson/mdcp-core",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "MDCP core — documentation system compile, refs, and validation library",
   "license": "MIT",
   "type": "module",
@@ -53,16 +53,16 @@
   "dependencies": {
     "fast-glob": "^3.3.3",
     "github-slugger": "^2.0.0",
-    "ignore": "^7.0.8",
-    "semver": "^7.8.4",
-    "zod": "^4.5.4"
+    "ignore": "^7.0.10",
+    "semver": "^7.8.5",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@types/node": "^26.4.1",
+    "@types/node": "^26.6.2",
     "@types/semver": "^7.8.0",
-    "tsup": "^8.4.0",
+    "@vitest/coverage-v8": "^5.0.1",
+    "tsup": "^8.5.1",
     "typescript": "^6.0.3",
-    "@vitest/coverage-v8": "^4.1.11",
-    "vitest": "^4.1.11"
+    "vitest": "^5.0.1"
   }
 }

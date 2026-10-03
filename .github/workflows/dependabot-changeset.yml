@@ -1,0 +1,57 @@
+name: Dependabot changeset
+
+# Adds .changeset/dependabot-pr-<n>.md to Dependabot PRs that bump runtime
+# dependencies of a workspace package, so the Changeset check passes without a
+# manual commit. pull_request_target runs the workflow from the base branch;
+# the PR's code is never checked out or run, and its package.json files are
+# read through the API as data (scripts/dependabot-changeset.mjs).
+on:
+  pull_request_target: # zizmor: ignore[dangerous-triggers] base-branch code only; PR files are read as data
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+# Force JS actions onto Node 24 (Node 20 deprecated on runners).
+# https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions: {}
+
+jobs:
+  changeset:
+    name: Add changeset
+    if: >-
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      # Harden-Runner: audit mode only — logs egress; block mode is follow-up (#179).
+      - uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      # Base branch checkout (the pull_request_target default): trusted script only.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      # Commits made with GITHUB_TOKEN do not trigger CI, so the push uses a
+      # fine-grained PAT (Contents: read and write on this repository only).
+      - name: Commit changeset for runtime dependency bumps
+        env:
+          GH_TOKEN: ${{ secrets.DEPENDABOT_CHANGESET_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/dependabot-changeset.mjs

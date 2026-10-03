@@ -111,7 +111,35 @@ export {
   type LintLinksOptions,
 } from './links/lint.js';
 export { checkOrphansForGuides, type OrphanIssue, type GuideDirEntry } from './validate/orphans.js';
-export { computeCoverage, type CoverageResult, type CoverageOptions } from './validate/coverage.js';
+export {
+  computeCoverage,
+  resolveStandaloneGuides,
+  type CoverageResult,
+  type CoverageOptions,
+} from './validate/coverage.js';
+export {
+  DEFAULT_CODE_EXTENSIONS,
+  DEFAULT_DATA_EXTENSIONS,
+  codeExtensionSet,
+  dataExtensionSet,
+  fileExtensionSet,
+  hasCodeExtension,
+  hasFileExtension,
+  type ExtensionConfig,
+} from './compile/hooks/path-resolve.js';
+export {
+  probeDocumentPaths,
+  pathProbeInputs,
+  probePathClaims,
+  isPathClaim,
+  pathClaimExtensions,
+  hasIllustrativeMarker,
+  lineOptsOut,
+  formatPathProbeIssue,
+  ILLUSTRATIVE_MARKER,
+  type PathProbeIssue,
+  type PathProbeOptions,
+} from './validate/path-probe.js';
 export {
   abbreviateProtocolVersion,
   expandProtocolVersion,

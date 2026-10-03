@@ -1,7 +1,11 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, basename, resolve } from 'node:path';
 import { extractLinks } from './extract.js';
-import { defaultSearchRoots, resolveRelativeFile } from '../compile/hooks/path-resolve.js';
+import {
+  defaultSearchRoots,
+  hasFileExtension,
+  resolveRelativeFile,
+} from '../compile/hooks/path-resolve.js';
 import { parseHeading, stripPandocAnchors } from '../markdown/index.js';
 import { githubSlugify } from '../refs/slugs.js';
 import { demoteHeadings, stripAboutThisGuideHeading } from '../compile/headings.js';
@@ -42,6 +46,8 @@ export interface LintShardLinksOptions {
   guideDir: string;
   scopeRoot?: string;
   snapshot?: ShardSnapshot;
+  /** Effective file extensions (see `fileExtensionSet`). Defaults apply when absent. */
+  fileExtensions?: Set<string>;
 }
 
 /** Validate links in a single shard source file. */
@@ -72,7 +78,9 @@ export function lintShardLinks(options: LintShardLinksOptions): LinkIssue[] {
     if (/^https?:\/\//i.test(link.target)) continue;
 
     const filePart = link.target.split('#')[0];
-    if (!filePart.endsWith('.md')) continue;
+    // A shard link names either another shard or a source file. Anything else
+    // (a bare word, a directory) is too ambiguous to resolve, so it is skipped.
+    if (!filePart.endsWith('.md') && !hasFileExtension(filePart, options.fileExtensions)) continue;
 
     const resolved =
       resolveRelativeFile(filePart, shardDir, searchRoots) ??

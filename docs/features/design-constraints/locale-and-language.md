@@ -46,7 +46,7 @@ Vale does not replace link validation: Vale asks prose mentions to become links,
 
    Path sections work the same way (`[en/docs/*.md]`, `[fr/docs/*.md]`). Official packages such as **Microsoft** are English style-guide implementations — another language gets another style package, not a different Markdown parser. An MDCP-owned prose style (unlinked heading mentions) is the same kind of package.
 
-3. **Locale-named dictionaries** — Hunspell-compatible `en_US.{dic,aff}` under `styles/config/dictionaries/`, selected from `spelling` rules.
+3. **Locale-named dictionaries** — Hunspell-compatible `en_US.{dic,aff}` under `styles/config/dictionaries/`, selected from `spelling` rules. <!-- mdcp-paths: illustrative -->
 
 ## Default and extension
 

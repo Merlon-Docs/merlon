@@ -47,7 +47,7 @@ Shards stay GFM. A `format-*` extension documents heading rules, admonition mapp
 
 ## Formatting extensions
 
-See `format-*` skills for the formatting extension slot and naming (e.g., `mdcp-format-docusaurus`, `mdcp-format-mkdocs`). Product teams add `docs/extensions/docusaurus-mapping.md` (or similar) locally when proprietary theme rules apply.
+See `format-*` skills for the formatting extension slot and naming (e.g., `mdcp-format-docusaurus`, `mdcp-format-mkdocs`). Product teams add a `docusaurus-mapping.md` shard (or similar) under `docs/extensions/` locally when proprietary theme rules apply.
 
 ## Agent workflow
 

@@ -16,6 +16,7 @@ Product documentation for **what mdcp is designed to do** — the problems it so
   - [Source tags and default banner](./source-tags-and-banner.md)
   - [Compile output backup](./compile-output-backup.md)
 - [Link validation](./link-validation.md)
+- [Path resolution in prose](./path-resolution.md)
 - [Documentation coverage scan](./coverage-scan.md)
 - [Refs registry path](./refs-registry-path.md)
 - [Architecture decision records](./adr/index.md)

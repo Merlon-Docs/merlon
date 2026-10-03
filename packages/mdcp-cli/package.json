@@ -1,6 +1,6 @@
 {
   "name": "@bwilliamson/mdcp-cli",
-  "version": "0.7.5",
+  "version": "0.7.6",
   "description": "MDCP CLI — documentation system compile and check (MarkDown Context Protocol)",
   "license": "MIT",
   "type": "module",
@@ -46,10 +46,10 @@
     "cac": "^7.0.0"
   },
   "devDependencies": {
-    "@types/node": "^26.4.1",
-    "tsup": "^8.4.0",
+    "@types/node": "^26.6.2",
+    "@vitest/coverage-v8": "^5.0.1",
+    "tsup": "^8.5.1",
     "typescript": "^6.0.3",
-    "@vitest/coverage-v8": "^4.1.11",
-    "vitest": "^4.1.11"
+    "vitest": "^5.0.1"
   }
 }
