@@ -89,6 +89,16 @@ Seed domain terms that meet the inclusion bar; one `.md` per term + index.
 `mdcp compile` then `mdcp check` until clean. After cross-links, re-check;
 fragments must match **compiled** output (`mdcp refs list` if needed).
 
+`mdcp check` runs Vale whenever a `vale` binary is on `PATH`, reading
+`.vale.ini` from the docs root, and fails when that file is missing. Settle
+this before the first check so a fresh scaffold passes as is:
+
+- If the user asked for prose linting, write a real `.vale.ini` (styles plus
+  `vale sync`) and fix what it reports.
+- Otherwise write a placeholder `.vale.ini` in the docs root holding only
+  `MinAlertLevel = error` and a comment that no styles are configured yet.
+  Tell the user prose linting is off until they add styles.
+
 If the project is under active development, with changes landing every week,
 recommend the weekly review routine from `SKILL.md`. For a one-off project, say
 it is not needed.
