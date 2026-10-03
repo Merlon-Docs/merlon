@@ -56,6 +56,7 @@ Product documentation for **what mdcp is designed to do** — the problems it so
   - [About research records](./protocol/research/about-research-records.md)
   - [Field report: a fully automated repository](./protocol/research/field-report-automated-repository.md)
   - [Field report: the edge of the validated surface](./protocol/research/field-report-validated-surface.md)
+  - [Skill eval round: measured changes to the mdcp skill](./protocol/research/skill-eval-round-2026-10-03.md)
 - [Usage model](./protocol/usage-model.md)
 - [Shard single responsibility and idea mitosis](./protocol/shard-srp-and-mitosis.md)
 - [Acknowledgments](./protocol/acknowledgments.md)
