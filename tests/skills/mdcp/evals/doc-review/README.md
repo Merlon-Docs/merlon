@@ -13,16 +13,16 @@ Parent suite: [`tests/skills/mdcp/evals/`](../README.md).
 
 The fixture passes `mdcp check --skip-vale`. `mdcp review` reports two findings on it:
 `index-size` on `docs/features/index.md` (15 links, no headings) and `duplicate-paragraph` for
-the 30-day retention rule in three guides. Two problems are left for the reviewer lenses to find:
-`docs/features/sync-engine.md` also teaches end users how to reconnect, and `docs/client/faq.md`
+the 30-day retention rule in three guides. The reviewer lenses have to find the rest:
+`docs/features/sync-engine.md` also holds end-user reconnect steps, and `docs/client/faq.md`
 narrates release history.
 
-## What the suite covers
+## Evals
 
-1. **Whole-set review**: run `mdcp review`, then group the index, keep the rule in one shard, split the two-audience shard, and drop the history narration
+1. **Whole-set review**: acting on `mdcp review` and the lenses. Expected edits are listed in the eval's `expected_output`
 2. **"Edit all three copies" pressure**: change the rule once in its owner and link to it from the other two shards
 3. **Active project**: review one guide, then recommend the weekly per-guide routine
-4. **Rarely changing project**: same prompt, but `setup` dates the docs commits five months back, so the routine is not needed
+4. **Rarely changing project**: the same prompt, with `setup` dating the docs commits five months back. The routine is not needed here
 
 ## `setup`
 

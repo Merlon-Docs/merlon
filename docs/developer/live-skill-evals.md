@@ -67,9 +67,9 @@ Shared shape for workflow suites:
 | `triggers.json` | Optional description-trigger tuning (top-level suite only)              |
 | `README.md`     | How to run and grade that suite                                         |
 
-Two optional eval fields: `expected_workflow` names the workflow file a routing eval must read,
-checked from the transcript rather than graded, and `setup` asks the runner to add dated commits
-after the fixture commit (see the doc-review suite README).
+An eval may also set `expected_workflow`, the workflow file a routing eval must read. That check
+reads the transcript instead of going to the grader. An eval may set `setup` too, which asks the
+runner to add dated commits after the fixture commit (see the doc-review suite README).
 
 Workflow intake and write obligations stay in
 [Skill workflows](../features/protocol/skill-workflows.md).

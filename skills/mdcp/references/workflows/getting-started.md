@@ -96,7 +96,7 @@ this before the first check so a fresh scaffold passes as is:
 - If the user asked for prose linting, write a real `.vale.ini` (styles plus
   `vale sync`) and fix what it reports.
 - Otherwise write a placeholder `.vale.ini` in the docs root holding only
-  `MinAlertLevel = error` and a comment that no styles are configured yet.
+  `MinAlertLevel = error` and a comment saying styles come later.
   Tell the user prose linting is off until they add styles.
 
 If the project is under active development, with changes landing every week,
