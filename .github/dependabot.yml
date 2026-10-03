@@ -2,6 +2,8 @@ version: 2
 updates:
   - package-ecosystem: npm
     directory: /
+    # Updates land on the integration branch; main only takes release PRs.
+    target-branch: develop
     schedule:
       interval: weekly
     labels:
@@ -19,6 +21,8 @@ updates:
           - version-update:semver-major
   - package-ecosystem: github-actions
     directory: /
+    # Updates land on the integration branch; main only takes release PRs.
+    target-branch: develop
     schedule:
       interval: weekly
     labels:
