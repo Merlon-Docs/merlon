@@ -1,0 +1,78 @@
+name: Sync develop
+
+# After anything lands on main (a release PR, the release commit, a hotfix),
+# merge main back into develop so develop never falls behind the release branch.
+# A clean merge is pushed directly; a conflict opens a PR from main to develop.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+# Force JS actions onto Node 24 (Node 20 deprecated on runners).
+# https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions: {}
+
+jobs:
+  sync:
+    name: Merge main into develop
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      # Harden-Runner: audit mode only — logs egress; block mode is follow-up (#179).
+      - uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Merge and push, or open a PR on conflict
+        env:
+          # Same maintainer PAT the release job uses. A push made with GITHUB_TOKEN
+          # would not start CI on develop.
+          RELEASE_GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${RELEASE_GITHUB_TOKEN}" ]; then
+            echo "::warning::RELEASE_GITHUB_TOKEN is not set; develop was not synced."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${RELEASE_GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git fetch origin main develop
+
+          if git merge-base --is-ancestor origin/main origin/develop; then
+            echo "develop already contains main ($(git rev-parse --short origin/main)). Nothing to do."
+            exit 0
+          fi
+
+          git checkout -B develop origin/develop
+          if git merge --no-edit origin/main -m "chore: sync main into develop"; then
+            git push origin HEAD:develop
+            echo "Merged main ($(git rev-parse --short origin/main)) into develop." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          git merge --abort
+          export GH_TOKEN="${RELEASE_GITHUB_TOKEN}"
+          existing="$(gh pr list --base develop --head main --state open --json number --jq '.[0].number // empty')"
+          if [ -n "$existing" ]; then
+            echo "main conflicts with develop; PR #${existing} is already open." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          gh pr create --base develop --head main \
+            --title "chore: sync main into develop" \
+            --body "main has commits develop lacks and they conflict. Resolve by merging this PR with a merge commit."
+          echo "main conflicts with develop; opened a sync PR." | tee -a "$GITHUB_STEP_SUMMARY"
