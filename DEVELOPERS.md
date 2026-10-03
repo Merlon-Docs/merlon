@@ -759,7 +759,7 @@ bootstrap: `/mdcp help me get started`.
 
 When changing skill instructions:
 
-1. Edit `skills/mdcp/SKILL.md` (and `references/` as needed) — keep the activation body under 500 lines; put depth in `references/`. A new kind of task gets a workflow file under `references/workflows/` and a row in the skill's workflow table, not a new skill.
+1. Edit `skills/mdcp/SKILL.md` (and `references/` as needed) — keep the activation body under 500 lines; put depth in `references/`. A new kind of task gets a workflow file under `skills/mdcp/references/workflows/` and a row in the skill's workflow table, not a new skill.
 2. Do **not** invent new protocol in the skill — CLI and schemas stay in packages.
 3. For archetypes (WIP), edit `skills/mdcp-arch-*` instead of growing the parent forever — do not highlight them in consumer install docs or `skills.sh.json` yet.
 4. Run `pnpm skill:update` after skill edits so local agents pick up changes, then `pnpm skill:validate` and `pnpm docs:check`.
@@ -934,7 +934,7 @@ The public docs site at <https://betsalel-williamson.github.io/mdcp/> is an [Ast
 
 ### Content comes from shards
 
-Only the landing page (`packages/mdcp-site/src/content/docs/index.mdx`) is hand-authored. The other pages are generated at build time by [`scripts/sync-content.mjs`](packages/mdcp-site/scripts/sync-content.mjs) from these guides:
+Only the landing page (`packages/mdcp-site/src/content/docs/index.mdx`) is hand-authored. The other pages are generated at build time by [`packages/mdcp-site/scripts/sync-content.mjs`](packages/mdcp-site/scripts/sync-content.mjs) from these guides:
 
 | Shards              | Site section        | Route            |
 | ------------------- | ------------------- | ---------------- |

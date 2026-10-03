@@ -4,7 +4,7 @@ The public docs site at <https://betsalel-williamson.github.io/mdcp/> is an [Ast
 
 ## Content comes from shards
 
-Only the landing page (`packages/mdcp-site/src/content/docs/index.mdx`) is hand-authored. The other pages are generated at build time by [`scripts/sync-content.mjs`](../../packages/mdcp-site/scripts/sync-content.mjs) from these guides:
+Only the landing page (`packages/mdcp-site/src/content/docs/index.mdx`) is hand-authored. The other pages are generated at build time by [`packages/mdcp-site/scripts/sync-content.mjs`](../../packages/mdcp-site/scripts/sync-content.mjs) from these guides:
 
 | Shards              | Site section        | Route            |
 | ------------------- | ------------------- | ---------------- |

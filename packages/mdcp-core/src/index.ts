@@ -130,6 +130,7 @@ export {
   type ReviewSignal,
   type ReviewThresholds,
 } from './validate/review.js';
+export {
   DEFAULT_CODE_EXTENSIONS,
   DEFAULT_DATA_EXTENSIONS,
   codeExtensionSet,

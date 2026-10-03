@@ -7,7 +7,7 @@ design → feature → UX → doc-only so teams learn the full workflow circuit.
 
 Workflow file: [`skills/mdcp/references/workflows/getting-started.md`](../../../../skills/mdcp/references/workflows/getting-started.md)
 (tutorial script:
-[`references/workflows/first-feature-tutorial.md`](../../../../skills/mdcp/references/workflows/first-feature-tutorial.md)).
+[`skills/mdcp/references/workflows/first-feature-tutorial.md`](../../../../skills/mdcp/references/workflows/first-feature-tutorial.md)).
 Shared workflow contract (intake, guide placement, glossary): [Skill workflows](../skill-workflows.md).
 
 ## End-user value
