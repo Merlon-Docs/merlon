@@ -69,13 +69,14 @@ Because the underlying MDCP engine (`mdcp compile`, `mdcp check`) is domain-agno
 
 Current public archetypes:
 
-| Archetype          | Extension id                  | When to use                            | Shard emphasis                                              |
-| ------------------ | ----------------------------- | -------------------------------------- | ----------------------------------------------------------- |
-| OSS library        | `mdcp-arch-oss-library`       | npm/crates publishable API             | Pointer shards to `src/`; minimal duplication of signatures |
-| Product docs site  | `mdcp-arch-product-docs-site` | MkDocs, Docusaurus, VitePress          | `format-*` extension + client guide tier                    |
-| Go-to-market / GTM | `mdcp-arch-gtm`               | Marketing, sales, awareness, messaging | `awareness/`, `messaging/`, `audience/` guide tiers         |
+| Archetype          | Extension id                  | When to use                            | Shard emphasis                                                 |
+| ------------------ | ----------------------------- | -------------------------------------- | -------------------------------------------------------------- |
+| OSS library        | `mdcp-arch-oss-library`       | npm/crates publishable API             | Pointer shards to `src/`; minimal duplication of signatures    |
+| Product docs site  | `mdcp-arch-product-docs-site` | MkDocs, Docusaurus, VitePress          | `format-*` extension + client guide tier                       |
+| Go-to-market / GTM | `mdcp-arch-gtm`               | Marketing, sales, awareness, messaging | `awareness/`, `messaging/`, `audience/` guide tiers            |
+| Research project   | `mdcp-arch-research`          | Studies, field reports, benchmarks     | `research/` tier of dated records beside `design-constraints/` |
 
-Archetype READMEs live under complementary skills — for example `mdcp-arch-oss-library/`, `mdcp-arch-product-docs-site/`, and `mdcp-arch-gtm/`.
+Archetype READMEs live under complementary skills — for example `mdcp-arch-oss-library/`, `mdcp-arch-product-docs-site/`, `mdcp-arch-gtm/`, and `mdcp-arch-research/`.
 
 Formatting packs use the `mdcp-format-*` prefix.
 

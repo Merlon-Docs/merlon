@@ -8,7 +8,7 @@ import { join } from 'node:path';
 import { applyCompileHooks } from '../src/compile/hooks.js';
 import '../src/compile/hooks/builtin.js';
 import {
-  isSourcePath,
+  isRepoFilePath,
   lineRangeFromText,
   symbolFromLabel,
 } from '../src/compile/hooks/code-evidence.js';
@@ -29,12 +29,12 @@ function runCodeEvidence(body: string, sourceFile: string, extra: object = {}) {
 
 describe('codeEvidence — link matching', () => {
   it('matches source file paths and skips markdown or external URLs', () => {
-    expect(isSourcePath('util.ts')).toBe(true);
-    expect(isSourcePath('../../functions/src/foo.ts')).toBe(true);
-    expect(isSourcePath('firestore.rules')).toBe(true);
-    expect(isSourcePath('./intro.md')).toBe(false);
-    expect(isSourcePath('https://example.com/a.ts')).toBe(false);
-    expect(isSourcePath('#anchor')).toBe(false);
+    expect(isRepoFilePath('util.ts')).toBe(true);
+    expect(isRepoFilePath('../../functions/src/foo.ts')).toBe(true);
+    expect(isRepoFilePath('firestore.rules')).toBe(true);
+    expect(isRepoFilePath('./intro.md')).toBe(false);
+    expect(isRepoFilePath('https://example.com/a.ts')).toBe(false);
+    expect(isRepoFilePath('#anchor')).toBe(false);
   });
 });
 

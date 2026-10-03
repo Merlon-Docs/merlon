@@ -1,5 +1,7 @@
 # Publish-relative link rewriting
 
+<!-- mdcp-paths: illustrative -->
+
 Specification for assembly-time rebasing of shard-relative file links when a guide publishes outside the shard tree. Tests in `packages/mdcp-core/test/publish-links.test.ts` and `packages/mdcp-core/test/links.test.ts` map to the sections below.
 
 ## Why this pass exists

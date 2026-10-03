@@ -114,6 +114,7 @@ export { checkOrphansForGuides, type OrphanIssue, type GuideDirEntry } from './v
 export {
   computeCoverage,
   filterScanIgnored,
+  resolveStandaloneGuides,
   type CoverageResult,
   type CoverageOptions,
 } from './validate/coverage.js';
@@ -129,6 +130,29 @@ export {
   type ReviewSignal,
   type ReviewThresholds,
 } from './validate/review.js';
+export {
+  DEFAULT_CODE_EXTENSIONS,
+  DEFAULT_DATA_EXTENSIONS,
+  codeExtensionSet,
+  dataExtensionSet,
+  fileExtensionSet,
+  hasCodeExtension,
+  hasFileExtension,
+  type ExtensionConfig,
+} from './compile/hooks/path-resolve.js';
+export {
+  probeDocumentPaths,
+  pathProbeInputs,
+  probePathClaims,
+  isPathClaim,
+  pathClaimExtensions,
+  hasIllustrativeMarker,
+  lineOptsOut,
+  formatPathProbeIssue,
+  ILLUSTRATIVE_MARKER,
+  type PathProbeIssue,
+  type PathProbeOptions,
+} from './validate/path-probe.js';
 export {
   abbreviateProtocolVersion,
   expandProtocolVersion,

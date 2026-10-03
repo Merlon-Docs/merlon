@@ -1,5 +1,7 @@
 # codeEvidence
 
+<!-- mdcp-paths: illustrative -->
+
 Specification for the `codeEvidence` compile hook. Tests in `packages/mdcp-core/test/code-evidence.test.ts` map to the sections below (docs first, then TDD).
 
 ## codeEvidence purpose
@@ -18,10 +20,12 @@ Publish outputs (`compile.outputFile`) rewrite remaining relative file links aut
 A link is rewritten when **all** of the following hold:
 
 - Standard markdown link syntax: `[label](path)`
-- Target path is a **source file** (common extensions such as `.ts`, `.py`, `.go`, or extensionless paths like `Makefile`)
+- Target path names a **file in the repository** (a code extension such as `.ts`, `.py`, `.go`, a data extension such as `.yaml` or `.csv`, or an extensionless path like `Makefile`)
 - Target is not `http://`, `https://`, or `#…`
 
 Markdown (`.md`) links, external URLs, and same-guide shard links are left unchanged.
+
+**Code and data differ in what the hook adds.** A code file can be cited by line, so it gets an `#L` fragment. A data file — configuration, records, a serialized document — is resolved and rebased for the output path but gets no fragment, because an identifier found in inert content is an occurrence rather than a declaration. The two lists are the ones link validation uses, so a repository that does want lines cited in a format shipped as data lists that extension in `lint.codeExtensions`. See [Built-in link validation](../../features/link-validation.md).
 
 ## codeEvidence line ranges
 
@@ -38,8 +42,6 @@ Line ranges are parsed from the **link label** first, then from the path (before
 
 **Locale word forms** come from the active [locale pack](../../glossary/locale-pack.md) (`lineRangeWords`). Default **en-US** recognizes `line` / `lines` (case-insensitive), for example `line 42` → `#L42` and `lines 12–15` → `#L12-L15`. Other locales may supply different authored words; they are not MDCP protocol vocabulary. See [Locale and language boundary](../../features/design-constraints/locale-and-language.md).
 
-**Locale word forms** come from the active [locale pack](../../glossary/locale-pack.md) (`lineRangeWords`). Default **en-US** recognizes `line` / `lines` (case-insensitive), for example `line 42` → `#L42` and `lines 12–15` → `#L12-L15`. Other locales may supply different authored words; they are not MDCP protocol vocabulary. See [Locale and language boundary](../../features/design-constraints/locale-and-language.md).
-
 If the URL already has a normalized `#L…` fragment, the hook preserves it (normalizing case to `#L`).
 
 ## codeEvidence symbols
@@ -49,7 +51,7 @@ When no line range is found:
 1. If the URL has a `#fragment` that is not already `#L…`, treat the fragment as a **symbol name** and scan the resolved source file for a matching declaration or reference.
 2. Otherwise, treat the **link label** as the symbol (backticks and surrounding whitespace stripped).
 
-Symbol lookup scans for identifier matches and common declaration forms (`function`, `class`, `const`, `export`, call sites).
+Symbol lookup scans for identifier matches and common declaration forms (`function`, `class`, `const`, `export`, call sites). It runs for code files only; a data file skips both steps.
 
 ## codeEvidence path resolution
 
@@ -69,6 +71,7 @@ The hook **does not** transform:
 - Markdown shard links (`.md`)
 - External URLs
 - Source links when the file cannot be resolved and no line range appears in label or path
+- `#L` fragments on data files, unless the extension is listed in `lint.codeExtensions` or the shard wrote the fragment itself
 - Body text when `codeEvidence` is disabled via `compile.hooks: { "codeEvidence": false }` or an explicit hook override that omits it
 
 ## codeEvidence config

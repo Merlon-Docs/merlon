@@ -26,6 +26,16 @@ output. The shard path in the marker names the source file.
 CI fails on `git diff` if compiled files are stale, so always compile after
 editing shards: `pnpm docs:compile:repo`.
 
+## Branches
+
+`develop` is the integration trunk, and work lands on it without a PR. Push a
+`claude/**` or `land/**` branch: the land workflow merges `develop` in, runs the
+CI gate, and pushes the tested result to `develop`. Put evidence (what was
+measured or verified) in the commit message. `main` is the protected release
+branch that `npx skills add` installs from. It only takes release PRs from
+`develop` (merge commit) or `hotfix/*` branches. See
+`docs/developer/versioning-and-releases.md`.
+
 ## Build before running
 
 `dist/` is gitignored and not produced by install. Run `pnpm build` after a

@@ -38,7 +38,7 @@ A standalone guide is register-only:
 
 - Compile never stitches or rewrites it, and never emits it.
 - Its headings register into [refs](../glossary/refs.md) so other guides can link into it.
-- Its outbound links are validated against the refs registry.
+- Its outbound links are validated: `.md` and source-file targets must resolve on disk, and same-file `#fragment` anchors must match a heading. See [built-in link validation](./link-validation.md#standalone-guide-validation).
 - Peer tools (markdownlint, Vale, Prettier) still process the file normally.
 
 `standaloneGuides[]` accepts file paths or globs (for example `packages/*/README.md`), resolved from the scan root. It doubles as the canonical inventory of intentionally isolated shards.

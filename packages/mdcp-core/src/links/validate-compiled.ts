@@ -14,6 +14,8 @@ export interface LintCompiledLinksOptions {
   allowedPublishPaths?: Set<string>;
   disallowedShardPaths?: Set<string>;
   slugRegistryCache?: Map<string, RefsRegistry>;
+  /** Effective file extensions (see `fileExtensionSet`). Defaults apply when absent. */
+  fileExtensions?: Set<string>;
   /** Locale for broken-link marker detection (defaults to en-US). */
   locale?: LocalePack;
 }
@@ -58,6 +60,7 @@ export function lintCompiledLinks(options: LintCompiledLinksOptions): LinkIssue[
       allowedPublishPaths: options.allowedPublishPaths,
       disallowedShardPaths: options.disallowedShardPaths,
       slugRegistryCache: options.slugRegistryCache,
+      fileExtensions: options.fileExtensions,
     });
     if (result.valid) continue;
     issues.push({

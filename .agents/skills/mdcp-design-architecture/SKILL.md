@@ -6,7 +6,7 @@ compatibility: >-
   Requires Node.js 18+ and the mdcp-cli installed globally or locally.
 metadata:
   author: betsalel-williamson
-  version: '0.5.0'
+  version: '0.7.2'
   openclaw:
     category: 'documentation'
     requires:

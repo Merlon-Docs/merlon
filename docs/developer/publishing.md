@@ -36,7 +36,7 @@ Before approving the **`release` environment**, open the **Release plan** job su
 
 ## Routine releases (one step)
 
-1. Merge feature PRs that include changesets to `main`.
+1. Merge a release PR from `develop` to `main` with a merge commit ([Branches](./versioning-and-releases.md#branches)).
 2. Open the **latest** Release workflow run → read the **Release plan** job summary (pending changesets and/or missing GitHub Releases). Older runs still waiting for approval are cancelled when a newer plan starts.
 3. Approve the **`release` environment** deployment on that latest run.
 4. After approval, CI **resets to `origin/main` tip**, then runs **`pnpm release:main`**: with pending changesets — version → sync skill frontmatter → build → commit → **push to `main`** → `changeset publish` → **push tags** → GitHub Releases (npm packages **and** skill carriers). With no changesets but missing tags/Releases — create those git tags and Releases idempotently at each package’s version-bump commit (`--target`). If `main` moved during versioning, the push aborts as superseded (no force-push).

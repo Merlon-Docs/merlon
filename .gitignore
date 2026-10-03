@@ -39,6 +39,8 @@ docs/superpowers/
 .agents/skills/mdcp/
 .agents/skills/mdcp-arch-oss-library/
 .agents/skills/mdcp-arch-product-docs-site/
+.agents/skills/mdcp-arch-gtm/
+.agents/skills/mdcp-arch-research/
 .agents/skills/*-workspace/
 skills/*-workspace/
 # skill-creator is vendored (committed) for the local live-eval loop — do not gitignore
