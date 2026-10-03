@@ -297,7 +297,7 @@ When `compile.outputFile` is omitted:
 | 1                        | `guide.md`                     |
 | 2+                       | `{name}.md` per guide          |
 
-When `compile.outputFile` is set, that guide writes only to that path (for example npm README publish via `../../packages/foo/README.md`) and is excluded from an optional monolith.
+When `compile.outputFile` is set, that guide writes only to that path (for example npm README publish via `../../packages/foo/README.md`) and is excluded from an optional monolith. <!-- mdcp-paths: illustrative -->
 
 #### Optional monolith
 

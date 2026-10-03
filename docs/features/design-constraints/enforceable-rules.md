@@ -17,7 +17,7 @@ Both kinds are legitimate. What is not legitimate is a rule that reads as gated 
 
 In a repository with a human in the commit path, an ungated rule degrades slowly: reviewers catch some violations and the rest accumulate at a survivable rate. In a repository where agents author every commit, an ungated rule does not degrade — it is simply absent. Agents stop when the gate is green, so a green gate is the whole definition of done that the corpus can express.
 
-Measured evidence for this, including a rule that held structurally while failing semantically for two weeks: [Field report: a fully automated repository](../protocol/field-report-automated-repository.md).
+Measured evidence for this, including a rule that held structurally while failing semantically for two weeks: [Field report: a fully automated repository](../protocol/research/field-report-automated-repository.md).
 
 This constraint is why MDCP invests in the [check gate](../feature-catalog.md#check-gate-p04) rather than in longer skill prose. Prose that no check enforces competes for an agent's context without changing its behavior.
 

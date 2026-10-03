@@ -2,9 +2,29 @@
   "version": 1,
   "skills": {
     "mdcp": {
-      "source": "/Users/saul/Repos/mdcp",
+      "source": ".",
       "sourceType": "local",
-      "computedHash": "3a93255d239d3e0f5055c3511860ea556f0f16c2b7c5f4eab3ff2451c7d30c07"
+      "computedHash": "6acb951ef8b40dd6b1441c74f1bbc5996716af91c6baafcfd0e67ea870334091"
+    },
+    "mdcp-arch-gtm": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "126933ebec9d48d2ba44efb49f1673c05fe3c9961603c5d9731652b6622f8fc9"
+    },
+    "mdcp-arch-oss-library": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "cc510268e44403b6b596cf7625718723204d2eff5255bdb6266380cf1dd161c1"
+    },
+    "mdcp-arch-product-docs-site": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "71ebff06b6bb1f4b30f9a2034d880d57f122cf46d4067a70919390f41f848375"
+    },
+    "mdcp-arch-research": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "f83812afc9f3ede84dc6f18a13642b544bc97e418a2b91554e5bd293a2edd7bf"
     },
     "skill-creator": {
       "source": "anthropics/skills",

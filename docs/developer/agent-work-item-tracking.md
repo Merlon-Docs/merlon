@@ -193,7 +193,7 @@ If none of the above apply, inspect enabled MCP tool descriptors or run `gh --he
 ## Git and delivery
 
 ```text
-Integration branch=main (pull before branching)
+Integration branch=develop (pull before branching; work lands by pushing a claude/** or land/** branch, never a PR to main)
 Feature branches=descriptive (e.g. feature/issue-29-default-compile-hooks)
 One branch per WORK_ITEM=do not mix unrelated features, designs, or doc scopes in one PR
 Branch before work=create the feature branch before shards, tests, or code
@@ -202,7 +202,7 @@ Atomic commit groups=coding and multi-concern plans MUST list numbered groups be
 Release notes=changeset in .changeset/ for published package changes (temporary until versioned into CHANGELOGs)
 Docs=describe current behavior only; removed or breaking behavior belongs in changeset → package CHANGELOG, not feature/client shards
 ADRs=docs/features/adr/ (scope/removal decisions; link CHANGELOGs, never pending .changeset/*.md)
-Code review=gh pr create; link WORK_ITEM in PR body (Closes #N when appropriate)
+Landing=push the branch; the land workflow gates and merges it into develop (no PR). Put evidence and "Closes #N" in the commit message. Review happens on the develop → main release PR
 ```
 
 The skill's QA principles and its day-to-day workflows encode the same rule so plan-only agents inherit it: [Agent Skill](../features/agent-skill.md#quality-assurance-qa-principles), [Skill workflows](../features/protocol/skill-workflows.md).
@@ -210,7 +210,7 @@ The skill's QA principles and its day-to-day workflows encode the same rule so p
 ## Workflow best practices
 
 1. **Load scope** — fetch WORK_ITEM (title, body, acceptance criteria) before planning or editing.
-2. **Branch first** — `git checkout main`, pull, then `git checkout -b feature/...` tied to the issue. Never start on `main`.
+2. **Branch first** — `git checkout develop`, pull, then `git checkout -b land/...` tied to the issue (agent sessions use their `claude/...` branch). Never commit on `develop` or `main` directly. Pushing the branch lands it on `develop` when the gate passes.
 3. **Stay focused** — one feature or design at a time. Treat acceptance criteria as the boundary unless WORK_ITEM explicitly expands scope.
 4. **Plan Atomic commit groups** — before waiting for human review / implementation, include numbered commit groups for multi-concern work (see [Git and delivery](#git-and-delivery)). After approval, land one group per commit.
 5. **Docs describe now** — update shards to match as-built behavior. Do not document superseded workflows in `docs/features/` or `docs/client/`; record consumer notice in the changeset (lands in package CHANGELOGs). Never link durable shards or ADRs to pending `.changeset/*.md` files.

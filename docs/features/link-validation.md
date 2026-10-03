@@ -1,12 +1,16 @@
 # Built-in link validation
 
-Specification for first-party internal link validation at compile and check. Tests in `packages/mdcp-core/test/links.test.ts`, `packages/mdcp-core/test/cross-guide-links.test.ts`, and `packages/mdcp-cli/test/cli.smoke.test.ts` map to the sections below (docs first, then TDD).
+Specification for first-party internal link validation at compile and check. Tests in `packages/mdcp-core/test/links.test.ts`, `packages/mdcp-core/test/cross-guide-links.test.ts`, `packages/mdcp-core/test/source-path-links.test.ts`, and `packages/mdcp-cli/test/cli.smoke.test.ts` map to the sections below (docs first, then TDD).
 
 ## Link validation purpose
 
 Internal markdown links can compile cleanly but still be broken in published output — dead `#anchor` fragments after heading demotion, missing shard files, or cross-guide rewrite collisions on publish paths (for example `packages/mdcp-cli/README.md`).
 
-MDCP validates link integrity at **shard** and **compiled-guide** level, emits **`BROKEN LINK`** markers in compiled output by default, and fails `mdcp compile` / `mdcp check` with IDE-clickable `path:line:` diagnostics unless warn mode is enabled.
+MDCP validates link integrity at **shard**, **standalone-guide**, and **compiled-guide** level, emits **`BROKEN LINK`** markers in compiled output by default, and fails `mdcp compile` / `mdcp check` with IDE-clickable `path:line:` diagnostics unless warn mode is enabled.
+
+Validated target classes are `.md` paths, `#fragment` anchors, and **file paths** — a link whose target carries a known extension (`.ts`, `.py`, `.yaml`, `.csv`, …) names a file in the repository, so an unresolved target is a defect. This is what keeps a shard from citing a module that has been deleted. Targets that name no resolvable file — a bare word, a directory path — stay unvalidated, because nothing distinguishes a stale one from an illustrative one.
+
+The extensions come from two built-in lists, because a file's contents decide what can be said about it. **Code** extensions name files a symbol can cite a line in, which the [code evidence hook](../client-core/compile-hooks/code-evidence.md) does. **Data** extensions name files that hold configuration or records, validated for existence exactly like code but never cited by line, since a symbol found in inert content is an occurrence rather than a declaration. Neither list covers every stack, so `lint.codeExtensions` and `lint.dataExtensions` add to them; moving an extension into the code list is also how a repository asks for lines to be cited in a format that ships as data.
 
 Peer `mdcp links` / `markdown-link-check` remains optional for external URL HTTP checks — not a substitute for internal link validation.
 
@@ -48,12 +52,21 @@ Publish-relative rewrite and publish-only lint are complementary: rewrite fixes 
 
 ## Validation phases
 
-| Phase    | When                      | Validates                                                                          |
-| -------- | ------------------------- | ---------------------------------------------------------------------------------- |
-| Shard    | `lintLinks` / author time | Unresolved `.md` paths; same-shard `#fragment` vs demoted heading slugs            |
-| Compiled | After assemble            | `#fragment` vs `buildSlugRegistry`; relative file paths from output file directory |
+| Phase      | When                      | Validates                                                                                           |
+| ---------- | ------------------------- | --------------------------------------------------------------------------------------------------- |
+| Shard      | `lintLinks` / author time | Unresolved `.md` and source-file paths; same-shard `#fragment` vs demoted heading slugs             |
+| Standalone | `lintLinks`               | Same checks as shard phase, over every file matched by `standaloneGuides`                           |
+| Compiled   | After assemble            | `#fragment` vs `buildSlugRegistry`; relative `.md` and source-file paths from output file directory |
 
-Compiled-phase checks run **after** cross-guide, publish-relative, and intra-guide rewrite. Co-compiled transitive targets (shards in `linkedSectionFiles` outside `guideDir`) are expected to rewrite to in-document `#slug` / `#fragment` via the guide link index and same-output preference — see [Cross-guide link rewriting](../client-core/compile-hooks/cross-guide-links.md#transitive-section-discovery). Validation treats remaining raw `../file.md` (or `./file.md`) to those co-compiled paths as broken when publish-only policy requires a compiled target.
+Compiled-phase checks run **after** cross-guide, publish-relative, and intra-guide rewrite. Co-compiled transitive targets (shards in `linkedSectionFiles` outside `guideDir`) are expected to rewrite to in-document `#slug` / `#fragment` via the guide link index and same-output preference — see [Cross-guide link rewriting](../client-core/compile-hooks/cross-guide-links.md#transitive-section-discovery). Validation treats remaining raw `../file.md` (or `./file.md`) to those co-compiled paths as broken when publish-only policy requires a compiled target. <!-- mdcp-paths: illustrative -->
+
+## Standalone guide validation
+
+Files registered under `standaloneGuides` are captured but never compiled, so the compiled phase cannot reach them. They are link-linted with the shard-phase checks instead, each file resolving against its own directory: there is no manifest or scope root to resolve against.
+
+Globs resolve against the **scan root** — `scan.root` when set, otherwise the invocation directory — the same root the coverage pass uses, so one registration covers both.
+
+Being uncompiled is not a reason to be unchecked: `AGENTS.md`, `CLAUDE.md`, and a shipped skill corpus under `skills/**/*.md` are exactly the documents an agent reads first.
 
 ## Check pipeline
 
@@ -121,6 +134,8 @@ Success still ends with `mdcp check passed` on stdout. Early hard stops (orphans
 | `lint.links.enabled`       | `true`    | Run built-in link validation                        |
 | `lint.links.severity`      | `"error"` | `"error"` exits 1; `"warn"` exits 0                 |
 | `lint.links.config`        | —         | Peer `markdown-link-check` only (not built-in gate) |
+| `lint.codeExtensions`      | `[]`      | Extra code extensions, validated and line-citable   |
+| `lint.dataExtensions`      | `[]`      | Extra data extensions, validated, never line-cited  |
 
 Per-guide: `guides[].compile.links.markBroken`.
 
@@ -146,6 +161,12 @@ link: docs/client-cli/consumer-migration.md:42: dead anchor "#missing-slug" (slu
 - No marker when `compile.links.markBroken: false`
 - Shard dead file link at `path:line`
 - Shard dead same-doc `#fragment`
+- Shard link to a source file that does not resolve reports `missing file`
+- Compiled link to a source file that does not resolve reports `missing file`
+- Link target without a resolvable file class (bare word, directory) stays unvalidated
+- `standaloneGuides` files are link-linted, globs included, at the scan root
+- An extension listed in `lint.codeExtensions` or `lint.dataExtensions` is validated like a built-in one, with or without a leading dot
+- A data-file link is validated and rebased but carries no `#L` fragment; the same extension listed in `lint.codeExtensions` gets one
 - Compiled dead anchor after demotion
 - Compiled dead path after publish-relative link rewrite
 - Manifest-first guide link index — transitive guide does not overwrite manifest owner; index includes every `linkedSectionFiles` path for the compiling guide

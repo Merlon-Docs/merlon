@@ -73,6 +73,7 @@ export function runBuiltInLinkLintFromWorkspace(
   config: MdcpConfig,
   docsRoot: string,
   workspace: CompileWorkspace,
+  scanRoot?: string,
 ): LinkIssue[] {
   if (config.lint?.links?.enabled === false) return [];
   return lintLinks({
@@ -82,6 +83,7 @@ export function runBuiltInLinkLintFromWorkspace(
     compileOptions: workspace.opts,
     linkIndex: workspace.linkIndex,
     shardCache: workspace.shardCache,
+    scanRoot,
   });
 }
 
