@@ -8,7 +8,9 @@ Fixtures and prompts for the optional [skill-creator](../../../../.agents/skills
 | -------------------------------------- | ---------------------------------------------------------------------------- |
 | `evals.json`                           | Prompts + `expected_output` (add `expectations` after first with-skill runs) |
 | `files/hygiene/`                       | Stale backlog + code-in-docs anti-patterns (eval 7)                          |
-| `files/routing/`                       | Minimal guides so workflow routing is observable (evals 8–9)                 |
+| `files/routing/`                       | Minimal guides so workflow routing is observable (evals 8–9, 13)             |
+| `files/bootstrap/`                     | Empty npm project for the bootstrap eval (eval 1)                            |
+| `files/workspace/`                     | Small docs tree with a cross-shard heading link and a backlog (evals 2–5)    |
 | `triggers.json` / `trigger_evals.json` | Description-trigger tuning only                                              |
 
 ## Run path (skill-creator)
@@ -35,4 +37,9 @@ Fixtures and prompts for the optional [skill-creator](../../../../.agents/skills
 6. Eval 10 (`eval-10-atomic-commit-groups`) uses **with_skill** vs **old_skill**
    (snapshot of `skills/mdcp` from `main` before Atomic commit groups QA).
 
-Workflow suites: [getting-started](getting-started/README.md), [doc-only](doc-only/README.md), [design-architecture](design-architecture/README.md), [feature-level](feature-level/README.md), [ux](ux/README.md). Maintainer index: [`docs/developer/live-skill-evals.md`](../../../../docs/developer/live-skill-evals.md).
+Evals 11–16 are routing evals. Their prompts name neither the skill nor a workflow, and each sets
+`expected_workflow`. The `reads_expected_workflow` assertion is checked from the transcript: the run
+passes when it reads `references/workflows/<expected_workflow>.md`. They reuse the fixtures of the
+workflow suites.
+
+Workflow suites: [getting-started](getting-started/README.md), [doc-only](doc-only/README.md), [design-architecture](design-architecture/README.md), [feature-level](feature-level/README.md), [ux](ux/README.md), [doc-review](doc-review/README.md). Maintainer index: [`docs/developer/live-skill-evals.md`](../../../../docs/developer/live-skill-evals.md).

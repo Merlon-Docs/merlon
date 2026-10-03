@@ -49,7 +49,8 @@ under `skills/` stay eval-free (`npx skills` / `pnpm skill:validate` only touch
   [doc-only](../../tests/skills/mdcp/evals/doc-only/README.md),
   [design-architecture](../../tests/skills/mdcp/evals/design-architecture/README.md),
   [feature-level](../../tests/skills/mdcp/evals/feature-level/README.md),
-  [ux](../../tests/skills/mdcp/evals/ux/README.md); workspace
+  [ux](../../tests/skills/mdcp/evals/ux/README.md),
+  [doc-review](../../tests/skills/mdcp/evals/doc-review/README.md); workspace
   `.agents/skills/mdcp-<workflow>-workspace/`
 
 Each suite README holds operational run steps and discrimination notes. This
@@ -65,6 +66,10 @@ Shared shape for workflow suites:
 | `files/`        | Isolated fixture trees for run workspaces (not real monorepo `docs/`)   |
 | `triggers.json` | Optional description-trigger tuning (top-level suite only)              |
 | `README.md`     | How to run and grade that suite                                         |
+
+Two optional eval fields: `expected_workflow` names the workflow file a routing eval must read,
+checked from the transcript rather than graded, and `setup` asks the runner to add dated commits
+after the fixture commit (see the doc-review suite README).
 
 Workflow intake and write obligations stay in
 [Skill workflows](../features/protocol/skill-workflows.md).

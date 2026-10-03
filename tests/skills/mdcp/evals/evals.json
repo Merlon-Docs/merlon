@@ -5,7 +5,7 @@
       "id": 1,
       "prompt": "Bootstrap MDCP agent guidance in a new repo",
       "expected_output": "Creates a docs root, mdcp.config.json, and runs compile and check successfully.",
-      "files": [],
+      "files": ["evals/files/bootstrap/README.md", "evals/files/bootstrap/package.json"],
       "assertions": [
         {
           "name": "creates_mdcp_config",
@@ -25,7 +25,22 @@
       "id": 2,
       "prompt": "Compile and validate docs after editing shards",
       "expected_output": "Runs the compile and check commands using the MDCP CLI wrapper script.",
-      "files": [],
+      "files": [
+        "evals/files/workspace/README.md",
+        "evals/files/workspace/docs/client/about-this-guide.md",
+        "evals/files/workspace/docs/client/importing-statements.md",
+        "evals/files/workspace/docs/client/index.md",
+        "evals/files/workspace/docs/developer/index.md",
+        "evals/files/workspace/docs/developer/local-setup.md",
+        "evals/files/workspace/docs/features/compile-cache.md",
+        "evals/files/workspace/docs/features/export.md",
+        "evals/files/workspace/docs/features/index.md",
+        "evals/files/workspace/docs/features/ledger-import.md",
+        "evals/files/workspace/docs/glossary/index.md",
+        "evals/files/workspace/docs/glossary/ledger-entry.md",
+        "evals/files/workspace/docs/mdcp.config.json",
+        "evals/files/workspace/package.json"
+      ],
       "assertions": [
         {
           "name": "runs_compile",
@@ -41,7 +56,22 @@
       "id": 3,
       "prompt": "Find a heading link while writing docs",
       "expected_output": "Validates cross-links with mdcp check (compiled slug integrity).",
-      "files": [],
+      "files": [
+        "evals/files/workspace/README.md",
+        "evals/files/workspace/docs/client/about-this-guide.md",
+        "evals/files/workspace/docs/client/importing-statements.md",
+        "evals/files/workspace/docs/client/index.md",
+        "evals/files/workspace/docs/developer/index.md",
+        "evals/files/workspace/docs/developer/local-setup.md",
+        "evals/files/workspace/docs/features/compile-cache.md",
+        "evals/files/workspace/docs/features/export.md",
+        "evals/files/workspace/docs/features/index.md",
+        "evals/files/workspace/docs/features/ledger-import.md",
+        "evals/files/workspace/docs/glossary/index.md",
+        "evals/files/workspace/docs/glossary/ledger-entry.md",
+        "evals/files/workspace/docs/mdcp.config.json",
+        "evals/files/workspace/package.json"
+      ],
       "assertions": [
         {
           "name": "validates_links",
@@ -53,7 +83,22 @@
       "id": 4,
       "prompt": "Load documentation context for the agent",
       "expected_output": "Uses host search to find a specific shard, then reads only that shard rather than a monolith.",
-      "files": [],
+      "files": [
+        "evals/files/workspace/README.md",
+        "evals/files/workspace/docs/client/about-this-guide.md",
+        "evals/files/workspace/docs/client/importing-statements.md",
+        "evals/files/workspace/docs/client/index.md",
+        "evals/files/workspace/docs/developer/index.md",
+        "evals/files/workspace/docs/developer/local-setup.md",
+        "evals/files/workspace/docs/features/compile-cache.md",
+        "evals/files/workspace/docs/features/export.md",
+        "evals/files/workspace/docs/features/index.md",
+        "evals/files/workspace/docs/features/ledger-import.md",
+        "evals/files/workspace/docs/glossary/index.md",
+        "evals/files/workspace/docs/glossary/ledger-entry.md",
+        "evals/files/workspace/docs/mdcp.config.json",
+        "evals/files/workspace/package.json"
+      ],
       "assertions": [
         {
           "name": "searches_shards",
@@ -69,7 +114,22 @@
       "id": 5,
       "prompt": "Remove old planning information from our docs, like the migration backlog",
       "expected_output": "The agent removes the old information, acknowledging it belongs in an issue tracker and not in durable documentation shards.",
-      "files": [],
+      "files": [
+        "evals/files/workspace/README.md",
+        "evals/files/workspace/docs/client/about-this-guide.md",
+        "evals/files/workspace/docs/client/importing-statements.md",
+        "evals/files/workspace/docs/client/index.md",
+        "evals/files/workspace/docs/developer/index.md",
+        "evals/files/workspace/docs/developer/local-setup.md",
+        "evals/files/workspace/docs/features/compile-cache.md",
+        "evals/files/workspace/docs/features/export.md",
+        "evals/files/workspace/docs/features/index.md",
+        "evals/files/workspace/docs/features/ledger-import.md",
+        "evals/files/workspace/docs/glossary/index.md",
+        "evals/files/workspace/docs/glossary/ledger-entry.md",
+        "evals/files/workspace/docs/mdcp.config.json",
+        "evals/files/workspace/package.json"
+      ],
       "assertions": [
         {
           "name": "removes_backlog",
@@ -83,7 +143,7 @@
     },
     {
       "id": 6,
-      "prompt": "We need to ship three things this week: (1) OAuth login for the API, (2) a redesigned settings UX for end users, and (3) developer docs for three new CLI commands. Using MDCP, start the work \u2014 update docs and plan implementation.",
+      "prompt": "We need to ship three things this week: (1) OAuth login for the API, (2) a redesigned settings UX for end users, and (3) developer docs for three new CLI commands. Using MDCP, start the work — update docs and plan implementation.",
       "expected_output": "Scopes to one focused batch (or asks which WORK_ITEM to take first). Names the single matching workflow from the skill's workflow table. Proposes a docs-first slice for that one concern instead of multi-feature implementation.",
       "files": [],
       "assertions": [
@@ -215,6 +275,229 @@
         {
           "name": "stops_for_human_review",
           "description": "Stops after the plan and waits for human review; does not edit fixture docs or packages before approval"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "This new Node project needs proper documentation that agents and people can keep up to date. The service is inventory-sync and the readers are ops engineers who configure sync jobs. I know the docs system already, so no tutorial material. Set it up and make sure it validates.",
+      "expected_workflow": "getting-started",
+      "expected_output": "Bootstraps docs/mdcp.config.json and the four guides with index.md each, an about-this-guide naming the ops-engineer persona, no tutorial shards, and a passing mdcp compile and mdcp check.",
+      "files": [
+        "evals/getting-started/files/greenfield-npm/README.md",
+        "evals/getting-started/files/greenfield-npm/package.json"
+      ],
+      "assertions": [
+        {
+          "name": "reads_expected_workflow",
+          "description": "Reads references/workflows/getting-started.md (checked from the transcript, not graded)"
+        },
+        {
+          "name": "creates_mdcp_config",
+          "description": "Creates an mdcp.config.json with a compileOrder covering the guides"
+        },
+        {
+          "name": "creates_four_tier_layout",
+          "description": "Creates docs/glossary/, docs/features/, docs/developer/, and docs/client/ with index.md each"
+        },
+        {
+          "name": "compile_check_succeed",
+          "description": "mdcp compile and mdcp check both exit successfully (a documented --skip-vale is acceptable)"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "prompt": "Our client docs for Widget Export still say exports are CSV-only, but the product has supported JSON as well for a while. Please fix the docs.",
+      "expected_workflow": "doc-only",
+      "expected_output": "Updates the client (and feature) shards to describe JSON and CSV as current behavior, removes the CSV-only claim, leaves src/ alone, and runs mdcp check.",
+      "files": [
+        "evals/doc-only/files/fixture-mini-repo/README.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/.gitignore",
+        "evals/doc-only/files/fixture-mini-repo/docs/client/index.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/client/widget-export.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/developer/agent-work-item-tracking.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/developer/index.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/features/index.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/features/widget-export-stale.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/features/widget-export.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/mdcp.config.json",
+        "evals/doc-only/files/fixture-mini-repo/src/widget-export.ts"
+      ],
+      "assertions": [
+        {
+          "name": "reads_expected_workflow",
+          "description": "Reads references/workflows/doc-only.md (checked from the transcript, not graded)"
+        },
+        {
+          "name": "documents_json_and_csv",
+          "description": "Client and/or feature shards now describe JSON and CSV export as current behavior"
+        },
+        {
+          "name": "removes_stale_csv_only",
+          "description": "The stale CSV-only claim is removed or rewritten, with no old-way section left behind"
+        },
+        {
+          "name": "no_product_code_edits",
+          "description": "src/widget-export.ts and other product code are unchanged"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "prompt": "We're considering splitting the compile pipeline into separate stages. Before anyone writes code, record the decision and the design so the team can review it.",
+      "expected_workflow": "design-architecture",
+      "expected_output": "Writes an ADR and/or design shard under docs/features/ (indexes updated), with no product code and no large code dumps.",
+      "files": [
+        "evals/files/routing/docs/client/index.md",
+        "evals/files/routing/docs/client/onboarding.md",
+        "evals/files/routing/docs/features/compile.md",
+        "evals/files/routing/docs/features/index.md",
+        "evals/files/routing/mdcp.config.json"
+      ],
+      "assertions": [
+        {
+          "name": "reads_expected_workflow",
+          "description": "Reads references/workflows/design-architecture.md (checked from the transcript, not graded)"
+        },
+        {
+          "name": "adr_or_design_under_features",
+          "description": "Adds an ADR or design shard under docs/features/ and lists it in the features (or ADR) index"
+        },
+        {
+          "name": "no_source_code",
+          "description": "Does not add or modify product source code"
+        },
+        {
+          "name": "no_code_dumps",
+          "description": "New shards have no large fenced implementation snippets"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "prompt": "Add a --format=csv option to `example-cli export` so people can open their reports in a spreadsheet.",
+      "expected_workflow": "feature-level",
+      "expected_output": "Updates features and client shards for --format=csv first, then implements the option in packages/example-cli.",
+      "files": [
+        "evals/feature-level/files/feature-fixture/README.md",
+        "evals/feature-level/files/feature-fixture/docs/client/export-report.md",
+        "evals/feature-level/files/feature-fixture/docs/client/index.md",
+        "evals/feature-level/files/feature-fixture/docs/developer/agent-work-item-tracking.md",
+        "evals/feature-level/files/feature-fixture/docs/developer/index.md",
+        "evals/feature-level/files/feature-fixture/docs/developer/local-tooling.md",
+        "evals/feature-level/files/feature-fixture/docs/features/export-command.md",
+        "evals/feature-level/files/feature-fixture/docs/features/index.md",
+        "evals/feature-level/files/feature-fixture/docs/features/skills.md",
+        "evals/feature-level/files/feature-fixture/docs/mdcp.config.json",
+        "evals/feature-level/files/feature-fixture/packages/example-cli/src/index.ts"
+      ],
+      "assertions": [
+        {
+          "name": "reads_expected_workflow",
+          "description": "Reads references/workflows/feature-level.md (checked from the transcript, not graded)"
+        },
+        {
+          "name": "backfills_features_tier",
+          "description": "Updates or adds a docs/features/ shard describing the --format=csv contract"
+        },
+        {
+          "name": "backfills_client_tier",
+          "description": "Updates or adds a docs/client/ shard describing how and why to use --format=csv"
+        },
+        {
+          "name": "implements_option",
+          "description": "Implements the --format=csv option in packages/example-cli"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "prompt": "First-time users abandon our setup wizard before they get any value out of the product. Make the first-run experience clearer for them.",
+      "expected_workflow": "ux",
+      "expected_output": "Rewrites or adds client-guide shards around the persona's happy path and recovery, updates docs/client/index.md, and leaves features and packages alone.",
+      "files": [
+        "evals/ux/files/fixture-client-guide/README.md",
+        "evals/ux/files/fixture-client-guide/docs/client/about-this-guide.md",
+        "evals/ux/files/fixture-client-guide/docs/client/index.md",
+        "evals/ux/files/fixture-client-guide/docs/client/quick-start.md",
+        "evals/ux/files/fixture-client-guide/docs/developer/agent-work-item-tracking.md",
+        "evals/ux/files/fixture-client-guide/docs/developer/index.md",
+        "evals/ux/files/fixture-client-guide/docs/features/index.md",
+        "evals/ux/files/fixture-client-guide/docs/features/onboarding-engine.md",
+        "evals/ux/files/fixture-client-guide/docs/mdcp.config.json"
+      ],
+      "assertions": [
+        {
+          "name": "reads_expected_workflow",
+          "description": "Reads references/workflows/ux.md (checked from the transcript, not graded)"
+        },
+        {
+          "name": "primary_edits_under_client",
+          "description": "Primary durable edits are under docs/client/"
+        },
+        {
+          "name": "persona_outcome_prose",
+          "description": "Client prose describes the first-run happy path in persona outcome terms"
+        },
+        {
+          "name": "no_packages_edits",
+          "description": "Does not modify code under packages/"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "prompt": "People tell us they get lost in our docs and keep running into the same rule in different places. Sort it out.",
+      "expected_workflow": "doc-review",
+      "expected_output": "Runs mdcp review, groups the features index, keeps the retention rule in one shard with links from the others, and leaves mdcp check passing.",
+      "files": [
+        "evals/doc-review/files/sprawl-fixture/README.md",
+        "evals/doc-review/files/sprawl-fixture/docs/client/about-this-guide.md",
+        "evals/doc-review/files/sprawl-fixture/docs/client/exporting.md",
+        "evals/doc-review/files/sprawl-fixture/docs/client/faq.md",
+        "evals/doc-review/files/sprawl-fixture/docs/client/index.md",
+        "evals/doc-review/files/sprawl-fixture/docs/developer/agent-work-item-tracking.md",
+        "evals/doc-review/files/sprawl-fixture/docs/developer/index.md",
+        "evals/doc-review/files/sprawl-fixture/docs/developer/local-setup.md",
+        "evals/doc-review/files/sprawl-fixture/docs/developer/support-runbook.md",
+        "evals/doc-review/files/sprawl-fixture/docs/features/api-limits.md",
+        "evals/doc-review/files/sprawl-fixture/docs/features/audit-log.md",
+        "evals/doc-review/files/sprawl-fixture/docs/features/credit-notes.md",
+        "evals/doc-review/files/sprawl-fixture/docs/features/currencies.md",
+        "evals/doc-review/files/sprawl-fixture/docs/features/customers.md",
+        "evals/doc-review/files/sprawl-fixture/docs/features/export-retention.md",
+        "evals/doc-review/files/sprawl-fixture/docs/features/index.md",
+        "evals/doc-review/files/sprawl-fixture/docs/features/invoices.md",
+        "evals/doc-review/files/sprawl-fixture/docs/features/numbering.md",
+        "evals/doc-review/files/sprawl-fixture/docs/features/payments.md",
+        "evals/doc-review/files/sprawl-fixture/docs/features/permissions.md",
+        "evals/doc-review/files/sprawl-fixture/docs/features/reminders.md",
+        "evals/doc-review/files/sprawl-fixture/docs/features/report-export.md",
+        "evals/doc-review/files/sprawl-fixture/docs/features/sync-engine.md",
+        "evals/doc-review/files/sprawl-fixture/docs/features/tax-regions.md",
+        "evals/doc-review/files/sprawl-fixture/docs/features/webhooks.md",
+        "evals/doc-review/files/sprawl-fixture/docs/glossary/credit-note.md",
+        "evals/doc-review/files/sprawl-fixture/docs/glossary/index.md",
+        "evals/doc-review/files/sprawl-fixture/docs/mdcp.config.json",
+        "evals/doc-review/files/sprawl-fixture/package.json"
+      ],
+      "assertions": [
+        {
+          "name": "reads_expected_workflow",
+          "description": "Reads references/workflows/doc-review.md (checked from the transcript, not graded)"
+        },
+        {
+          "name": "runs_mdcp_review",
+          "description": "Runs `mdcp review` during the session"
+        },
+        {
+          "name": "groups_features_index",
+          "description": "docs/features/index.md groups its links under ## headings"
+        },
+        {
+          "name": "retention_rule_stated_once",
+          "description": "The 30-day retention paragraph remains in exactly one shard and the others link to it"
         }
       ]
     }
