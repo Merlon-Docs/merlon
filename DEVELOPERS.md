@@ -963,7 +963,7 @@ Both commands run `pnpm build` and `pnpm docs:compile:repo` first, because the s
 
 ### Deployment
 
-[`.github/workflows/pages.yml`](.github/workflows/pages.yml) builds the site on pull requests that touch `docs/` or the site package, and builds and deploys to GitHub Pages on every push to `main`. The repository's Pages source must be set to **GitHub Actions**.
+[`.github/workflows/pages.yml`](.github/workflows/pages.yml) builds the site on pull requests that touch `docs/` or the site package, and deploys it to GitHub Pages from `develop`. Landings push `develop` with the workflow's own token, which starts no other workflows, so the [land workflow](.github/workflows/land-develop.yml) dispatches the deploy after each landing. The repository's Pages source must be set to **GitHub Actions**, and the `github-pages` environment must allow deployments from `develop`.
 
 ### Coverage scan
 

@@ -115,6 +115,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write # Push the tested merge to develop
+      actions: write # Dispatch the Pages deploy for the new develop
     steps:
       # Harden-Runner: audit mode only — logs egress; block mode is follow-up (#179).
       - uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
@@ -163,3 +164,13 @@ jobs:
             echo ""
             git log --format='- `%h` %s' "${DEVELOP_SHA}..HEAD" --no-merges
           } | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Deploy the docs site from develop
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if git cat-file -e HEAD:.github/workflows/pages.yml 2>/dev/null; then
+            gh workflow run pages.yml --ref develop --repo "${GITHUB_REPOSITORY}"
+            echo "Dispatched the Pages deploy for develop." | tee -a "$GITHUB_STEP_SUMMARY"
+          fi

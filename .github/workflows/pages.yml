@@ -1,11 +1,14 @@
 name: Pages
 
 # Docs site (packages/mdcp-site): build on PRs that touch docs or the site;
-# build and deploy to GitHub Pages on push to main. Repo setting required:
-# Settings → Pages → Source: GitHub Actions.
+# build and deploy to GitHub Pages from develop. Landings push develop with
+# GITHUB_TOKEN, which starts no push workflows, so the land workflow
+# dispatches this one after each landing. Repo settings required:
+# Settings → Pages → Source: GitHub Actions, and the github-pages
+# environment must allow the develop branch.
 on:
   push:
-    branches: [main]
+    branches: [develop]
   pull_request:
     paths:
       - 'docs/**'
@@ -61,7 +64,7 @@ jobs:
       - run: pnpm run site:build
 
       - name: Upload Pages artifact
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/develop'
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: packages/mdcp-site/dist
@@ -69,7 +72,7 @@ jobs:
   deploy:
     name: Deploy to GitHub Pages
     needs: build
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     permissions:
       pages: write # Deploy the Pages artifact
