@@ -43,5 +43,3 @@ On this repository, the median `docs/features/` shard is **~2%** of the monolith
 ## Adoption anecdotes
 
 Qualitative outcomes belong in [GitHub adoption stories](https://github.com/betsalel-williamson/mdcp/issues/new?template=adoption-story.yml) — not unverified bullets on the README.
-
-**First external Champion validation (2026-06, anonymous):** A technical evaluator with no prior MDCP use reported that [Vision and roadmap](./00-vision-and-roadmap.md) explained what the tool is and why well enough to proceed; the README landing one-liner alone was not sufficient. This backs the P0 adoption onboarding work in [Personas and priority tiers](../personas-and-priority-tiers.md#p0-adoption--evaluator-onboarding-validated-2026-06) — vision link on landing and Champion eval path in get-started.

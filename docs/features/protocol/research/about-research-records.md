@@ -36,6 +36,7 @@ A record that no longer holds is superseded by a new record rather than edited, 
 - [Field report: the edge of the validated surface](./field-report-validated-surface.md)
 - [Skill eval round: measured changes to the mdcp skill](./skill-eval-round-2026-10-03.md)
 - [Benchmark: this repository's docs before and after single-pass compile](./benchmark-dogfood-2026-06-19.md)
+- [Field report: a first external evaluator](./field-report-first-evaluator.md)
 
 ## Related
 

@@ -21,9 +21,9 @@ Once a pipeline exists, adoption archetypes map to **tool operator personas** be
 
 Anonymous goal patterns — do not copy job titles onto landing pages:
 
-- **Champion** — CPTO/CTO or platform lead assessing whether MDCP's shard contract fits agentic delivery governance; reads vision and claims shards before CLI setup. First external Champion validation (2026-06, anonymous) confirmed [Vision and roadmap](./protocol/00-vision-and-roadmap.md) was sufficient for onboarding; the landing one-liner alone was not.
-- **Builder** — wires `mdcp check` into CI after Champion sign-off.
-- **Author / Learner** — unchanged from the table above.
+- **Champion**: a CPTO/CTO or platform lead who assesses whether MDCP's shard contract fits agentic delivery governance, and who reads the vision and claims shards before CLI setup.
+- **Builder**: wires `mdcp check` into CI after Champion sign-off.
+- **Author / Learner**: unchanged from the table above.
 
 Maintainers dogfooding the mdcp monorepo are **not** an adoption archetype — see [This repository](../repo-readme/this-repository.md) and [DEVELOPERS.md](../../DEVELOPERS.md).
 
@@ -40,6 +40,8 @@ Reference: [`docs/repo-readme/`](../repo-readme/index.md) → `README.md`.
 - Dual equal get-started paths (A/B); Champion eval path in get-started; routing explains fit, not priority
 - Want to know more = archetype link hub; keep landing scannable — Mermaid only in the short **MDCP 101** section (not elsewhere on the landing)
 
+The evidence behind the vision link and the Champion eval path is in [Field report: a first external evaluator](./protocol/research/field-report-first-evaluator.md).
+
 ## Tool operator personas
 
 | Persona                | Job                             | Command                                        |
@@ -49,47 +51,12 @@ Reference: [`docs/repo-readme/`](../repo-readme/index.md) → `README.md`.
 | **Human doc reviewer** | PR quality gate                 | `check`, `prose`, `lint`, `links`              |
 | **End-user reader**    | Read glossary, guides, reviews  | `compile` output                               |
 
-## P0 adoption — evaluator onboarding (validated 2026-06)
+## Priority tiers
 
-| Need                                           | Evidence                                   | Action                                                       |
-| ---------------------------------------------- | ------------------------------------------ | ------------------------------------------------------------ |
-| Champion can understand MDCP without prior use | First external Champion review (anonymous) | Vision link on landing; Champion eval path in get-started    |
-| Landing blurb alone insufficient               | Same                                       | Do not revert WIIFM order; augment with vision link and path |
+Capabilities are ranked in three tiers, most important first:
 
-Aligns with GitHub project **Track: 0.5 Spec & adoption** — see [Agent work item tracking](../developer/agent-work-item-tracking.md).
+1. **An agent can read the docs and write correct links.** This tier covers compile, the refs registry, and the check gate.
+2. **An agent can write docs in shards safely.** This tier covers manifest link order, shard split, and the orphan check.
+3. **A human reviewer can trust the output.** This tier covers peer linters and compile hooks.
 
-## P0 — LLM can read docs and write correct links
-
-| Feature       | CLI                   | Core module          | Status      |
-| ------------- | --------------------- | -------------------- | ----------- |
-| Compile       | `mdcp compile`        | `compile/`           | Implemented |
-| Refs registry | `mdcp refs` / `check` | `refs/`              | Implemented |
-| Check (core)  | `mdcp check`          | orphans, refs, links | Implemented |
-
-Dogfood: `mdcp check` on `docs/` and `examples/sample-guides`.
-
-## P1 — LLM can write docs in shards safely
-
-| Feature             | CLI            | Core module           | Status      |
-| ------------------- | -------------- | --------------------- | ----------- |
-| Manifest link order | `mdcp compile` | `compile/assemble.ts` | Implemented |
-| Shard split         | `mdcp shard`   | `shard/`              | Implemented |
-| Orphan check        | `mdcp check`   | `validate/orphans.ts` | Implemented |
-
-**Dogfood:** Edit a shard under `docs/features/` or `docs/developer/` → `mdcp check`.
-
-## P2 — Human reviewers trust the output
-
-| Feature       | CLI                                  | Core module        | Status                       |
-| ------------- | ------------------------------------ | ------------------ | ---------------------------- |
-| Peer linters  | `mdcp lint`, `prose`, `links`, `fix` | `peers/`           | Implemented                  |
-| Compile hooks | config `compile.hooks`               | `compile/hooks.ts` | Implemented (built-in hooks) |
-
-**Dogfood:** `pnpm docs:check` (markdownlint + Vale on `PATH`).
-
-## P3 — Enabler
-
-| Feature | Role                                             |
-| ------- | ------------------------------------------------ |
-| Config  | `mdcp.config.json` wires all commands            |
-| Presets | `@bwilliamson/mdcp-presets` starter lint configs |
+Below the tiers are the enablers: `mdcp.config.json` wires all commands, and the optional `@bwilliamson/mdcp-presets` package holds the starter markdownlint configs and the MDCP Vale style. Commands for each capability are in the [Feature catalog](./feature-catalog.md).

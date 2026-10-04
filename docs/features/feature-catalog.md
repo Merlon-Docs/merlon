@@ -2,7 +2,7 @@
 
 Command and capability reference. For the end-to-end mental model, including how compiled guides relate to the optional monolith, read [Overview](./overview.md) first.
 
-## Compile (P0.1)
+## Compile
 
 Stitch shard directories into compiled guides. Demotes headings, strips `about-this-guide` preamble, optional per-guide titles and publish paths. Injects source tags and a default warning banner. See [Source tags and default banner](./source-tags-and-banner.md).
 
@@ -12,7 +12,7 @@ mdcp compile --config mdcp.config.json --docs-root .
 
 Guides compile to per-guide files under `outputDir` by default (`{name}.md`, or `guide.md` when alone). Set top-level `outputFile` for an optional stitched monolith. Path layout: [Config essentials](../client-cli/config-essentials.md#path-layout).
 
-## Refs registry (P0.2)
+## Refs registry file
 
 Heading-slug **registry** for validation after compile — see [Refs registry path](./refs-registry-path.md). Discover shards with host search (`rg`); confirm `#` cross-links with `mdcp check`.
 
@@ -43,11 +43,11 @@ Structural validation: orphans → compile → refs → **links**. Peer linters 
 mdcp check --require-lint
 ```
 
-## Manifest link order (P1.1)
+## Manifest link order
 
 Compile order is derived from each guide's `index.md` or `shards.md` link order. When a manifest has policy prose with example links before an ordered section list, use `compile.sectionsHeading` — see [Manifest compile order](./manifest-compile-order.md).
 
-## Shard split (P1.2)
+## Shard split
 
 Split a source document into shards via md-tree.
 
@@ -63,7 +63,7 @@ Detect shards not in manifest or missing files.
 
 en-US writing cues such as an unlinked "See Chapter…" mention, and dogfood warnings to remove Pandoc IDs (`{#…}` after a heading), live in Vale styles — not in `mdcp check`. They do not replace [Link validation](./link-validation.md) for GFM cross-refs. See [Locale and language boundary](./design-constraints/locale-and-language.md).
 
-## Coverage scan (P1.5)
+## Coverage scan
 
 Report markdown files that no guide accounts for. Register single files as [standalone guides](../glossary/standalone-guide.md) or fold them into a compiled guide. Reported in `mdcp check`; fails the gate when `scan.strict: true`. See [Documentation coverage scan](./coverage-scan.md).
 
@@ -71,11 +71,13 @@ Report markdown files that no guide accounts for. Register single files as [stan
 
 `mdcp review` reports documentation sprawl signals (oversized index groups, long shards, paragraphs duplicated across shards, and same-titled shards in one guide) without failing unless you pass `--strict`. See [Commands reference](../client-cli/commands-reference.md#sprawl-review).
 
-## Peer linters (P2.1)
+## Peer linter orchestration
 
 Orchestrate markdownlint-cli2, Vale, Prettier, markdown-link-check from host repo. Shard markdownlint and Vale prose only touch registered guide shard trees (`compileOrder`); optional `shardsGlobs` / `vale.scanGlobs` narrow scope further.
 
-## Compile hooks (P2.2)
+The peer commands are `mdcp lint`, `mdcp prose`, `mdcp links` and `mdcp fix`. The [command summary](../client-cli/commands-reference.md#command-summary) says what each one runs.
+
+## Compile hooks
 
 Per-shard assembly via built-in compile hooks on [authored GFM](../glossary/authored-gfm.md). Hooks run by default; opt out per hook when needed. See [Default compile hooks](./default-compile-hooks.md). Not a preprocessor or template engine — see [Preprocessor / templating (out of scope)](./design-constraints/preprocessor-templating.md#preprocessor--templating-out-of-scope).
 
