@@ -151,7 +151,7 @@ CI's Check job runs the steps of `pnpm run check`, except that it tests only mdc
 
 ## Cursor Cloud environment
 
-How this repository behaves inside Cursor cloud agents: how to stand up a new cloud environment, and the platform limitations to plan around. For the standard local toolchain and daily commands, read [Local setup](#local-setup) — this section only adds cloud-specific setup and constraints.
+Cursor cloud agents need a few extra setup steps in this repository, and their platform has limitations to plan around. [Local setup](#local-setup) has the standard local toolchain and daily commands. This section adds only the cloud-specific setup and constraints.
 
 The repository `AGENTS.md` (with `CLAUDE.md` as a symlink to it) stays short and links here for everything specific to Cursor cloud agents.
 
@@ -159,7 +159,7 @@ The repository `AGENTS.md` (with `CLAUDE.md` as a symlink to it) stays short and
 
 A fresh cloud VM needs the same toolchain as [Local setup](#local-setup), plus a few cloud-specific steps:
 
-1. **Startup update script.** `.cursor/environment.json` holds the `install` command that runs on every VM start: it fetches remote refs, runs `pnpm install`, then runs `pnpm skill:dev` so the agent loads this checkout's `mdcp` skill ([Agent Skill development](#agent-skill-development)). That committed file is the source of truth and overrides any dashboard-saved environment. Keep it minimal: no service startup or build steps.
+1. **Startup update script.** `.cursor/environment.json` holds the `install` command that runs on every VM start: it fetches remote refs and runs `pnpm install`, then `pnpm skill:dev` so the agent loads this checkout's `mdcp` skill ([Agent Skill development](#agent-skill-development)). That committed file is the source of truth and overrides any dashboard-saved environment. Keep it minimal: no service startup or build steps.
 2. **Vale peer binary.** Vale is a peer binary, not an npm dependency. Install version 3.15.1 to `/usr/local/bin` (it persists in the VM snapshot); the exact release command is in [`.github/workflows/ci.yml`](.github/workflows/ci.yml). `pnpm docs:check` needs Vale on `PATH`.
 3. **gitleaks peer binary.** gitleaks is also a peer binary, not an npm dependency; the pre-commit hook runs `gitleaks protect --staged` when it is on `PATH`. Install version 8.30.1 to `/usr/local/bin` (persists in the VM snapshot). If it goes missing, reinstall from the [gitleaks releases](https://github.com/gitleaks/gitleaks/releases): download `gitleaks_8.30.1_linux_x64.tar.gz` and extract the `gitleaks` binary into `/usr/local/bin` (same pattern as Vale). CI runs its own scan via `gitleaks-action`, so the local install is defense-in-depth.
 4. **Build before docs or CLI.** `dist/` is gitignored and is not produced by the update script. Run `pnpm build` after a fresh checkout before `pnpm docs:check`, `pnpm docs:compile`, or invoking the `mdcp` CLI.
