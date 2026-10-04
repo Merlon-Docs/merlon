@@ -6,6 +6,16 @@ import { dirname, join } from 'node:path';
 import { after, describe, it } from 'node:test';
 import { consumedChangesets } from './consumed-changesets.mjs';
 
+/** process.env without the GIT_* variables that would point git at another repository. */
+function withoutGitVars(env) {
+  return Object.fromEntries(Object.entries(env).filter(([key]) => !key.startsWith('GIT_')));
+}
+
+// A git hook or `git rebase --exec` exports GIT_DIR and GIT_INDEX_FILE. Left set, they point
+// every git call in this file, consumedChangesets included, at the checkout running the tests,
+// and the commits below land on its branches.
+process.env = withoutGitVars(process.env);
+
 const dirs = [];
 after(() => {
   for (const dir of dirs) rmSync(dir, { recursive: true, force: true });
@@ -16,7 +26,7 @@ function repo() {
   const cwd = mkdtempSync(join(tmpdir(), 'consumed-changesets-'));
   dirs.push(cwd);
   const env = {
-    ...process.env,
+    ...withoutGitVars(process.env),
     GIT_AUTHOR_NAME: 'test',
     GIT_AUTHOR_EMAIL: 'test@example.invalid',
     GIT_COMMITTER_NAME: 'test',
@@ -100,6 +110,20 @@ describe('consumedChangesets', () => {
     r.git('rm', '-q', '.changeset/core-work.md');
     r.commit('chore: drop the changeset');
     assert.deepEqual(consumedChangesets(r.release, { cwd: r.cwd }), []);
+  });
+
+  it('commits in the throwaway repository when GIT_DIR names another one', () => {
+    const other = repo();
+    const refs = other.git('for-each-ref');
+    process.env.GIT_DIR = join(other.cwd, '.git');
+    try {
+      const r = repo();
+      r.write('.changeset/core-work.md', changeset('core'));
+      r.commit('feat: core work');
+    } finally {
+      delete process.env.GIT_DIR;
+    }
+    assert.equal(other.git('for-each-ref'), refs);
   });
 
   it('ignores a deleted README.md', () => {
