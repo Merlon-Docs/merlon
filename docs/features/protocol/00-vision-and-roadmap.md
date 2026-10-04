@@ -45,3 +45,7 @@ Later phases (MCP, hosted API) are alternate **delivery** surfaces; they do not 
 The V1 authoring profile includes the [Skill workflows](./skill-workflows.md).
 
 [Scope and positioning](./01-scope-and-positioning.md) explains how MDCP relates to MCP and to OpenAPI. [Alternatives and adoption](./02-alternatives-and-adoption.md) compares MDCP with other doc stacks and says how they coexist.
+
+## Governance
+
+MDCP is designed to outgrow one vendor's tooling, and the long-term goal is sponsorship under a **neutral foundation** that gives protocol artifacts, extension catalogs and conformance vectors a trusted home. The mdcp repository hosts the reference toolchain.
