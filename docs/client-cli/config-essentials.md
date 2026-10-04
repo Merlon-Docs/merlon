@@ -34,7 +34,33 @@ mdcp compile --config mdcp.config.json --docs-root .
 
 ### Programmatic API
 
-`loadConfig(configPath, configBase)` mirrors the CLI: pass the invocation directory as `configBase`, and the docs root as `docsRoot` when resolving guide paths. See [API — Config](../client-core/api-config.md).
+The core library takes the same two bases, and [API Config](../client-core/api-config.md) says which one each function needs.
+
+## Minimal config
+
+A minimal `mdcp.config.json` for two guides:
+
+```json
+{
+  "compileOrder": ["overview", "admin-guide"],
+  "guides": [{ "name": "overview" }, { "name": "admin-guide" }]
+}
+```
+
+The fields it leaves out take their defaults, so this config writes `overview.md` and `admin-guide.md` to `_build/` under the docs root and builds no monolith. [Path layout](#path-layout) gives each default.
+
+| Field                | Purpose                                                              |
+| -------------------- | -------------------------------------------------------------------- |
+| `compileOrder`       | Guide directories to compile, in stitch order for optional monolith  |
+| `guides`             | Per-guide options (hooks, manifests, publish paths)                  |
+| `outputDir`          | Generated output root (relative to `--docs-root`)                    |
+| `outputFile`         | Optional stitched monolith (relative to `outputDir`)                 |
+| `refs.registryFile`  | Refs registry file (default `.caches/refs.json`)                     |
+| `sourceTags`         | Wrap shards in HTML comments with relative paths (default `true`)    |
+| `banner`             | Global banner prepended to outputs (has default warning text)        |
+| `compile.outputFile` | Override per-guide output path (relative to `outputDir` or absolute) |
+| `compile.scopeRoot`  | Shared tree (relative to the docs root) that guide links pull from   |
+| `compile.sourceTags` | Per-guide override of the global `sourceTags` setting                |
 
 ## Path layout
 
@@ -62,9 +88,9 @@ docs/                          ← --docs-root
       backups/                 ← opt-in prior output (--backup)
 ```
 
-### Where each path resolves
+### Resolution bases
 
-Which directories are guides: [Project layout](./project-layout.md). Omit `guides[].path` unless a guide's shards live somewhere other than the directory of the same name.
+[Project layout](./project-layout.md) says which directories are guides. Omit `guides[].path` unless a guide's shards live somewhere other than the directory of the same name.
 
 | Config field          | Resolved from | Example (`--docs-root docs`)        |
 | --------------------- | ------------- | ----------------------------------- |
@@ -77,75 +103,6 @@ Which directories are guides: [Project layout](./project-layout.md). Omit `guide
 | `compile.outputFile`  | `outputDir`   | `../../DEVELOPERS.md` from `_build` |
 
 Delete `_build/` to clean all generated output. `.caches/` holds derived state (refs registry) and, when `--backup` is used, prior compile output under `backups/`. See [Compile output backup](../features/compile-output-backup.md).
-
-### Opt-in output backup
-
-Default: compile commands **overwrite** existing files (git is the safety net). Enable backup when working outside version control:
-
-```json
-{
-  "backup": { "enabled": true }
-}
-```
-
-Or pass `--backup` on the CLI (overrides config). Optional `backup.dir` (default `.caches/backups`) and `backup.ext`. Full spec: [Compile output backup](../features/compile-output-backup.md).
-
-### Link validation
-
-Built-in internal link validation is on by default. Broken links emit **`BROKEN LINK`** markers in compiled output and fail `mdcp compile` / `mdcp check` (exit **1**). See [Link validation](../features/link-validation.md).
-
-```json
-{
-  "compile": { "links": { "markBroken": true } },
-  "lint": {
-    "links": {
-      "enabled": true,
-      "severity": "error"
-    }
-  }
-}
-```
-
-| Field                      | Default   | Role                                                  |
-| -------------------------- | --------- | ----------------------------------------------------- |
-| `compile.links.markBroken` | `true`    | Replace broken links with BROKEN LINK prose in output |
-| `lint.links.enabled`       | `true`    | Run built-in link validation                          |
-| `lint.links.severity`      | `"error"` | `"warn"` exits 0; use `--warn-broken-links` on CLI    |
-| `lint.links.config`        | —         | Peer `markdown-link-check` config only                |
-| `lint.codeExtensions`      | `[]`      | Extra code extensions; links to them must resolve     |
-| `lint.dataExtensions`      | `[]`      | Extra data extensions, checked for existence only     |
-| `lint.paths.severity`      | `"off"`   | Resolve backtick paths in prose (`warn` or `error`)   |
-| `lint.paths.searchRoots`   | `[]`      | Extra roots tried after the scan root                 |
-| `lint.paths.generated`     | `[]`      | Prefixes absent in a clean checkout (build, caches)   |
-| `lint.paths.vocabulary`    | `[]`      | Exact paths documented but not present here           |
-
-Path resolution, its opt-out marker, and these keys in depth: [Path resolution in prose](../features/path-resolution.md).
-
----
-
-Minimal `mdcp.config.json`:
-
-```json
-{
-  "compileOrder": ["overview", "admin-guide"],
-  "guides": [{ "name": "overview" }, { "name": "admin-guide" }]
-}
-```
-
-Defaults: `outputDir` `_build`, per-guide outputs `overview.md` and `admin-guide.md`, refs at `.caches/refs.json`. No monolith unless you set top-level `outputFile`.
-
-| Field                | Purpose                                                              |
-| -------------------- | -------------------------------------------------------------------- |
-| `compileOrder`       | Guide directories to compile, in stitch order for optional monolith  |
-| `guides`             | Per-guide options (hooks, manifests, publish paths)                  |
-| `outputDir`          | Generated output root (relative to `--docs-root`)                    |
-| `outputFile`         | Optional stitched monolith (relative to `outputDir`)                 |
-| `refs.registryFile`  | Refs registry file (default `.caches/refs.json`)                     |
-| `sourceTags`         | Wrap shards in HTML comments with relative paths (default `true`)    |
-| `banner`             | Global banner prepended to outputs (has default warning text)        |
-| `compile.outputFile` | Override per-guide output path (relative to `outputDir` or absolute) |
-| `compile.scopeRoot`  | Shared tree (relative to the docs root) that guide links pull from   |
-| `compile.sourceTags` | Per-guide override of the global `sourceTags` setting                |
 
 ### Default per-guide outputs
 
@@ -162,20 +119,29 @@ When `compile.outputFile` is set, that guide writes only to that path (for examp
 
 Set top-level `outputFile` (such as `"guides.md"`) to also stitch guides **without** explicit `compile.outputFile` into one file under `outputDir`. See [monolith](../glossary/monolith.md).
 
-### `sectionsHeading`
+## Feature settings
 
-When a manifest has preamble prose with example inline links before an ordered `## Sections` list, set `compile.sectionsHeading`. See [Manifest compile order](../features/manifest-compile-order.md).
+Each feature's spec defines its config keys and what they do. This table gives their defaults, and the paragraphs below it link to the specs.
 
-```json
-{
-  "name": "glossary",
-  "compile": {
-    "title": "Compound glossary",
-    "sectionsHeading": "Sections",
-    "outputFile": "glossary.md"
-  }
-}
-```
+| Key                        | Default           |
+| -------------------------- | ----------------- |
+| `compile.links.markBroken` | `true`            |
+| `lint.links.enabled`       | `true`            |
+| `lint.links.severity`      | `"error"`         |
+| `lint.links.config`        | none              |
+| `lint.codeExtensions`      | `[]`              |
+| `lint.dataExtensions`      | `[]`              |
+| `lint.paths.severity`      | `"off"`           |
+| `lint.paths.searchRoots`   | `[]`              |
+| `lint.paths.generated`     | `[]`              |
+| `lint.paths.vocabulary`    | `[]`              |
+| `backup.enabled`           | `false`           |
+| `backup.dir`               | `.caches/backups` |
+| `backup.ext`               | `""`              |
+
+[Built-in link validation](../features/link-validation.md) covers the `compile.links.*` and `lint.links.*` keys and the extension lists. [Path resolution in prose](../features/path-resolution.md) covers `lint.paths.*`, and [Compile output backup](../features/compile-output-backup.md) covers `backup.*` and the `--backup` flags.
+
+Other feature keys are documented with their features. `compile.sectionsHeading` is in [Manifest compile order](../features/manifest-compile-order.md), `compile.hooks` and `compile.hooksConfig` are in [Default compile hooks](../features/default-compile-hooks.md), and `compile.crossGuideLinks` is in [Cross-guide link rewriting](../client-core/compile-hooks/cross-guide-links.md). [Coverage in check](./coverage.md) covers `scan.*` and `standaloneGuides`.
 
 ## Shared glossary
 

@@ -94,4 +94,4 @@ When the manifest links no shards, compile takes every top-level `.md` file in t
 2. Run `mdcp compile` — there is no separate manifest sync step.
 3. Run `mdcp check` — orphan validation uses the same manifest rules as compile.
 
-Config field and example: [Config essentials — `sectionsHeading`](../client-cli/config-essentials.md#sectionsheading). Implementation: `manifestTextForSections` and `sectionFiles` in `packages/mdcp-core/src/compile/assemble.ts`.
+Code: `manifestTextForSections` and `sectionFiles` in `packages/mdcp-core/src/compile/section-manifest.ts`.
