@@ -173,6 +173,18 @@ describe('MDCP Vale style', { skip: !hasVale && 'vale not on PATH' }, () => {
     );
   });
 
+  it('MDCP.DatedClaim gives one destination for each kind of dated text', () => {
+    // The mdcp skill sends a current rule's history to an ADR and a temporary
+    // note to the tracker. A second destination for the same text, such as a
+    // CHANGELOG entry, would contradict it. The rule stays on for ADRs, so the
+    // message also tells an ADR author how to keep the date.
+    const [alert] = lint('# Doc\n\nAs of 2026-07-27 the cache is warm.\n').alerts;
+    assert.match(alert.Message, /current rule's history to an ADR/);
+    assert.match(alert.Message, /temporary note to the tracker/);
+    assert.match(alert.Message, /In an ADR, write the date on its own/);
+    assert.doesNotMatch(alert.Message, /CHANGELOG/i);
+  });
+
   it('every shipped Vale config and README snippet uses the package TokenIgnores', () => {
     const tokenIgnores = (file) =>
       [...readFileSync(join(root, file), 'utf8').matchAll(/^TokenIgnores = (.*)$/gm)].map(

@@ -1,5 +1,5 @@
 extends: existence
-message: "'%s' pins a claim to a date. Say what is true now, and move the dated reason to a dated record such as an ADR or CHANGELOG entry."
+message: "'%s' pins a claim to a date. Say what is true now. Move a current rule's history to an ADR the doc links, and a temporary note to the tracker. In an ADR, write the date on its own."
 link: https://github.com/betsalel-williamson/mdcp/blob/main/docs/features/design-constraints/enforceable-rules.md
 level: error
 ignorecase: true

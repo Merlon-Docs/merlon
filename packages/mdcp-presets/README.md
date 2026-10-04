@@ -56,7 +56,7 @@ English (en-US) prose cues when docs **mention** a numbered heading (`Chapter` /
 | `MDCP.UnlinkedSeeSection` | `See Section 2` with no link                                                         |
 | `MDCP.DatedClaim`         | `as of` or `until` before an ISO date, such as `as of 2026-07-27`, headings included |
 
-Every rule is error level, so `mdcp check --require-vale` fails on it. `MDCP.DatedClaim` asks for what is true now: a dated reason belongs in a dated record such as an ADR or CHANGELOG entry, linked from the shard. It flags every dated claim whatever its age, because a Vale rule can't compare a date with today.
+Every rule is error level, so `mdcp check --require-vale` fails on it. `MDCP.DatedClaim` asks for what is true now. The history behind a rule that still holds moves to an ADR that the doc links, and a temporary note moves to the tracker. Text that only describes removed behavior is deleted, and the release notes give its notice. An ADR keeps the rule on and writes each date on its own, without `as of` or `until`. The rule flags every dated claim whatever its age, because a Vale rule can't compare a date with today.
 
 The `TokenIgnores` pattern skips each inline link from its label to its closing parenthesis, so a dated label such as `[as of 2026-07-27](./snapshot.md)` passes. A label may contain one level of brackets, as in `[Chapter 2 [draft]](./draft.md)`. A backslash-escaped bracket in a label counts as text. The rule still flags a reference-style label such as `[as of 2026-07-27][ref]`. It can miss a claim split by emphasis markers, such as `as of **2026-07-27**`.
 
@@ -161,14 +161,14 @@ MDCP.DatedClaim = warning
 MDCP.DatedClaim = NO
 ```
 
-`mdcp prose` and `mdcp check` pass Vale absolute paths, so start a path section with `**/`. A section such as `[research/*.md]` matches only when Vale runs on a relative path.
+Put that section last, after every section that matches the same files, because a later section that sets the rule turns it back on. `mdcp prose` and `mdcp check` pass Vale absolute paths, so start a path section with `**/`. A section such as `[research/*.md]` matches only when Vale runs on a relative path.
 
-To exempt one passage, wrap it in Vale comments:
+To exempt one passage, such as a measurement in a research record, wrap it in Vale comments:
 
 ```markdown
 <!-- vale MDCP.DatedClaim = NO -->
 
-As of 2026-07-27 the runner image is pinned to this digest.
+As of 2026-07-27 the median build took 41 seconds on the reference runner.
 
 <!-- vale MDCP.DatedClaim = YES -->
 ```
