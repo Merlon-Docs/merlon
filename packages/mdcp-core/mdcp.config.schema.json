@@ -62,7 +62,8 @@
                     "const": "h1Extract"
                   },
                   "index": {
-                    "type": "integer"
+                    "type": "integer",
+                    "minimum": 1
                   },
                   "preamble": {
                     "type": "object",
@@ -87,7 +88,8 @@
                       "type": "object",
                       "properties": {
                         "fromH1Extract": {
-                          "type": "integer"
+                          "type": "integer",
+                          "minimum": 1
                         },
                         "demoteFirstH1": {
                           "type": "boolean"

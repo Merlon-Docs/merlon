@@ -24,6 +24,8 @@ pnpm --filter @bwilliamson/mdcp-core run typecheck
 
 Tests live under `packages/mdcp-core/test/`. Integration tests invoke the built CLI against `examples/sample-guides/`.
 
+`mdcp.config.schema.json` is the editor schema for `mdcp.config.json`, maintained by hand. `test/config-json-schema.test.ts` compares it with the zod schema in `src/config/schema.ts` and fails when they disagree on any key, required key, type, enum or bound, or on a default the JSON declares. A commit that changes a config key has to update both files to pass it.
+
 ## mdcp-cli
 
 Thin [CAC](https://github.com/cacjs/cac) wrapper around `mdcp-core`. Source: [`packages/mdcp-cli/src/cli.ts`](../../packages/mdcp-cli/src/cli.ts).
