@@ -35,11 +35,7 @@ Above plus the four-tier guide layout (`features` / `client` / `developer` / `gl
 
 ## Coexistence
 
-| Incumbent             | Workflow                                                     |
-| --------------------- | ------------------------------------------------------------ |
-| MCP host              | MCP reads compiled artifacts; MDCP validates authoring       |
-| Static site generator | MDCP for in-repo agent context; site may use compiled subset |
-| Cursor rules          | Host behavior in rules; product truth in MDCP shards         |
+[Alternatives and adoption](./02-alternatives-and-adoption.md#alternatives-comparison) says what MDCP adds beside site generators and host rules files. [Scope and positioning](./01-scope-and-positioning.md#why-mdcp-is-not-an-mcp-server) explains why MCP sits on top of MDCP instead of replacing it.
 
 ## Query preference order
 

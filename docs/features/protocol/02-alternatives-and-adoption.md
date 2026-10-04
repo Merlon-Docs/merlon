@@ -21,6 +21,8 @@ MDCP shards are [GFM-only](../design-constraints/gfm-scope.md). Adopters with Pa
 - Compile to GFM compiled guides (plus the optional monolith) and feed downstream publish pipelines.
 - Run parallel guides for agent-only vs site-only content when scopes differ.
 
+MDCP covers authoring and how agents query shards. Pandoc and static site generators publish downstream from the compiled output.
+
 ## Bootstrap-first adoption
 
 Suited to **Learner** and **Author** archetypes — see [Personas and priority tiers](../personas-and-priority-tiers.md). Public copy must follow [Benefit claims and evidence](./benefit-claims-and-evidence.md).

@@ -37,8 +37,8 @@ On this repository, the median `docs/features/` shard is **~2%** of the monolith
 
 ## Evidence elsewhere
 
-- **`mdcp check` catches orphans and broken refs** — Feature catalog; core tests
-- **OpenAPI analogy** — Design intent in [Vision and roadmap](./00-vision-and-roadmap.md); not LF membership
+- **`mdcp check` catches orphans and broken refs**: the feature catalog and the core tests
+- **OpenAPI analogy**: the design intent is in [Scope and positioning](./01-scope-and-positioning.md#openapi-analogy). MDCP doesn't claim membership in a standards body.
 
 ## Adoption anecdotes
 

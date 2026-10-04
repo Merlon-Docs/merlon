@@ -1,6 +1,6 @@
 # Vision and roadmap
 
-MDCP (**MarkDown Context Protocol**) is an [Agent Skill](../../glossary/agent-skills.md) and practice for **system context** — intent, design, and terminology in Markdown shards, with compile and check so the same docs serve people and agents. Think of [OpenAPI](https://www.openapis.org/) as a useful analogy for _contracts_, not as claiming MDCP is an industry standards body.
+MDCP (**MarkDown Context Protocol**) is an [Agent Skill](../../glossary/agent-skills.md) and practice for **system context**: intent, design, and terminology in Markdown shards, with compile and check so the same docs serve people and agents.
 
 ## Problem
 
@@ -42,20 +42,6 @@ Filter for new capabilities: [Direct value bar](../design-constraints/direct-val
 
 Later phases (MCP, hosted API) are alternate **delivery** surfaces; they do not redefine the documentation domain.
 
-## Positioning
+The V1 authoring profile includes the [Skill workflows](./skill-workflows.md).
 
-| Approach                         | MDCP relationship                                       |
-| -------------------------------- | ------------------------------------------------------- |
-| Full `llms.txt` dump             | Replaced by MDCP skills and on-demand shards            |
-| Context7 / large crawled corpora | Author-controlled, deterministic, PR-reviewable         |
-| OpenAPI                          | Analogy: contract for documentation context             |
-| MCP                              | Complementary delivery on top of MDCP artifacts         |
-| Pandoc / static-site generators  | Downstream publish; MDCP owns authoring and query layer |
-
-MDCP is **not** an MCP server. MCP delivers runtime access; MDCP enforces shard discipline, compile invariants, and CI validation gates.
-
-## Coexistence with other doc stacks
-
-MDCP authoring is [GFM-only](../design-constraints/gfm-scope.md). Compiled GFM output can feed Pandoc, MkDocs, Docusaurus, or other publish pipelines. Agent-only guides and publish-only guides may differ in scope.
-
-Skill workflows are part of the V1 authoring profile — [Skill workflows](./skill-workflows.md).
+[Scope and positioning](./01-scope-and-positioning.md) explains how MDCP relates to MCP and to OpenAPI. [Alternatives and adoption](./02-alternatives-and-adoption.md) compares MDCP with other doc stacks and says how they coexist.
