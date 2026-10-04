@@ -35,37 +35,6 @@
   color: var(--sl-color-white);
 }
 
-/* Front page: helper-skill scenario beside real check output. */
-.mdcp-demo {
-  display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-  gap: 1.5rem;
-  align-items: center;
-  margin: 1.5rem 0;
-  padding: 1.25rem;
-  border: 2px solid var(--sl-color-accent);
-  border-radius: 0.5rem;
-  background: var(--sl-color-accent-low);
-}
-
-.mdcp-demo__story {
-  margin: 0;
-}
-
-.mdcp-demo__story li + li {
-  margin-top: 0.5rem;
-}
-
-.mdcp-demo__output {
-  margin: 0;
-}
-
-@media (max-width: 50rem) {
-  .mdcp-demo {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
 /* Front page: FAQ. */
 .sl-markdown-content details {
   padding: 0.75rem 1rem;
@@ -81,4 +50,11 @@
   font-weight: 600;
   color: var(--sl-color-white);
   cursor: pointer;
+}
+
+/* Front page: three-card row. */
+@media (min-width: 50rem) {
+  .mdcp-three .card-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
