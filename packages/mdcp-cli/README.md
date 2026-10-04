@@ -285,7 +285,7 @@ Defaults: `outputDir` `_build`, per-guide outputs `overview.md` and `admin-guide
 | `guides`             | Per-guide options (hooks, manifests, publish paths)                  |
 | `outputDir`          | Generated output root (relative to `--docs-root`)                    |
 | `outputFile`         | Optional stitched monolith (relative to `outputDir`)                 |
-| `refs.registryFile`  | Cross-link lookup table (default `.caches/refs.json`)                |
+| `refs.registryFile`  | Refs registry file (default `.caches/refs.json`)                     |
 | `sourceTags`         | Wrap shards in HTML comments with relative paths (default `true`)    |
 | `banner`             | Global banner prepended to outputs (has default warning text)        |
 | `compile.outputFile` | Override per-guide output path (relative to `outputDir` or absolute) |
@@ -528,7 +528,7 @@ Without `--strict`, `mdcp review` exits 0. Thresholds live under `review` in con
 | `mdcp refs-check` | Verify `refs.json` matches compiled output                                                             |
 | `mdcp refs-list`  | List heading slugs from `refs.json` (`--format json` or `table`; run `mdcp check` or `refs-gen` first) |
 
-Discover shards with host search (`rg`, IDE search). Validate fragment links with `mdcp check`; use `mdcp refs-list` when you need to inspect registry slugs.
+Validate fragment links with `mdcp check`. Use `mdcp refs-list` when you need to inspect registry slugs. [Refs](#refs) explains what refs are for.
 
 <!-- mdcp-shard: end ../../docs/client-cli/commands-reference.md -->
 
@@ -578,7 +578,7 @@ Do not list a compiled guide's output (a generated file such as `README.md` or `
 
 ### End-user value
 
-When you organize compiled outputs in subdirectories (`compile.outputFile: "compiled/guide-a.md"`), `mdcp compile` still keeps the refs registry at the documented cache path under `outputDir`. You can run `mdcp refs-list` right after compile when writing cross-links — no manual move and no extra `mdcp refs gen` step.
+When you organize compiled outputs in subdirectories (`compile.outputFile: "compiled/guide-a.md"`), `mdcp compile` still keeps the refs registry at the documented cache path under `outputDir`. You can run `mdcp refs-list` right after compile when writing cross-links, without moving the file or running `mdcp refs-gen` first.
 
 ### Path layout
 
@@ -607,7 +607,7 @@ mdcp check --config docs/mdcp.config.json --docs-root docs
 mdcp refs-list --config docs/mdcp.config.json --docs-root docs
 ```
 
-Discover shards with host search (`rg`, IDE search). `mdcp check` validates cross-link fragments against compiled slugs; `mdcp refs-list` reads the registry file that `compile` just wrote.
+`mdcp check` validates cross-link fragments against compiled slugs. `mdcp refs-list` reads the registry file that `compile` just wrote.
 
 <!-- mdcp-shard: end ../../docs/client-cli/compile-refs-registry.md -->
 
@@ -615,7 +615,7 @@ Discover shards with host search (`rg`, IDE search). `mdcp check` validates cros
 
 ## Cross-links and refs
 
-When writing `` `[link text](#anchor)` `` in a shard, the fragment must match the [heading slug](#heading-slug) in **compiled** output. [Refs](#refs) keep those [cross-links](#cross-link) checkable after stitch — not a doc-search tool.
+When writing `` `[link text](#anchor)` `` in a shard, the fragment must match the [heading slug](#heading-slug) in **compiled** output. [Refs](#refs) keep those [cross-links](#cross-link) checkable after stitch.
 
 ```bash
 mdcp compile --config docs/mdcp.config.json --docs-root docs
@@ -817,6 +817,29 @@ See [Shard single responsibility and idea mitosis](../../docs/features/protocol/
 
 <!-- mdcp-shard: end ../../docs/glossary/idea-mitosis.md -->
 
+<!-- mdcp-shard: start ../../docs/glossary/refs.md -->
+
+## refs
+
+**Refs** (short for **references**) are the organized set of heading [slugs](#heading-slug) and [cross-links](#cross-link) MDCP derives from compiled guides so authors and CI can keep Markdown links coherent after stitch.
+
+The problem refs solve is structural. Stitching shards shifts heading levels and disambiguates duplicate titles, so a hand-guessed `#anchor` or stale path can break after `compile`. MDCP keeps a [refs registry](#refs-registry) and validates links at `check` time so the **compiled** document still targets the right sections and files.
+
+### Related wording
+
+| Form               | Meaning                                                                           |
+| ------------------ | --------------------------------------------------------------------------------- |
+| **refs** (noun)    | The reference system as a whole (slugs + links + registry)                        |
+| **refs registry**  | Derived catalog (`refs.json`) of compiled heading entries                         |
+| **ref** (informal) | One heading entry or one link target under that system                            |
+| **generate refs**  | Rebuild the registry from compiled output (`mdcp refs-gen` / compile side effect) |
+| **list refs**      | Print registry headings (`mdcp refs-list`)                                        |
+| **check refs**     | Confirm registry matches compiled headings (`mdcp refs-check` / via `mdcp check`) |
+
+Refs check links. They do not find documents. To find a shard, use host search (`rg`, IDE search) or the guide `index.md`, then read that one shard. To check links, run `mdcp check`. To see the registry's slugs, run `mdcp refs-list`. [ADR 0002](../../docs/features/adr/0002-remove-refs-lookup.md) records why MDCP has no lookup command.
+
+<!-- mdcp-shard: end ../../docs/glossary/refs.md -->
+
 <!-- mdcp-shard: start ../../docs/glossary/heading-slug.md -->
 
 ## heading slug
@@ -826,31 +849,6 @@ GitHub-style fragment id for a heading in **compiled** Markdown (the part after 
 MDCP computes slugs from final heading text after guides are stitched and demoted, with the same rules GitHub uses for README anchors (via `github-slugger`). Duplicate titles in one document get `-1`, `-2` suffixes. Authors should not invent fragments from shard-only titles; [cross-links](#cross-link) must match the compiled slug, and `mdcp check` fails when they do not.
 
 <!-- mdcp-shard: end ../../docs/glossary/heading-slug.md -->
-
-<!-- mdcp-shard: start ../../docs/glossary/refs.md -->
-
-## refs
-
-**Refs** (short for **references**) are the organized set of heading [slugs](#heading-slug) and [cross-links](#cross-link) MDCP derives from compiled guides so authors and CI can keep Markdown links coherent after stitch.
-
-The problem refs solve is structural, not retrieval: shards merge, heading levels shift, and duplicate titles get disambiguated — so a hand-guessed `#anchor` or stale path can break after `compile`. MDCP keeps a [refs registry](#refs-registry) and validates links at `check` time so the **compiled** document still targets the right sections and files.
-
-### Related wording
-
-| Form               | Meaning                                                                           |
-| ------------------ | --------------------------------------------------------------------------------- |
-| **refs** (noun)    | The reference system as a whole (slugs + links + registry)                        |
-| **refs registry**  | Derived catalog (`refs.json`) of compiled heading entries                         |
-| **ref** (informal) | One heading entry or one link target under that system                            |
-| **generate refs**  | Rebuild the registry from compiled output (`mdcp refs gen` / compile side effect) |
-| **list refs**      | Print registry headings (`mdcp refs-list`)                                        |
-| **check refs**     | Confirm registry matches compiled headings (`mdcp refs check` / via `mdcp check`) |
-
-Doc discovery uses host search (`rg`, IDE search, or a future MCP index). Cross-link correctness uses **`mdcp check`** and optionally **`mdcp refs-list`**. Refs are not a retrieval API — see [ADR 0002](../../docs/features/adr/0002-remove-refs-lookup.md).
-
-Not the same as ordinary “search the docs.” Refs are about **correct anchors and paths after compile**.
-
-<!-- mdcp-shard: end ../../docs/glossary/refs.md -->
 
 <!-- mdcp-shard: start ../../docs/glossary/cross-link.md -->
 
@@ -868,7 +866,7 @@ Cross-links are why [refs](#refs) exist. After assemble, the visible heading tex
 
 Derived catalog of [heading slugs](#heading-slug) from compile output, typically written as `refs.json` under `outputDir`. It holds the [monolith](#monolith)'s headings when the config sets top-level `outputFile`, and otherwise the headings of every [compiled guide](#compiled-guide). Parent concept: [refs](#refs).
 
-The registry is **generated state**, not authored shards. `mdcp compile` (and `mdcp refs gen`) rebuild it; `mdcp check` / `mdcp refs check` verify it still matches the latest compile. Path rules: [Refs registry path](../../docs/features/refs-registry-path.md).
+The registry is **generated state**, not authored shards. `mdcp compile` and `mdcp refs-gen` rebuild it, and `mdcp check` and `mdcp refs-check` verify it still matches the latest compile. [Refs registry path](../../docs/features/refs-registry-path.md) gives the path rules.
 
 <!-- mdcp-shard: end ../../docs/glossary/refs-registry.md -->
 

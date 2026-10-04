@@ -88,4 +88,4 @@ Without `--strict`, `mdcp review` exits 0. Thresholds live under `review` in con
 | `mdcp refs-check` | Verify `refs.json` matches compiled output                                                             |
 | `mdcp refs-list`  | List heading slugs from `refs.json` (`--format json` or `table`; run `mdcp check` or `refs-gen` first) |
 
-Discover shards with host search (`rg`, IDE search). Validate fragment links with `mdcp check`; use `mdcp refs-list` when you need to inspect registry slugs.
+Validate fragment links with `mdcp check`. Use `mdcp refs-list` when you need to inspect registry slugs. [Refs](../glossary/refs.md) explains what refs are for.

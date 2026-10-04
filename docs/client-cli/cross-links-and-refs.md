@@ -1,6 +1,6 @@
 # Cross-links and refs
 
-When writing `` `[link text](#anchor)` `` in a shard, the fragment must match the [heading slug](../glossary/heading-slug.md) in **compiled** output. [Refs](../glossary/refs.md) keep those [cross-links](../glossary/cross-link.md) checkable after stitch — not a doc-search tool.
+When writing `` `[link text](#anchor)` `` in a shard, the fragment must match the [heading slug](../glossary/heading-slug.md) in **compiled** output. [Refs](../glossary/refs.md) keep those [cross-links](../glossary/cross-link.md) checkable after stitch.
 
 ```bash
 mdcp compile --config docs/mdcp.config.json --docs-root docs

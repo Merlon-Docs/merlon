@@ -1662,7 +1662,7 @@ MDCP computes slugs from final heading text after guides are stitched and demote
 
 **Refs** (short for **references**) are the organized set of heading [slugs](#heading-slug) and [cross-links](#cross-link) MDCP derives from compiled guides so authors and CI can keep Markdown links coherent after stitch.
 
-The problem refs solve is structural, not retrieval: shards merge, heading levels shift, and duplicate titles get disambiguated — so a hand-guessed `#anchor` or stale path can break after `compile`. MDCP keeps a [refs registry](#refs-registry) and validates links at `check` time so the **compiled** document still targets the right sections and files.
+The problem refs solve is structural. Stitching shards shifts heading levels and disambiguates duplicate titles, so a hand-guessed `#anchor` or stale path can break after `compile`. MDCP keeps a [refs registry](#refs-registry) and validates links at `check` time so the **compiled** document still targets the right sections and files.
 
 ### Related wording
 
@@ -1671,13 +1671,11 @@ The problem refs solve is structural, not retrieval: shards merge, heading level
 | **refs** (noun)    | The reference system as a whole (slugs + links + registry)                        |
 | **refs registry**  | Derived catalog (`refs.json`) of compiled heading entries                         |
 | **ref** (informal) | One heading entry or one link target under that system                            |
-| **generate refs**  | Rebuild the registry from compiled output (`mdcp refs gen` / compile side effect) |
+| **generate refs**  | Rebuild the registry from compiled output (`mdcp refs-gen` / compile side effect) |
 | **list refs**      | Print registry headings (`mdcp refs-list`)                                        |
-| **check refs**     | Confirm registry matches compiled headings (`mdcp refs check` / via `mdcp check`) |
+| **check refs**     | Confirm registry matches compiled headings (`mdcp refs-check` / via `mdcp check`) |
 
-Doc discovery uses host search (`rg`, IDE search, or a future MCP index). Cross-link correctness uses **`mdcp check`** and optionally **`mdcp refs-list`**. Refs are not a retrieval API — see [ADR 0002](docs/features/adr/0002-remove-refs-lookup.md).
-
-Not the same as ordinary “search the docs.” Refs are about **correct anchors and paths after compile**.
+Refs check links. They do not find documents. To find a shard, use host search (`rg`, IDE search) or the guide `index.md`, then read that one shard. To check links, run `mdcp check`. To see the registry's slugs, run `mdcp refs-list`. [ADR 0002](docs/features/adr/0002-remove-refs-lookup.md) records why MDCP has no lookup command.
 
 <!-- mdcp-shard: end docs/glossary/refs.md -->
 
@@ -1687,7 +1685,7 @@ Not the same as ordinary “search the docs.” Refs are about **correct anchors
 
 Derived catalog of [heading slugs](#heading-slug) from compile output, typically written as `refs.json` under `outputDir`. It holds the [monolith](#monolith)'s headings when the config sets top-level `outputFile`, and otherwise the headings of every [compiled guide](#compiled-guide). Parent concept: [refs](#refs).
 
-The registry is **generated state**, not authored shards. `mdcp compile` (and `mdcp refs gen`) rebuild it; `mdcp check` / `mdcp refs check` verify it still matches the latest compile. Path rules: [Refs registry path](docs/features/refs-registry-path.md).
+The registry is **generated state**, not authored shards. `mdcp compile` and `mdcp refs-gen` rebuild it, and `mdcp check` and `mdcp refs-check` verify it still matches the latest compile. [Refs registry path](docs/features/refs-registry-path.md) gives the path rules.
 
 <!-- mdcp-shard: end docs/glossary/refs-registry.md -->
 

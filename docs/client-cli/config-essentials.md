@@ -142,7 +142,7 @@ Defaults: `outputDir` `_build`, per-guide outputs `overview.md` and `admin-guide
 | `guides`             | Per-guide options (hooks, manifests, publish paths)                  |
 | `outputDir`          | Generated output root (relative to `--docs-root`)                    |
 | `outputFile`         | Optional stitched monolith (relative to `outputDir`)                 |
-| `refs.registryFile`  | Cross-link lookup table (default `.caches/refs.json`)                |
+| `refs.registryFile`  | Refs registry file (default `.caches/refs.json`)                     |
 | `sourceTags`         | Wrap shards in HTML comments with relative paths (default `true`)    |
 | `banner`             | Global banner prepended to outputs (has default warning text)        |
 | `compile.outputFile` | Override per-guide output path (relative to `outputDir` or absolute) |

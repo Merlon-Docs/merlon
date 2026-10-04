@@ -2,7 +2,7 @@
 
 ## End-user value
 
-When you organize compiled outputs in subdirectories (`compile.outputFile: "compiled/guide-a.md"`), `mdcp compile` still keeps the refs registry at the documented cache path under `outputDir`. You can run `mdcp refs-list` right after compile when writing cross-links — no manual move and no extra `mdcp refs gen` step.
+When you organize compiled outputs in subdirectories (`compile.outputFile: "compiled/guide-a.md"`), `mdcp compile` still keeps the refs registry at the documented cache path under `outputDir`. You can run `mdcp refs-list` right after compile when writing cross-links, without moving the file or running `mdcp refs-gen` first.
 
 ## Path layout
 
@@ -31,4 +31,4 @@ mdcp check --config docs/mdcp.config.json --docs-root docs
 mdcp refs-list --config docs/mdcp.config.json --docs-root docs
 ```
 
-Discover shards with host search (`rg`, IDE search). `mdcp check` validates cross-link fragments against compiled slugs; `mdcp refs-list` reads the registry file that `compile` just wrote.
+`mdcp check` validates cross-link fragments against compiled slugs. `mdcp refs-list` reads the registry file that `compile` just wrote.
