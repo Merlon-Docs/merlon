@@ -19,20 +19,6 @@ Config: [`docs/mdcp.config.json`](../mdcp.config.json). Guides with `compile.out
 
 Publish landing style for root README: [Personas and priority tiers](../features/personas-and-priority-tiers.md#publish-landing-style).
 
-### Agent Skill dogfood
-
-Agent guidance for this repo lives under [`skills/`](../../skills/) (source of
-truth). After editing skill files, refresh the vendor-managed dogfood installs:
-
-```bash
-pnpm skill:update
-```
-
-Do **not** hand-edit `.agents/skills/` — see
-[Agent Skill development](./agent-skill.md#do-not-hand-edit-agentsskills).
-(`pnpm skill:install` is an alias of `skill:update`.)
-Manual invoke: `/mdcp`.
-
 Shard `../` links rebase automatically at compile in every guide. Compile resolves each link from its shard file to an absolute path, then emits a path relative to the guide's [link base](../client-core/compile-hooks/publish-relative-links.md#when-it-runs). For a guide with `compile.outputFile` the link base is that file, such as `DEVELOPERS.md` or a package README. For `features` it is the monolith `docs/_build/guides.md`. You don't need per-guide path-prefix config.
 
 Repo scripts use `--config docs/mdcp.config.json --docs-root docs`: the config path is resolved from the **repo root** (invocation directory), while `--docs-root docs` sets the shard tree root. See [Config essentials — `--config` vs `--docs-root`](../client-cli/config-essentials.md#--config-vs---docs-root).

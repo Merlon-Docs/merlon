@@ -6,18 +6,18 @@ MDCP ships as one portable **documentation system** Agent Skill so projects inhe
 
 Packaging MDCP as an Agent Skill gives:
 
-- **Lower friction** — zero-install in the repo, or `npx skills add`
-- **Host interoperability** — Cursor, Copilot, Claude Code, VS Code, and CLI hosts
-- **Simpler maintenance** — markdown skill directories agents load from the repo
-- **Composition** — one skill with task workflows inside it (catalog: [Skill workflows](./protocol/skill-workflows.md); hardened boundaries per workflow under `protocol/workflows/`); archetype skills are WIP
-- **Reviewable instructions** — vendored in your agent's skills directory and committed with the project
+- **Lower friction**, with zero-install in the repo or `npx skills add`
+- **Host interoperability** across Cursor, Copilot, Claude Code, VS Code, and CLI hosts
+- **Simpler maintenance**, because agents load markdown skill directories from the repo
+- **Composition** in one skill with task workflows inside it ([Skill workflows](./protocol/skill-workflows.md) lists them, and `protocol/workflows/` sets each workflow's boundaries)
+- **Reviewable instructions**, vendored in your agent's skills directory and committed with the project
 
 ## The skill and complementary skills
 
 **Upstream source** (this repository, publishable):
 
-- [`skills/mdcp/`](../../skills/mdcp/) — the documentation system skill and its workflows (the supported consumer install)
-- `skills/mdcp-arch-*/` — archetype skills (**WIP**, not ready for consumer install); the list is in [Extensions and archetypes](./protocol/extensions-and-archetypes.md)
+- [`skills/mdcp/`](../../skills/mdcp/) holds the documentation system skill and its workflows, the supported consumer install.
+- `skills/mdcp-arch-*/` holds the internal archetype skills that [Extensions and archetypes](./protocol/extensions-and-archetypes.md) lists. [Publishing the skill pack](../developer/agent-skill.md#publishing-the-skill-pack) says when one is released.
 
 **Consumer install target** after `npx skills add`: the **agent-specific** skills directory the [`skills` CLI](https://www.skills.sh/docs/cli) chooses (`--agent` or auto-detect) — vendored into your repo. Per-agent paths: [Supported Agents](https://github.com/vercel-labs/skills#supported-agents).
 
@@ -26,7 +26,7 @@ Packaging MDCP as an Agent Skill gives:
 - **Format:** `SKILL.md` per the [Agent Skills](https://agentskills.io) open standard (progressive disclosure: lean activation body; depth in `references/` and `scripts/`).
 - **Upstream path:** [`skills/mdcp/SKILL.md`](../../skills/mdcp/SKILL.md).
 - **Install path:** your agent's skills directory after `npx skills add` (not one universal folder — the CLI maps each host to its own tree; see [Supported Agents](https://github.com/vercel-labs/skills#supported-agents)).
-- **Frontmatter:** `license`, `compatibility` (Node.js 18+ / `@bwilliamson/mdcp-cli`), and `metadata.version` (independent per skill; synced from `packages/skill-<id>/` at release). WIP complementary skills also set `metadata.internal: true` so they stay off default skills CLI discovery until ready.
+- **Frontmatter:** `license`, `compatibility` (Node.js 18+ / `@bwilliamson/mdcp-cli`), and `metadata.version` (independent per skill, and synced from `packages/skill-<id>/` at release). Internal skills also set `metadata.internal: true`, and [Publishing the skill pack](../developer/agent-skill.md#publishing-the-skill-pack) says what that flag does.
 
 Skill `scripts/` are thin wrappers into the CLI — see [`skills/mdcp/references/cli-and-scripts.md`](../../skills/mdcp/references/cli-and-scripts.md) for what **compile** (build docs), **check** (validate the tree), and **refs** (cross-link registry) mean.
 
@@ -51,7 +51,7 @@ Then start bootstrap:
 /mdcp help me get started
 ```
 
-Zero-install: copy `skills/mdcp/` from this repository into the skills directory your host discovers ([Supported Agents](https://github.com/vercel-labs/skills#supported-agents)). Do not document complementary archetype install commands until those skills are ready for use.
+Zero-install: copy `skills/mdcp/` from this repository into the skills directory your host discovers ([Supported Agents](https://github.com/vercel-labs/skills#supported-agents)).
 
 Qualitative checks of skill behavior (with vs without the skill) are maintainer workflow — see [Live skill evals](../developer/live-skill-evals.md). The static CI gate is `pnpm skill:validate`.
 
@@ -78,7 +78,7 @@ Primary discovery: [skills.sh](https://skills.sh) via `npx skills`. There is no 
 Landing identity for skills.sh:
 
 - Root [README](../../README.md) includes the [install-count badge](https://www.skills.sh/docs#badge) (`https://skills.sh/b/betsalel-williamson/mdcp`) and `npx skills add` install commands.
-- Repo-root [`skills.sh.json`](../../skills.sh.json) lists `mdcp` in the **Documentation system** group on the [skills.sh repo page](https://www.skills.sh/docs/customize). WIP `mdcp-arch-*` skills stay `metadata.internal` and out of groupings until ready to release.
+- Repo-root [`skills.sh.json`](../../skills.sh.json) lists `mdcp` in the **Documentation system** group on the [skills.sh repo page](https://www.skills.sh/docs/customize).
 
-Maintainer detail (what the file does and does not control, release-ready vs internal
-policy, telemetry refresh): [Agent Skill development — skills.sh.json](../developer/agent-skill.md#skillsshjson-repo-page-layout).
+Maintainer detail: [Publishing the skill pack](../developer/agent-skill.md#publishing-the-skill-pack) says which skills are released, and
+[`skills.sh.json` (repo page layout)](../developer/agent-skill.md#skillsshjson-repo-page-layout) says what that file controls.

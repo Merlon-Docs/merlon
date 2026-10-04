@@ -21,20 +21,22 @@ If you use coding agents with the MDCP skill ([skills index](../../docs/skills.m
 
 ## Daily commands
 
-| Command                  | Purpose                                                                                                                              |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `pnpm build`             | Build all packages (`mdcp-core`, `mdcp-cli`)                                                                                         |
-| `pnpm test`              | Run every package's tests, then the repo script tests under `scripts/`                                                               |
-| `pnpm test:coverage`     | Vitest coverage for `mdcp-core` and `mdcp-cli` (HTML under `packages/*/coverage/`)                                                   |
-| `pnpm run typecheck`     | TypeScript across packages                                                                                                           |
-| `pnpm run lint`          | ESLint on TypeScript sources                                                                                                         |
-| `pnpm run format:check`  | Prettier check                                                                                                                       |
-| `pnpm run check`         | Full gate including skill:validate and docs:check                                                                                    |
-| `pnpm skill:update`      | Refresh vendor-managed dogfood installs under `.agents/skills/` from `skills/` (alias: `skill:install`; do not hand-edit `.agents/`) |
-| `pnpm skill:dev`         | Install this checkout's `mdcp` skill for Claude Code and Cursor without prompts (cloud session setup runs it)                        |
-| `pnpm docs:compile:repo` | Regenerate compiled docs (`guides.md`, `DEVELOPERS.md`, package READMEs)                                                             |
-| `pnpm docs:check`        | Validate repo docs + `examples/sample-guides`                                                                                        |
-| `pnpm formal:check`      | Run the Alloy models under `formal/alloy/` (needs Java 17 or later)                                                                  |
+| Command                  | Purpose                                                                                                       |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `pnpm build`             | Build all packages (`mdcp-core`, `mdcp-cli`)                                                                  |
+| `pnpm test`              | Run every package's tests, then the repo script tests under `scripts/`                                        |
+| `pnpm test:coverage`     | Vitest coverage for `mdcp-core` and `mdcp-cli` (HTML under `packages/*/coverage/`)                            |
+| `pnpm run typecheck`     | TypeScript across packages                                                                                    |
+| `pnpm run lint`          | ESLint on TypeScript sources                                                                                  |
+| `pnpm run format:check`  | Prettier check                                                                                                |
+| `pnpm run check`         | Full gate including skill:validate and docs:check                                                             |
+| `pnpm skill:update`      | Refresh the local skill installs under `.agents/skills/` from `skills/`                                       |
+| `pnpm skill:dev`         | Install this checkout's `mdcp` skill for Claude Code and Cursor without prompts (cloud session setup runs it) |
+| `pnpm docs:compile:repo` | Regenerate compiled docs (`guides.md`, `DEVELOPERS.md`, package READMEs)                                      |
+| `pnpm docs:check`        | Validate repo docs + `examples/sample-guides`                                                                 |
+| `pnpm formal:check`      | Run the Alloy models under `formal/alloy/` (needs Java 17 or later)                                           |
+
+[Agent Skill development](./agent-skill.md#do-not-hand-edit-agentsskills) covers refreshing the skill installs and why nobody hand-edits them.
 
 Optional locally: `brew install gitleaks` (CI always scans).
 
