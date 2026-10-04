@@ -4,7 +4,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, join, relative } from 'node:path';
 import {
   buildGuideLinkIndex,
   buildGuideLinkIndexWithSlugs,
@@ -13,6 +13,7 @@ import { rewriteCrossGuideFileLinks } from '../src/compile/publish-links.js';
 import {
   assembleGuide,
   compileGuideResults,
+  compileGuidesFromResults,
   writeCompiledGuides,
 } from '../src/compile/assemble.js';
 import type { CompileOptionsInput } from '../src/compile/assemble.js';
@@ -946,6 +947,329 @@ describe('section slugs count every earlier heading', () => {
         slug: 'setup',
       });
       expect(x).toContain('[the other setup](y.md#setup)');
+    });
+  });
+});
+
+/** Options for guides under `work`, compiled to `_build` with the monolith at `outputFile`. */
+function monolithOptions(
+  work: string,
+  compileOrder: string[],
+  guides: CompileOptionsInput['guides'] = [],
+  outputFile = 'guides.md',
+): CompileOptionsInput {
+  return {
+    guidesRoot: work,
+    compileOrder,
+    docsRoot: work,
+    config: { outputDir: '_build', outputFile, compileOrder },
+    guides,
+  };
+}
+
+/** The slug buildSlugRegistry gives the first heading after a shard's source tag. */
+function taggedSectionSlug(text: string, tagPath: string): string | undefined {
+  const lines = text.split('\n');
+  const tag = lines.indexOf(`<!-- mdcp-shard: start ${tagPath} -->`);
+  if (tag === -1) return undefined;
+  const headings = buildSlugRegistry(text).headings;
+  return headings.find((h) => h.line > tag + 1)?.slug;
+}
+
+const SETUP_TWICE = {
+  'a/index.md': '# Guide A\n\n- [Setup](./setup.md)\n',
+  'a/setup.md': '# Setup\n\nA setup.\n',
+  'b/index.md': '# Guide B\n\n- [Use](./use.md)\n- [Setup](./setup.md)\n',
+  'b/setup.md': '# Setup\n\nB setup.\n',
+  'b/use.md': '# Use\n\nFirst do [setup](./setup.md).\n',
+};
+
+describe('guides in the monolith', () => {
+  it('links two monolith guides through their compiled guides and through the monolith', () => {
+    withTmpDir('mdcp-monolith-cross-', (work) => {
+      writeTree(work, {
+        'a/index.md': '# Guide A\n\n- [Intro](./intro.md)\n',
+        'a/intro.md': '# Intro\n\nSee [Topic](../b/topic.md).\n',
+        'b/index.md': '# Guide B\n\n- [Topic](./topic.md)\n',
+        'b/topic.md': '# Topic B\n\nBody.\n',
+      });
+      const opts = monolithOptions(work, ['a', 'b']);
+      const results = compileGuideResults(opts);
+      const a = results.find((r) => r.name === 'a')!.text;
+      const monolith = compileGuidesFromResults(results, opts);
+
+      expect(a).toContain('See [Topic](b.md#topic-b).');
+      expect(monolith).toContain('See [Topic](#topic-b).');
+      expect(a).not.toContain('BROKEN LINK');
+      expect(monolith).not.toContain('BROKEN LINK');
+    });
+  });
+
+  it('numbers section slugs across the whole monolith', () => {
+    withTmpDir('mdcp-monolith-collide-', (work) => {
+      writeTree(work, SETUP_TWICE);
+      const opts = monolithOptions(work, ['a', 'b']);
+      const results = compileGuideResults(opts);
+      const b = results.find((r) => r.name === 'b')!;
+      const monolith = compileGuidesFromResults(results, opts);
+
+      // b's own compiled guide has one Setup. In the monolith, guide a's Setup comes first.
+      expect(b.text).toContain('First do [setup](#setup).');
+      expect(headingSlugAt(b.text, '## Setup')).toBe('setup');
+      expect(monolith).toContain('First do [setup](#setup-1).');
+      expect(headingSlugAt(monolith, '### Setup')).toBe('setup-1');
+      expect(b.monolithText).toContain('First do [setup](#setup-1).');
+    });
+  });
+
+  it("gives a publish output the monolith slug of a monolith guide's section", () => {
+    withTmpDir('mdcp-monolith-publish-', (work) => {
+      writeTree(work, {
+        ...SETUP_TWICE,
+        'p/index.md': '# Guide P\n\n- [Links](./links.md)\n',
+        'p/links.md': '# Links\n\nSee [a](../a/setup.md) and [b](../b/setup.md).\n',
+      });
+      const opts = monolithOptions(
+        work,
+        ['a', 'b', 'p'],
+        [{ name: 'p', compile: { outputFile: 'p.md' } }],
+      );
+      const results = compileGuideResults(opts);
+      const p = results.find((r) => r.name === 'p')!;
+
+      expect(p.text).toContain('See [a](guides.md#setup) and [b](guides.md#setup-1).');
+      expect(p.monolithText).toBeUndefined();
+    });
+  });
+
+  it("records each monolith section's compiled guide and monolith slug in the index", () => {
+    withTmpDir('mdcp-monolith-index-', (work) => {
+      writeTree(work, {
+        ...SETUP_TWICE,
+        'p/index.md': '# Guide P\n\n- [Links](./links.md)\n',
+        'p/links.md': '# Links\n\nSee [b](../b/setup.md).\n',
+      });
+      const opts = monolithOptions(
+        work,
+        ['a', 'b', 'p'],
+        [{ name: 'p', compile: { outputFile: 'p.md' } }],
+      );
+      const { index } = buildGuideLinkIndex(opts, work);
+
+      expect(index.get(join(work, 'b', 'setup.md'))).toEqual({
+        guideName: 'b',
+        outputBasename: 'guides.md',
+        outputFile: join(work, '_build', 'guides.md'),
+        guideFile: join(work, '_build', 'b.md'),
+        slug: 'setup',
+        monolithSlug: 'setup-1',
+        canonical: true,
+      });
+      expect(index.get(join(work, 'a', 'setup.md'))).toMatchObject({
+        guideFile: join(work, '_build', 'a.md'),
+        slug: 'setup',
+        monolithSlug: 'setup',
+      });
+      // A publish output stays out of the monolith, so its entries carry neither field.
+      const links = index.get(join(work, 'p', 'links.md'));
+      expect(links).toMatchObject({ outputFile: join(work, '_build', 'p.md'), slug: 'links' });
+      expect(links).not.toHaveProperty('guideFile');
+      expect(links).not.toHaveProperty('monolithSlug');
+    });
+  });
+
+  it('gives every section the slug its heading gets in each compiled output', () => {
+    withTmpDir('mdcp-monolith-invariant-', (work) => {
+      writeTree(work, {
+        'a/index.md': '# Setup\n\n- [Setup](./setup.md)\n- [Overview](./overview.md)\n',
+        'a/setup.md': '# Setup\n\n## Overview\n\nSee [the note](../shared/note.md).\n',
+        'a/overview.md': '# Overview\n\nSee [b](../b/setup.md) and [c](../c/setup.md).\n',
+        'b/index.md':
+          '# Guide B\n\n- [Overview](./overview.md)\n- [Setup](./setup.md)\n- [Finding](./FIND-001.md)\n',
+        'b/overview.md': '# Overview\n\n```bash\n# Setup\n```\n\nSee [a](../a/overview.md).\n',
+        'b/setup.md': '# Setup\n\nSee [the note](../shared/note.md).\n',
+        'b/FIND-001.md': '# Setup\n\nFinding.\n',
+        'c/index.md': '# Guide C\n\n- [Setup](./setup.md)\n- [Guide B](./guide-b.md)\n',
+        'c/setup.md': '# Setup\n\nC.\n',
+        'c/guide-b.md': '# Guide B\n\nSee [b](../b/overview.md).\n',
+        'p/index.md': '# Guide P\n\n- [Setup](./setup.md)\n',
+        'p/setup.md': '# Setup\n\nSee [b](../b/setup.md) and [c](../c/guide-b.md).\n',
+        'shared/note.md': '# Note\n\nShared.\n',
+      });
+      const scoped = (name: string) => ({ name, compile: { scopeRoot: 'shared' } });
+      const opts = monolithOptions(
+        work,
+        ['a', 'b', 'c', 'p'],
+        [scoped('a'), scoped('b'), scoped('c'), { name: 'p', compile: { outputFile: 'p.md' } }],
+        'sub/guides.md',
+      );
+      const results = compileGuideResults(opts);
+      const monolith = compileGuidesFromResults(results, opts);
+      const monolithFile = join(work, '_build', 'sub', 'guides.md');
+      const { index } = buildGuideLinkIndex(opts, work);
+
+      const checked: string[] = [];
+      for (const [path, entry] of index) {
+        const tag = relative(dirname(entry.guideFile ?? entry.outputFile), path);
+        if (/FIND-\d+\.md$/.test(path)) {
+          // A finding keeps its id in both outputs, and its heading still takes a number.
+          expect([entry.slug, entry.monolithSlug]).toEqual(['find-001', 'find-001']);
+          continue;
+        }
+        const owner = results.find((r) => r.name === entry.guideName)!;
+        expect(taggedSectionSlug(owner.text, tag), `${tag} in ${owner.name}`).toBe(entry.slug);
+        if (entry.monolithSlug !== undefined) {
+          const monoTag = relative(dirname(monolithFile), path);
+          expect(taggedSectionSlug(monolith, monoTag), `${monoTag} in the monolith`).toBe(
+            entry.monolithSlug,
+          );
+        }
+        checked.push(`${relative(work, path)}:${entry.slug}:${entry.monolithSlug ?? '-'}`);
+      }
+      expect(checked.sort()).toEqual([
+        'a/overview.md:overview-1:overview-1',
+        'a/setup.md:setup-1:setup-1',
+        'b/overview.md:overview:overview-2',
+        'b/setup.md:setup:setup-2',
+        'c/guide-b.md:guide-b:guide-b-1',
+        'c/setup.md:setup:setup-4',
+        'p/setup.md:setup:-',
+        'shared/note.md:note:note',
+      ]);
+
+      // A compiled guide links the other monolith guides' compiled guides, and the monolith
+      // links its own headings. A publish output links the monolith.
+      const text = (name: string) => results.find((r) => r.name === name)!.text;
+      expect(text('a')).toContain('See [b](b.md#setup) and [c](c.md#setup).');
+      expect(monolith).toContain('See [b](#setup-2) and [c](#setup-4).');
+      expect(text('b')).toContain('See [a](a.md#overview-1).');
+      expect(monolith).toContain('See [a](#overview-1).');
+      expect(text('c')).toContain('See [b](b.md#overview).');
+      expect(monolith).toContain('See [b](#overview-2).');
+      expect(text('p')).toContain(
+        'See [b](./sub/guides.md#setup-2) and [c](./sub/guides.md#guide-b-1).',
+      );
+
+      // Each guide links its own copy of the shared note, as the monolith numbers that copy.
+      const b = results.find((r) => r.name === 'b')!;
+      expect(b.text).toContain('See [the note](#note).');
+      expect(b.monolithText).toContain('See [the note](#note-1).');
+      expect(monolith).not.toContain('BROKEN LINK');
+      for (const r of results) expect(r.text).not.toContain('BROKEN LINK');
+    });
+  });
+
+  it('keeps an explicit fragment as written, even where the monolith numbers it differently', () => {
+    withTmpDir('mdcp-monolith-fragment-', (work) => {
+      writeTree(work, {
+        ...SETUP_TWICE,
+        'b/use.md': '# Use\n\nFirst do [setup](./setup.md#setup).\n',
+      });
+      const opts = monolithOptions(work, ['a', 'b']);
+      const monolith = compileGuidesFromResults(compileGuideResults(opts), opts);
+      // The fragment lands on guide a's Setup in the monolith. Compile never renumbers it.
+      expect(monolith).toContain('First do [setup](#setup).');
+    });
+  });
+
+  it("checks an explicit fragment in the monolith against every guide's headings", () => {
+    withTmpDir('mdcp-monolith-subheading-', (work) => {
+      writeTree(work, {
+        'a/index.md': '# Guide A\n\n- [Setup](./setup.md)\n',
+        'a/setup.md': '# Setup\n\nA setup.\n\n## Details\n\nMore.\n',
+        'b/index.md': '# Guide B\n\n- [Use](./use.md)\n',
+        'b/use.md':
+          '# Use\n\nRead [the details](../a/setup.md#details).\n\nSkip [the rest](../a/setup.md#nope).\n',
+      });
+      const opts = monolithOptions(work, ['a', 'b']);
+      const results = compileGuideResults(opts);
+      const b = results.find((r) => r.name === 'b')!;
+      const monolith = compileGuidesFromResults(results, opts);
+
+      // Guide a's Details sub-heading is in the monolith, so the link stays a link there.
+      expect(b.text).toContain('Read [the details](a.md#details).');
+      expect(monolith).toContain('Read [the details](#details).');
+      expect(b.monolithText).toContain('Read [the details](#details).');
+      // A fragment that names no heading in the monolith is still marked.
+      expect(monolith).toContain(
+        'Skip **BROKEN LINK:** "the rest" (`../a/setup.md#nope`) → `#nope` (dead anchor in compiled guide).',
+      );
+      expect(monolith.match(/BROKEN LINK/g)).toHaveLength(1);
+    });
+  });
+
+  it('gives a section owned outside the monolith copies the slug of its first copy there', () => {
+    withTmpDir('mdcp-monolith-first-copy-', (work) => {
+      writeTree(work, {
+        'a/index.md': '# Guide A\n\n- [Setup](./setup.md)\n',
+        'a/setup.md': '# Setup\n\nA.\n',
+        // Guide a owns extra.md by its path but doesn't stitch it. Guides p and m do.
+        'a/extra.md': '# Extra\n\nExtra steps.\n',
+        'm/index.md': '# Guide M\n\n- [Steps](./steps.md)\n',
+        'm/steps.md': '# Extra\n\nSee [extra](../a/extra.md).\n',
+        'p/index.md': '# Guide P\n\n- [Links](./links.md)\n',
+        'p/links.md': '# Links\n\nSee [extra](../a/extra.md).\n',
+      });
+      const opts = monolithOptions(
+        work,
+        ['p', 'm', 'a'],
+        [
+          { name: 'p', compile: { outputFile: 'p.md', scopeRoot: '.' } },
+          { name: 'm', compile: { scopeRoot: '.' } },
+        ],
+      );
+      const { index } = buildGuideLinkIndex(opts, work);
+      expect(index.get(join(work, 'a', 'extra.md'))).toMatchObject({
+        guideName: 'a',
+        outputFile: join(work, '_build', 'guides.md'),
+        monolithSlug: 'extra-1',
+      });
+
+      // Guide m's own Extra heading comes first in the monolith, so its copy of extra.md is extra-1.
+      const results = compileGuideResults(opts);
+      const monolith = compileGuidesFromResults(results, opts);
+      expect(headingSlugAt(monolith, '## Extra')).toBe('extra');
+      expect(results.find((r) => r.name === 'p')!.text).toContain(
+        'See [extra](guides.md#extra-1).',
+      );
+      // Guide a doesn't stitch extra.md, so m's compiled guide links the copy in the monolith.
+      expect(results.find((r) => r.name === 'm')!.text).toContain(
+        'See [extra](guides.md#extra-1).',
+      );
+      expect(monolith).toContain('See [extra](#extra-1).');
+    });
+  });
+
+  it('gives a section that no monolith copy stitches no monolith slug, so a link takes the slug of its first stitching guide', () => {
+    withTmpDir('mdcp-monolith-no-copy-', (work) => {
+      writeTree(work, {
+        'a/index.md': '# Guide A\n\n- [Setup](./setup.md)\n',
+        'a/setup.md': '# Setup\n\nA.\n',
+        // Guide a owns extra.md by its path but doesn't stitch it. Only publish guide p does.
+        'a/extra.md': '# Extra\n\nExtra steps.\n',
+        'm/index.md': '# Guide M\n\n- [Steps](./steps.md)\n',
+        'm/steps.md': '# Steps\n\nSee [extra](../a/extra.md).\n',
+        'p/index.md': '# Guide P\n\n- [Links](./links.md)\n',
+        'p/links.md': '# Links\n\nSee [extra](../a/extra.md).\n',
+      });
+      const opts = monolithOptions(
+        work,
+        ['p', 'm', 'a'],
+        [{ name: 'p', compile: { outputFile: 'p.md', scopeRoot: '.' } }],
+      );
+      const { index } = buildGuideLinkIndex(opts, work);
+      const entry = index.get(join(work, 'a', 'extra.md'));
+      expect(entry).toMatchObject({
+        guideName: 'a',
+        outputFile: join(work, '_build', 'guides.md'),
+        slug: 'extra',
+      });
+      expect(entry).not.toHaveProperty('monolithSlug');
+      expect(entry).not.toHaveProperty('guideFile');
+
+      const results = compileGuideResults(opts);
+      expect(results.find((r) => r.name === 'm')!.text).toContain('See [extra](guides.md#extra).');
+      expect(compileGuidesFromResults(results, opts)).toContain('See [extra](#extra).');
     });
   });
 });

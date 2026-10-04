@@ -21,15 +21,10 @@ is stitched into it, so a link to a monolith that is never written reports
 
 A check that passed before can now fail. A link to a sibling package README
 with a stale fragment is the likely case. Some failures are in links that
-compile writes itself, so editing shards won't clear them:
-
-- A cross-output link to a `FIND-*` shard or to a heading with a `{#id}`
-  marker. Compile rewrites it to `other.md#find-004` or `other.md#id`, but the
-  heading in that output gets a slug from its text, such as
-  `find-004--example-finding`.
-- A monolith in another directory from the per-guide outputs, such as
-  `"outputFile": "../guides.md"`. Links in per-guide outputs are rebased for
-  the monolith's directory, so they can name files that don't exist.
+compile writes itself, so editing shards won't clear them. A cross-output link
+to a `FIND-*` shard or to a heading with a `{#id}` marker is one. Compile
+rewrites it to `other.md#find-004` or `other.md#id`, but the heading in that
+output gets a slug from its text, such as `find-004--example-finding`.
 
 The `knownOutputBasenames` option is deprecated and ignored.
 `lintCompiledLinks` and `validateCompiledLinkTarget` take `knownOutputPaths`,

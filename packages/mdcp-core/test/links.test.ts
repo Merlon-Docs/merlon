@@ -3,7 +3,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, join, relative } from 'node:path';
 import { extractLinks } from '../src/links/extract.js';
 import { markBrokenLinks, formatBrokenLinkMarker } from '../src/links/mark-broken.js';
 import { validateCompiledLinkTarget } from '../src/links/validate.js';
@@ -11,7 +11,11 @@ import { lintShardLinks, collectShardProvenance } from '../src/links/validate-sh
 import { lintCompiledLinks } from '../src/links/validate-compiled.js';
 import { lintLinks, formatLinkIssue } from '../src/links/lint.js';
 import { buildSlugRegistry } from '../src/refs/slugs.js';
-import { compileGuideResults } from '../src/compile/assemble.js';
+import {
+  compileGuideResults,
+  compileGuidesFromResults,
+  monolithGuideFirstLines,
+} from '../src/compile/assemble.js';
 import { createShardCache, loadShardSnapshot } from '../src/compile/shard-cache.js';
 import { MdcpConfigSchema } from '../src/config/schema.js';
 import { withTmpDir, withCwd } from './helpers/tmp-dir.js';
@@ -80,6 +84,50 @@ describe('markBrokenLinks', () => {
     const md = '[bad](#missing-slug)\n';
     const { markdown } = markBrokenLinks(md, { enabled: false });
     expect(markdown).toBe(md);
+  });
+
+  const provenanceOf = (label: string, originalTarget: string, sourceLine: number) => ({
+    label,
+    originalTarget,
+    sourceFile: '/docs/b/use.md',
+    sourceLine,
+  });
+  const markerOf = (label: string, originalTarget: string, brokenTarget: string) =>
+    `**BROKEN LINK:** "${label}" (\`${originalTarget}\`) → \`${brokenTarget}\` (dead anchor in compiled guide)`;
+
+  // Provenance lists every link of the stitched shards in order, broken or not.
+  it('takes the provenance of the link at the same place among the links with its label', () => {
+    const md = 'See [here](c.md#x).\n\nAlso [here](#nope).\n';
+    const { markdown, issues } = markBrokenLinks(md, {
+      provenance: [provenanceOf('here', '../c/topic.md#x', 3), provenanceOf('here', '#nope', 5)],
+    });
+    expect(markdown).toBe(`See [here](c.md#x).\n\nAlso ${markerOf('here', '#nope', '#nope')}.\n`);
+    expect(issues).toMatchObject([{ line: 3, originalTarget: '#nope', shardLine: 5 }]);
+  });
+
+  it('marks each of two links with the same text with its own provenance', () => {
+    const md = 'First [x](#nope).\n\nThen [x](#nope).\n';
+    const { markdown, issues } = markBrokenLinks(md, {
+      provenance: [provenanceOf('x', '../a/setup.md#nope', 3), provenanceOf('x', '#nope', 5)],
+    });
+    expect(markdown).toBe(
+      `First ${markerOf('x', '../a/setup.md#nope', '#nope')}.\n\nThen ${markerOf('x', '#nope', '#nope')}.\n`,
+    );
+    expect(issues.map((i) => [i.line, i.originalTarget, i.shardLine])).toEqual(
+      expect.arrayContaining([
+        [1, '../a/setup.md#nope', 3],
+        [3, '#nope', 5],
+      ]),
+    );
+  });
+
+  it('marks a broken link where it is, not where its text first appears', () => {
+    const md = 'Write `[x](#nope)` for a link.\n\nSee [x](#nope).\n';
+    const { markdown, issues } = markBrokenLinks(md);
+    expect(markdown).toBe(
+      `Write \`[x](#nope)\` for a link.\n\nSee ${markerOf('x', '#nope', '#nope')}.\n`,
+    );
+    expect(issues.map((i) => i.line)).toEqual([3]);
   });
 });
 
@@ -636,6 +684,233 @@ describe('lintLinks', () => {
       });
       expect(issues.map((i) => `${i.kind} ${i.originalTarget}`)).toEqual([
         'dead anchor ../_build/guides.md#nope',
+      ]);
+    });
+  });
+
+  /**
+   * Guides a and b in the monolith, where b's use.md holds `useBody` and a's setup.md holds
+   * `setupBody`. The docs root also holds a package.json for `../` paths to point at.
+   */
+  function lintMonolithPair(
+    work: string,
+    useBody: string,
+    { outputFile = 'guides.md', setupBody = 'Text.' } = {},
+  ) {
+    const docsRoot = join(work, 'docs');
+    mkdirSync(join(docsRoot, 'a'), { recursive: true });
+    mkdirSync(join(docsRoot, 'b'), { recursive: true });
+    writeFileSync(join(docsRoot, 'package.json'), '{}\n');
+    writeFileSync(join(docsRoot, 'a', 'index.md'), '# Guide A\n\n- [Setup](./setup.md)\n');
+    writeFileSync(join(docsRoot, 'a', 'setup.md'), `# Setup\n\n${setupBody}\n`);
+    writeFileSync(join(docsRoot, 'b', 'index.md'), '# Guide B\n\n- [Use](./use.md)\n');
+    writeFileSync(join(docsRoot, 'b', 'use.md'), `# Use\n\n${useBody}\n`);
+
+    const configInput = { outputFile, compileOrder: ['a', 'b'] };
+    const compileOptions = {
+      guidesRoot: docsRoot,
+      compileOrder: configInput.compileOrder,
+      docsRoot,
+      banner: '<!-- generated -->\n\n',
+      config: configInput,
+    };
+    const results = compileGuideResults(compileOptions);
+    const issues = lintLinks({
+      config: MdcpConfigSchema.parse(configInput),
+      docsRoot,
+      results,
+      compileOptions,
+    });
+    return {
+      docsRoot,
+      issues,
+      results,
+      monolith: compileGuidesFromResults(results, compileOptions),
+    };
+  }
+
+  it('reports a BROKEN LINK marker that only the monolith holds', () => {
+    withTmpDir('mdcp-lint-monolith-marker-', (work) => {
+      // b.md links a.md#nope, which lint checks. The monolith links #nope, which compile marks.
+      const { docsRoot, issues, monolith } = lintMonolithPair(
+        work,
+        'Skip [the rest](../a/setup.md#nope).',
+      );
+      expect(issues.map((i) => `${relative(docsRoot, i.file)} ${i.kind} ${i.guideName}`)).toEqual([
+        '_build/b.md dead anchor b',
+        '_build/guides.md dead anchor undefined',
+      ]);
+      // The line counts the banner, as the written monolith does.
+      const marker = issues[1];
+      expect(monolith.split('\n')[marker.line - 1]).toBe(marker.brokenTarget);
+      expect(marker.brokenTarget).toBe(
+        'Skip **BROKEN LINK:** "the rest" (`../a/setup.md#nope`) → `#nope` (dead anchor in compiled guide).',
+      );
+    });
+  });
+
+  // The marker reads the same in both files. The rest of its line can differ, because each file
+  // rebases paths and cross-guide links relative to itself.
+  it.each([
+    ['nothing else on the line', 'guides.md', 'Skip ', 'Skip ', 'Skip '],
+    [
+      'a link to another guide',
+      'guides.md',
+      'See [setup](../a/setup.md) and skip ',
+      'See [setup](a.md#setup) and skip ',
+      'See [setup](#setup) and skip ',
+    ],
+    [
+      'a ../ path and the monolith in sub/',
+      'sub/guides.md',
+      'See [pkg](../package.json) and skip ',
+      'See [pkg](../package.json) and skip ',
+      'See [pkg](../../package.json) and skip ',
+    ],
+  ])(
+    'reports a marker that a compiled guide and the monolith both hold once, with %s',
+    (_case, outputFile, lead, guideLead, monolithLead) => {
+      withTmpDir('mdcp-lint-monolith-marker-once-', (work) => {
+        const { docsRoot, issues, results, monolith } = lintMonolithPair(
+          work,
+          `${lead}[the rest](#nope).`,
+          { outputFile },
+        );
+        const marked =
+          '**BROKEN LINK:** "the rest" (`#nope`) → `#nope` (dead anchor in compiled guide).';
+        expect(results[1].text.split('\n')).toContain(`${guideLead}${marked}`);
+        expect(monolith.split('\n')).toContain(`${monolithLead}${marked}`);
+        expect(issues.map((i) => `${relative(docsRoot, i.file)} ${i.kind} ${i.guideName}`)).toEqual(
+          ['_build/b.md dead anchor b'],
+        );
+      });
+    },
+  );
+
+  // Both guides hold the line. The guide that owns the target marks it in its compiled guide and
+  // in its copy in the monolith. The other guide's compiled guide links the owner's compiled guide,
+  // which lint checks, and only its copy in the monolith marks it. So the monolith holds the same
+  // marker twice, on the same text, and lint reports the copy whose compiled guide has no marker.
+  it.each([
+    ['a', '../a/setup.md#nope', 'second'],
+    ['b', '../b/use.md#nope', 'first'],
+  ])(
+    "matches each monolith copy's markers against its own guide's compiled guide (%s owns the target)",
+    (_owner, target, reportedCopy) => {
+      withTmpDir('mdcp-lint-monolith-marker-per-guide-', (work) => {
+        const line = `Skip [the rest](${target}).`;
+        const { docsRoot, issues, monolith } = lintMonolithPair(work, line, { setupBody: line });
+        expect(issues.map((i) => `${relative(docsRoot, i.file)} ${i.kind} ${i.guideName}`)).toEqual(
+          [
+            '_build/a.md dead anchor a',
+            '_build/b.md dead anchor b',
+            '_build/guides.md dead anchor undefined',
+          ],
+        );
+        const lines = monolith.split('\n');
+        const marked = `Skip **BROKEN LINK:** "the rest" (\`${target}\`) → \`#nope\` (dead anchor in compiled guide).`;
+        const first = lines.indexOf(marked) + 1;
+        const second = lines.lastIndexOf(marked) + 1;
+        expect(first).toBeGreaterThan(0);
+        expect(first).toBeLessThan(second);
+        expect(issues[2].line).toBe(reportedCopy === 'first' ? first : second);
+      });
+    },
+  );
+
+  // Both links have the same label. b.md links a.md#nope for the first, which lint checks, and
+  // marks the second. The monolith marks both. Each marker names the target its own link was
+  // written with, so only the first link's marker is missing from b.md.
+  it('reports the monolith marker of the link that only the monolith marks, among links with one label', () => {
+    withTmpDir('mdcp-lint-monolith-marker-same-label-', (work) => {
+      const { docsRoot, issues, results, monolith } = lintMonolithPair(
+        work,
+        'First see [x](../a/setup.md#nope).\n\nThen see [x](#nope).',
+      );
+      const marker = (target: string) =>
+        `**BROKEN LINK:** "x" (\`${target}\`) → \`#nope\` (dead anchor in compiled guide).`;
+      expect(results[1].text).toContain(`First see [x](a.md#nope).\n\nThen see ${marker('#nope')}`);
+      expect(monolith).toContain(
+        `First see ${marker('../a/setup.md#nope')}\n\nThen see ${marker('#nope')}`,
+      );
+      expect(issues.map((i) => `${relative(docsRoot, i.file)} ${i.kind}`)).toEqual([
+        '_build/b.md dead anchor',
+        '_build/b.md dead anchor',
+        '_build/guides.md dead anchor',
+      ]);
+      expect(monolith.split('\n')[issues[2].line - 1]).toBe(
+        `First see ${marker('../a/setup.md#nope')}`,
+      );
+    });
+  });
+
+  /** Guides named `names` in the monolith, each stitching one topic.md with `topicBody(name)`. */
+  function compileMonolithGuides(
+    work: string,
+    names: string[],
+    topicBody: (name: string) => string,
+    configExtra: Record<string, unknown> = {},
+  ) {
+    const docsRoot = join(work, 'docs');
+    for (const name of names) {
+      mkdirSync(join(docsRoot, name), { recursive: true });
+      const title = `Guide ${name.toUpperCase()}`;
+      writeFileSync(join(docsRoot, name, 'index.md'), `# ${title}\n\n- [Topic](./topic.md)\n`);
+      writeFileSync(join(docsRoot, name, 'topic.md'), `# Topic\n\n${topicBody(name)}\n`);
+    }
+    const configInput = { outputFile: 'guides.md', compileOrder: names, ...configExtra };
+    const compileOptions = {
+      guidesRoot: docsRoot,
+      compileOrder: names,
+      docsRoot,
+      banner: '<!-- generated -->\n\n',
+      config: configInput,
+    };
+    const results = compileGuideResults(compileOptions);
+    const issues = lintLinks({
+      config: MdcpConfigSchema.parse(configInput),
+      docsRoot,
+      results,
+      compileOptions,
+    });
+    const monolith = compileGuidesFromResults(results, compileOptions);
+    return { docsRoot, results, issues, monolith, compileOptions };
+  }
+
+  // Every copy after the first is demoted, and demoting adds a blank line at the end of a copy.
+  it('gives the line of the monolith on which each copy starts, for every copy', () => {
+    withTmpDir('mdcp-monolith-first-lines-', (work) => {
+      const names = ['a', 'b', 'c', 'd'];
+      const { results, monolith, compileOptions } = compileMonolithGuides(
+        work,
+        names,
+        () => 'Text.',
+      );
+      const lines = monolith.split('\n');
+      const copies = monolithGuideFirstLines(results, compileOptions);
+      expect(copies.map((c) => c.name)).toEqual(names);
+      expect(copies.map((c) => lines[c.firstLine - 1])).toEqual([
+        '# Guide A',
+        '## Guide B',
+        '## Guide C',
+        '## Guide D',
+      ]);
+    });
+  });
+
+  // Without source tags, a copy's text ends on its last paragraph. Guide d's marker is on that
+  // line, which belongs to d's copy, not to the copy of e after it.
+  it("matches a marker on a copy's last line against that copy's guide", () => {
+    withTmpDir('mdcp-lint-monolith-marker-last-line-', (work) => {
+      const { docsRoot, issues, monolith } = compileMonolithGuides(
+        work,
+        ['a', 'b', 'c', 'd', 'e'],
+        (name) => (name === 'd' ? 'Skip [x](#nope).' : 'Text.'),
+        { sourceTags: false },
+      );
+      expect(monolith).toContain('Skip **BROKEN LINK:** "x"');
+      expect(issues.map((i) => `${relative(docsRoot, i.file)} ${i.kind} ${i.guideName}`)).toEqual([
+        '_build/d.md dead anchor d',
       ]);
     });
   });

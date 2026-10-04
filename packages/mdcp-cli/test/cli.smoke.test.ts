@@ -1222,6 +1222,88 @@ describe('cli smoke', () => {
       rmSync(docs, { recursive: true, force: true });
     }
   });
+  it('compiles and checks two monolith guides whose monolith sits in a subdirectory', () => {
+    const docs = mkdtempSync(join(tmpdir(), 'mdcp-monolith-guides-'));
+    try {
+      const files: Record<string, string> = {
+        'package.json': '{}\n',
+        'a/index.md': '# Guide A\n\n- [One](./one.md)\n',
+        'a/one.md': '# One\n\nSee [pkg](../package.json) and [Topic](../b/topic.md).\n',
+        'b/index.md': '# Guide B\n\n- [Topic](./topic.md)\n',
+        'b/topic.md': '# Topic B\n\nBody.\n',
+        'c/index.md': '# Guide C\n\n- [See](./see.md)\n',
+        'c/see.md': '# See\n\nRead [Topic](../b/topic.md).\n',
+      };
+      for (const [rel, text] of Object.entries(files)) {
+        mkdirSync(dirname(join(docs, rel)), { recursive: true });
+        writeFileSync(join(docs, rel), text);
+      }
+      writeFileSync(
+        join(docs, 'mdcp.config.json'),
+        JSON.stringify({
+          outputDir: '_build',
+          outputFile: 'sub/guides.md',
+          compileOrder: ['a', 'b', 'c'],
+          guides: [{ name: 'c', compile: { outputFile: 'c-out.md' } }],
+          refs: { registryFile: 'refs.json' },
+        }),
+      );
+
+      const compiled = runIn(docs, ['compile']);
+      expect(compiled.output).not.toMatch(/link:/);
+      expect(compiled.status).toBe(0);
+
+      const own = readFileSync(join(docs, '_build', 'a.md'), 'utf-8');
+      expect(own).toContain('See [pkg](../package.json) and [Topic](b.md#topic-b).');
+      const monolith = readFileSync(join(docs, '_build', 'sub', 'guides.md'), 'utf-8');
+      expect(monolith).toContain('See [pkg](../../package.json) and [Topic](#topic-b).');
+      const publish = readFileSync(join(docs, '_build', 'c-out.md'), 'utf-8');
+      expect(publish).toContain('Read [Topic](./sub/guides.md#topic-b).');
+
+      const checked = runIn(docs, ['check', '--skip-vale']);
+      expect(checked.output).toMatch(/mdcp check passed/);
+      expect(checked.status).toBe(0);
+    } finally {
+      rmSync(docs, { recursive: true, force: true });
+    }
+  });
+
+  it("keeps a link to another monolith guide's sub-heading live in the monolith", () => {
+    const docs = mkdtempSync(join(tmpdir(), 'mdcp-monolith-subheading-'));
+    try {
+      const files: Record<string, string> = {
+        'a/index.md': '# Guide A\n\n- [Setup](./setup.md)\n',
+        'a/setup.md': '# Setup\n\nA setup.\n\n## Details\n\nMore.\n',
+        'b/index.md': '# Guide B\n\n- [Use](./use.md)\n',
+        'b/use.md': '# Use\n\nRead [the details](../a/setup.md#details).\n',
+      };
+      for (const [rel, text] of Object.entries(files)) {
+        mkdirSync(dirname(join(docs, rel)), { recursive: true });
+        writeFileSync(join(docs, rel), text);
+      }
+      writeFileSync(
+        join(docs, 'mdcp.config.json'),
+        JSON.stringify({ outputFile: 'guides.md', compileOrder: ['a', 'b'] }),
+      );
+
+      const compiled = runIn(docs, ['compile']);
+      expect(compiled.output).not.toMatch(/link:/);
+      expect(compiled.status).toBe(0);
+
+      const own = readFileSync(join(docs, '_build', 'b.md'), 'utf-8');
+      expect(own).toContain('Read [the details](a.md#details).');
+      const monolith = readFileSync(join(docs, '_build', 'guides.md'), 'utf-8');
+      expect(monolith).toContain('Read [the details](#details).');
+      expect(monolith).not.toContain('BROKEN LINK');
+
+      const checked = runIn(docs, ['check', '--skip-vale']);
+      expect(checked.output).toMatch(/mdcp check passed/);
+      expect(checked.status).toBe(0);
+    } finally {
+      rmSync(docs, { recursive: true, force: true });
+    }
+  });
+
   it('applies the presets README path section to the absolute paths mdcp passes Vale', () => {
     if (!valeInstalled()) return;
 

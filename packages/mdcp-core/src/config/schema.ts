@@ -52,7 +52,7 @@ const GuideSchema = z.object({
       /** Cross-guide link rewrite options (assembly-time; not a compile hook). */
       crossGuideLinks: z
         .object({
-          /** Target guide names: links from this guide to shards of a listed guide keep source `.md` paths instead of `#slug` targets in the file that holds the target guide (the monolith when the target guide is part of it, otherwise its compiled guide). */
+          /** Target guide names: links from this guide to shards of a listed guide keep source `.md` paths instead of `#slug` targets in the target guide's compiled guide or in the monolith. */
           ignoreGuides: z.array(z.string()).optional(),
         })
         .optional(),

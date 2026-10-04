@@ -46,7 +46,12 @@ export function effectiveGuideOutputFile(
   return compile?.outputFile ?? defaultGuideOutputFile(guideName, compileOrderLength);
 }
 
-/** Absolute path to the rendered document readers open (per-guide output or monolith). */
+/**
+ * Absolute path to the output a publish output links to for this guide: its `compile.outputFile`,
+ * else the monolith when the config has one, else its default compiled guide. Despite its name, this
+ * isn't the link base the docs define, which is the file being assembled. Compile rebases each
+ * document on its own path, so a monolith guide's own compiled guide is not rebased on this one.
+ */
 export function resolveGuideLinkBase(
   config: { outputDir?: string; outputFile?: string },
   docsRoot: string,

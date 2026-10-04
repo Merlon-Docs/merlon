@@ -1,4 +1,5 @@
 import { resolve, basename } from 'node:path';
+import GithubSlugger from 'github-slugger';
 import { createShardCache, guideSectionSlugs, type ShardCache } from './shard-cache.js';
 import {
   sectionFiles,
@@ -12,9 +13,27 @@ import type { CompileOptions } from './assemble.js';
 export interface GuideLinkEntry {
   guideName: string;
   outputBasename: string;
-  /** Absolute path to the guide's compiled output file. */
+  /**
+   * Absolute path to the output that links from other outputs target: the owner's publish output
+   * or default compiled guide, or the monolith when the owner is stitched into it.
+   */
   outputFile: string;
+  /**
+   * Absolute path to the owner's own compiled guide. Set only when the owner is stitched into the
+   * monolith and stitches this shard. Another monolith guide's compiled guide links here.
+   */
+  guideFile?: string;
+  /**
+   * The slug of the shard's section heading in the owner's own compiled guide. When the owner
+   * doesn't stitch the shard, the slug it gets in the first guide in `compileOrder` that does.
+   */
   slug: string;
+  /**
+   * The slug of the shard's section heading in the monolith, which numbers every heading of every
+   * guide it stitches. The owner's copy comes first, then the first copy in `compileOrder`. Set
+   * only when the owner is stitched into the monolith and some copy there stitches the shard.
+   */
+  monolithSlug?: string;
   /**
    * True when ownership comes from a manifest listing or a path under the owner's
    * guideDir. False for shards only pulled in via transitive `scopeRoot` links —
@@ -43,6 +62,12 @@ export interface GuideLinkIndexWithSlugs extends BuildGuideLinkIndexResult {
    * shard or a first-heading `{#id}` keeps its declared id.
    */
   slugsByGuide: Map<string, Map<string, string>>;
+  /**
+   * The same map for each guide stitched into the monolith, numbered as the monolith numbers it:
+   * one slugger runs through the guides in `compileOrder`, so a guide continues the numbering of
+   * the guides before it. Empty when the config has no top-level `outputFile`.
+   */
+  monolithSlugsByGuide: Map<string, Map<string, string>>;
 }
 
 function resolveGuideDir(
@@ -106,7 +131,7 @@ function outputFileForGuide(
     (config?.outputFile !== undefined
       ? config.outputFile
       : defaultGuideOutputFile(guideName, compileOrderLength));
-  return resolveUnderOutputDir(cwd, config?.outputDir ?? '_build', rel);
+  return resolve(resolveUnderOutputDir(cwd, config?.outputDir ?? '_build', rel));
 }
 
 function sectionOptionsForGuide(
@@ -137,6 +162,21 @@ function getLinkedSectionFiles(
   const files = linkedSectionFiles(guideDir, sectionOpts);
   memo.set(key, files);
   return files;
+}
+
+/**
+ * The monolith slug of a shard's first copy in the monolith: the copy of the first guide in
+ * `compileOrder` that stitches it. `monolithSlugsByGuide` holds the guides in that order.
+ */
+function firstMonolithCopySlug(
+  monolithSlugsByGuide: Map<string, Map<string, string>>,
+  absPath: string,
+): string | undefined {
+  for (const slugs of monolithSlugsByGuide.values()) {
+    const slug = slugs.get(absPath);
+    if (slug !== undefined) return slug;
+  }
+  return undefined;
 }
 
 /** Build a cross-guide link index from every guide in compileOrder. */
@@ -196,6 +236,26 @@ export function buildGuideLinkIndexWithSlugs(
     slugsByGuide.set(name, guideSectionSlugs(guideDir, files, shardCache, compile));
   }
 
+  // The monolith stitches every guide without compile.outputFile, so one slugger numbers them all.
+  const monolithSlugsByGuide = new Map<string, Map<string, string>>();
+  if (options.config?.outputFile !== undefined) {
+    const slugger = new GithubSlugger();
+    for (const name of options.compileOrder) {
+      const compile = guideConfigMap.get(name)?.compile;
+      if (compile?.outputFile) continue;
+      monolithSlugsByGuide.set(
+        name,
+        guideSectionSlugs(
+          guideDirs.get(name)!,
+          filesByGuide.get(name)!,
+          shardCache,
+          compile,
+          slugger,
+        ),
+      );
+    }
+  }
+
   for (const name of options.compileOrder) {
     const files = filesByGuide.get(name)!;
     const slugByPath = slugsByGuide.get(name)!;
@@ -239,16 +299,34 @@ export function buildGuideLinkIndexWithSlugs(
         options.compileOrder.length,
         cwd,
       );
-      index.set(absPath, {
+      const entry: GuideLinkEntry = {
         guideName: owner,
         outputBasename: basename(outputFile),
         outputFile,
         slug,
         canonical:
           ownerPriority(absPath, owner, manifestOwners, guideDirs, options.compileOrder) >= 2,
-      });
+      };
+      if (monolithSlugsByGuide.has(owner)) {
+        // The owner is in the monolith. Its own compiled guide holds the section only when the
+        // owner stitches the shard, and the monolith numbers the copy it stitches.
+        if (slugsByGuide.get(owner)?.has(absPath)) {
+          entry.guideFile = resolve(
+            resolveUnderOutputDir(
+              cwd,
+              options.config?.outputDir ?? '_build',
+              defaultGuideOutputFile(owner, options.compileOrder.length),
+            ),
+          );
+        }
+        const monolithSlug =
+          monolithSlugsByGuide.get(owner)?.get(absPath) ??
+          firstMonolithCopySlug(monolithSlugsByGuide, absPath);
+        if (monolithSlug !== undefined) entry.monolithSlug = monolithSlug;
+      }
+      index.set(absPath, entry);
     }
   }
 
-  return { index, shardCache, linkedFilesByGuide, slugsByGuide };
+  return { index, shardCache, linkedFilesByGuide, slugsByGuide, monolithSlugsByGuide };
 }

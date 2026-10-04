@@ -1,6 +1,6 @@
 # Built-in link validation
 
-Specification for first-party internal link validation at compile and check. Tests in `packages/mdcp-core/test/links.test.ts`, `packages/mdcp-core/test/cross-guide-links.test.ts`, `packages/mdcp-core/test/source-path-links.test.ts`, and `packages/mdcp-cli/test/cli.smoke.test.ts` map to the sections below (docs first, then TDD).
+Specification for first-party internal link validation at compile and check. Tests in `packages/mdcp-core/test/links.test.ts`, `packages/mdcp-core/test/cross-guide-links.test.ts`, `packages/mdcp-core/test/guide-output-path.test.ts`, `packages/mdcp-core/test/source-path-links.test.ts`, and `packages/mdcp-cli/test/cli.smoke.test.ts` map to the sections below (docs first, then TDD).
 
 ## Link validation purpose
 
@@ -18,6 +18,10 @@ Peer `mdcp links` / `markdown-link-check` remains optional for external URL HTTP
 
 After cross-guide, publish-relative, and intra-guide rewrite passes, compile runs **`markBrokenLinks`** on each assembled guide body.
 
+A guide's copy in the [monolith](../glossary/monolith.md) is marked after every copy is assembled, against the headings of the whole monolith, so a `#fragment` there can point at a heading of any guide the monolith stitches. Link lint reports a line of a guide's copy in the monolith when a marker on it has no match in that guide's compiled guide. It matches markers one for one by their own text, since each file rebases paths and cross-guide links relative to itself and the rest of a marker's line can differ between the two files.
+
+A stale `#fragment` on a link to another guide in the monolith is reported once for each file. The linking guide's compiled guide keeps the link, such as `a.md#nope`, and link lint reports it as a dead anchor there. The monolith turns the same link into `#nope`, which compile marks, and link lint reports that marker for the monolith.
+
 Broken links are replaced with visible prose (no clickable dead href):
 
 ```markdown
@@ -30,6 +34,8 @@ Broken links are replaced with visible prose (no clickable dead href):
 | Original target | Shard-relative path as authored                                      |
 | Broken target   | Resolved compile target (`#slug`, `guides.md#slug`, `missing.md`, …) |
 | Reason          | `dead anchor`, `missing file`, `missing publish path`                |
+
+The original target comes from the shard link at the same place among the links with that label, and each marker replaces its own link where it stands. So of two links with one label, each marker gives the target its own link was written with, and a link that a compiled guide and the monolith both mark gets the same marker in both.
 
 Disable markers per guide with `compile.links.markBroken: false`. `lint.links.enabled` can still fail check.
 
@@ -160,6 +166,8 @@ link: docs/client-cli/consumer-migration.md:42: dead anchor "#missing-slug" (slu
 
 - BROKEN LINK marker replaces dead link in compiled output (label, original target, broken target, reason)
 - BROKEN LINK marker for missing `.md` file
+- Of two links with the same label, each BROKEN LINK marker gives the target its own link was written with
+- A BROKEN LINK marker replaces its own link, even when the same text is in an earlier code span
 - No marker when `compile.links.markBroken: false`
 - Shard dead file link at `path:line`
 - Shard dead same-doc `#fragment`
@@ -178,7 +186,18 @@ link: docs/client-cli/consumer-migration.md:42: dead anchor "#missing-slug" (slu
 - Compiled `.md` link that only shares a file name with an output reports `missing publish path` when the file is gone and `dead anchor` for a stale `#fragment`, in publish-only output too
 - Manifest-first guide link index — transitive guide does not overwrite manifest owner; index includes every `linkedSectionFiles` path for the compiling guide
 - Co-compiled transitive targets rewrite before compiled validation (same-output `#slug` / `#fragment`)
-- Cross-guide publish link rewrites to `guides.md#slug`, not same-doc `#slug`
+- Cross-guide publish link rewrites to `guides.md#slug`, not same-doc `#slug`, with the slug the monolith gives the section
+- A link to a shard under a monolith guide's directory that the guide doesn't stitch takes the slug of the shard's first copy in the monolith
+- A link between two guides in the monolith targets the other guide's compiled guide from the linking guide's compiled guide, and an in-document `#slug` in the monolith, with no BROKEN LINK marker in either
+- A link whose `#fragment` points at a sub-heading of another guide in the monolith doesn't compile to a BROKEN LINK marker in either document
+- Link lint reports a BROKEN LINK marker that appears only in the monolith
+- A stale `#fragment` on a link to another guide in the monolith is reported for the linking guide's compiled guide and for the monolith
+- A BROKEN LINK marker that appears in both a compiled guide and the monolith is reported once, for the compiled guide, even when the rest of its line differs between the two files
+- Link lint matches a marker in the monolith only against the compiled guide of the guide whose copy holds it
+- Link lint finds the guide's copy that holds a line of the monolith for the third guide there and every guide after it
+- Of two links with the same label in a guide's copy, link lint reports the monolith marker of the link that only the monolith marks
+- A section link in the monolith points at its section heading when an earlier guide in the monolith has a heading with the same title
+- A guide in the monolith rebases paths and source tags in its compiled guide relative to that file, and in the monolith relative to the monolith, wherever the monolith is
 - `mdcp check` / `mdcp compile` exit **1** on broken links by default
 - `--warn-broken-links` exits **0** with `link-warn:` diagnostics
 - Config parses link validation defaults

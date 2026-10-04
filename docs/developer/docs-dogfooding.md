@@ -20,7 +20,7 @@ Config: [`docs/mdcp.config.json`](../mdcp.config.json). Guides with `compile.out
 
 Publish landing style for root README: [Personas and priority tiers](../features/personas-and-priority-tiers.md#publish-landing-style).
 
-Compile rebases each shard's `../` links to its guide's [link base](../client-core/compile-hooks/publish-relative-links.md#when-it-runs): the publish output above, or the monolith for `features`. Repo scripts pass `--config docs/mdcp.config.json --docs-root docs`, and [Config essentials](../client-cli/config-essentials.md#--config-vs---docs-root) says how each option resolves.
+Compile rebases each shard's `../` links relative to the file being assembled, the guide's [link base](../client-core/compile-hooks/publish-relative-links.md#when-it-runs). A publish guide's link base is its output in the table above. `features` is assembled twice: its compiled guide rebases relative to `docs/_build/features.md`, and its copy in the monolith relative to `docs/_build/guides.md`. Repo scripts pass `--config docs/mdcp.config.json --docs-root docs`, and [Config essentials](../client-cli/config-essentials.md#--config-vs---docs-root) says how each option resolves.
 
 ## Edit workflow
 

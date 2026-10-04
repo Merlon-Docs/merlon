@@ -84,6 +84,12 @@ export interface SectionSlugContext {
    * line is then numbered by the title it renders, marker included.
    */
   keepAnchorMarkers?: boolean;
+  /**
+   * A slugger that has already numbered the headings before this guide's lead heading. The
+   * monolith passes one slugger through every guide it stitches, so each guide continues the
+   * numbering of the guides before it. Without one, numbering starts fresh.
+   */
+  slugger?: GithubSlugger;
 }
 
 function readSection(
@@ -113,7 +119,7 @@ export function assignSectionSlugs(
 ): Map<string, string> {
   const keepAnchorMarkers = context.keepAnchorMarkers === true;
   const readHeading = createHeadingReader({ keepAnchorMarkers });
-  const slugger = new GithubSlugger();
+  const slugger = context.slugger ?? new GithubSlugger();
   const numberHeading = (line: string): string | null => {
     const heading = readHeading(line);
     return heading ? slugger.slug(headingTitlePlain(heading.title, { keepAnchorMarkers })) : null;
@@ -150,13 +156,15 @@ export function assignSectionSlugs(
 
 /**
  * Section slugs for one guide, with the lead heading its manifest and `compile.title` give it, and
- * with `{#id}` markers read as title text when its compile config keeps them.
+ * with `{#id}` markers read as title text when its compile config keeps them. Pass `slugger` to
+ * continue a numbering that earlier guides started, as the monolith does.
  */
 export function guideSectionSlugs(
   guideDir: string,
   sectionPaths: string[],
   cache: ShardCache,
   compile?: NonNullable<GuideConfigInput['compile']>,
+  slugger?: GithubSlugger,
 ): Map<string, string> {
   const indexText = readFileSync(join(guideDir, compile?.manifest ?? 'index.md'), 'utf-8');
   return assignSectionSlugs(
@@ -167,6 +175,7 @@ export function guideSectionSlugs(
       heading: guideLeadHeading(indexText, compile?.title),
       title: compile?.title,
       keepAnchorMarkers: keepsAnchorMarkers(compile?.stripAnchors, resolveCompileHooks(compile)),
+      slugger,
     },
   );
 }

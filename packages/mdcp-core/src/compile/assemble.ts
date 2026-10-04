@@ -19,14 +19,11 @@ import {
 } from './section-manifest.js';
 import { guideSectionSlugs, loadShardSnapshot, type ShardCache } from './shard-cache.js';
 import type { GuideConfig, GuideConfigInput, MdcpConfigInput } from '../config/schema.js';
-import {
-  resolveGuideLinkBase,
-  resolveUnderOutputDir,
-  effectiveGuideOutputFile,
-} from '../config/load.js';
+import { resolveUnderOutputDir, effectiveGuideOutputFile } from '../config/load.js';
 import { resolveCompileHooks } from '../config/resolve-compile-hooks.js';
 import { writeOutputFile, type WriteOutputBackupOptions } from './write-output.js';
 import { markBrokenLinks } from '../links/mark-broken.js';
+import { buildSlugRegistry } from '../refs/slugs.js';
 import type { LinkProvenance } from '../links/mark-broken.js';
 
 export { sectionFiles, linkedSectionFiles, type SectionFilesOptions } from './section-manifest.js';
@@ -65,6 +62,11 @@ export interface AssembleGuideOptions {
   outputFile?: string;
   /** When set, rewrite shard-relative file links for this publish output path. */
   publishOutputFile?: string;
+  /**
+   * Absolute path to the monolith, set only when this guide is stitched into it. Assembly for the
+   * guide's own compiled guide then links other monolith guides through their compiled guides.
+   */
+  monolithFile?: string;
   config?: MdcpConfigInput;
   linkIndex?: GuideLinkIndex;
   /** Guide names whose cross-guide shard links keep source `.md` paths. */
@@ -80,7 +82,45 @@ export interface AssembleGuideOptions {
   sourceTags?: boolean;
 }
 
+/** A guide assembled up to broken-link marking. */
+interface AssembledGuide {
+  markdown: string;
+  provenance: LinkProvenance[];
+  /** Slugs a `#fragment` may name besides the headings of `markdown`, such as FIND-* ids. */
+  knownSlugs: Set<string>;
+}
+
+/**
+ * Mark broken links in an assembled guide. `documentSlugs` adds the headings of the whole document
+ * the guide is stitched into, such as the monolith.
+ */
+function markAssembledGuide(
+  guide: AssembledGuide,
+  guideName: string,
+  options: AssembleGuideOptions,
+  documentSlugs?: Iterable<string>,
+): string {
+  const knownSlugs = new Set(guide.knownSlugs);
+  for (const slug of documentSlugs ?? []) knownSlugs.add(slug);
+  return markBrokenLinks(guide.markdown, {
+    outputFile: options.outputFile,
+    provenance: guide.provenance,
+    enabled: options.markBroken !== false,
+    guideName,
+    compiledOutputPath: options.outputFile,
+    knownSlugs,
+  }).markdown;
+}
+
 export function assembleGuide(guideDir: string, options: AssembleGuideOptions = {}): string {
+  return markAssembledGuide(
+    assembleGuideUnmarked(guideDir, options),
+    options.guideName ?? basename(guideDir),
+    options,
+  );
+}
+
+function assembleGuideUnmarked(guideDir: string, options: AssembleGuideOptions): AssembledGuide {
   const guideName = basename(guideDir);
   const manifestName = options.manifest ?? 'index.md';
   const indexPath = join(guideDir, manifestName);
@@ -157,6 +197,7 @@ export function assembleGuide(guideDir: string, options: AssembleGuideOptions = 
         currentGuideName: options.guideName ?? guideName,
         currentOutputBasename: options.outputBasename,
         currentOutputFile: options.outputFile,
+        monolithFile: options.monolithFile,
         linkIndex: options.linkIndex,
         slugByPath,
         ignoreGuides: options.ignoreGuides,
@@ -200,27 +241,30 @@ export function assembleGuide(guideDir: string, options: AssembleGuideOptions = 
   const assemblingGuide = options.guideName ?? guideName;
   if (options.linkIndex && assemblingGuide) {
     for (const entry of options.linkIndex.values()) {
-      if (entry.guideName === assemblingGuide) {
+      if (options.outputFile !== undefined && entry.outputFile === options.outputFile) {
+        // A section of this output, the monolith included, which numbers every guide it holds.
+        intraSlugs.add(entry.monolithSlug ?? entry.slug);
+      } else if (entry.guideName === assemblingGuide) {
         intraSlugs.add(entry.slug);
       }
     }
   }
-  const marked = markBrokenLinks(compiled, {
-    outputFile: options.outputFile,
-    provenance,
-    enabled: options.markBroken !== false,
-    guideName: options.guideName ?? guideName,
-    compiledOutputPath: options.outputFile,
-    knownSlugs: intraSlugs,
-  });
-  compiled = marked.markdown;
-
-  return compiled;
+  return { markdown: compiled, provenance, knownSlugs: intraSlugs };
 }
 
 export interface CompileGuideResult {
   name: string;
+  /**
+   * The guide's own compiled guide, as written to `outputFile`: links and source tags are
+   * relative to that file, and section slugs number this guide's headings only.
+   */
   text: string;
+  /**
+   * The guide as the monolith holds it, before the monolith demotes it: links and source tags are
+   * relative to the monolith, and section slugs continue the numbering of the guides before it.
+   * Set only for a guide stitched into the monolith. `compileGuidesFromResults` stitches these.
+   */
+  monolithText?: string;
   outputFile: string;
   /** True when `compile.outputFile` was set explicitly (excluded from optional monolith). */
   publishOnly: boolean;
@@ -263,19 +307,29 @@ export function compileGuideResultsWithContext(
   const guideConfigMap = new Map((options.guides ?? []).map((g) => [g.name, g]));
   const docsRoot = resolve(options.docsRoot ?? process.cwd());
   const orderLen = options.compileOrder.length;
+  const outputDir = options.config?.outputDir ?? '_build';
+  const monolithFile =
+    options.config?.outputFile !== undefined
+      ? resolve(resolveUnderOutputDir(docsRoot, outputDir, options.config.outputFile))
+      : undefined;
   const {
     index: linkIndex,
     shardCache,
     linkedFilesByGuide,
     slugsByGuide,
+    monolithSlugsByGuide,
   } = buildGuideLinkIndexWithSlugs(options, docsRoot);
-  const results = options.compileOrder.map((name) => {
+  // Each guide's copy in the monolith, assembled but not yet marked for broken links.
+  const monolithCopies = new Map<
+    string,
+    { guide: AssembledGuide; options: AssembleGuideOptions }
+  >();
+  const results: CompileGuideResult[] = options.compileOrder.map((name) => {
     const cfg = guideConfigMap.get(name) as GuideConfig | undefined;
     const guideDir = resolveGuideDir(name, options.guidesRoot, cfg, docsRoot);
     const compile = cfg?.compile;
     const outputFile = effectiveGuideOutputFile(name, compile, orderLen);
     const publishOnly = Boolean(compile?.outputFile);
-    const outputBasename = basename(outputFile);
     const preambleSection = compile?.preambleSection ?? 'about-this-guide.md';
     const sectionOpts: SectionFilesOptions = {
       manifest: compile?.manifest,
@@ -288,12 +342,16 @@ export function compileGuideResultsWithContext(
     const linkedFiles = linkedFilesByGuide.get(linkedKey)!;
     const slugByPath =
       slugsByGuide.get(name) ?? guideSectionSlugs(guideDir, linkedFiles, shardCache, compile);
+    const monolithSlugs = monolithSlugsByGuide.get(name);
+    const inMonolith = monolithFile !== undefined && monolithSlugs !== undefined;
 
-    const linkBase = resolve(
-      resolveGuideLinkBase(options.config ?? {}, docsRoot, name, orderLen, compile),
-    );
-
-    const text = assembleGuide(guideDir, {
+    // Each document a guide is written to gets its own assembly, since links, source tags and
+    // section slugs depend on where that document sits. The guide's own compiled guide comes
+    // first. A guide in the monolith is then assembled again for the monolith.
+    const assembleOptions = (
+      documentFile: string,
+      sectionSlugs: Map<string, string>,
+    ): AssembleGuideOptions => ({
       manifest: compile?.manifest,
       scopeRoot: compile?.scopeRoot ? resolve(docsRoot, compile.scopeRoot) : undefined,
       sectionsHeading: compile?.sectionsHeading,
@@ -301,30 +359,52 @@ export function compileGuideResultsWithContext(
       title: compile?.title,
       hooks: resolveCompileHooks(compile),
       stripAnchors: compile?.stripAnchors,
-      outputBasename,
-      outputFile: linkBase,
-      publishOutputFile: linkBase,
+      outputBasename: basename(documentFile),
+      outputFile: documentFile,
+      publishOutputFile: documentFile,
+      monolithFile: inMonolith ? monolithFile : undefined,
       config: options.config,
       linkIndex,
       ignoreGuides: compile?.crossGuideLinks?.ignoreGuides,
       markBroken: compile?.links?.markBroken,
       guideName: name,
       shardCache,
-      slugByPath,
+      slugByPath: sectionSlugs,
       linkedFiles,
       sourceTags: compile?.sourceTags ?? options.config?.sourceTags ?? true,
     });
 
+    const guideFile = resolve(resolveUnderOutputDir(docsRoot, outputDir, outputFile));
+    const text = assembleGuide(guideDir, assembleOptions(guideFile, slugByPath));
+    if (inMonolith) {
+      const copyOptions = assembleOptions(monolithFile, monolithSlugs);
+      monolithCopies.set(name, {
+        guide: assembleGuideUnmarked(guideDir, copyOptions),
+        options: copyOptions,
+      });
+    }
+
     const includeBanner = compile?.includeBanner ?? true;
 
-    return {
-      name,
-      text,
-      outputFile,
-      publishOnly,
-      includeBanner,
-    };
+    return { name, text, outputFile, publishOnly, includeBanner };
   });
+
+  if (monolithCopies.size > 0) {
+    // A `#fragment` in the monolith may name a heading of any guide the monolith stitches, so
+    // the copies are marked against the headings of the whole monolith once they are all stitched.
+    for (const r of results) {
+      const copy = monolithCopies.get(r.name);
+      if (copy) r.monolithText = copy.guide.markdown;
+    }
+    const monolithHeadingSlugs = buildSlugRegistry(
+      applyMonolithBanner(options, results),
+    ).headings.map((h) => h.slug);
+    for (const r of results) {
+      const copy = monolithCopies.get(r.name);
+      if (copy)
+        r.monolithText = markAssembledGuide(copy.guide, r.name, copy.options, monolithHeadingSlugs);
+    }
+  }
 
   return { results, linkIndex, shardCache, linkedFilesByGuide };
 }
@@ -337,16 +417,37 @@ function monolithResults(results: CompileGuideResult[]): CompileGuideResult[] {
   return results.filter((r) => !r.publishOnly);
 }
 
-function buildMonolithBody(results: CompileGuideResult[]): string {
-  const monolith = monolithResults(results);
-  if (monolith.length === 0) return '';
+/** Each guide's copy as the monolith holds it, in stitch order: every copy after the first is demoted. */
+function monolithCopyTexts(results: CompileGuideResult[]): { name: string; text: string }[] {
+  return monolithResults(results).map((r, i) => {
+    const guideText = r.monolithText ?? r.text;
+    return { name: r.name, text: i === 0 ? guideText : demoteHeadings(guideText, 1) };
+  });
+}
 
-  const parts: string[] = [];
-  for (let i = 0; i < monolith.length; i++) {
-    const text = i === 0 ? monolith[i].text : demoteHeadings(monolith[i].text, 1);
-    parts.push(text, '\n');
-  }
-  return parts.join('');
+function buildMonolithBody(results: CompileGuideResult[]): string {
+  return monolithCopyTexts(results)
+    .map(({ text }) => `${text}\n`)
+    .join('');
+}
+
+/**
+ * The line of the monolith on which each guide's copy starts, 1-based and in stitch order, as
+ * `compileGuidesFromResults` stitches it. Each count takes the copy as the monolith holds it,
+ * demoted after the first, then the newline that follows it. Demoting keeps each line of a copy,
+ * and it adds a blank line at the end of a copy that ends with a newline.
+ */
+export function monolithGuideFirstLines(
+  results: CompileGuideResult[],
+  options: CompileOptions,
+): { name: string; firstLine: number }[] {
+  const lineBreaks = (text: string) => text.split('\n').length - 1;
+  let line = 1 + (options.banner ? lineBreaks(options.banner) : 0);
+  return monolithCopyTexts(results).map(({ name, text }) => {
+    const firstLine = line;
+    line += lineBreaks(text) + 1;
+    return { name, firstLine };
+  });
 }
 
 function applyMonolithBanner(options: CompileOptions, results: CompileGuideResult[]): string {

@@ -7,7 +7,7 @@ Hooks assemble [authored GFM](../../glossary/authored-gfm.md). They don't do var
 ## Architecture
 
 ```text
-assembleGuide (per guide)
+assembleGuide (per guide, once for each document it is written to)
   │
   ├─ for each manifest shard (in order)
   │    ├─ processSection (demote headings, strip about-this-guide)
@@ -20,7 +20,7 @@ assembleGuide (per guide)
 
 **Guide link index**: built once per `compileGuideResults` from every guide in `compileOrder` (manifest sections plus transitively linked shards). Used by the automatic cross-guide pass. Optional `compile.crossGuideLinks.ignoreGuides` on the compiling guide skips the rewrite for links to listed guides. See [Cross-guide link rewriting](./cross-guide-links.md).
 
-**Per-guide hook state**: mutable `hookState` on `CompileHookContext` (such as `inlineInserts` counters and first-anchor map) shared across shard invocations within one guide compile.
+**Per-assembly hook state**: mutable `hookState` on `CompileHookContext` (such as `inlineInserts` counters and first-anchor map) shared across shard invocations within one assembly. A guide in the [monolith](../../glossary/monolith.md) is assembled twice, once for its compiled guide and once for the monolith. So every hook it runs, a registered custom hook included, sees each shard twice, with fresh `hookState` each time. A hook with side effects beyond its return value repeats them.
 
 **Path resolution**: hooks and assembly passes resolve relative paths from `dirname(sourceFile)` first, then `guideDir` and then `compile.scopeRoot`. Every guide rebases remaining `../` file links per shard via absolute-path resolution, relative to the guide's [link base](./publish-relative-links.md#when-it-runs). Cross-guide and `codeEvidence` use the same resolve-then-rebase model for their link classes.
 

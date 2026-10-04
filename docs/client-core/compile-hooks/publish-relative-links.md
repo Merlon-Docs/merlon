@@ -2,7 +2,7 @@
 
 <!-- mdcp-paths: illustrative -->
 
-Specification for assembly-time rebasing of shard-relative file links to each guide's [link base](#when-it-runs). Tests in `packages/mdcp-core/test/publish-links.test.ts` and `packages/mdcp-core/test/links.test.ts` map to the sections below.
+Specification for assembly-time rebasing of shard-relative file links to each guide's [link base](#when-it-runs). Tests in `packages/mdcp-core/test/publish-links.test.ts`, `packages/mdcp-core/test/links.test.ts` and `packages/mdcp-core/test/guide-output-path.test.ts` map to the sections below.
 
 ## Why this pass exists
 
@@ -25,15 +25,14 @@ Rebasing doesn't need path-prefix config. The geometry comes from `sourceFile` a
 
 ## When it runs
 
-A guide's **link base** is the file its paths rebase relative to:
+A guide's **link base** is the file being assembled, and the guide's paths rebase relative to it. Compile assembles a guide for the files in this table:
 
-| Condition                                       | Link base                                                                                                    |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| Guide has `compile.outputFile` set              | That publish output                                                                                          |
-| Optional monolith (`outputFile` at config root) | The monolith, for guides that it holds                                                                       |
-| Neither                                         | The guide's default output under `outputDir` (`{name}.md`, or `guide.md` when the config has only one guide) |
+| File being assembled       | Path                                                                                                                                   | Guides it holds                          |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| The guide's compiled guide | `compile.outputFile` when set (a publish output), otherwise `{name}.md` under `outputDir`, or `guide.md` when the config has one guide | Every guide                              |
+| The optional monolith      | Top-level `outputFile` under `outputDir`                                                                                               | Every guide without `compile.outputFile` |
 
-A guide in the monolith also writes its own [compiled guide](../../glossary/compiled-guide.md) with the same monolith-relative paths. Those paths resolve in that copy only when the monolith is in the same directory. Otherwise link validation reports them as broken links (`missing file` or `missing publish path`).
+So a guide in the monolith is assembled twice. Its own [compiled guide](../../glossary/compiled-guide.md) rebases each path relative to the compiled guide, and its copy in the monolith rebases each path relative to the monolith. Both copies resolve, whichever directory the monolith is in. Source tags and code evidence links follow the same rule. [Cross-guide resolution](./cross-guide-links.md#cross-guide-resolution) says where each copy's links to other guides point.
 
 The pass runs per shard for every guide, after cross-guide rewrite. It is named for [publish outputs](../../glossary/publish-output.md), but it rebases links in every compiled guide and in the monolith.
 
@@ -80,7 +79,7 @@ relative(dirname(publishOutputFile), resolvedAbsolute) + optional #fragment
 
 An empty relative path means the target is the directory that contains the link base, and the pass writes `./` for it. That covers a `../`-only target and a named one, such as `../../pkg/` from `docs/pkg/` compiled into `pkg/README.md`.
 
-`publishOutputFile` is the absolute path `resolveGuideLinkBase` returns for the guide, which follows the table in [When it runs](#when-it-runs).
+`publishOutputFile` is the absolute path of the file being assembled (see [When it runs](#when-it-runs)).
 
 ## Publish-relative exclusions
 

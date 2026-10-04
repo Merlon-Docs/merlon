@@ -7,6 +7,8 @@ export interface ExtractedLink {
   line: number;
   /** Full markdown link match for replacement. */
   match: string;
+  /** Offset of `match` in the markdown, counted in UTF-16 code units from 0. */
+  offset: number;
 }
 
 /** Mask inline code spans so link regex does not match example syntax inside backticks. */
@@ -42,9 +44,12 @@ export function extractLinks(markdown: string): ExtractedLink[] {
   const links: ExtractedLink[] = [];
   const lines = markdown.split('\n');
   let inFence = false;
+  let lineStart = 0;
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    const lineOffset = lineStart;
+    lineStart += line.length + 1;
     const stripped = line.trim();
     if (stripped.startsWith('```')) {
       inFence = !inFence;
@@ -61,6 +66,7 @@ export function extractLinks(markdown: string): ExtractedLink[] {
         target,
         line: i + 1,
         match: m[0],
+        offset: lineOffset + m.index,
       });
     }
   }

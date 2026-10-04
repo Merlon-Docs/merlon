@@ -1,6 +1,7 @@
 import { dirname, resolve } from 'node:path';
-import type { CompileGuideResult } from '../compile/assemble.js';
-import { compileGuidesFromResults } from '../compile/assemble.js';
+import type { CompileGuideResult, CompileOptions } from '../compile/assemble.js';
+import { compileGuidesFromResults, monolithGuideFirstLines } from '../compile/assemble.js';
+import { getLocalePack } from '../locale/index.js';
 import type { MdcpConfig } from '../config/schema.js';
 import { getGuideConfig, resolveGuideDir, resolveUnderOutputDir } from '../config/load.js';
 import { sectionFiles } from '../compile/section-manifest.js';
@@ -8,7 +9,7 @@ import { buildGuideLinkIndex, type GuideLinkIndex } from '../compile/guide-link-
 import { buildSlugRegistry } from '../refs/slugs.js';
 import type { RefsRegistry } from '../refs/slugs.js';
 import type { ShardCache } from '../compile/shard-cache.js';
-import { lintCompiledLinks } from './validate-compiled.js';
+import { lintBrokenLinkMarkers, lintCompiledLinks } from './validate-compiled.js';
 import { lintShardLinks } from './validate-shards.js';
 import { resolveStandaloneGuides } from '../validate/coverage.js';
 import { fileExtensionSet } from '../compile/hooks/path-resolve.js';
@@ -29,7 +30,7 @@ export interface LintLinksOptions {
   results: CompileGuideResult[];
   /** When set, also lint shard sources. */
   lintShards?: boolean;
-  compileOptions?: import('../compile/assemble.js').CompileOptions;
+  compileOptions?: CompileOptions;
   linkIndex?: GuideLinkIndex;
   shardCache?: ShardCache;
   /**
@@ -125,8 +126,9 @@ export function lintLinks(options: LintLinksOptions): LinkIssue[] {
     const outPath = resolve(resolveUnderOutputDir(absDocsRoot, outputDir, r.outputFile));
     slugRegistryCache.set(outPath, buildSlugRegistry(r.text));
   }
+  let monolithText: string | undefined;
   if (monolithPath !== undefined && options.compileOptions) {
-    const monolithText = compileGuidesFromResults(results, options.compileOptions);
+    monolithText = compileGuidesFromResults(results, options.compileOptions);
     slugRegistryCache.set(monolithPath, buildSlugRegistry(monolithText));
   }
 
@@ -200,5 +202,59 @@ export function lintLinks(options: LintLinksOptions): LinkIssue[] {
     );
   }
 
+  if (monolithPath !== undefined && monolithText !== undefined && options.compileOptions) {
+    issues.push(
+      ...lintMonolithOnlyMarkers(results, monolithText, monolithPath, options.compileOptions),
+    );
+  }
+
+  return issues;
+}
+
+/**
+ * Compile marks each guide's copy in the monolith against the whole monolith, so the monolith can
+ * hold a marker that no compiled guide holds. Each marker in a copy is matched, one for one, to a
+ * marker of the same text in that guide's compiled guide. A monolith line is reported when a
+ * marker on it has no match. The rest of the line doesn't count, because each file rebases paths
+ * and cross-guide links relative to itself.
+ */
+function lintMonolithOnlyMarkers(
+  results: CompileGuideResult[],
+  monolithText: string,
+  monolithPath: string,
+  compileOptions: CompileOptions,
+): LinkIssue[] {
+  const locale = getLocalePack();
+  const markersOf = (line: string): string[] => {
+    const found = locale.brokenLinks.findMarkers?.(line) ?? [];
+    return found.length > 0 ? found : [line.trim()];
+  };
+  const byName = new Map(results.map((r) => [r.name, r]));
+  // Each copy's unmatched markers from its compiled guide, keyed by marker text, with counts.
+  const copies = monolithGuideFirstLines(results, compileOptions).map(({ name, firstLine }) => {
+    const unmatched = new Map<string, number>();
+    for (const issue of lintBrokenLinkMarkers(byName.get(name)?.text ?? '', monolithPath)) {
+      for (const marker of markersOf(issue.brokenTarget)) {
+        unmatched.set(marker, (unmatched.get(marker) ?? 0) + 1);
+      }
+    }
+    return { firstLine, unmatched };
+  });
+
+  const issues: LinkIssue[] = [];
+  let copyIndex = -1;
+  for (const issue of lintBrokenLinkMarkers(monolithText, monolithPath)) {
+    while (copyIndex + 1 < copies.length && copies[copyIndex + 1].firstLine <= issue.line) {
+      copyIndex++;
+    }
+    const unmatched = copies[copyIndex]?.unmatched;
+    let reported = false;
+    for (const marker of markersOf(issue.brokenTarget)) {
+      const left = unmatched?.get(marker) ?? 0;
+      if (left > 0) unmatched?.set(marker, left - 1);
+      else reported = true;
+    }
+    if (reported) issues.push(issue);
+  }
   return issues;
 }

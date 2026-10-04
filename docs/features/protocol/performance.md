@@ -52,6 +52,8 @@ The benchmark measures the lint time and writes the ms/link row. It records the 
 
 For the last two rows the benchmark writes a fixed 1, so only unit tests can catch a regression there. [`shard-cache.test.ts`](../../../packages/mdcp-core/test/shard-cache.test.ts) fails when a compile reads a shard file more than once, and [`compile-workspace.test.ts`](../../../packages/mdcp-cli/test/compile-workspace.test.ts) fails when one command compiles more than once.
 
+A guide in the [monolith](../../glossary/monolith.md) is assembled once for its compiled guide and once for the monolith, because paths and section slugs differ between the two files. Shard reads stay at one per shard. The second assembly can push ms per shard past the 20% limit in the table above, and the double assembly is an accepted exception to that limit.
+
 ## Related
 
 - [Usage model](./usage-model.md): query preference order and actor obligations

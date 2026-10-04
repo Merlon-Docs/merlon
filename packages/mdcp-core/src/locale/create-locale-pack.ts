@@ -64,6 +64,7 @@ export function createBrokenLinksCopy(messages: LocaleBrokenLinkMessages): Local
   const markerLineRe = templateToLineRegex(messages.markerTemplate, {
     markerLabel: messages.markerLabel,
   });
+  const markerRe = new RegExp(markerLineRe.source, 'gu');
 
   return {
     markerLabel: messages.markerLabel,
@@ -83,6 +84,10 @@ export function createBrokenLinksCopy(messages: LocaleBrokenLinkMessages): Local
 
     lineHasMarker(line: string): boolean {
       return markerLineRe.test(line);
+    },
+
+    findMarkers(line: string): string[] {
+      return Array.from(line.matchAll(markerRe), (match) => match[0]);
     },
   };
 }

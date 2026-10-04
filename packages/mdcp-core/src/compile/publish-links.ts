@@ -79,7 +79,7 @@ export interface PublishRelativeLinkRewriteOptions {
   guideDir: string;
   scopeRoot?: string;
   currentGuideName?: string;
-  /** Absolute path to the guide's link base (see resolveGuideLinkBase). */
+  /** Absolute path to the document being assembled: the guide's compiled guide or the monolith. */
   currentOutputFile: string;
   linkIndex?: GuideLinkIndex;
   searchRoots?: string[];
@@ -123,7 +123,7 @@ function skipPublishRelativeRewrite(
   return entry?.guideName === options.currentGuideName;
 }
 
-/** Rewrite shard-relative file links to paths relative to the guide's link base (its compile.outputFile, the monolith, or its default output). */
+/** Rewrite shard-relative file links to paths relative to the document being assembled (a compiled guide or the monolith). */
 export function rewritePublishRelativeLinks(
   markdown: string,
   options: PublishRelativeLinkRewriteOptions,
@@ -196,6 +196,12 @@ export interface CrossGuideLinkRewriteOptions {
   currentOutputBasename?: string;
   /** Absolute path to the guide output being assembled. */
   currentOutputFile?: string;
+  /**
+   * Absolute path to the monolith, set only when the guide being assembled is stitched into it.
+   * While such a guide assembles its own compiled guide, a link to another monolith guide's shard
+   * targets that guide's compiled guide (`GuideLinkEntry.guideFile`) instead of the monolith.
+   */
+  monolithFile?: string;
   linkIndex: GuideLinkIndex;
   /**
    * Slugs for shards co-compiled into the current output. When a link resolves to a
@@ -203,16 +209,15 @@ export interface CrossGuideLinkRewriteOptions {
    * attributes the shard to another guide (multi-guide transitive co-inclusion).
    */
   slugByPath?: Map<string, string>;
-  /** Target guide names: links from the compiling guide to shards of a listed guide keep source `.md` paths instead of `#slug` targets in the file that holds the target guide (the monolith when the target guide is part of it, otherwise its compiled guide). */
+  /** Target guide names: links from the compiling guide to shards of a listed guide keep source `.md` paths instead of `#slug` targets in the target guide's compiled guide or in the monolith. */
   ignoreGuides?: string[];
   searchRoots?: string[];
 }
 
 function resolveIndexedMarkdownLink(
   file: string,
-  fragment: string | undefined,
   options: CrossGuideLinkRewriteOptions,
-): { entry: GuideLinkEntry; anchor: string } | null {
+): GuideLinkEntry | null {
   const shardDir = dirname(options.sourceFile);
   const searchRoots = [
     ...(options.searchRoots ?? defaultSearchRoots()),
@@ -232,28 +237,36 @@ function resolveIndexedMarkdownLink(
     sameOutputSlug !== undefined &&
     (!entry || entry.guideName === options.currentGuideName || entry.canonical === false);
   if (preferSameOutput) {
-    const anchor = fragment ? fragment.slice(1) : sameOutputSlug;
     return {
-      entry: {
-        guideName: options.currentGuideName ?? '',
-        outputBasename: options.currentOutputBasename ?? '',
-        outputFile: options.currentOutputFile ?? '',
-        slug: sameOutputSlug,
-        canonical: false,
-      },
-      anchor,
+      guideName: options.currentGuideName ?? '',
+      outputBasename: options.currentOutputBasename ?? '',
+      outputFile: options.currentOutputFile ?? '',
+      slug: sameOutputSlug,
+      canonical: false,
     };
   }
 
-  if (!entry) return null;
+  return entry ?? null;
+}
 
-  const anchor = fragment ? fragment.slice(1) : entry.slug;
-  return { entry, anchor };
+/**
+ * The anchor a link to `entry`'s section gets in the document it lands in. An explicit
+ * `#fragment` stays as written. A section link takes the monolith's numbering when it lands in
+ * the monolith (`entry.outputFile` for a monolith guide's shard), and the owner's own numbering
+ * anywhere else.
+ */
+function sectionAnchor(
+  entry: GuideLinkEntry,
+  fragment: string | undefined,
+  landsInEntryOutput: boolean,
+): string {
+  if (fragment) return fragment.slice(1);
+  return landsInEntryOutput && entry.monolithSlug !== undefined ? entry.monolithSlug : entry.slug;
 }
 
 function formatCrossGuideTarget(
   prefix: string,
-  anchor: string,
+  fragment: string | undefined,
   entry: GuideLinkEntry,
   options: CrossGuideLinkRewriteOptions,
 ): string {
@@ -267,12 +280,20 @@ function formatCrossGuideTarget(
     options.currentOutputFile === undefined;
 
   if (sameGuide || sameOutputFile || sameBasenameLegacy) {
-    return `${prefix}#${anchor})`;
+    return `${prefix}#${sectionAnchor(entry, fragment, sameOutputFile || sameBasenameLegacy)})`;
   }
+
+  // A monolith guide's own compiled guide links another monolith guide's compiled guide.
+  const toGuideFile =
+    options.monolithFile !== undefined &&
+    options.currentOutputFile !== options.monolithFile &&
+    entry.outputFile === options.monolithFile &&
+    entry.guideFile !== undefined;
+  const toFile = toGuideFile ? entry.guideFile! : entry.outputFile;
+  const anchor = sectionAnchor(entry, fragment, !toGuideFile);
 
   if (options.currentOutputFile) {
     const fromDir = dirname(options.currentOutputFile);
-    const toFile = entry.outputFile;
     if (dirname(toFile) === fromDir) {
       return `${prefix}${basename(toFile)}#${anchor})`;
     }
@@ -281,7 +302,7 @@ function formatCrossGuideTarget(
     return `${prefix}${rel}#${anchor})`;
   }
 
-  return `${prefix}${entry.outputBasename}#${anchor})`;
+  return `${prefix}${toGuideFile ? basename(toFile) : entry.outputBasename}#${anchor})`;
 }
 
 /** Rewrite cross-guide `.md` links using the compile-time guide link index. */
@@ -292,13 +313,13 @@ export function rewriteCrossGuideFileLinks(
   return rewriteMarkdownLinkLines(markdown, CROSS_GUIDE_MD_LINK_RE, (originalMatch, m) => {
     const file = m[2];
     const fragment = m[3];
-    const hit = resolveIndexedMarkdownLink(file, fragment, options);
-    if (!hit) return originalMatch;
-    if (options.ignoreGuides?.includes(hit.entry.guideName)) return originalMatch;
+    const entry = resolveIndexedMarkdownLink(file, options);
+    if (!entry) return originalMatch;
+    if (options.ignoreGuides?.includes(entry.guideName)) return originalMatch;
     return formatCrossGuideTarget(
       linkPrefixFromMatch(originalMatch, file),
-      hit.anchor,
-      hit.entry,
+      fragment,
+      entry,
       options,
     );
   });

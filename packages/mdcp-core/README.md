@@ -142,7 +142,7 @@ Optional per-hook settings: `compile.hooksConfig` (`inlineInserts.searchRoots`).
 
 Assembly-time cross-guide link options on the **compiling** guide (not a compile hook):
 
-- **`ignoreGuides`**: `string[]` of guide names. Links from the compiling guide to shards of a listed guide keep source `.md` paths instead of rewriting to `#slug` targets in the file that contains the target guide (the monolith when the target guide is part of it, otherwise its compiled guide)
+- **`ignoreGuides`**: `string[]` of guide names. Links from the compiling guide to shards of a listed guide keep source `.md` paths instead of rewriting to `#slug` targets in the target guide's compiled guide or in the monolith
 
 See [Cross-guide link rewriting](#cross-guide-link-rewriting) and [ignoreGuides](#ignoreguides).
 
@@ -164,7 +164,9 @@ See [Cross-guide link rewriting](#cross-guide-link-rewriting) and [ignoreGuides]
 | `demoteHeadings`, `stripAboutThisGuideHeading`, … | Heading transforms                                      |
 | `registerCompileHook`, `applyCompileHooks`        | Extension hooks (`stripAnchors`, `inlineInserts`, …)    |
 
-When top-level `outputFile` is set, `compileGuides` returns the monolith text, which leaves out guides with `compile.outputFile`. Otherwise it returns every compiled guide joined in the order of `compileOrder`. `writeCompiledGuides` writes each compiled guide to its output path. It also writes the monolith when you pass its path and at least one guide has no `compile.outputFile`.
+`compileGuideResults` returns one result per guide. Its `text` is the guide's compiled guide, with links and source tags relative to that file. A guide in the monolith is assembled a second time for the monolith, and its result stores that copy in `monolithText`, with paths and section slugs as the monolith has them.
+
+When top-level `outputFile` is set, `compileGuides` returns the monolith text, which leaves out guides with `compile.outputFile`. Otherwise it returns every compiled guide joined in the order of `compileOrder`. `compileGuidesFromResults` does the same from results, and it stitches the monolith from each result's `monolithText`. `writeCompiledGuides` writes each compiled guide to its output path. It also writes the monolith when you pass its path and at least one guide has no `compile.outputFile`.
 
 `writeOutputFile` writes compile targets. Default: overwrite. When `backup.enabled` is true, moves an existing file to `{outputDir}/{backupDir}/{docsRoot-relative-key}{ext}` before writing. Pass `backup` on `CompileOptions` or resolve via `resolveBackupOptions(config, cliOverrides)`.
 
@@ -281,7 +283,7 @@ Hooks assemble [authored GFM](#authored-gfm). They don't do variable substitutio
 ### Architecture
 
 ```text
-assembleGuide (per guide)
+assembleGuide (per guide, once for each document it is written to)
   │
   ├─ for each manifest shard (in order)
   │    ├─ processSection (demote headings, strip about-this-guide)
@@ -294,7 +296,7 @@ assembleGuide (per guide)
 
 **Guide link index**: built once per `compileGuideResults` from every guide in `compileOrder` (manifest sections plus transitively linked shards). Used by the automatic cross-guide pass. Optional `compile.crossGuideLinks.ignoreGuides` on the compiling guide skips the rewrite for links to listed guides. See [Cross-guide link rewriting](#cross-guide-link-rewriting).
 
-**Per-guide hook state**: mutable `hookState` on `CompileHookContext` (such as `inlineInserts` counters and first-anchor map) shared across shard invocations within one guide compile.
+**Per-assembly hook state**: mutable `hookState` on `CompileHookContext` (such as `inlineInserts` counters and first-anchor map) shared across shard invocations within one assembly. A guide in the [monolith](#monolith) is assembled twice, once for its compiled guide and once for the monolith. So every hook it runs, a registered custom hook included, sees each shard twice, with fresh `hookState` each time. A hook with side effects beyond its return value repeats them.
 
 **Path resolution**: hooks and assembly passes resolve relative paths from `dirname(sourceFile)` first, then `guideDir` and then `compile.scopeRoot`. Every guide rebases remaining `../` file links per shard via absolute-path resolution, relative to the guide's [link base](#when-it-runs). Cross-guide and `codeEvidence` use the same resolve-then-rebase model for their link classes.
 
@@ -726,7 +728,7 @@ Multi-output consumer repos produce separate compiled guides (such as `glossary.
 
 At compile time, MDCP:
 
-1. Builds a **guide link index** from every guide in `compileOrder`. Each path in that guide's `linkedSectionFiles` (manifest plus transitive inline `.md` links) maps to its compiled `{guideName, outputBasename, slug}`, where the slug is the one the shard's demoted first heading gets in the compiled document, numbered with every earlier heading (see [Cross-guide section slugs](#cross-guide-section-slugs))
+1. Builds a **guide link index** from every guide in `compileOrder`. Each path in that guide's `linkedSectionFiles` (manifest plus transitive inline `.md` links) maps to its compiled `{guideName, outputBasename, outputFile, slug}`, where the slug is the one the shard's demoted first heading gets in the owner's compiled guide, numbered with every earlier heading (see [Cross-guide section slugs](#cross-guide-section-slugs)). When the owner doesn't stitch the shard, the slug comes from the first guide in `compileOrder` that does. When the owner is stitched into the monolith, `outputFile` is the monolith, `monolithSlug` is the slug the heading gets there, and `guideFile` is the owner's compiled guide when the owner stitches the shard. When the owner doesn't stitch it, `monolithSlug` is the slug of the first copy in the monolith that does. When no copy there stitches it, `monolithSlug` is unset, and a link to the shard takes the entry's `slug`
 2. Rewrites **cross-guide** `.md` links per shard (using the shard path for relative resolution) before sections are stitched
 3. Rewrites **publish-relative** `../` file links per shard, relative to the guide's [link base](#when-it-runs)
 4. Rewrites **same-guide** section links per shard (intra-guide pass with `sourceFile`), then again on the assembled body (intra-guide pass scoped to `guideDir`)
@@ -808,6 +810,8 @@ A `FIND-*.md` shard keeps its finding id, and a first heading with a `{#id}` mar
 
 The slugger reads each title without its markers, since compile strips them from heading lines by default. When `compile.stripAnchors` is `false` and the `stripAnchors` hook doesn't run, the compiled headings keep their markers, and the slugger numbers each heading line by the title it renders, marker included. So `Setup {#custom}` takes `setup-custom`, and a later `Setup` section keeps `#setup`. The refs registry still reads titles without markers. Its slugs for those headings can differ from the rendered anchors.
 
+The [monolith](#monolith) runs one slugger through every guide it stitches, in `compileOrder`. Each guide starts with its lead heading and continues the numbering of the guides before it. So a section can take `#setup-1` in the monolith and `#setup` in its guide's compiled guide, when an earlier guide in the monolith also has a Setup heading. Compile assembles a guide in the monolith twice, once for each document, and each copy links its sections with that document's slugs.
+
 The guide link index takes a shard's slug from its owner's numbering when the owner stitches the shard. [Transitive section discovery](#transitive-section-discovery) defines the owner. When a link goes to the owner's output, it points at the heading as that output numbers it, even when the linking guide also stitches the shard. A guide that stitches a shard owned only through the transitive walk links to its own copy, with an in-document anchor that the guide numbers itself, as [Same compiled output preference](#same-compiled-output-preference) describes.
 
 Headings that a compile hook adds after numbering, such as [inlineInserts](#inlineinserts) captions, take no number. A caption whose slug matches a later section heading's slug moves that heading to `-1`, and links to the section miss it. A renderer that adds heading anchors also gives one to setext headings and to ATX headings indented one to three spaces or nested in a list item or blockquote, which mdcp doesn't read as headings. Such a heading earlier in the guide with a section's title has the same effect.
@@ -837,10 +841,13 @@ When the resolved absolute path is in the guide link index (and same-output pref
 | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | Same compiled output as the assembling guide                    | `#slug` or `#fragment` when the link includes a fragment                                                                          |
 | Different compiled output                                       | `{outputBasename}#slug` in the same directory (such as `architecture-review.md#find-004`), otherwise a relative path plus `#slug` |
-| Both guides in the monolith (neither sets `compile.outputFile`) | `#slug`, which broken-link marking then replaces (see below)                                                                      |
+| Both guides in the monolith (neither sets `compile.outputFile`) | The target guide's compiled guide plus `#slug` in the linking guide's compiled guide, and `#slug` in the monolith                 |
+| Target guide in the monolith, linking guide a publish output    | The monolith plus `#slug`, such as `guides.md#setup-1`                                                                            |
 | Target guide in `ignoreGuides`                                  | **unchanged**: keep source `.md` path (link to shard, not compiled output)                                                        |
 
-A link between two guides in the monolith compiles to a `#slug` that resolves in the monolith but not in the linking guide's own compiled guide. [Broken-link marking](../../docs/features/link-validation.md#broken-link-marker) checks that slug against the linking guide's own slugs, so it replaces the link with a BROKEN LINK marker in both the linking guide's compiled guide and the monolith, and compile exits `1`. With `compile.links.markBroken: false` the `#slug` link stays, and it resolves only in the monolith.
+Each `#slug` is the target heading's slug in the document the link points into. A link between two guides in the monolith compiles twice. In the linking guide's compiled guide, it targets the target guide's compiled guide, such as `b.md#topic`, with that guide's own slug, when that guide stitches the shard. Otherwise it targets the monolith, with the slug of the shard's first copy there. In the monolith, it targets the heading in the monolith, with the slug the monolith gives it. A publish output links a guide in the monolith through the monolith, with the monolith's slug.
+
+An explicit `#fragment` is never renumbered. Compile writes it as the shard author wrote it, in every document. Broken-link marking checks an in-document fragment, such as `#details`, against every heading of the document that contains the link. In the monolith, that includes the headings of every guide there. Link lint checks a fragment on another file, such as `a.md#details`, against that file's headings. So a fragment that points at a sub-heading of another guide in the monolith, such as `../a/setup.md#details`, stays a link in both documents. A fragment such as `./setup.md#setup` resolves in the target guide's compiled guide. In the monolith, that slug can belong to an earlier guide's heading with the same title. The link then points at that heading. No check catches that, because the slug exists in the monolith. A link without a fragment gets the right slug when the document it points into stitches its shard. Step 1 of [Cross-guide purpose](#cross-guide-purpose) gives the slug it takes otherwise.
 
 Finding shards (`FIND-*.md`) use the finding id from the filename (for example `#find-004`), not the parent outcomes section slug.
 
@@ -894,7 +901,7 @@ Minimal multi-output setup — index and rewrite run automatically from `compile
 
 #### `compile.crossGuideLinks.ignoreGuides`
 
-Set on the **guide being compiled**. Links from that guide to shards of a listed guide keep source `.md` paths instead of rewriting to a `#slug` in the file that contains the target guide: the monolith when the target guide is part of it, otherwise its compiled guide ([ignoreGuides](#ignoreguides)). Use when one compiled guide should link to live shard files for specific guides (such as technical reference docs that are not folded into a review bundle).
+Set on the **guide being compiled**. Links from that guide to shards of a listed guide keep source `.md` paths instead of rewriting to a `#slug` in the target guide's compiled guide or in the monolith ([ignoreGuides](#ignoreguides)). Use when one compiled guide should link to live shard files for specific guides (such as technical reference docs that are not folded into a review bundle).
 
 ```json
 {
@@ -970,7 +977,7 @@ Review targets use the compiled `architecture-review.md`. The ignored guide keep
 
 <!-- mdcp-paths: illustrative -->
 
-Specification for assembly-time rebasing of shard-relative file links to each guide's [link base](#when-it-runs). Tests in `packages/mdcp-core/test/publish-links.test.ts` and `packages/mdcp-core/test/links.test.ts` map to the sections below.
+Specification for assembly-time rebasing of shard-relative file links to each guide's [link base](#when-it-runs). Tests in `packages/mdcp-core/test/publish-links.test.ts`, `packages/mdcp-core/test/links.test.ts` and `packages/mdcp-core/test/guide-output-path.test.ts` map to the sections below.
 
 ### Why this pass exists
 
@@ -993,15 +1000,14 @@ Rebasing doesn't need path-prefix config. The geometry comes from `sourceFile` a
 
 ### When it runs
 
-A guide's **link base** is the file its paths rebase relative to:
+A guide's **link base** is the file being assembled, and the guide's paths rebase relative to it. Compile assembles a guide for the files in this table:
 
-| Condition                                       | Link base                                                                                                    |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| Guide has `compile.outputFile` set              | That publish output                                                                                          |
-| Optional monolith (`outputFile` at config root) | The monolith, for guides that it holds                                                                       |
-| Neither                                         | The guide's default output under `outputDir` (`{name}.md`, or `guide.md` when the config has only one guide) |
+| File being assembled       | Path                                                                                                                                   | Guides it holds                          |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| The guide's compiled guide | `compile.outputFile` when set (a publish output), otherwise `{name}.md` under `outputDir`, or `guide.md` when the config has one guide | Every guide                              |
+| The optional monolith      | Top-level `outputFile` under `outputDir`                                                                                               | Every guide without `compile.outputFile` |
 
-A guide in the monolith also writes its own [compiled guide](#compiled-guide) with the same monolith-relative paths. Those paths resolve in that copy only when the monolith is in the same directory. Otherwise link validation reports them as broken links (`missing file` or `missing publish path`).
+So a guide in the monolith is assembled twice. Its own [compiled guide](#compiled-guide) rebases each path relative to the compiled guide, and its copy in the monolith rebases each path relative to the monolith. Both copies resolve, whichever directory the monolith is in. Source tags and code evidence links follow the same rule. [Cross-guide resolution](#cross-guide-resolution) says where each copy's links to other guides point.
 
 The pass runs per shard for every guide, after cross-guide rewrite. It is named for [publish outputs](#publish-output), but it rebases links in every compiled guide and in the monolith.
 
@@ -1048,7 +1054,7 @@ relative(dirname(publishOutputFile), resolvedAbsolute) + optional #fragment
 
 An empty relative path means the target is the directory that contains the link base, and the pass writes `./` for it. That covers a `../`-only target and a named one, such as `../../pkg/` from `docs/pkg/` compiled into `pkg/README.md`.
 
-`publishOutputFile` is the absolute path `resolveGuideLinkBase` returns for the guide, which follows the table in [When it runs](#when-it-runs).
+`publishOutputFile` is the absolute path of the file being assembled (see [When it runs](#when-it-runs)).
 
 ### Publish-relative exclusions
 

@@ -43,6 +43,7 @@ describe('locale packs', () => {
     const marker = pack.brokenLinks.formatMarker('Topic', './a.md', '#missing', 'dead anchor');
     expect(marker).toBe('[LINK ALERT] Topic: ./a.md => #missing (dead anchor)');
     expect(pack.brokenLinks.lineHasMarker(marker)).toBe(true);
+    expect(pack.brokenLinks.findMarkers?.(`See ${marker}, then [ok](#ok).`)).toEqual([marker]);
     expect(pack.inserts.kindTitle('diagram')).toBe('Diagram');
     expect(pack.inserts.humanizeBasename('éclair-guides')).toBe('Éclair Guides');
     expect(pack.headingKeyFromTitle('ADM Part 7 — Details')).toEqual({
@@ -89,6 +90,20 @@ describe('locale packs', () => {
     expect(marker).toContain('**BROKEN LINK:**');
     expect(marker).toContain(enUS.brokenLinks.reasonDeadAnchor);
     expect(enUS.brokenLinks.lineHasMarker(marker)).toBe(true);
+  });
+
+  it('finds each broken-link marker on a line, without the text around it', () => {
+    const first = formatBrokenLinkMarker('a', '#x', '#x', enUS.brokenLinks.reasonDeadAnchor);
+    const second = formatBrokenLinkMarker(
+      'b "quoted" (c)',
+      '../y.md',
+      'y.md',
+      enUS.brokenLinks.reasonMissingFile,
+    );
+    expect(
+      enUS.brokenLinks.findMarkers?.(`See ${first} and [ok](b.md#ok), then ${second}.`),
+    ).toEqual([first, second]);
+    expect(enUS.brokenLinks.findMarkers?.('See [ok](#ok).')).toEqual([]);
   });
 
   it('builds insert captions via en-US kind titles', () => {

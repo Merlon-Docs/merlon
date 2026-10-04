@@ -25,12 +25,15 @@ export interface LintCompiledLinksOptions {
   locale?: LocalePack;
 }
 
-/** Validate links in assembled compiled guide output. */
-export function lintCompiledLinks(options: LintCompiledLinksOptions): LinkIssue[] {
+/** One `dead anchor` issue for each line outside fenced code that holds a BROKEN LINK marker. */
+export function lintBrokenLinkMarkers(
+  markdown: string,
+  outputFile: string,
+  guideName?: string,
+  locale: LocalePack = getLocalePack(),
+): LinkIssue[] {
   const issues: LinkIssue[] = [];
-  const locale = options.locale ?? getLocalePack();
-  const registry = buildSlugRegistry(options.markdown);
-  const lines = options.markdown.split('\n');
+  const lines = markdown.split('\n');
   let inFence = false;
 
   for (let i = 0; i < lines.length; i++) {
@@ -44,15 +47,29 @@ export function lintCompiledLinks(options: LintCompiledLinksOptions): LinkIssue[
     if (locale.brokenLinks.lineHasMarker(lines[i])) {
       issues.push({
         kind: 'dead anchor',
-        file: options.outputFile,
+        file: outputFile,
         line: i + 1,
         label: '',
         originalTarget: '',
-        brokenTarget: lines[i].trim(),
-        guideName: options.guideName,
+        brokenTarget: stripped,
+        guideName,
       });
     }
   }
+  return issues;
+}
+
+/** Validate links in assembled compiled guide output. */
+export function lintCompiledLinks(options: LintCompiledLinksOptions): LinkIssue[] {
+  const locale = options.locale ?? getLocalePack();
+  const issues = lintBrokenLinkMarkers(
+    options.markdown,
+    options.outputFile,
+    options.guideName,
+    locale,
+  );
+  const registry = buildSlugRegistry(options.markdown);
+  const lines = options.markdown.split('\n');
 
   for (const link of extractLinks(options.markdown)) {
     if (locale.brokenLinks.lineHasMarker(lines[link.line - 1] ?? '')) continue;
