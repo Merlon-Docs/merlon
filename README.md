@@ -8,7 +8,7 @@
 
 [![skills.sh](https://skills.sh/b/betsalel-williamson/mdcp)](https://skills.sh/betsalel-williamson/mdcp)
 
-**mdcp** (MarkDown Context Protocol) is a **documentation system** delivered as an [Agent Skill](https://agentskills.io) plus a small compile/check toolchain. It is for people who know that good docs compound and that unvalidated single-file READMEs get expensive as product ideas keep arriving.
+**mdcp** (MarkDown Context Protocol) is a **documentation system** delivered as an [Agent Skill](https://agentskills.io) plus a small compile/check toolchain. It is for people who know that good docs compound and that unvalidated single-file READMEs get expensive as product ideas keep arriving. If you are evaluating it for a team, [Vision and roadmap](docs/features/protocol/00-vision-and-roadmap.md) explains the problem it solves and the principles behind it.
 
 Instead of dumping every mind map, architecture note, and spec into one file that overwhelms both humans and LLM context windows, MDCP keeps that intent in small, validated Markdown **shards** — for example `docs/features/my-feature.md`, `docs/procedures/line-changeover.md`, `docs/equipment/press-manual.md`, or `docs/training/onboarding-module.md`. Agents learn to read **one shard at a time**, update shards before changing the system (software, procedures, or training), and run checks in CI — so documentation stays findable and trustworthy as the system grows. Discover and install via [skills.sh](https://skills.sh/betsalel-williamson/mdcp). <!-- mdcp-paths: illustrative -->
 
@@ -19,6 +19,10 @@ Instead of dumping every mind map, architecture note, and spec into one file tha
 ## Get started
 
 Install MDCP when you want a **documentation system** your agents will actually follow — sharded Markdown, compile/check in CI, and less effort keeping docs honest as ideas arrive. Use the [`skills` CLI](https://www.skills.sh/docs/cli) (same path as [skills.sh](https://skills.sh)).
+
+### Evaluate before you adopt
+
+If you are deciding whether a team should adopt MDCP, read two pages before anyone installs it. [Vision and roadmap](docs/features/protocol/00-vision-and-roadmap.md) explains the problem MDCP solves and the principles behind it. [Benefit claims and evidence](docs/features/protocol/benefit-claims-and-evidence.md) separates what the tool does from outcomes that depend on how a team works, and says which claims have evidence behind them. Then run the Quick Start below in one repository to see the workflow on your own docs.
 
 ### Quick Start
 
@@ -79,13 +83,7 @@ flowchart LR
   review --> gate["mdcp check / CI"]
 ```
 
-**In an [Agent Skills](https://agentskills.io) host** (Cursor, Claude Code, Copilot with skills, and similar):
-
-```text
-/mdcp help me get started
-```
-
-Or paste that line after installing the skill (`npx skills add betsalel-williamson/mdcp --skill mdcp` via the [`skills` CLI](https://www.skills.sh/docs/cli) — see [Get started](#get-started)).
+**In an [Agent Skills](https://agentskills.io) host:** install the skill, then type or paste the bootstrap prompt that [Get started](#get-started) shows.
 
 **In a chat-only tool** (ChatGPT, Gemini web, no repo agent): do **not** install the toolchain yet. Keep notes in your project folder if you have one, or wait until you use an agent that can [edit a git repo](https://github.com/git-guides). Read [Overview](docs/features/overview.md) and [Vision and roadmap](docs/features/protocol/00-vision-and-roadmap.md) first.
 
@@ -116,7 +114,7 @@ flowchart TB
 - **[Shards](docs/glossary/shard.md)**: source of truth. Compiled READMEs are generated, so do not hand-edit them.
 - **[Check](docs/glossary/check.md)**: validates the docs system as it grows.
 
-Deeper model: [Overview](docs/features/overview.md). Install path: [Get started](#get-started).
+[Overview](docs/features/overview.md) explains the deeper model.
 
 <!-- mdcp-shard: end docs/repo-readme/mdcp-101.md -->
 
@@ -126,9 +124,9 @@ Deeper model: [Overview](docs/features/overview.md). Install path: [Get started]
 
 MDCP has **three separate surfaces**. Each has its own docs — do not treat them as one install or one README.
 
-- **Agent Skill** — `npx skills add … --skill mdcp`. How agents maintain shards (`/mdcp` and its workflows). Docs: **this README**.
-- **CLI** — `npm i -D @bwilliamson/mdcp-cli`. Shell commands only. Docs: [`@bwilliamson/mdcp-cli`](./packages/mdcp-cli/README.md).
-- **Core** — `npm i @bwilliamson/mdcp-core`. Programmatic API only. Docs: [`@bwilliamson/mdcp-core`](./packages/mdcp-core/README.md).
+- **Agent Skill**: how agents maintain shards (`/mdcp` and its workflows). This README is its documentation, and [Get started](#get-started) shows how to install it.
+- **CLI**: shell commands only. Install and usage: [`@bwilliamson/mdcp-cli`](./packages/mdcp-cli/README.md).
+- **Core**: programmatic API only. Install and usage: [`@bwilliamson/mdcp-core`](./packages/mdcp-core/README.md).
 
 The skill tells agents _when_ and _how_ to use documentation; the CLI and core **execute** compile and validation. Agents still need `@bwilliamson/mdcp-cli` (or equivalent scripts) in the repo for those commands to run.
 
@@ -154,12 +152,7 @@ The skill tells agents _when_ and _how_ to use documentation; the CLI and core *
 
 Contributors and maintainers working on the **mdcp monorepo** — not consumers adopting mdcp in another repo.
 
-```bash
-pnpm install && pnpm build
-pnpm docs:check
-```
-
-Full guide: [DEVELOPERS.md](DEVELOPERS.md). Sharded docs layout: [Docs dogfooding](docs/developer/docs-dogfooding.md). Publish landing style: [Personas and priority tiers](docs/features/personas-and-priority-tiers.md#publish-landing-style).
+Set up a checkout with [Local setup](docs/developer/local-setup.md). [DEVELOPERS.md](DEVELOPERS.md) is the full contributor guide, and it explains [how these docs are sharded](docs/developer/docs-dogfooding.md). This README follows the [publish landing style](docs/features/personas-and-priority-tiers.md#publish-landing-style).
 
 This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md).
 

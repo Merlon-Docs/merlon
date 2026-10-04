@@ -2,12 +2,7 @@
 
 Contributors and maintainers working on the **mdcp monorepo** — not consumers adopting mdcp in another repo.
 
-```bash
-pnpm install && pnpm build
-pnpm docs:check
-```
-
-Full guide: [DEVELOPERS.md](DEVELOPERS.md). Sharded docs layout: [Docs dogfooding](docs/developer/docs-dogfooding.md). Publish landing style: [Personas and priority tiers](docs/features/personas-and-priority-tiers.md#publish-landing-style).
+Set up a checkout with [Local setup](../developer/local-setup.md). [DEVELOPERS.md](DEVELOPERS.md) is the full contributor guide, and it explains [how these docs are sharded](../developer/docs-dogfooding.md). This README follows the [publish landing style](../features/personas-and-priority-tiers.md#publish-landing-style).
 
 This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md).
 

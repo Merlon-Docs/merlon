@@ -22,13 +22,7 @@ flowchart LR
   review --> gate["mdcp check / CI"]
 ```
 
-**In an [Agent Skills](https://agentskills.io) host** (Cursor, Claude Code, Copilot with skills, and similar):
-
-```text
-/mdcp help me get started
-```
-
-Or paste that line after installing the skill (`npx skills add betsalel-williamson/mdcp --skill mdcp` via the [`skills` CLI](https://www.skills.sh/docs/cli) — see [Get started](./get-started.md)).
+**In an [Agent Skills](https://agentskills.io) host:** install the skill, then type or paste the bootstrap prompt that [Get started](./get-started.md) shows.
 
 **In a chat-only tool** (ChatGPT, Gemini web, no repo agent): do **not** install the toolchain yet. Keep notes in your project folder if you have one, or wait until you use an agent that can [edit a git repo](https://github.com/git-guides). Read [Overview](../features/overview.md) and [Vision and roadmap](../features/protocol/00-vision-and-roadmap.md) first.
 
@@ -59,4 +53,4 @@ flowchart TB
 - **[Shards](../glossary/shard.md)**: source of truth. Compiled READMEs are generated, so do not hand-edit them.
 - **[Check](../glossary/check.md)**: validates the docs system as it grows.
 
-Deeper model: [Overview](../features/overview.md). Install path: [Get started](./get-started.md).
+[Overview](../features/overview.md) explains the deeper model.

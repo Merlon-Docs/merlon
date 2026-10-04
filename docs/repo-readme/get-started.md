@@ -2,6 +2,10 @@
 
 Install MDCP when you want a **documentation system** your agents will actually follow — sharded Markdown, compile/check in CI, and less effort keeping docs honest as ideas arrive. Use the [`skills` CLI](https://www.skills.sh/docs/cli) (same path as [skills.sh](https://skills.sh)).
 
+## Evaluate before you adopt
+
+If you are deciding whether a team should adopt MDCP, read two pages before anyone installs it. [Vision and roadmap](../features/protocol/00-vision-and-roadmap.md) explains the problem MDCP solves and the principles behind it. [Benefit claims and evidence](../features/protocol/benefit-claims-and-evidence.md) separates what the tool does from outcomes that depend on how a team works, and says which claims have evidence behind them. Then run the Quick Start below in one repository to see the workflow on your own docs.
+
 ## Quick Start
 
 Install the core documentation-system Agent Skill into your repository:
