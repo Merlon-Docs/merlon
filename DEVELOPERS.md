@@ -390,7 +390,7 @@ Issue templates live under `.github/ISSUE_TEMPLATE/` (bug report, feedback, adop
 
 ### New issue intake (required)
 
-Whenever you **open** an issue or find a brand-new open issue missing hygiene, finish this checklist before starting implementation. Same rules for humans and coding agents.
+Whenever you **open** an issue or find a brand-new open issue missing hygiene, finish this checklist before you start work on it. Same rules for humans and coding agents. [Weekly issue triage](#weekly-issue-triage) applies the same checks to every open issue.
 
 1. **Priority** — exactly one `priority:*` (from the form dropdown or triage judgment).
 2. **Type (+ component/domain)** — see [Other labels](#other-labels-apply-on-intake).
@@ -437,58 +437,6 @@ gh issue edit <N> --add-label "priority:P1" --add-label "bug" --add-label "compi
 gh issue edit <N> --remove-label "priority:P2" --add-label "priority:P1"
 ```
 
-### Weekly triage run
-
-This run is **advisory**, because no workflow in this repo schedules it. Run it about once a week (a maintainer, or a coding agent with project scope). Goal: board and labels match reality, and stale or duplicate tickets get a **human verification prompt** instead of a silent close.
-
-A run that changes something leaves its evidence in the tracker. Step 5 leaves a **Triage** comment on each stale candidate, and step 6 leaves a comment that links the canonical issue. Whatever steps 2 to 4 change shows in each issue's history. A run that finds nothing to change doesn't leave a trace, so in the tracker a quiet week looks the same as a skipped one.
-
-#### Checklist
-
-1. **Auth** — `gh auth status` shows `project` (or `read:project` at minimum for reads; writes need `project`). Switch to the owner account if needed.
-2. **Open vs board** — list open issues; add any missing ones (intake steps 3–5). Every open issue must appear on the board.
-3. **Label audit** — every open delivery issue has exactly one `priority:*` and a sensible type label; add component/domain when obvious.
-4. **Milestone hygiene** — keep only active delivery milestones open; attach in-scope issues to the current cut.
-5. **Stale review** — candidates: acceptance already met in the repo, superseded approach, or no remaining adopter value. On each candidate, **comment** asking the human to verify close-without-action ([Human verification comment](#human-verification-comment-stale--close-without-action)). Do **not** close until they reply.
-6. **Duplicate review** — if two issues share the same root cause, comment with the canonical issue and ask which to keep. Do **not** close as duplicate without confirmation (related ≠ duplicate).
-7. **Next work** — confirm the top open `priority:P0`, else `P1`, matches the current milestone intent; note it briefly for maintainers.
-8. **Done clutter** — closed issues may linger on the board as Done; optional cleanup is fine, not required for a green weekly run.
-
-#### Human verification comment (stale / close-without-action)
-
-```markdown
-**Triage (YYYY-MM-DD):** Candidate to close without further action — please verify.
-
-Evidence:
-
-- <1–3 bullets: current docs/code that satisfy ACs, superseded approach, or no remaining value>
-
-Options:
-
-- Reply `close: completed` if done enough
-- Reply `close: not_planned` if abandoned
-- Reply `keep` + note if work remains (we will narrow acceptance criteria)
-
-No auto-close until you confirm.
-```
-
-#### Suggested commands
-
-```bash
-# Open issues (labels + milestone)
-gh issue list --repo betsalel-williamson/mdcp --state open --limit 100 \
-  --json number,title,labels,milestone,updatedAt
-
-# Priority queue
-gh issue list --repo betsalel-williamson/mdcp --state open --label "priority:P0"
-gh issue list --repo betsalel-williamson/mdcp --state open --label "priority:P1"
-
-# Issues on the current delivery milestone (replace <milestone> with its title)
-gh issue list --repo betsalel-williamson/mdcp --milestone "<milestone>" --state open
-```
-
-Compare the open-issue set to the board (Project UI filter, or GraphQL `projectV2.items`) and add gaps via [Add an issue to the board](#add-an-issue-to-the-board-gh).
-
 ### Load scope (pick what your agent has)
 
 **GitHub CLI** (when `gh` is on `PATH` and authenticated):
@@ -529,7 +477,7 @@ The skill's QA principles and its day-to-day workflows encode the same rule so p
 5. **Docs describe now** — update shards to match as-built behavior. Do not document superseded workflows in `docs/features/` or `docs/client/`; record consumer notice in the changeset (lands in package CHANGELOGs). Never link durable shards or ADRs to pending `.changeset/*.md` files.
 6. **Add a changeset** — see [When to add a changeset](#when-to-add-a-changeset).
 7. **Issue intake** — when opening or first touching an issue, complete [New issue intake](#new-issue-intake-required) (labels, board, Track, Status, milestone).
-8. **Weekly triage**: run the advisory [Weekly triage run](#weekly-triage-run) about once a week. It asks humans to confirm before any stale or duplicate ticket is closed.
+8. **Weekly triage**: run the advisory [Weekly issue triage](#weekly-issue-triage). It asks humans to confirm before any stale or duplicate ticket is closed.
 
 ### Example intake answers
 
@@ -548,6 +496,62 @@ WORK_ITEM_LOOKUP=GitHub
 `WORK_ITEM` may be an issue number, URL, or a short name/description the agent can resolve. `WORK_ITEM_LOOKUP` may be this shard path or a plain location (e.g. GitHub) that points the agent at the tracker conventions here. For the skill's workflows and how to invoke them, read [`docs/skills.md`](docs/skills.md).
 
 <!-- mdcp-shard: end docs/developer/agent-work-item-tracking.md -->
+
+<!-- mdcp-shard: start docs/developer/weekly-issue-triage.md -->
+
+## Weekly issue triage
+
+This run is **advisory**, because no workflow in this repo schedules it. Run it about once a week (a maintainer, or a coding agent with project scope). Goal: board and labels match reality, and stale or duplicate tickets get a **human verification prompt** instead of a silent close. It checks issues against the conventions in [Agent work-item tracking](#agent-work-item-tracking).
+
+A run that changes something leaves its evidence in the tracker. Step 5 leaves a **Triage** comment on each stale candidate, and step 6 leaves a comment that links the canonical issue. Whatever steps 2 to 4 change shows in each issue's history. A run that finds nothing to change doesn't leave a trace, so in the tracker a quiet week looks the same as a skipped one.
+
+### Checklist
+
+1. **Auth**: `gh auth status` shows `project` (or `read:project` at minimum for reads; writes need `project`). Switch to the owner account if needed ([Auth for board writes](#auth-for-board-writes)).
+2. **Open vs board**: list open issues and add any missing ones ([New issue intake](#new-issue-intake-required) steps 3 to 5). Every open issue must appear on the board.
+3. **Label audit**: every open delivery issue has exactly one `priority:*` and a sensible type label. Add component or domain labels when obvious.
+4. **Milestone hygiene**: keep only active delivery milestones open. Attach in-scope issues to the current cut.
+5. **Stale review**: candidates are issues whose acceptance the repo already meets or whose approach was superseded, plus issues with no remaining adopter value. On each candidate, **comment** asking the human to verify close-without-action ([Human verification comment](#human-verification-comment-stale--close-without-action)). Do **not** close until they reply.
+6. **Duplicate review**: if two issues share the same root cause, comment with the canonical issue and ask which to keep. Do **not** close as duplicate without confirmation (related ≠ duplicate).
+7. **Next work**: check that the top open `priority:P0` issue (or `P1` when no P0 is open) matches the current milestone intent. Note it briefly for maintainers.
+8. **Done clutter**: closed issues may linger on the board as Done. Cleanup is optional, and a green weekly run doesn't need it.
+
+### Human verification comment (stale / close-without-action)
+
+```markdown
+**Triage (YYYY-MM-DD):** Candidate to close without further action — please verify.
+
+Evidence:
+
+- <1–3 bullets: current docs/code that satisfy ACs, superseded approach, or no remaining value>
+
+Options:
+
+- Reply `close: completed` if done enough
+- Reply `close: not_planned` if abandoned
+- Reply `keep` + note if work remains (we will narrow acceptance criteria)
+
+No auto-close until you confirm.
+```
+
+### Suggested commands
+
+```bash
+# Open issues (labels + milestone)
+gh issue list --repo betsalel-williamson/mdcp --state open --limit 100 \
+  --json number,title,labels,milestone,updatedAt
+
+# Priority queue
+gh issue list --repo betsalel-williamson/mdcp --state open --label "priority:P0"
+gh issue list --repo betsalel-williamson/mdcp --state open --label "priority:P1"
+
+# Issues on the current delivery milestone (replace <milestone> with its title)
+gh issue list --repo betsalel-williamson/mdcp --milestone "<milestone>" --state open
+```
+
+Compare the open-issue set to the board (Project UI filter, or GraphQL `projectV2.items`) and add gaps via [Add an issue to the board](#add-an-issue-to-the-board-gh).
+
+<!-- mdcp-shard: end docs/developer/weekly-issue-triage.md -->
 
 <!-- mdcp-shard: start docs/developer/docs-dogfooding.md -->
 

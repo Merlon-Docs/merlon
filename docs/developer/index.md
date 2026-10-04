@@ -10,7 +10,11 @@
 - [Cursor Cloud environment](./cursor-cloud-environment.md)
 - [Repository layout](./repository-layout.md)
 - [Packages and tests](./packages-and-tests.md)
+
+## Work items
+
 - [Agent work-item tracking](./agent-work-item-tracking.md)
+- [Weekly issue triage](./weekly-issue-triage.md)
 
 ## Docs and skills
 
