@@ -1,0 +1,47 @@
+name: Release source
+
+# main is the release branch: only develop (a release) or hotfix/* may target it.
+# This lives apart from ci.yml so it can also run on `edited`, which fires when a
+# PR's base changes. A PR opened against develop and then retargeted to main
+# therefore gets this check, without rerunning the whole CI on every title edit.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+    # Matches the base after the event, so a retarget to main runs this.
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  release-source:
+    name: Release source
+    runs-on: ubuntu-latest
+    # No job-level `if`: a skipped run counts as passing for a required check,
+    # so skipping on a title edit would clear an earlier failure.
+    permissions: {}
+    steps:
+      - name: Require develop or hotfix/* as the head branch
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          BASE_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [ "$HEAD_REPO" != "$BASE_REPO" ]; then
+            echo "::error::Pull requests from forks target develop, not main."
+            exit 1
+          fi
+          case "$HEAD_REF" in
+            develop | hotfix/*)
+              echo "Release source OK: $HEAD_REF -> main"
+              ;;
+            *)
+              echo "::error::main only accepts release PRs from develop or hotfix/* branches. Retarget this PR to develop."
+              exit 1
+              ;;
+          esac

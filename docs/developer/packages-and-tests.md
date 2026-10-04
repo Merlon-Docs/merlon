@@ -60,6 +60,7 @@ The land gate and CI run the same core gates as `pnpm run check` (typecheck, lin
 - `pnpm run verify:peers` — confirm markdownlint-cli2 and Vale are on PATH
 - `pnpm audit --audit-level=high` — dependency vulnerability scan
 - `pnpm run prepare:docs` — `verify:peers` + `vale:sync` before `docs:check`
+- `pnpm formal:check`: the [formal models](./formal-models.md) under `formal/alloy/`, in CI's Formal models job
 - a separate **coverage** job runs `pnpm test:coverage`, appends package totals to the Actions job summary, and uploads `coverage/` artifacts (informational; no threshold enforcement)
 
 Both also run the changeset checks (`changeset:reject-major`, `changeset:status`).

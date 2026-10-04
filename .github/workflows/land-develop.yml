@@ -1,9 +1,10 @@
 name: Land on develop
 
 # Trunk-based landing: a push to a claude/** or land/** branch is merged with
-# the current develop, run through the same gate as CI's Check job, and pushed
-# to develop when it passes. No pull request is needed for develop; review and
-# approval happen once, on the release PR from develop to main.
+# the current develop, run through the gate below (CI's Check and Changeset
+# jobs, plus the Formal models job when formal/ changed), and pushed to develop
+# when it passes. No pull request is needed for develop; review and approval
+# happen once, on the release PR from develop to main.
 
 on:
   push:
@@ -87,7 +88,7 @@ jobs:
           curl -fsSL "https://github.com/vale-cli/vale/releases/download/v${VALE_VERSION}/vale_${VALE_VERSION}_Linux_64-bit.tar.gz" \
             | sudo tar xz -C /usr/local/bin vale
 
-      - name: Gate (mirrors CI Check and Changeset)
+      - name: Gate (mirrors CI Check and Changeset, plus Formal models when they change)
         if: steps.merge.outputs.skip == 'false'
         env:
           CHANGESET_SINCE: ${{ steps.merge.outputs.develop_sha }}
@@ -105,6 +106,10 @@ jobs:
           pnpm run docs:check
           pnpm run docs:compile
           git diff --exit-code
+          # The models' results depend only on these files, and the run takes minutes.
+          if ! git diff --quiet "$CHANGESET_SINCE" HEAD -- formal scripts/formal-check.mjs scripts/lib/alloy-receipt.mjs; then
+            pnpm formal:check
+          fi
           pnpm changeset:reject-major
           pnpm changeset:status
 

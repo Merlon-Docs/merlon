@@ -39,6 +39,7 @@
     "changeset": "changeset",
     "changeset:status": "node scripts/changeset-status.mjs",
     "changeset:reject-major": "node scripts/changeset-reject-major.mjs",
+    "formal:check": "node scripts/formal-check.mjs",
     "release:version": "node scripts/release-version.mjs",
     "release:publish": "node scripts/release-publish.mjs",
     "release:main": "node scripts/release-main.mjs",

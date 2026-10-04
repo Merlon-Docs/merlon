@@ -5,6 +5,7 @@
 - Node.js **>= 18.0.0** (see `engines` in root [`package.json`](../../package.json); [`.nvmrc`](../../.nvmrc) pins major version `18` for `nvm use`)
 - [pnpm](https://pnpm.io/) 11.x (see `packageManager` in root [`package.json`](../../package.json))
 - [Vale](https://vale.sh/docs/vale-cli/installation/) on `PATH` for prose lint (`pnpm docs:check` uses `--require-vale`). macOS: `brew install vale`; Linux: `snap install vale` or a [GitHub release](https://github.com/vale-cli/vale/releases) tarball. CI pins **3.15.1**.
+- Java 17 or later on `PATH` for `pnpm formal:check`, which runs the [formal models](./formal-models.md). CI always runs it, and the land gate runs it when a branch changes anything under `formal/` or the formal-check scripts.
 
 ## First-time bootstrap
 
@@ -33,6 +34,7 @@ If you use coding agents with the MDCP skill ([skills index](../../docs/skills.m
 | `pnpm skill:dev`         | Install this checkout's `mdcp` skill for Claude Code and Cursor without prompts (cloud session setup runs it)                        |
 | `pnpm docs:compile:repo` | Regenerate compiled docs (`guides.md`, `DEVELOPERS.md`, package READMEs)                                                             |
 | `pnpm docs:check`        | Validate repo docs + `examples/sample-guides`                                                                                        |
+| `pnpm formal:check`      | Run the Alloy models under `formal/alloy/` (needs Java 17 or later)                                                                  |
 
 Optional locally: `brew install gitleaks` (CI always scans).
 
@@ -53,4 +55,4 @@ Pre-commit runs in two phases:
 | `docs/**`, `DEVELOPERS.md`, package README shards       | `docs:compile:repo` + `docs:check:repo`                  |
 | Root config (`package.json`, lockfile, eslint/tsconfig) | repo-wide typecheck + `format:check`                     |
 
-CI runs the full gate: `pnpm run check`.
+CI's Check job runs the steps of `pnpm run check`, except that it tests only mdcp-core, mdcp-cli and the repository scripts. The site's tests run in the Pages workflow. It also checks the peer binaries and runs `pnpm audit`, then recompiles every guide and fails if `git diff` shows a change. Coverage and the formal models run as separate CI jobs, and on pull requests the Changeset job requires a changeset where one is needed.

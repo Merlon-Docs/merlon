@@ -14,7 +14,7 @@ A fresh cloud VM needs the same toolchain as [Local setup](#local-setup), plus a
 4. **Build before docs or CLI.** `dist/` is gitignored and is not produced by the update script. Run `pnpm build` after a fresh checkout before `pnpm docs:check`, `pnpm docs:compile`, or invoking the `mdcp` CLI.
 5. **Sync Vale styles once.** Run `pnpm vale:sync` before the first `docs:check` on a fresh clone (network required); synced styles then persist in the snapshot.
 6. **Node version.** The VM runs Node 22 (satisfies `engines >=18`); CI uses Node 24. Do not switch Node unless a version-specific issue appears.
-7. **Full gate.** `pnpm check` mirrors CI (typecheck, lint, format, build, test, skill:validate, docs:check).
+7. **Local gate.** `pnpm check` runs typecheck, lint, format, build, test, skill:validate and docs:check. [Local setup](#local-setup) says what CI adds.
 
 ## Platform limitations and workarounds
 

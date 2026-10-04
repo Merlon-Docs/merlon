@@ -24,6 +24,7 @@
 ## Release
 
 - [Versioning and releases](./versioning-and-releases.md)
+- [Formal models](./formal-models.md)
 - [Publishing](./publishing.md)
 
 ## Security

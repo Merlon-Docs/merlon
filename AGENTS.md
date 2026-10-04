@@ -24,7 +24,7 @@ Shards in `docs/glossary/` compile into the guides whose pages link to them. CI 
 
 ## Before you run anything
 
-`dist/` is gitignored and install does not build it. Run `pnpm build` after a fresh checkout, and after editing `packages/*/src`, before any docs script or CLI command. The docs checks need Vale on `PATH`, with its styles synced once by `pnpm vale:sync`. [Local setup](docs/developer/local-setup.md) has the full toolchain.
+`dist/` is gitignored and install does not build it. Run `pnpm build` after a fresh checkout, and after editing `packages/*/src`, before any docs script or CLI command. The docs checks need Vale on `PATH`, with its styles synced once by `pnpm vale:sync`. The formal models need Java 17 or later. [Local setup](docs/developer/local-setup.md) has the full toolchain.
 
 ## Commands
 
@@ -38,11 +38,15 @@ pnpm format:check
 pnpm docs:compile:repo   # recompile every output in the table above
 pnpm docs:check          # compile and check the repo docs and the examples
 pnpm run check           # typecheck, lint, format:check, build, test, skill:validate, docs:check
+pnpm formal:check        # the Alloy models in formal/alloy/
 ```
+
+[Local setup](docs/developer/local-setup.md) says how CI's checks differ from `pnpm run check`.
 
 ## Developer guides
 
 - [Versioning and releases](docs/developer/versioning-and-releases.md) covers how work reaches `develop` and how releases reach `main`.
+- [Formal models](docs/developer/formal-models.md) lists the guards that keep both branches tested.
 - [Agent Skill development](docs/developer/agent-skill.md) covers skill source under `skills/`, and why `.agents/skills/` is never hand-edited.
 - [Cursor Cloud environment](docs/developer/cursor-cloud-environment.md) covers cloud agent setup and limits.
 

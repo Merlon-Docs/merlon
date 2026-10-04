@@ -21,17 +21,17 @@ Independent versioning is configured in [`.changeset/config.json`](../../.change
 
 ### Landing on `develop`
 
-Pushing to a branch named `claude/**` or `land/**` runs the [land workflow](../../.github/workflows/land-develop.yml). It merges the current `develop` into the pushed commit, runs the same gate as CI's Check and Changeset jobs on the result, and pushes that tested merge to `develop`. There is no PR to open, review or merge.
+Pushing to a branch named `claude/**` or `land/**` runs the [land workflow](../../.github/workflows/land-develop.yml). It merges the current `develop` into the pushed commit and runs the same gate as CI's Check and Changeset jobs on the result. When the gate passes, it pushes that tested merge to `develop`. When the branch changes anything under `formal/` or the formal-check scripts, the gate also runs `pnpm formal:check`, as CI's Formal models job does. There is no PR to open, review or merge.
 
 - **Evidence lives with the work.** Put what was measured or verified in the commit message, or in a research record for larger results. The run summary lists the commits each landing brought in.
 - **A failed gate lands nothing.** Fix the branch and push again. The same applies when the branch conflicts with `develop` or when `develop` moved during the run.
-- **Landings run one at a time**, so `develop` only ever moves to a tree that passed the gate.
+- **Landings run one at a time**, and each one pushes only the tree that passed its gate. Other paths move `develop` without the gate. The sync from `main` always does. A merged Dependabot PR does unless a branch rule makes PRs into `develop` up to date, and a maintainer can push directly unless a rule blocks it. A PR moved from `main` to `develop` can merge on its run against `main` even under the up-to-date rule, because CI does not rerun when a PR's base changes. [Formal models](./formal-models.md#landing-and-release) shows which guards close each of those paths.
 - **Some scans wait for the release PR.** Gitleaks scans the pushed branch before it lands. The landing is pushed with the workflow's own `GITHUB_TOKEN`, and GitHub starts no workflows for such pushes, so CodeQL and Zizmor first see landed work on the release PR. A finding there is fixed forward on `develop`.
 - **Review happens once**, on the release PR from `develop` to `main`.
 
 Dependabot still opens PRs against `develop`, because its changes come from outside the project.
 
-`main` stays the repository's default branch because skills.sh installs from it. GitHub therefore proposes `main` as the base of a new PR. The **Release source** CI check fails any PR into `main` whose head is not `develop` or `hotfix/*`.
+`main` stays the repository's default branch because skills.sh installs from it, so GitHub proposes `main` as the base of a new PR. The **Release source** check fails any PR into `main` whose head is not `develop` or `hotfix/*`, and blocks the merge where `main`'s branch rule requires it. It runs from its own [workflow](../../.github/workflows/release-source.yml) so that it also runs when a PR's base changes to `main`, which CI does not.
 
 Changesets accumulate on `develop` with the work they describe. Nothing is versioned or published until a release PR reaches `main`.
 

@@ -91,6 +91,7 @@ Each term is its own shard under `docs/glossary/`. [Shared glossary](./packages/
 - Node.js **>= 18.0.0** (see `engines` in root [`package.json`](package.json); [`.nvmrc`](.nvmrc) pins major version `18` for `nvm use`)
 - [pnpm](https://pnpm.io/) 11.x (see `packageManager` in root [`package.json`](package.json))
 - [Vale](https://vale.sh/docs/vale-cli/installation/) on `PATH` for prose lint (`pnpm docs:check` uses `--require-vale`). macOS: `brew install vale`; Linux: `snap install vale` or a [GitHub release](https://github.com/vale-cli/vale/releases) tarball. CI pins **3.15.1**.
+- Java 17 or later on `PATH` for `pnpm formal:check`, which runs the [formal models](#formal-models). CI always runs it, and the land gate runs it when a branch changes anything under `formal/` or the formal-check scripts.
 
 ### First-time bootstrap
 
@@ -119,6 +120,7 @@ If you use coding agents with the MDCP skill ([skills index](docs/skills.md)), d
 | `pnpm skill:dev`         | Install this checkout's `mdcp` skill for Claude Code and Cursor without prompts (cloud session setup runs it)                        |
 | `pnpm docs:compile:repo` | Regenerate compiled docs (`guides.md`, `DEVELOPERS.md`, package READMEs)                                                             |
 | `pnpm docs:check`        | Validate repo docs + `examples/sample-guides`                                                                                        |
+| `pnpm formal:check`      | Run the Alloy models under `formal/alloy/` (needs Java 17 or later)                                                                  |
 
 Optional locally: `brew install gitleaks` (CI always scans).
 
@@ -139,7 +141,7 @@ Pre-commit runs in two phases:
 | `docs/**`, `DEVELOPERS.md`, package README shards       | `docs:compile:repo` + `docs:check:repo`                  |
 | Root config (`package.json`, lockfile, eslint/tsconfig) | repo-wide typecheck + `format:check`                     |
 
-CI runs the full gate: `pnpm run check`.
+CI's Check job runs the steps of `pnpm run check`, except that it tests only mdcp-core, mdcp-cli and the repository scripts. The site's tests run in the Pages workflow. It also checks the peer binaries and runs `pnpm audit`, then recompiles every guide and fails if `git diff` shows a change. Coverage and the formal models run as separate CI jobs, and on pull requests the Changeset job requires a changeset where one is needed.
 
 <!-- mdcp-shard: end docs/developer/local-setup.md -->
 
@@ -161,7 +163,7 @@ A fresh cloud VM needs the same toolchain as [Local setup](#local-setup), plus a
 4. **Build before docs or CLI.** `dist/` is gitignored and is not produced by the update script. Run `pnpm build` after a fresh checkout before `pnpm docs:check`, `pnpm docs:compile`, or invoking the `mdcp` CLI.
 5. **Sync Vale styles once.** Run `pnpm vale:sync` before the first `docs:check` on a fresh clone (network required); synced styles then persist in the snapshot.
 6. **Node version.** The VM runs Node 22 (satisfies `engines >=18`); CI uses Node 24. Do not switch Node unless a version-specific issue appears.
-7. **Full gate.** `pnpm check` mirrors CI (typecheck, lint, format, build, test, skill:validate, docs:check).
+7. **Local gate.** `pnpm check` runs typecheck, lint, format, build, test, skill:validate and docs:check. [Local setup](#local-setup) says what CI adds.
 
 ### Platform limitations and workarounds
 
@@ -291,6 +293,7 @@ The land gate and CI run the same core gates as `pnpm run check` (typecheck, lin
 - `pnpm run verify:peers` — confirm markdownlint-cli2 and Vale are on PATH
 - `pnpm audit --audit-level=high` — dependency vulnerability scan
 - `pnpm run prepare:docs` — `verify:peers` + `vale:sync` before `docs:check`
+- `pnpm formal:check`: the [formal models](#formal-models) under `formal/alloy/`, in CI's Formal models job
 - a separate **coverage** job runs `pnpm test:coverage`, appends package totals to the Actions job summary, and uploads `coverage/` artifacts (informational; no threshold enforcement)
 
 Both also run the changeset checks (`changeset:reject-major`, `changeset:status`).
@@ -1020,17 +1023,17 @@ Independent versioning is configured in [`.changeset/config.json`](.changeset/co
 
 #### Landing on `develop`
 
-Pushing to a branch named `claude/**` or `land/**` runs the [land workflow](.github/workflows/land-develop.yml). It merges the current `develop` into the pushed commit, runs the same gate as CI's Check and Changeset jobs on the result, and pushes that tested merge to `develop`. There is no PR to open, review or merge.
+Pushing to a branch named `claude/**` or `land/**` runs the [land workflow](.github/workflows/land-develop.yml). It merges the current `develop` into the pushed commit and runs the same gate as CI's Check and Changeset jobs on the result. When the gate passes, it pushes that tested merge to `develop`. When the branch changes anything under `formal/` or the formal-check scripts, the gate also runs `pnpm formal:check`, as CI's Formal models job does. There is no PR to open, review or merge.
 
 - **Evidence lives with the work.** Put what was measured or verified in the commit message, or in a research record for larger results. The run summary lists the commits each landing brought in.
 - **A failed gate lands nothing.** Fix the branch and push again. The same applies when the branch conflicts with `develop` or when `develop` moved during the run.
-- **Landings run one at a time**, so `develop` only ever moves to a tree that passed the gate.
+- **Landings run one at a time**, and each one pushes only the tree that passed its gate. Other paths move `develop` without the gate. The sync from `main` always does. A merged Dependabot PR does unless a branch rule makes PRs into `develop` up to date, and a maintainer can push directly unless a rule blocks it. A PR moved from `main` to `develop` can merge on its run against `main` even under the up-to-date rule, because CI does not rerun when a PR's base changes. [Formal models](#landing-and-release) shows which guards close each of those paths.
 - **Some scans wait for the release PR.** Gitleaks scans the pushed branch before it lands. The landing is pushed with the workflow's own `GITHUB_TOKEN`, and GitHub starts no workflows for such pushes, so CodeQL and Zizmor first see landed work on the release PR. A finding there is fixed forward on `develop`.
 - **Review happens once**, on the release PR from `develop` to `main`.
 
 Dependabot still opens PRs against `develop`, because its changes come from outside the project.
 
-`main` stays the repository's default branch because skills.sh installs from it. GitHub therefore proposes `main` as the base of a new PR. The **Release source** CI check fails any PR into `main` whose head is not `develop` or `hotfix/*`.
+`main` stays the repository's default branch because skills.sh installs from it, so GitHub proposes `main` as the base of a new PR. The **Release source** check fails any PR into `main` whose head is not `develop` or `hotfix/*`, and blocks the merge where `main`'s branch rule requires it. It runs from its own [workflow](.github/workflows/release-source.yml) so that it also runs when a PR's base changes to `main`, which CI does not.
 
 Changesets accumulate on `develop` with the work they describe. Nothing is versioned or published until a release PR reaches `main`.
 
@@ -1105,6 +1108,81 @@ Once the workflow has committed to a PR, Dependabot stops rebasing it on its own
 - [.changeset/README.md](.changeset/README.md)
 
 <!-- mdcp-shard: end docs/developer/versioning-and-releases.md -->
+
+<!-- mdcp-shard: start docs/developer/formal-models.md -->
+
+## Formal models
+
+Some parts of this repository run as state machines: branches that move under rules, and workflows that must run in a set order. Tests and prose cover single runs of them. An [Alloy](https://alloytools.org) model describes every order in which the events can happen, up to a bound. The Alloy Analyzer searches all of those orders for a run that breaks a stated property.
+
+The models live in `formal/alloy/`. Every command in a model declares the result it must produce. `expect 0` means no instance may exist, because a property holds or a scenario is impossible. `expect 1` means one must exist: a counterexample that proves a guard is needed, or a scenario that proves the model can do real work. `pnpm formal:check` runs every model. It fails when a command misses its expectation or does not declare one. CI runs it in the Formal models job. The [land gate](#landing-on-develop) runs it when a branch changes anything under `formal/` or the formal-check scripts.
+
+### Running the models
+
+`pnpm formal:check` needs Java 17 or later on `PATH`. On first use it downloads the pinned Alloy release from Maven Central into `.caches/alloy/` and verifies its SHA-256 checksum. It uses the Glucose solver bundled in the Alloy jar, which is many times faster here than the default. The landing model takes about three minutes on a four-core machine.
+
+To read a counterexample, run one command with the Alloy CLI and open the trace it writes:
+
+```bash
+java -jar .caches/alloy/alloy-6.2.0.jar exec -f -s glucose -c DevelopTestedWithoutGatedSync \
+  -t text -o .caches/alloy/out formal/alloy/landing.als
+```
+
+The trace lists the states in order. In each state, `Step.kind` names the event that comes next, and the rest shows the commit every branch points at and the trees a gate or CI run passed on.
+
+### Landing and release
+
+`formal/alloy/landing.als` models the events that move `develop` or `main`. A landing and the sync from `main` move `develop`, the release commit moves `main`, and a PR merge or a maintainer's direct push can move either branch. It also models CI on pull requests, including a PR whose base branch changes after it opens.
+
+The model checks three properties. Each one is true only while all of its guards are in place, and for each guard a check finds a run that breaks the property without it. A guard is either a branch rule, which is a repository setting that no workflow can enforce, or a choice in a workflow under `.github/workflows/`.
+
+#### `develop` only moves to a tested tree
+
+| Guard                                         | Kind        | What goes wrong without it                                                                      |
+| --------------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------- |
+| People cannot push `develop` directly         | Branch rule | A maintainer's push puts untested work on `develop`                                             |
+| A PR into `develop` must be up to date        | Branch rule | A Dependabot PR merged after `develop` moved puts a merge no CI run tested on `develop`         |
+| CI runs again when a PR's base changes        | Workflow    | A PR tested against `main` and then moved to `develop` merges on that old run                   |
+| The sync from `main` runs through a land gate | Workflow    | The sync puts the release commit, or its merge with newer `develop` work, on `develop` untested |
+
+GitHub's up-to-date rule asks only that a PR's head contain the base branch's latest commit. It does not ask which base CI last ran against, and CI does not run on the `edited` event that a base change sends. GitHub proposes `main` as the base of a new PR. If its author then moves it to `develop`, as the Release source check asks, it can merge on its run against `main`.
+
+The sync in `.github/workflows/sync-develop.yml` pushes its merge straight to `develop`, so this property fails whatever the branch settings are. When an untested merge breaks `develop`, every later landing fails its gate until someone fixes `develop`. A gated sync would have to dispatch the land workflow, because a push made with the workflow's own `GITHUB_TOKEN` does not start a workflow.
+
+The land and sync workflows push `develop` themselves, with that `GITHUB_TOKEN`. So both branch rules for `develop` have to exempt the identity those workflows push as. Otherwise they block landings along with everyone else.
+
+#### `main` only moves to a tested tree
+
+| Guard                                          | Kind        | What goes wrong without it                                                     |
+| ---------------------------------------------- | ----------- | ------------------------------------------------------------------------------ |
+| People cannot push `main` directly             | Branch rule | A maintainer's push puts untested work on `main`                               |
+| A PR into `main` must be up to date            | Branch rule | A release PR merged after `main` moved puts a merge no CI run tested on `main` |
+| CI runs again when a PR's base changes         | Workflow    | A PR tested against `develop` and then moved to `main` merges on that old run  |
+| The release job runs the gate before it pushes | Workflow    | The version commit reaches `main` with less than a landing's gate behind it    |
+
+Before the release job in `.github/workflows/release.yml` pushes the version commit, it builds and validates the skills, and the pre-commit hook checks the packages it bumped, which is less than the gate a landing runs. The job also pushes with a maintainer's personal access token. A rule that blocks direct pushes to `main` would block the release as well. Exempting the maintainer whose token the job uses would let that maintainer push by hand too. Closing that path needs an identity for the release job that the rule can exempt on its own.
+
+#### `main` only merges `develop` or `hotfix/*`
+
+| Guard                                              | Kind        | What goes wrong without it                                              |
+| -------------------------------------------------- | ----------- | ----------------------------------------------------------------------- |
+| People cannot push `main` directly                 | Branch rule | A maintainer's push moves `main` without any PR                         |
+| The Release source check is required on `main`     | Branch rule | A PR from any branch merges once a code owner approves it               |
+| Release source runs again when a PR's base changes | Workflow    | A PR opened against `develop` and then moved to `main` merges unchecked |
+
+The third guard is in place. `.github/workflows/release-source.yml` runs on the `edited` event, which GitHub sends when a PR's base changes, and CI does not run on that event.
+
+#### Scenarios and bounds
+
+With every guard on, the model also runs scenarios that show the checks above are not vacuous. A landing is followed by a release PR. The release commit syncs back to `develop`. A Dependabot PR merges into `develop` after a landing moves it, and a hotfix merged into `main` reaches `develop`.
+
+Every check covers traces of up to seven steps over six commits and one pull request. A passing check means no counterexample exists within that bound, which is large enough for each counterexample above to appear. The model assumes merges are clean and force-push is blocked. It also assumes a code owner approves whenever a rule requires it, and that no branch changes the workflow that checks it. A pushed branch runs its own copy of the land workflow, and a PR runs its own copy of CI and Release source. On a PR into `main`, code owner review of `.github/` is what catches such a change. A landing's copy of the land workflow runs before anyone reviews it.
+
+### Adding a model
+
+Model a part of the system when it runs as a sequence of states and a wrong order of events would break it. Start the model with a comment that points to the shard explaining it. Give every command an `expect`, and choose scopes small enough that `pnpm formal:check` finishes within a few minutes.
+
+<!-- mdcp-shard: end docs/developer/formal-models.md -->
 
 <!-- mdcp-shard: start docs/developer/publishing.md -->
 
@@ -1339,44 +1417,44 @@ We run **CodeQL** and **Zizmor** on push and pull request:
 
 This checklist tracks our compliance with the [OWASP GitHub Actions Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/GitHub_Actions_Security_Cheat_Sheet.html). See [GitHub Actions security posture](#github-actions-security-posture) for vocabulary and re-review guidance. All open risks are tracked under epic [#173](https://github.com/betsalel-williamson/mdcp/issues/173).
 
-| OWASP Topic                             | Status                       | Notes                                                                                                                                                                                                                                                               |
-| --------------------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Pipeline Governance**                 |                              |                                                                                                                                                                                                                                                                     |
-| Treat CI/CD as critical production code | `reviewed (2026-07-27)`      | Security posture docs, full `pnpm run check` gate, and checklist tracked under #173.                                                                                                                                                                                |
-| **Authentication & Authorization**      |                              |                                                                                                                                                                                                                                                                     |
-| Default `GITHUB_TOKEN` permissions      | `reviewed (2026-07-27)`      | Repo default is read-only.                                                                                                                                                                                                                                          |
-| Workflow-level `permissions: {}`        | `reviewed (2026-10-04)`      | Empty top-level on every workflow; job-scoped writes.                                                                                                                                                                                                               |
-| `persist-credentials: false`            | `reviewed (2026-07-30)`      | Set on all `actions/checkout` steps; release uses `RELEASE_GITHUB_TOKEN` only in the publish step env (not persisted at checkout).                                                                                                                                  |
-| Eliminate static credentials            | `reviewed (2026-10-04)`      | npm publish remains OIDC. Two fine-grained PATs: **`RELEASE_GITHUB_TOKEN`** (release push and GitHub Releases) and **`DEPENDABOT_CHANGESET_TOKEN`** (Dependabot changeset commits). Landings and develop syncs push with `GITHUB_TOKEN`. Prefer an App token later. |
-| OIDC for cloud providers                | `reviewed (2026-07-30)`      | Trusted Publishing on `release.yml` (push to `main` + `workflow_dispatch`).                                                                                                                                                                                         |
-| Secure handling of static credentials   | `reviewed (2026-10-04)`      | `RELEASE_GITHUB_TOKEN` is scoped to the `release` environment; `DEPENDABOT_CHANGESET_TOKEN` is read only by the Dependabot changeset job. Never logged; no classic cloud keys.                                                                                      |
-| Secrets: inherit                        | `not a concern (2026-07-27)` | Not used.                                                                                                                                                                                                                                                           |
-| Mask sensitive data                     | `reviewed (2026-07-27)`      | GitHub auto-masks secrets; gitleaks enforces pre-merge scanning.                                                                                                                                                                                                    |
-| **Workflows & Execution**               |                              |                                                                                                                                                                                                                                                                     |
-| Pin actions to commit SHA               | `reviewed (2026-07-27)`      | All third-party actions pinned to full commit SHAs with tag comments in workflows.                                                                                                                                                                                  |
-| Third-party actions caution             | `reviewed (2026-07-27)`      | Documented current set.                                                                                                                                                                                                                                             |
-| Sanitize untrusted context / input      | `reviewed (2026-07-30)`      | Workflow contexts via env; release notes from Changesets CHANGELOGs (review pending `.changeset` in Release plan job before env approval).                                                                                                                          |
-| `pull_request_target` trigger           | `reviewed (2026-10-04)`      | Used only by `dependabot-changeset.yml`: the job runs when the PR author is `dependabot[bot]`, checks out the base branch, and reads PR files as data.                                                                                                              |
-| `workflow_run` trigger                  | `not a concern (2026-07-27)` | Not used.                                                                                                                                                                                                                                                           |
-| `issue_comment` trigger                 | `not a concern (2026-07-27)` | Not used.                                                                                                                                                                                                                                                           |
-| Curated shared workflows                | `not a concern (2026-07-27)` | Single-repo monorepo; no centralized shared-workflows repository.                                                                                                                                                                                                   |
-| Multi-repo shared workflows             | `not a concern (2026-07-27)` | Not used.                                                                                                                                                                                                                                                           |
-| **Runners & Environments**              |                              |                                                                                                                                                                                                                                                                     |
-| Self-hosted runners                     | `not a concern (2026-07-27)` | Using `ubuntu-latest` GitHub-hosted runners.                                                                                                                                                                                                                        |
-| Runner groups                           | `not a concern (2026-07-27)` | Not applicable to GitHub-hosted runners.                                                                                                                                                                                                                            |
-| Egress monitoring                       | `reviewed (2026-07-27)`      | Harden-Runner in audit mode only (not block).                                                                                                                                                                                                                       |
-| Environment required reviewers          | `reviewed (2026-07-27)`      | Bound to `release` env; required reviewers are maintainer ops.                                                                                                                                                                                                      |
-| **Code & Supply Chain**                 |                              |                                                                                                                                                                                                                                                                     |
-| Branch protection baseline              | `reviewed (2026-10-04)`      | `main` is protected with PR, code-owner review and status checks. `develop` takes pushes only from the land workflow after its gate passes, plus Dependabot PRs.                                                                                                    |
-| Require approval for external           | `reviewed (2026-09-10)`      | CODEOWNERS on `main`; `require_code_owner_reviews` enabled. Separate approval count not required — only maintainers can merge.                                                                                                                                      |
-| Dependabot for Actions                  | `reviewed (2026-07-27)`      | Configured for weekly updates.                                                                                                                                                                                                                                      |
-| Dependabot cooldown                     | `reviewed (2026-07-27)`      | Explicit 7-day cooldown on `npm` and `github-actions`.                                                                                                                                                                                                              |
-| Artifact / cache poisoning              | `reviewed (2026-07-27)`      | Removed `cache: pnpm` from `release.yml`; CI jobs still cache.                                                                                                                                                                                                      |
-| Secret scanning                         | `reviewed (2026-07-27)`      | Gitleaks workflow is active.                                                                                                                                                                                                                                        |
-| Static analysis (CodeQL/Zizmor)         | `reviewed (2026-07-27)`      | CodeQL (`javascript-typescript` + `actions`) + Zizmor; Zizmor fails on findings.                                                                                                                                                                                    |
-| AI-in-CI                                | `not a concern (2026-07-27)` | No AI assistants used in CI.                                                                                                                                                                                                                                        |
-| **Incident Response**                   |                              |                                                                                                                                                                                                                                                                     |
-| Incident response plan                  | `reviewed (2026-07-27)`      | Covered in `SECURITY.md` and triage docs.                                                                                                                                                                                                                           |
+| OWASP Topic                             | Status                       | Notes                                                                                                                                                                                                                                                                                                                      |
+| --------------------------------------- | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Pipeline Governance**                 |                              |                                                                                                                                                                                                                                                                                                                            |
+| Treat CI/CD as critical production code | `reviewed (2026-07-27)`      | Security posture docs, full `pnpm run check` gate, and checklist tracked under #173.                                                                                                                                                                                                                                       |
+| **Authentication & Authorization**      |                              |                                                                                                                                                                                                                                                                                                                            |
+| Default `GITHUB_TOKEN` permissions      | `reviewed (2026-07-27)`      | Repo default is read-only.                                                                                                                                                                                                                                                                                                 |
+| Workflow-level `permissions: {}`        | `reviewed (2026-10-04)`      | Empty top-level on every workflow; job-scoped writes.                                                                                                                                                                                                                                                                      |
+| `persist-credentials: false`            | `reviewed (2026-07-30)`      | Set on all `actions/checkout` steps; release uses `RELEASE_GITHUB_TOKEN` only in the publish step env (not persisted at checkout).                                                                                                                                                                                         |
+| Eliminate static credentials            | `reviewed (2026-10-04)`      | npm publish remains OIDC. Two fine-grained PATs: **`RELEASE_GITHUB_TOKEN`** (release push and GitHub Releases) and **`DEPENDABOT_CHANGESET_TOKEN`** (Dependabot changeset commits). Landings and develop syncs push with `GITHUB_TOKEN`. Prefer an App token later.                                                        |
+| OIDC for cloud providers                | `reviewed (2026-07-30)`      | Trusted Publishing on `release.yml` (push to `main` + `workflow_dispatch`).                                                                                                                                                                                                                                                |
+| Secure handling of static credentials   | `reviewed (2026-10-04)`      | `RELEASE_GITHUB_TOKEN` is scoped to the `release` environment; `DEPENDABOT_CHANGESET_TOKEN` is read only by the Dependabot changeset job. Never logged; no classic cloud keys.                                                                                                                                             |
+| Secrets: inherit                        | `not a concern (2026-07-27)` | Not used.                                                                                                                                                                                                                                                                                                                  |
+| Mask sensitive data                     | `reviewed (2026-07-27)`      | GitHub auto-masks secrets; gitleaks enforces pre-merge scanning.                                                                                                                                                                                                                                                           |
+| **Workflows & Execution**               |                              |                                                                                                                                                                                                                                                                                                                            |
+| Pin actions to commit SHA               | `reviewed (2026-07-27)`      | All third-party actions pinned to full commit SHAs with tag comments in workflows.                                                                                                                                                                                                                                         |
+| Third-party actions caution             | `reviewed (2026-07-27)`      | Documented current set.                                                                                                                                                                                                                                                                                                    |
+| Sanitize untrusted context / input      | `reviewed (2026-07-30)`      | Workflow contexts via env; release notes from Changesets CHANGELOGs (review pending `.changeset` in Release plan job before env approval).                                                                                                                                                                                 |
+| `pull_request_target` trigger           | `reviewed (2026-10-04)`      | Used only by `dependabot-changeset.yml`: the job runs when the PR author is `dependabot[bot]`, checks out the base branch, and reads PR files as data.                                                                                                                                                                     |
+| `workflow_run` trigger                  | `not a concern (2026-07-27)` | Not used.                                                                                                                                                                                                                                                                                                                  |
+| `issue_comment` trigger                 | `not a concern (2026-07-27)` | Not used.                                                                                                                                                                                                                                                                                                                  |
+| Curated shared workflows                | `not a concern (2026-07-27)` | Single-repo monorepo; no centralized shared-workflows repository.                                                                                                                                                                                                                                                          |
+| Multi-repo shared workflows             | `not a concern (2026-07-27)` | Not used.                                                                                                                                                                                                                                                                                                                  |
+| **Runners & Environments**              |                              |                                                                                                                                                                                                                                                                                                                            |
+| Self-hosted runners                     | `not a concern (2026-07-27)` | Using `ubuntu-latest` GitHub-hosted runners.                                                                                                                                                                                                                                                                               |
+| Runner groups                           | `not a concern (2026-07-27)` | Not applicable to GitHub-hosted runners.                                                                                                                                                                                                                                                                                   |
+| Egress monitoring                       | `reviewed (2026-07-27)`      | Harden-Runner in audit mode only (not block).                                                                                                                                                                                                                                                                              |
+| Environment required reviewers          | `reviewed (2026-07-27)`      | Bound to `release` env; required reviewers are maintainer ops.                                                                                                                                                                                                                                                             |
+| **Code & Supply Chain**                 |                              |                                                                                                                                                                                                                                                                                                                            |
+| Branch protection baseline              | `reviewed (2026-10-04)`      | `main` is protected with PR, code-owner review and status checks. `develop` takes tested merges from the land workflow and merges of `main` from the sync, plus Dependabot PRs. The Formal models guide names the branch rules and workflow changes each branch needs to stay tested, and which of them are missing today. |
+| Require approval for external           | `reviewed (2026-09-10)`      | CODEOWNERS on `main`; `require_code_owner_reviews` enabled. Separate approval count not required — only maintainers can merge.                                                                                                                                                                                             |
+| Dependabot for Actions                  | `reviewed (2026-07-27)`      | Configured for weekly updates.                                                                                                                                                                                                                                                                                             |
+| Dependabot cooldown                     | `reviewed (2026-07-27)`      | Explicit 7-day cooldown on `npm` and `github-actions`.                                                                                                                                                                                                                                                                     |
+| Artifact / cache poisoning              | `reviewed (2026-07-27)`      | Removed `cache: pnpm` from `release.yml`; CI jobs still cache.                                                                                                                                                                                                                                                             |
+| Secret scanning                         | `reviewed (2026-07-27)`      | Gitleaks workflow is active.                                                                                                                                                                                                                                                                                               |
+| Static analysis (CodeQL/Zizmor)         | `reviewed (2026-07-27)`      | CodeQL (`javascript-typescript` + `actions`) + Zizmor; Zizmor fails on findings.                                                                                                                                                                                                                                           |
+| AI-in-CI                                | `not a concern (2026-07-27)` | No AI assistants used in CI.                                                                                                                                                                                                                                                                                               |
+| **Incident Response**                   |                              |                                                                                                                                                                                                                                                                                                                            |
+| Incident response plan                  | `reviewed (2026-07-27)`      | Covered in `SECURITY.md` and triage docs.                                                                                                                                                                                                                                                                                  |
 
 <!-- mdcp-shard: end docs/developer/github-actions-security-checklist.md -->
 
