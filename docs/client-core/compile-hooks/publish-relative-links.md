@@ -62,6 +62,8 @@ A link is rewritten when **all** of the following hold:
 - Resolved path is **not** a same-guide indexed shard (intra-guide pass owns those)
 - Resolved path is **not** another guide's `compile.outputFile` (cross-guide already rebased)
 
+A target made only of `../` segments, such as `../` or `../../`, points at a directory and rebases in every compiled guide. From `docs/developer/` into `DEVELOPERS.md`, the target `../` compiles to `docs`. The target `../../` resolves to the directory that contains `DEVELOPERS.md`, so it compiles to `./`. The rebased path drops any trailing slash, so `../../skills/` compiles to `skills`.
+
 ## Publish-relative resolution
 
 Path lookup order (same as cross-guide shard resolution):
@@ -76,6 +78,8 @@ Then:
 relative(dirname(publishOutputFile), resolvedAbsolute) + optional #fragment
 ```
 
+An empty relative path means the target is the directory that contains the link base, and the pass writes `./` for it. That covers a `../`-only target and a named one, such as `../../pkg/` from `docs/pkg/` compiled into `pkg/README.md`.
+
 `publishOutputFile` is the absolute path `resolveGuideLinkBase` returns for the guide, which follows the table in [When it runs](#when-it-runs).
 
 ## Publish-relative exclusions
@@ -87,7 +91,6 @@ The pass **does not** transform:
 - `./section.md` and other `./` paths (cross-guide or intra-guide handle `.md`; publish-relative only matches `../`)
 - Links that the cross-guide pass already rewrote to another compiled guide's `#slug`
 - Unresolvable paths (left unchanged)
-- Targets made only of `../` segments, such as `../` (left unchanged)
 
 ## Repo dogfood examples
 

@@ -70,7 +70,8 @@ export function buildSectionSlugMap(
   return assignSectionSlugs(sectionPaths, cache, preambleSection);
 }
 
-const PUBLISH_RELATIVE_LINK_RE = /(\[[^\]]*\]\()((?!https?:|\/\/|mailto:)(?:\.\.\/)+[^)]+)\)/g;
+/** A `../` target, including one made only of `../` segments such as `../` or `../../`. */
+const PUBLISH_RELATIVE_LINK_RE = /(\[[^\]]*\]\()((?!https?:|\/\/|mailto:)(?:\.\.\/)+[^)]*)\)/g;
 
 export interface PublishRelativeLinkRewriteOptions {
   sourceFile: string;
@@ -140,7 +141,8 @@ export function rewritePublishRelativeLinks(
     if (skipPublishRelativeRewrite(resolved, options)) return originalMatch;
 
     const fromDir = dirname(outputAbs);
-    const rel = relative(fromDir, resolve(resolved)).replace(/\\/g, '/');
+    // A target in the link base's own directory relativizes to '', which would leave an empty href.
+    const rel = relative(fromDir, resolve(resolved)).replace(/\\/g, '/') || './';
     return `${linkPrefixFromMatch(originalMatch, target)}${rel}${suffix})`;
   });
 }

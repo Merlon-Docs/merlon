@@ -123,6 +123,84 @@ describe('publish link rewriting', () => {
     });
   });
 
+  describe('targets made only of ../ segments', () => {
+    function devShard(work: string): string {
+      mkdirSync(join(work, 'docs', 'dev'), { recursive: true });
+      mkdirSync(join(work, 'skills'), { recursive: true });
+      const shard = join(work, 'docs', 'dev', 'dogfood.md');
+      writeFileSync(shard, '# Dogfood\n');
+      return shard;
+    }
+
+    it('rebases a bare ../ to the directory it names', () => {
+      withTmpDir('mdcp-publish-rel-dotdot-', (work) => {
+        const shard = devShard(work);
+        const options = { sourceFile: shard, guideDir: join(work, 'docs', 'dev') };
+
+        expect(
+          rewritePublishRelativeLinks('See [docs/](../).', {
+            ...options,
+            currentOutputFile: join(work, 'DEVELOPERS.md'),
+          }),
+        ).toBe('See [docs/](docs).');
+        expect(
+          rewritePublishRelativeLinks('See [docs/](../).', {
+            ...options,
+            currentOutputFile: join(work, 'docs', '_build', 'dev.md'),
+          }),
+        ).toBe('See [docs/](..).');
+      });
+    });
+
+    it('writes ./ when the target is the link base directory', () => {
+      withTmpDir('mdcp-publish-rel-dotdot-root-', (work) => {
+        const shard = devShard(work);
+        const out = rewritePublishRelativeLinks(
+          'See [root](../../) and [top](../../#top) and [skills](../../skills/).',
+          {
+            sourceFile: shard,
+            guideDir: join(work, 'docs', 'dev'),
+            currentOutputFile: join(work, 'DEVELOPERS.md'),
+          },
+        );
+
+        expect(out).toBe('See [root](./) and [top](./#top) and [skills](skills).');
+      });
+    });
+
+    it('leaves an unresolvable directory target unchanged', () => {
+      withTmpDir('mdcp-publish-rel-dotdot-missing-', (work) => {
+        const shard = devShard(work);
+        const out = rewritePublishRelativeLinks('See [missing](../../missing/).', {
+          sourceFile: shard,
+          guideDir: join(work, 'docs', 'dev'),
+          currentOutputFile: join(work, 'DEVELOPERS.md'),
+        });
+
+        expect(out).toBe('See [missing](../../missing/).');
+      });
+    });
+  });
+
+  it('writes ./ when a named directory target is the link base directory', () => {
+    withTmpDir('mdcp-publish-rel-own-dir-', (work) => {
+      mkdirSync(join(work, 'docs', 'pkg'), { recursive: true });
+      mkdirSync(join(work, 'pkg'), { recursive: true });
+      const shard = join(work, 'docs', 'pkg', 'a.md');
+      writeFileSync(shard, '# Pkg A\n');
+      const out = rewritePublishRelativeLinks(
+        'See [pkgdir](../../pkg/) and [usage](../../pkg/#usage).',
+        {
+          sourceFile: shard,
+          guideDir: join(work, 'docs', 'pkg'),
+          currentOutputFile: join(work, 'pkg', 'README.md'),
+        },
+      );
+
+      expect(out).toBe('See [pkgdir](./) and [usage](./#usage).');
+    });
+  });
+
   it('buildSectionSlugMap keys by full path so nested index.md files get distinct slugs', () => {
     withTmpDir('mdcp-slug-index-collision-', (work) => {
       const guideDir = join(work, 'client-core');
