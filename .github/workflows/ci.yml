@@ -6,6 +6,12 @@ on:
   pull_request:
     # Any target branch (stacked feature PRs, not only main).
     # Changeset checks use github.event.pull_request.base.sha — never a hardcoded branch name.
+    # `edited` fires when a PR's base changes, so a PR moved to another base is
+    # tested against that base before it can merge. It also fires on title and
+    # body edits. No job-level `if` skips those: a skipped run counts as passing
+    # for a required check and would replace an earlier failed run. The
+    # concurrency group below cancels the run an edit makes stale.
+    types: [opened, synchronize, reopened, edited]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}

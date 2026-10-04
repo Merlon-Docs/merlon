@@ -17,6 +17,19 @@ function triggers(text) {
   return block[1];
 }
 
+/** The activity types listed for one trigger, or [] when it lists none. */
+function triggerTypes(text, event) {
+  const block = new RegExp(`^ {2}${event}:\\n((?: {4}.*\\n|\\n)*)`, 'm').exec(triggers(text));
+  assert.ok(block, `workflow runs on ${event}`);
+  const types = /^ {4}types: \[([^\]]*)\]/m.exec(block[1]);
+  return types ? types[1].split(',').map((t) => t.trim()) : [];
+}
+
+/** The `if:` conditions set on whole jobs, not on their steps. */
+function jobConditions(text) {
+  return [...text.matchAll(/^ {4}if:(.*)$/gm)].map((m) => m[1].trim());
+}
+
 describe('sync from main goes through the land gate', () => {
   const sync = read('sync-develop.yml');
   const land = read('land-develop.yml');
@@ -61,5 +74,30 @@ describe('sync from main goes through the land gate', () => {
       land,
       /case "\$GITHUB_REF" in\n\s+refs\/heads\/claude\/\* \| refs\/heads\/land\/\*\) ;;/,
     );
+  });
+});
+
+describe('checks run again when a pull request changes base', () => {
+  // The only job-level conditions allowed. Any other one could skip the run an
+  // edit starts, and a skipped run counts as passing.
+  const allowedConditions = {
+    'ci.yml': ["github.event_name == 'pull_request'"],
+    'release-source.yml': [],
+  };
+
+  for (const [name, allowed] of Object.entries(allowedConditions)) {
+    const workflow = read(name);
+
+    it(`${name} runs on the edited event that a base change sends`, () => {
+      assert.ok(triggerTypes(workflow, 'pull_request').includes('edited'));
+    });
+
+    it(`${name} has no job-level if that could skip an edit`, () => {
+      assert.deepEqual(jobConditions(workflow), allowed);
+    });
+  }
+
+  it('ci.yml cancels the run that an edit makes stale', () => {
+    assert.match(read('ci.yml'), /^ {2}cancel-in-progress: true$/m);
   });
 });

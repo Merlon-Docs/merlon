@@ -16,10 +16,10 @@ module landing
  * pushes it with GITHUB_TOKEN, which starts no workflow. sync-develop.yml pushes
  * its merge to land/sync-main and dispatches land-develop.yml on it, which is
  * the SyncThroughGate guard; the sync step here includes that landing.
- * ci.yml runs on a pull request when it opens
- * and when a person pushes its head, never when its base changes; the
- * CIOnRetarget guard adds that run. A check's latest run on a head commit is
- * the one a branch rule reads.
+ * ci.yml runs on a pull request when it opens and when a person pushes its
+ * head. It also runs on the edited event a base change sends, which is the
+ * CIOnRetarget guard. A check's latest run on a head commit is the one a
+ * branch rule reads.
  * release-source.yml runs the Release source job on pull requests into main,
  * also when a base changes to main, which is the ReleaseSourceOnRetarget guard.
  * On any other base the model counts that check as passing, since only main

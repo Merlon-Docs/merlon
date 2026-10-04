@@ -32,7 +32,7 @@ The model checks three properties. Each one is true only while all of its guards
 | CI runs again when a PR's base changes        | Workflow    | A PR tested against `main` and then moved to `develop` merges on that old run                   |
 | The sync from `main` runs through a land gate | Workflow    | The sync puts the release commit, or its merge with newer `develop` work, on `develop` untested |
 
-GitHub's up-to-date rule asks only that a PR's head contain the base branch's latest commit. It does not ask which base CI last ran against, and CI does not run on the `edited` event that a base change sends. GitHub proposes `main` as the base of a new PR. If its author then moves it to `develop`, as the Release source check asks, it can merge on its run against `main`.
+Both workflow guards are in place. GitHub's up-to-date rule asks only that a PR's head contain the base branch's latest commit. It does not ask which base CI last ran against. GitHub proposes `main` as the base of a new PR, and the Release source check asks its author to move it to `develop`. Without a new run, the PR could then merge on its run against `main`. CI in `.github/workflows/ci.yml` also runs on the `edited` event that a base change sends. Moving the PR starts a run against `develop`. No job in it has an `if` that skips an edit, because a skipped run counts as passing and would replace an earlier failure. A title edit reruns CI too.
 
 The sync in `.github/workflows/sync-develop.yml` pushes a clean merge to the `land/sync-main` branch and dispatches the land workflow on it. A push made with the workflow's own `GITHUB_TOKEN` doesn't start a workflow, but a dispatch does. The land gate then tests the merge like any other landing, and `develop` moves only when the gate passes. Without that gate, an untested merge that broke `develop` would fail every later landing until someone fixed `develop`.
 
@@ -47,7 +47,7 @@ Only the land workflow pushes `develop`, with that `GITHUB_TOKEN`. So both branc
 | CI runs again when a PR's base changes         | Workflow    | A PR tested against `develop` and then moved to `main` merges on that old run  |
 | The release job runs the gate before it pushes | Workflow    | The version commit reaches `main` with less than a landing's gate behind it    |
 
-Before the release job in `.github/workflows/release.yml` pushes the version commit, it builds and validates the skills, and the pre-commit hook checks the packages it bumped, which is less than the gate a landing runs. The job also pushes with a maintainer's personal access token. A rule that blocks direct pushes to `main` would block the release as well. Exempting the maintainer whose token the job uses would let that maintainer push by hand too. Closing that path needs an identity for the release job that the rule can exempt on its own.
+The CI guard is in place, as for `develop`, and the release job's gate is not. Before the release job in `.github/workflows/release.yml` pushes the version commit, it builds and validates the skills, and the pre-commit hook checks the packages it bumped, which is less than the gate a landing runs. The job also pushes with a maintainer's personal access token. A rule that blocks direct pushes to `main` would block the release as well. Exempting the maintainer whose token the job uses would let that maintainer push by hand too. Closing that path needs an identity for the release job that the rule can exempt on its own.
 
 ### `main` only merges `develop` or `hotfix/*`
 
@@ -57,7 +57,7 @@ Before the release job in `.github/workflows/release.yml` pushes the version com
 | The Release source check is required on `main`     | Branch rule | A PR from any branch merges once a code owner approves it               |
 | Release source runs again when a PR's base changes | Workflow    | A PR opened against `develop` and then moved to `main` merges unchecked |
 
-The third guard is in place. `.github/workflows/release-source.yml` runs on the `edited` event, which GitHub sends when a PR's base changes, and CI does not run on that event.
+The third guard is in place. `.github/workflows/release-source.yml` runs on the `edited` event, which GitHub sends when a PR's base changes.
 
 ### Scenarios and bounds
 

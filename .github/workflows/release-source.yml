@@ -1,9 +1,9 @@
 name: Release source
 
 # main is the release branch: only develop (a release) or hotfix/* may target it.
-# This lives apart from ci.yml so it can also run on `edited`, which fires when a
-# PR's base changes. A PR opened against develop and then retargeted to main
-# therefore gets this check, without rerunning the whole CI on every title edit.
+# This lives apart from ci.yml because it runs only on PRs into main. It also
+# runs on `edited`, which fires when a PR's base changes, so a PR opened against
+# develop and then retargeted to main gets this check.
 
 on:
   pull_request:
