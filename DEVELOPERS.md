@@ -15,7 +15,7 @@ For what mdcp **does** as a tool (commands, design, consumer migration), read th
 
 Contributors are expected to follow the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md).
 
-Guide placement rules for skill workflows: [Skill workflows](docs/features/protocol/skill-workflows.md#three-tier-authoring-obligations).
+Guide placement rules for skill workflows: [Skill workflows](docs/features/protocol/skill-workflows.md#guide-placement-obligations).
 
 <!-- mdcp-shard: end docs/developer/about-this-guide.md -->
 
@@ -27,12 +27,11 @@ Shared acronyms and terms for all mdcp docs. Spell out on first use in a shard a
 
 **Inclusion bar (this repository):** Add entries for MDCP-specific jargon, acronyms, and overloaded words that a new contributor or the stated client persona would not reliably understand from everyday English or general software practice alone (for example protocol terms, compile/refs vocabulary, and skill-verification names). Do **not** add entries for common English, universal programming terms, or words that are unambiguous in context for that audience. When unsure, prefer a short glossary entry over leaving shorthand unexplained. See [domain glossary](#domain-glossary).
 
-Each term is its own shard under `docs/glossary/`. For large glossaries, split manifests across sub-index files (for example `index-protocol.md`, `index-format.md`) and set `compile.scopeRoot` to `glossary` so transitive links pull term shards into other guides.
+Each term is its own shard under `docs/glossary/`. [Shared glossary](./packages/mdcp-cli/README.md#shared-glossary) covers how guides pull term shards in and when to use sub-index files.
 
 ### Protocol terms
 
-- [Agent Skills](#agent-skills)
-- [Skill](#skill)
+- [Agent Skills (Agent Skill, skill)](#agent-skills)
 - [MDCP](#mdcp)
 
 ### Skill verification
@@ -43,22 +42,38 @@ Each term is its own shard under `docs/glossary/`. For large glossaries, split m
 ### Documentation structure
 
 - [shard](#shard)
+- [guide](#guide)
+- [manifest](#manifest)
+- [guide tier](#guide-tier)
+- [standalone guide](#standalone-guide)
 - [idea mitosis](#idea-mitosis)
 - [shard single responsibility](#shard-single-responsibility)
 
-### Format and compile terms
+### Compile outputs and links
+
+- [compiled guide](#compiled-guide)
+- [publish output](#publish-output)
+- [monolith](#monolith)
+- [cross-link](#cross-link)
+- [heading slug](#heading-slug)
+- [refs](#refs)
+- [refs registry](#refs-registry)
+- [ignoreGuides](#ignoreguides)
+
+### Validation
 
 - [check](#check)
+- [orphan](#orphan)
+- [coverage](#coverage)
+
+### Format and wording
+
 - [GFM](#gfm)
 - [Authored GFM](#authored-gfm)
 - [locale pack](#locale-pack)
-- [ignoreGuides](#ignoreguides)
-- [refs](#refs)
-- [refs registry](#refs-registry)
-- [heading slug](#heading-slug)
-- [cross-link](#cross-link)
-- [standalone guide](#standalone-guide)
-- [coverage](#coverage)
+
+### Security
+
 - [ReDoS](#redos)
 
 ### Adoption and messaging
@@ -528,7 +543,7 @@ WORK_ITEM_LOOKUP=GitHub
 
 ## Docs dogfooding
 
-This repo's documentation is sharded under [`docs/`](../). Shards are the **source of truth**; compiled output is generated.
+This repo's documentation is sharded under [`docs/`](docs). Shards are the **source of truth**. Compiled output is generated.
 
 ### Guide directories
 
@@ -561,7 +576,7 @@ Do **not** hand-edit `.agents/skills/` — see
 (`pnpm skill:install` is an alias of `skill:update`.)
 Manual invoke: `/mdcp`.
 
-Shard `../` links in publish guides (`developer`, `client-cli`, `client-core`) rebase automatically at compile — resolve from each shard file to an absolute path, then emit a path relative to the publish output. No per-guide path-prefix config. See [Publish-relative link rewriting](./packages/mdcp-core/README.md#publish-relative-link-rewriting).
+Shard `../` links rebase automatically at compile in every guide. Compile resolves each link from its shard file to an absolute path, then emits a path relative to the guide's [link base](./packages/mdcp-core/README.md#when-it-runs). For a guide with `compile.outputFile` the link base is that file, such as `DEVELOPERS.md` or a package README. For `features` it is the monolith `docs/_build/guides.md`. You don't need per-guide path-prefix config.
 
 Repo scripts use `--config docs/mdcp.config.json --docs-root docs`: the config path is resolved from the **repo root** (invocation directory), while `--docs-root docs` sets the shard tree root. See [Config essentials — `--config` vs `--docs-root`](./packages/mdcp-cli/README.md#--config-vs---docs-root).
 
@@ -591,7 +606,7 @@ Read the related guides alongside the diff and flag any drift (stale guidance, a
 
 ### Agent context
 
-Prefer host search then read one shard under `docs/`. Compiled monoliths under `docs/_build/` are available when a broader read is intentional.
+Prefer host search then read one shard under `docs/`. Compiled guides under `docs/_build/` are available when a broader read is intentional.
 
 ### Linting docs
 
@@ -1032,11 +1047,11 @@ There is **no calendar cadence** and **no Version Packages PR**. A release is a 
 
 If a prior run versioned/published but failed before tags/Releases finished, the next Release plan detects **missing** `name@version` git tags and/or GitHub Releases and the release job **heals** them without bumping versions again (tag + `gh release create … --target` at the commit that last changed that package’s `package.json`).
 
-**Agent Skills** live under `skills/` as the install surface (`npx skills add`). Version carriers and CHANGELOGs live under **`packages/skill-<id>/`** only — never under `skills/` (those files would pollute agent context on install). `pnpm release:main` syncs the carrier version into `skills/<id>/SKILL.md` `metadata.version`. Skill changes need a changeset; see [When to add a changeset](#when-to-add-a-changeset).
+**Skills** are under `skills/`, the directory that `npx skills add` installs from. Version carriers and CHANGELOGs are kept under **`packages/skill-<id>/`** only, never under `skills/`, because those files would pollute agent context on install. `pnpm release:main` syncs the carrier version into `skills/<id>/SKILL.md` `metadata.version`. Skill changes need a changeset. See [When to add a changeset](#when-to-add-a-changeset).
 
 ### Pre-1.0 policy (`0.x.y`)
 
-Packages and Agent Skills are **pre-1.0** while on `0.x.y`. Until a given item reaches **1.0.0**, that item has **no API stability guarantee**. **Major bumps are disabled** (`pnpm changeset:reject-major`). Use **patch**, **minor** (including breaking-within-0.x), or **build** via `pnpm release:build`.
+Packages and skills are **pre-1.0** while on `0.x.y`. Until an item reaches **1.0.0**, that item has **no API stability guarantee**. **Major bumps are disabled** (`pnpm changeset:reject-major`). Use **patch**, **minor** (including breaking-within-0.x), or **build** via `pnpm release:build`.
 
 | Bump      | When                                                                       |
 | --------- | -------------------------------------------------------------------------- |
@@ -1270,10 +1285,10 @@ Even when nothing changes, schedule a **periodic pass** (for example quarterly) 
 OWASP recommends requiring approval from code owners so external contributors cannot merge changes to critical paths without maintainer review. This repo assigns `@betsalel-williamson` in [`.github/CODEOWNERS`](.github/CODEOWNERS) for:
 
 - All paths (`*`) — default owner
-- `.github/` — workflows, Dependabot, and repository automation
-- `packages/` — published npm packages and CLI
-- `docs/` — sharded documentation compiled into READMEs
-- `skills/` and `.agents/skills/` — publishable and committed Agent Skills
+- `.github/`: workflows, Dependabot, and repository automation
+- `packages/`: published npm packages and CLI
+- `docs/`: sharded documentation compiled into READMEs
+- `skills/` and `.agents/skills/`: publishable and committed skills
 
 CODEOWNERS alone does not block merges; branch protection must enforce owner review.
 
@@ -1381,19 +1396,9 @@ The [getting-started workflow](docs/features/protocol/workflows/getting-started.
 
 Each definition lives in its own `.md` file with a single `#` heading (the term). Link the term from feature shards on first use, for example `[GFM](./gfm.md)` or `../glossary/gfm.md` from another guide.
 
-### Multiple index files
+### Sub-index files
 
-When a glossary grows beyond a comfortable manifest size, group entries in sub-index manifests:
-
-| File                | Role                                                                                     |
-| ------------------- | ---------------------------------------------------------------------------------------- |
-| `index.md`          | Master index — preamble plus links to every term shard (required for cross-guide stitch) |
-| `index-protocol.md` | Example sub-index — protocol-related terms only                                          |
-| `index-format.md`   | Example sub-index — format and compile terms                                             |
-
-**Stitched into other guides:** link `../glossary/index.md` from each guide that should publish the full glossary TOC (typically maintainer guides). Lean consumer READMEs may omit the TOC and link individual terms instead. Set `compile.scopeRoot` to `glossary` on those guides so transitive `.md` links from the glossary tree pull term shards into compile output without listing every term in the parent manifest.
-
-**Standalone glossary output:** add `glossary` to `compileOrder` with `compile.outputFile` and optionally `compile.manifest: index-protocol.md` (or another sub-index) when you want a separate compiled glossary per group.
+When guides stitch glossary terms through `compile.scopeRoot`, a large glossary can group term links into sub-index files that `index.md` links. See [Shared glossary](./packages/mdcp-cli/README.md#shared-glossary).
 
 <!-- mdcp-shard: end docs/glossary/domain-glossary.md -->
 
@@ -1401,23 +1406,15 @@ When a glossary grows beyond a comfortable manifest size, group entries in sub-i
 
 ## Agent Skills
 
-Portable packages of agent instructions (`SKILL.md` and companions) that hosts discover and load — the delivery model for MDCP’s **documentation system** guardrails. Upstream source in this monorepo is `skills/mdcp/`; consumers vendor via `npx skills add` into the **agent-specific** skills directory the skills CLI chooses so agents learn how to shard, compile, validate, and maintain docs one piece at a time — across Cursor, Copilot, Claude Code, and similar hosts. Per-agent install paths: [Supported Agents](https://github.com/vercel-labs/skills#supported-agents).
+**Agent Skills** is the [open standard](https://agentskills.io) for portable packages of agent instructions. Each package is a directory with a `SKILL.md` file and optional companion files, and agent hosts discover and load it. One package is an **Agent Skill**, usually shortened to **skill**, and several packages are _skills_.
 
-Verification: agentskills.io validation (`pnpm skill:validate` / skills-ref) in CI; [live skill eval](#live-skill-eval) is the optional local skill-creator loop.
+Outside agent tooling, the word skill can mean a person's ability or a general AI capability. In MDCP docs it always means the packaged directory.
+
+MDCP's main skill is `mdcp`, with its source in `skills/mdcp/`. It contains the **documentation system** guardrails that direct agents to shard and maintain docs one piece at a time. Optional [archetype](docs/features/protocol/extensions-and-archetypes.md#archetypes-battery-types) skills are under `skills/mdcp-arch-*`.
+
+Install and validation: [Agent Skill](docs/features/agent-skill.md).
 
 <!-- mdcp-shard: end docs/glossary/agent-skills.md -->
-
-<!-- mdcp-shard: start docs/glossary/skill.md -->
-
-## Skill
-
-An overloaded term that usually refers to an **Agent Skill** — a portable package of agent instructions (like `SKILL.md`) that hosts discover and load. Industry 101: [Agent Skills](https://agentskills.io).
-
-When discussing MDCP, "skill" specifically refers to the MDCP documentation system guardrails shipped via the [Agent Skills](#agent-skills) protocol.
-
-Do not confuse "skill" with human abilities or general AI capabilities. In this repository, it is a technical artifact (a directory containing a `SKILL.md` file) that can be installed via `npx skills add` and loaded by hosts like Cursor, Copilot, or Claude Code.
-
-<!-- mdcp-shard: end docs/glossary/skill.md -->
 
 <!-- mdcp-shard: start docs/glossary/mdcp.md -->
 
@@ -1453,17 +1450,59 @@ Optional local with/without-skill agent grading via vendored [skill-creator](.ag
 
 ## shard
 
-A **shard** is a small Markdown file that owns one topic. In MDCP, authors edit shards; `compile` stitches them into published outputs (for example a README). Shards are the source of truth — do not hand-edit generated files.
+A **shard** is a small Markdown file that owns one topic. In MDCP, authors edit shards; `compile` stitches them into [compiled guides](#compiled-guide), such as a package README. Shards are the source of truth, so do not hand-edit generated files.
 
 Think “one concern per file” so people and agents can load only what the task needs. Related: [shard single responsibility](#shard-single-responsibility). Deeper model: [Overview](docs/features/overview.md).
 
 <!-- mdcp-shard: end docs/glossary/shard.md -->
 
+<!-- mdcp-shard: start docs/glossary/guide.md -->
+
+## guide
+
+A **guide** is a directory of [shards](#shard) plus its [manifest](#manifest). Compile turns it into one [compiled guide](#compiled-guide). Each name in `compileOrder` is a guide, read from the directory of that name under the docs root unless `guides[].path` points somewhere else. Its output can also include shards that the manifest links from other directories, or that compile reaches under `compile.scopeRoot`.
+
+A guide without `compile.outputFile` can also be stitched into the [monolith](#monolith). A [standalone guide](#standalone-guide) is one registered file with no output of its own.
+
+See [Project layout](./packages/mdcp-cli/README.md#project-layout).
+
+<!-- mdcp-shard: end docs/glossary/guide.md -->
+
+<!-- mdcp-shard: start docs/glossary/manifest.md -->
+
+## manifest
+
+A **manifest** is the file in a [guide](#guide) directory whose Markdown links set compile order. It is `index.md` by default, and `guides[].compile.manifest` can name another file such as `shards.md`. Compile stitches the linked `.md` files in the order the links appear. The [orphan](#orphan) check compares the guide directory against these links.
+
+See [Manifest compile order](docs/features/manifest-compile-order.md).
+
+<!-- mdcp-shard: end docs/glossary/manifest.md -->
+
+<!-- mdcp-shard: start docs/glossary/guide-tier.md -->
+
+## guide tier
+
+A **guide tier** is one category in an [archetype](docs/features/protocol/extensions-and-archetypes.md#archetypes-battery-types)'s guide layout. Each tier specifies what its shards contain and what they keep out. The default archetype, the Code Repository Archetype, defines four tiers: `features/`, `client/`, `developer/`, and `glossary/`. A tier can include more than one [guide](#guide).
+
+See [Default guide layout](docs/features/protocol/mdcp-1.0-spec.md#2-default-guide-layout-code-repository-archetype). [Guide placement obligations](docs/features/protocol/skill-workflows.md#guide-placement-obligations) covers which tier a shard belongs in.
+
+<!-- mdcp-shard: end docs/glossary/guide-tier.md -->
+
+<!-- mdcp-shard: start docs/glossary/standalone-guide.md -->
+
+## standalone guide
+
+A **standalone guide** is a hand-authored markdown file listed in `standaloneGuides[]` that is both its source and the file readers open, such as a package `README.md` or a top-level `SECURITY.md`.
+
+Contrast with a [guide](#guide), whose shards compile into one output. Compile doesn't write output for a standalone guide, and listing it marks it as [captured](#coverage). [Standalone guide behavior](docs/features/coverage-scan.md#standalone-guide-behavior) covers how compile and link checks treat it.
+
+<!-- mdcp-shard: end docs/glossary/standalone-guide.md -->
+
 <!-- mdcp-shard: start docs/glossary/idea-mitosis.md -->
 
 ## idea mitosis
 
-**Idea mitosis** is splitting a documentation shard when it grows a second responsibility — a second audience, job (explain vs how-to vs look-up), or independent concern — or when reading the file alone misleads. After a split, update the guide index and cross-link the daughter shards.
+**Idea mitosis** is splitting a documentation shard when it grows a second responsibility (see [shard single responsibility](#shard-single-responsibility)). Also split it when reading the file alone misleads. After a split, update the guide index and cross-link the daughter shards.
 
 Do not split only because a file is long. Prefer one primary concern per shard.
 
@@ -1475,62 +1514,63 @@ See [Shard single responsibility and idea mitosis](docs/features/protocol/shard-
 
 ## shard single responsibility
 
-**Shard single responsibility** means each durable documentation shard owns one primary concern, for one audience tier, serving one job (explain, instruct how-to, or define/look up — not several). A shard should have one main reason to change.
+**Shard single responsibility** means each durable documentation shard owns one primary concern, for one [guide tier](#guide-tier), serving one job: explain, instruct how-to, or define and look up. A shard should have one main reason to change.
 
 See [Shard single responsibility and idea mitosis](docs/features/protocol/shard-srp-and-mitosis.md) and [idea mitosis](#idea-mitosis).
 
 <!-- mdcp-shard: end docs/glossary/shard-single-responsibility.md -->
 
-<!-- mdcp-shard: start docs/glossary/check.md -->
+<!-- mdcp-shard: start docs/glossary/compiled-guide.md -->
 
-## check
+## compiled guide
 
-**`mdcp check`** is MDCP’s validation gate. It compiles docs, refreshes [refs](#refs), and fails when orphans, broken links, or configured linters disagree with the shards — locally or in CI.
+A **compiled guide** is the file compile writes for one [guide](#guide). A guide that sets `compile.outputFile` writes its compiled guide to that path, and that file is a [publish output](#publish-output).
 
-Use it before you trust a merge. Command details: [CLI consumer guide](docs/client-cli/index.md).
+See [Default per-guide outputs](./packages/mdcp-cli/README.md#default-per-guide-outputs) for the default paths.
 
-<!-- mdcp-shard: end docs/glossary/check.md -->
+<!-- mdcp-shard: end docs/glossary/compiled-guide.md -->
 
-<!-- mdcp-shard: start docs/glossary/gfm.md -->
+<!-- mdcp-shard: start docs/glossary/publish-output.md -->
 
-## GFM
+## publish output
 
-**GitHub Flavored Markdown** ([spec](https://github.github.com/gfm/)) — CommonMark plus GitHub extensions (tables, task lists, fenced code). Not Pandoc, LaTeX, or wikilinks.
+A **publish output** is the file a [guide](#guide) compiles to when it sets its own `compile.outputFile`, such as a package README or the repository-root `DEVELOPERS.md`. The path is relative to `outputDir` unless it is absolute.
 
-MDCP’s authored format contract is GFM, but heading recognition is an **ATX subset**: setext headings are not recognized. See [GFM scope](docs/features/design-constraints/gfm-scope.md#headings).
+Publish outputs stay out of the optional [monolith](#monolith), and link validation applies the [publish-only link policy](docs/features/link-validation.md#publish-only-link-policy) to them.
 
-<!-- mdcp-shard: end docs/glossary/gfm.md -->
+See [Default per-guide outputs](./packages/mdcp-cli/README.md#default-per-guide-outputs).
 
-<!-- mdcp-shard: start docs/glossary/authored-gfm.md -->
+<!-- mdcp-shard: end docs/glossary/publish-output.md -->
 
-## Authored GFM
+<!-- mdcp-shard: start docs/glossary/monolith.md -->
 
-Shard markdown as written before compile — no preprocessor substitution or template conditionals. Compile hooks may transform it during assembly; read [Preprocessor / templating (out of scope)](docs/features/design-constraints/preprocessor-templating.md#preprocessor--templating-out-of-scope).
+## monolith
 
-<!-- mdcp-shard: end docs/glossary/authored-gfm.md -->
+The **monolith** is the optional single file that stitches every [guide](#guide) without `compile.outputFile` into one document, in `compileOrder` order. Compile writes it only when the config sets top-level `outputFile`.
 
-<!-- mdcp-shard: start docs/glossary/locale-pack.md -->
+See [What compile actually does](docs/features/overview.md#what-compile-actually-does). [Cross-guide resolution](./packages/mdcp-core/README.md#cross-guide-resolution) covers links between two guides in the monolith.
 
-## Locale pack
+<!-- mdcp-shard: end docs/glossary/monolith.md -->
 
-A **locale pack** is MDCP’s compile-time bundle of natural-language data that is **not** GFM protocol shape. It covers:
+<!-- mdcp-shard: start docs/glossary/cross-link.md -->
 
-- **Generated wording** — for example US-English insert captions like `Table 1. …` and `BROKEN LINK` marker copy
-- **Locale-specific patterns** — optional heading-key patterns for semantic refs
-- **Parse-input word cues** — authored words a compile hook may recognize (for example en-US `line` / `lines` for [codeEvidence](./packages/mdcp-core/README.md#codeevidence) line ranges)
-- **Preamble heading title** — for example en-US `About this guide` for strip/promote defaults (`aboutThisGuideTitle`)
+## cross-link
 
-Default `en-US` (one BCP 47 JSON file per locale under `src/locale/locales/`). Language-neutral markup forms and GitHub-style `#L…` fragment **output** stay outside the pack.
+A **cross-link** (also **cross-ref**) is a Markdown link whose target is another place in the docs set. It is usually a same-document `[label](#heading-slug)` fragment or a path to another shard that compile may rewrite.
 
-<!-- mdcp-shard: end docs/glossary/locale-pack.md -->
+Cross-links are why [refs](#refs) exist. After assemble, the visible heading text and level can change. The [heading slug](#heading-slug) that works in a shard may then differ from the slug in the compiled file. MDCP rewrites these targets and validates the links in each [compiled guide](#compiled-guide). See [Built-in link validation](docs/features/link-validation.md).
 
-<!-- mdcp-shard: start docs/glossary/ignore-guides.md -->
+<!-- mdcp-shard: end docs/glossary/cross-link.md -->
 
-## ignoreGuides
+<!-- mdcp-shard: start docs/glossary/heading-slug.md -->
 
-Guide names listed on the **compiling** guide under `compile.crossGuideLinks.ignoreGuides`. Cross-guide links to those guides keep source shard `.md` paths instead of rewriting to monolith `#slug` targets. Does not exclude the guide from `compileOrder` or the link index — only skips link rewrite for those targets. On publish outputs, [publish-relative rewrite](./packages/mdcp-core/README.md#publish-relative-link-rewriting) still rebases the shard path for the publish file. Read [Cross-guide link rewriting](./packages/mdcp-core/README.md#cross-guide-link-rewriting).
+## heading slug
 
-<!-- mdcp-shard: end docs/glossary/ignore-guides.md -->
+GitHub-style fragment id for a heading in **compiled** Markdown (the part after `#` in `[label](#slug)`). Parent concept: [refs](#refs).
+
+MDCP computes slugs from final heading text after guides are stitched and demoted, with the same rules GitHub uses for README anchors (via `github-slugger`). Duplicate titles in one document get `-1`, `-2` suffixes. Authors should not invent fragments from shard-only titles; [cross-links](#cross-link) must match the compiled slug, and `mdcp check` fails when they do not.
+
+<!-- mdcp-shard: end docs/glossary/heading-slug.md -->
 
 <!-- mdcp-shard: start docs/glossary/refs.md -->
 
@@ -1561,55 +1601,82 @@ Not the same as ordinary “search the docs.” Refs are about **correct anchors
 
 ## refs registry
 
-Derived catalog of [heading slugs](#heading-slug) from compiled guide output, typically written as `refs.json` under `outputDir`. Parent concept: [refs](#refs).
+Derived catalog of [heading slugs](#heading-slug) from compile output, typically written as `refs.json` under `outputDir`. It holds the [monolith](#monolith)'s headings when the config sets top-level `outputFile`, and otherwise the headings of every [compiled guide](#compiled-guide). Parent concept: [refs](#refs).
 
 The registry is **generated state**, not authored shards. `mdcp compile` (and `mdcp refs gen`) rebuild it; `mdcp check` / `mdcp refs check` verify it still matches the latest compile. Path rules: [Refs registry path](docs/features/refs-registry-path.md).
 
 <!-- mdcp-shard: end docs/glossary/refs-registry.md -->
 
-<!-- mdcp-shard: start docs/glossary/heading-slug.md -->
+<!-- mdcp-shard: start docs/glossary/ignore-guides.md -->
 
-## heading slug
+## ignoreGuides
 
-GitHub-style fragment id for a heading in **compiled** Markdown (the part after `#` in `[label](#slug)`). Parent concept: [refs](#refs).
+**`ignoreGuides`** is a list of guide names on the **compiling** guide, under `compile.crossGuideLinks.ignoreGuides`. Cross-guide links to a listed guide keep pointing at the source shard instead of rewriting to a `#slug` target. [Publish-relative rewrite](./packages/mdcp-core/README.md#ignoreguides-interaction) still rebases the kept path. The listed guide stays in `compileOrder` and in the link index.
 
-MDCP computes slugs from final heading text after guides are stitched and demoted — same rules GitHub uses for README anchors (via `github-slugger`). Duplicate titles in one document get `-1`, `-2` suffixes. Authors should not invent fragments from shard-only titles; [cross-links](#cross-link) must match the compiled slug, and `mdcp check` fails when they do not.
+Read [Cross-guide link rewriting](./packages/mdcp-core/README.md#cross-guide-link-rewriting) for how other links rewrite, and the [publish-only link policy](docs/features/link-validation.md#publish-only-link-policy) for how link validation treats kept shard paths.
 
-<!-- mdcp-shard: end docs/glossary/heading-slug.md -->
+<!-- mdcp-shard: end docs/glossary/ignore-guides.md -->
 
-<!-- mdcp-shard: start docs/glossary/cross-link.md -->
+<!-- mdcp-shard: start docs/glossary/check.md -->
 
-## cross-link
+## check
 
-A **cross-link** (also **cross-ref**) is a Markdown link whose target is another place in the docs set — usually a same-document `[label](#heading-slug)` fragment, or a path to another shard/guide that compile may rewrite.
+**`mdcp check`** is MDCP’s validation gate, run locally and in CI before a merge. See [Check gate](docs/features/feature-catalog.md#check-gate-p04) for what it runs.
 
-Cross-links are why [refs](#refs) exist: after assemble, the visible heading text and level can change, so the [heading slug](#heading-slug) that works in a shard may differ from the slug in the compiled file. MDCP rewrites and validates these targets so published and monolith outputs keep working links. See [Built-in link validation](docs/features/link-validation.md).
+<!-- mdcp-shard: end docs/glossary/check.md -->
 
-<!-- mdcp-shard: end docs/glossary/cross-link.md -->
+<!-- mdcp-shard: start docs/glossary/orphan.md -->
 
-<!-- mdcp-shard: start docs/glossary/standalone-guide.md -->
+## orphan
 
-## standalone guide
+An **orphan** is a top-level shard in a [guide](#guide) directory that the guide's [manifest](#manifest) does not link. [Manifest compile order](docs/features/manifest-compile-order.md) explains which manifest links count, including the `compile.sectionsHeading` rule and the [file-name fallback](docs/features/manifest-compile-order.md#linked-shards-and-the-file-name-fallback).
 
-A single markdown file registered as its own guide that is **not** compiled from shards. Declared in `standaloneGuides[]`, it is the source and the published file at once — for example a hand-authored package `README.md` or a top-level `SECURITY.md`.
+Unlinked shards in a guide subdirectory or under a `compile.scopeRoot` are out of scope for this check. See [Relationship to the orphan check](docs/features/coverage-scan.md#relationship-to-the-orphan-check).
 
-Contrast with a [guide](#mdcp), which stitches a list of shards into one output. A standalone guide is register-only: compile never stitches, rewrites, or emits it, but its headings still register into [refs](#refs) and its outbound links are link-linted with the same checks a shard gets. Registering a file as standalone marks it as [captured](#coverage) so the coverage scan does not report it.
-
-See [Documentation coverage scan](docs/features/coverage-scan.md).
-
-<!-- mdcp-shard: end docs/glossary/standalone-guide.md -->
+<!-- mdcp-shard: end docs/glossary/orphan.md -->
 
 <!-- mdcp-shard: start docs/glossary/coverage.md -->
 
 ## coverage
 
-Documentation coverage is the set of markdown files MDCP can account for — the **captured** set. A file is captured when it is a shard of a compiled guide (including a guide's `compile.scopeRoot`), a guide output target (`compile.outputFile`), or a [standalone guide](#standalone-guide).
+Documentation **coverage** is the set of markdown files MDCP can account for, and a file in that set is **captured**. [Coverage and the captured set](docs/features/coverage-scan.md#coverage-and-the-captured-set) lists which files count.
 
 The coverage scan walks the repository for markdown files, skips vendored paths, and reports any file that is not captured so authors either fold it into a guide or register it in `standaloneGuides[]`. With `scan.strict: true`, gaps fail `mdcp check`.
 
-See [Documentation coverage scan](docs/features/coverage-scan.md).
-
 <!-- mdcp-shard: end docs/glossary/coverage.md -->
+
+<!-- mdcp-shard: start docs/glossary/gfm.md -->
+
+## GFM
+
+**GitHub Flavored Markdown** ([spec](https://github.github.com/gfm/)) is CommonMark plus GitHub extensions (tables, task lists, fenced code). Not Pandoc, LaTeX, or wikilinks.
+
+MDCP’s authored format contract is GFM, but heading recognition is an **ATX subset**: setext headings are not recognized. See [GFM scope](docs/features/design-constraints/gfm-scope.md#headings).
+
+<!-- mdcp-shard: end docs/glossary/gfm.md -->
+
+<!-- mdcp-shard: start docs/glossary/authored-gfm.md -->
+
+## Authored GFM
+
+Shard markdown as written before compile, with no preprocessor substitution or template conditionals. Compile hooks may transform it during assembly. Read [Preprocessor / templating (out of scope)](docs/features/design-constraints/preprocessor-templating.md#preprocessor--templating-out-of-scope).
+
+<!-- mdcp-shard: end docs/glossary/authored-gfm.md -->
+
+<!-- mdcp-shard: start docs/glossary/locale-pack.md -->
+
+## Locale pack
+
+A **locale pack** is MDCP’s compile-time bundle of natural-language data that is **not** GFM protocol shape. It covers:
+
+- **Generated wording**: text such as US-English insert captions (`Table 1. …`) and `BROKEN LINK` marker copy
+- **Locale-specific patterns**: optional heading-key patterns for semantic refs
+- **Parse-input word cues**: authored words a compile hook may recognize (such as en-US `line` / `lines` for [codeEvidence](./packages/mdcp-core/README.md#codeevidence) line ranges)
+- **Preamble heading title**: a title such as en-US `About this guide` for strip/promote defaults (`aboutThisGuideTitle`)
+
+Default `en-US` (one BCP 47 JSON file per locale under `src/locale/locales/`). Language-neutral markup forms and GitHub-style `#L…` fragment **output** stay outside the pack.
+
+<!-- mdcp-shard: end docs/glossary/locale-pack.md -->
 
 <!-- mdcp-shard: start docs/glossary/redos.md -->
 

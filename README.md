@@ -8,7 +8,7 @@
 
 [![skills.sh](https://skills.sh/b/betsalel-williamson/mdcp)](https://skills.sh/betsalel-williamson/mdcp)
 
-**mdcp** (MarkDown Context Protocol) is a **documentation system** delivered as an [Agent Skill](https://agentskills.io) plus a small compile/check toolchain. It is for people who know good docs compound — and that unvalidated monolith READMEs get expensive as product ideas keep arriving.
+**mdcp** (MarkDown Context Protocol) is a **documentation system** delivered as an [Agent Skill](https://agentskills.io) plus a small compile/check toolchain. It is for people who know that good docs compound and that unvalidated single-file READMEs get expensive as product ideas keep arriving.
 
 Instead of dumping every mind map, architecture note, and spec into one file that overwhelms both humans and LLM context windows, MDCP keeps that intent in small, validated Markdown **shards** — for example `docs/features/my-feature.md`, `docs/procedures/line-changeover.md`, `docs/equipment/press-manual.md`, or `docs/training/onboarding-module.md`. Agents learn to read **one shard at a time**, update shards before changing the system (software, procedures, or training), and run checks in CI — so documentation stays findable and trustworthy as the system grows. Discover and install via [skills.sh](https://skills.sh/betsalel-williamson/mdcp). <!-- mdcp-paths: illustrative -->
 
@@ -45,7 +45,7 @@ The agent asks for `FEATURE` and `PERSONA`, then helps wire config, guide layout
 ## Why use MDCP?
 
 - **Built for documentation-system thinkers:** Puts durable intent (specs, design notes, glossaries) in the repo where it compounds — not only in chat history or slide decks.
-- **Lower maintenance as ideas keep coming:** One topic per shard means new features extend the docs tree instead of bloating a monolith you no longer trust.
+- **Lower maintenance as ideas keep coming:** One topic per shard means new features extend the docs tree instead of bloating a single file you no longer trust.
 - **Docs-as-code for agents:** Agents update shards before implementing, so “what we meant” stays reviewable in git (the V1 transport) alongside the change.
 - **Smaller, safer context loads:** People and LLMs read the section that matches the task — not the whole guide every turn.
 - **Validation gate:** `mdcp check` keeps cross-links and refs trustworthy in CI when the docs system grows.
@@ -112,9 +112,9 @@ flowchart TB
   shards --> check["mdcp check — validation gate"]
 ```
 
-- **[Skill](https://agentskills.io)** ([MDCP sense](docs/glossary/skill.md)) — instructions your agent follows (`/mdcp`, which picks a workflow for each task).
-- **[Shards](docs/glossary/shard.md)** — source of truth; compiled READMEs are generated — do not hand-edit them.
-- **[Check](docs/glossary/check.md)** — keeps the docs system honest as it grows.
+- **[Skill](https://agentskills.io)** ([definition](docs/glossary/agent-skills.md)): instructions your agent follows (`/mdcp`, which picks a workflow for each task).
+- **[Shards](docs/glossary/shard.md)**: source of truth. Compiled READMEs are generated, so do not hand-edit them.
+- **[Check](docs/glossary/check.md)**: validates the docs system as it grows.
 
 Deeper model: [Overview](docs/features/overview.md). Install path: [Get started](#get-started).
 
@@ -165,7 +165,7 @@ This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.
 
 ### Status
 
-**Pre-1.0:** Packages and Agent Skills version independently. Until a given package or skill reaches **1.0.0**, that item has **no API stability guarantee**.
+**Pre-1.0:** Packages and skills version independently. Until a package or skill reaches **1.0.0**, that item has **no API stability guarantee**.
 
 **Get involved:** [GitHub Issues](https://github.com/betsalel-williamson/mdcp/issues) for feedback and bugs; [adoption stories](https://github.com/betsalel-williamson/mdcp/issues/new?template=adoption-story.yml) for real-world use.
 

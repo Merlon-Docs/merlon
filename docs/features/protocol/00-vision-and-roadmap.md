@@ -4,7 +4,7 @@ MDCP (**MarkDown Context Protocol**) is an [Agent Skill](../../glossary/agent-sk
 
 ## Problem
 
-Large documentation dumps (monolithic README, site-wide `llms.txt`, crawled corpora like Context7) overload agent context windows. Teams also lack a shared, reviewable place for **what documentation means** — especially when legacy projects reuse the same terms for different concepts. Mind maps, arch docs, and specs scatter across tools and never compound in the repo.
+Large documentation dumps (single-file README, site-wide `llms.txt`, crawled corpora like Context7) overload agents' context windows. Teams also lack a shared, reviewable place for **what documentation means**, especially when legacy projects reuse the same terms for different concepts. Mind maps, arch docs, and specs scatter across tools and never compound in the repo.
 
 MDCP does not magically erase documentation debt. It helps head it off by putting durable context in the right place: **small shards** are the source of truth; agents and humans pull **one section at a time** (host search is enough to find it). That scale works for a team of one or a full product, engineering, and marketing org.
 
@@ -15,7 +15,7 @@ MDCP does not magically erase documentation debt. It helps head it off by puttin
 | High level over implementation | Shards hold plan, constraints, acceptance criteria; implementation and procedures live in code or source systems |
 | Glossary as first-class        | Domain terms and legacy disambiguation live in dedicated shards                                                  |
 | Document before build/migrate  | Capture context in shards before greenfield work or migrations                                                   |
-| Granular, safe context         | Read one shard; compiled monolith only when a broader read is intentional                                        |
+| Granular, safe context         | Read one shard; compiled output only when a broader read is intentional                                          |
 | Direct value only              | Ship capabilities that close a unique gap                                                                        |
 | Skill + open toolchain         | Delivered as an Agent Skill; CLI/`mdcp-core` implement compile and check without locking you into a host         |
 | Extensions over core           | `docs/extensions/` locally; shared packs in complementary skills                                                 |
@@ -46,7 +46,7 @@ Later phases (MCP, hosted API) are alternate **delivery** surfaces; they do not 
 
 | Approach                         | MDCP relationship                                       |
 | -------------------------------- | ------------------------------------------------------- |
-| Monolithic `llms.txt` dump       | Replaced by Agent Skills pack + on-demand shards        |
+| Full `llms.txt` dump             | Replaced by MDCP skills and on-demand shards            |
 | Context7 / large crawled corpora | Author-controlled, deterministic, PR-reviewable         |
 | OpenAPI                          | Analogy: contract for documentation context             |
 | MCP                              | Complementary delivery on top of MDCP artifacts         |

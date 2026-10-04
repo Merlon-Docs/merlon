@@ -33,10 +33,10 @@ Even when nothing changes, schedule a **periodic pass** (for example quarterly) 
 OWASP recommends requiring approval from code owners so external contributors cannot merge changes to critical paths without maintainer review. This repo assigns `@betsalel-williamson` in [`.github/CODEOWNERS`](../../.github/CODEOWNERS) for:
 
 - All paths (`*`) — default owner
-- `.github/` — workflows, Dependabot, and repository automation
-- `packages/` — published npm packages and CLI
-- `docs/` — sharded documentation compiled into READMEs
-- `skills/` and `.agents/skills/` — publishable and committed Agent Skills
+- `.github/`: workflows, Dependabot, and repository automation
+- `packages/`: published npm packages and CLI
+- `docs/`: sharded documentation compiled into READMEs
+- `skills/` and `.agents/skills/`: publishable and committed skills
 
 CODEOWNERS alone does not block merges; branch protection must enforce owner review.
 

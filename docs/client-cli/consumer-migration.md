@@ -1,6 +1,6 @@
 # Consumer migration
 
-Add `source` to your config pointing at your existing monolith, then:
+Add `source` to your config pointing at your existing source document, then:
 
 ```bash
 mdcp shard
@@ -54,7 +54,7 @@ Upgrade notes from earlier MDCP releases are in package **CHANGELOGs** (and GitH
 
 After setting up a consumer repo:
 
-1. **`mdcp compile`** — per-guide outputs under `_build/` (or explicit `compile.outputFile` targets); optional monolith when `outputFile` is set
-2. **`mdcp check --require-lint`** — orphans, refs, links, and markdownlint on in-scope guide shards
-3. **`mdcp check --require-vale`** — when Vale is configured
-4. **Hook output** — diagram tables inlined (`inlineInserts`), code evidence blocks resolved (`codeEvidence`), cross-guide links rewritten to monolith `#slug` targets (or left as shard `.md` paths for guides in `compile.crossGuideLinks.ignoreGuides`)
+1. **`mdcp compile`**: per-guide outputs under `_build/` (or explicit `compile.outputFile` targets); optional monolith when `outputFile` is set
+2. **`mdcp check --require-lint`**: orphans, refs, links, and markdownlint on in-scope guide shards
+3. **`mdcp check --require-vale`**: when Vale is configured
+4. **Hook output**: diagram tables inlined (`inlineInserts`), code evidence blocks resolved (`codeEvidence`), cross-guide links rewritten to `#slug` targets in compiled output (or left as shard `.md` paths for guides in `compile.crossGuideLinks.ignoreGuides`)

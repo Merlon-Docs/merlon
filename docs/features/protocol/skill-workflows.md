@@ -1,6 +1,6 @@
 # Skill workflows
 
-Normative profile for the **workflows** inside the MDCP Agent Skill that drive shard authoring across the four-tier guide layout. Parent spec: [MDCP 1.0 (draft)](./mdcp-1.0-spec.md).
+Normative profile for the **workflows** inside the MDCP Agent Skill that drive shard authoring across the four [guide tiers](../../glossary/guide-tier.md). Parent spec: [MDCP 1.0 (draft)](./mdcp-1.0-spec.md).
 
 ## Purpose
 
@@ -53,9 +53,9 @@ Goals and hard boundaries for each workflow (what it is / is not):
 - [UX workflow](./workflows/ux.md)
 - [Doc-review workflow](./workflows/doc-review.md)
 
-Index: [skills.md](../../docs/skills.md). Most workflows also have optional [live skill eval](../../developer/live-skill-evals.md) suites under `tests/skills/mdcp/evals/`.
+Index: [skills.md](../../skills.md). Most workflows also have optional [live skill eval](../../developer/live-skill-evals.md) suites under `tests/skills/mdcp/evals/`.
 
-## Three-tier authoring obligations
+## Guide placement obligations
 
 Place each shard by **audience and job**, not by topic keyword. The same subject (for example Agent Skills) can span tiers: product delivery in `features/`, consumer install in `client/`, maintainer evals in `developer/`.
 

@@ -28,12 +28,12 @@ pnpm build && pnpm docs:compile:repo && pnpm bench:context-size
 
 ### How to read the numbers
 
-- **Sharding** can reduce per-turn context **when agents read one feature shard instead of the full features monolith** — see `median_shard_pct_of_monolith` in the CSV.
-- MDCP does **not** stop an agent from reading the whole monolith — discipline and Agent Skill instructions matter.
+- **Sharding** can reduce per-turn context **when agents read one feature shard instead of the whole [monolith](../../glossary/monolith.md)**. See `median_shard_pct_of_monolith` in the CSV.
+- MDCP does **not** stop an agent from reading the whole monolith or a whole compiled guide. Discipline and Agent Skill instructions matter.
 
-### Tier B wording (dogfood measurement, 2026-06-25)
+### Tier B wording (dogfood measurement)
 
-On this repository, the median `docs/features/` shard is **~4.4%** of the compiled features monolith by character count (median ~4.6k chars vs ~105k chars). When agents read one shard instead of the full monolith, per-turn context can be smaller — if they follow the [usage model](./usage-model.md). MDCP does not enforce that discipline; the Agent Skill and your workflow do.
+On this repository, the median `docs/features/` shard is **~2%** of the monolith `docs/_build/guides.md` by character count (median ~5.3k chars vs ~261k chars). Here the monolith contains the features guide and the glossary terms it links. When agents follow the [usage model](./usage-model.md) and read one shard instead of the whole monolith, per-turn context can be smaller. MDCP does not enforce that discipline. The Agent Skill and your workflow do.
 
 ## Evidence elsewhere
 

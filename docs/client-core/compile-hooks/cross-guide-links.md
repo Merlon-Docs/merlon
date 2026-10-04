@@ -4,7 +4,7 @@
 
 Specification for assembly-time cross-shard and cross-guide link rewriting. Tests in `packages/mdcp-core/test/cross-guide-links.test.ts` map to the sections below (docs first, then TDD).
 
-Multi-output consumer repos compile separate monoliths (for example `glossary.md`, `architecture-review.md`, `technical-guide.md`) from shards that span `review/`, `security/`, `features/`, and sibling guide directories. Source shards link with relative `.md` paths; compiled output must use stable in-document or cross-monolith `#slug` targets so link-fragment lint passes.
+Multi-output consumer repos produce separate compiled guides (such as `glossary.md`, `architecture-review.md`, `technical-guide.md`) from shards that span `review/`, `security/`, `features/`, and sibling guide directories. Source shards link with relative `.md` paths. Compiled output must use stable in-document or cross-output `#slug` targets so link-fragment lint passes.
 
 ## Cross-guide purpose
 
@@ -12,10 +12,10 @@ At compile time, MDCP:
 
 1. Builds a **guide link index** from every guide in `compileOrder` — each path in that guide's `linkedSectionFiles` (manifest plus transitive inline `.md` links) maps to its compiled `{guideName, outputBasename, slug}` (slug from the demoted first heading, same rules as intra-guide rewrite)
 2. Rewrites **cross-guide** `.md` links per shard (using the shard path for relative resolution) before sections are stitched
-3. Rewrites **publish-relative** `../` file links per shard when the guide has `compile.outputFile` — see [Publish-relative link rewriting](./publish-relative-links.md)
+3. Rewrites **publish-relative** `../` file links per shard, relative to the guide's [link base](./publish-relative-links.md#when-it-runs)
 4. Rewrites **same-guide** section links per shard (intra-guide pass with `sourceFile`), then again on the assembled body (intra-guide pass scoped to `guideDir`)
 
-Cross-guide handles indexed markdown between guides and co-compiled transitive targets. Publish-relative rebases remaining file paths for outputs outside the shard tree (no manual path config). Intra-guide handles same-guide section targets. These are **assembly-time passes**, not compile hooks.
+Cross-guide handles indexed markdown between guides and co-compiled transitive targets. Publish-relative rebases remaining file paths in every guide, relative to that same link base (no manual path config). Intra-guide handles same-guide section targets. These are **assembly-time passes**, not compile hooks.
 
 ## Cross-guide link matching
 
@@ -38,7 +38,7 @@ Assembly splits `.md` link rewriting by link shape and target scope:
 | **Cross-guide** | Per shard, before stitch | `./` and `../` to indexed shards      | `dirname(sourceFile)`, then parent / scopeRoot / cwd        |
 | **Intra-guide** | Per shard; post-assembly | Bare sibling or `./` same-guide paths | Per shard: `dirname(sourceFile)`; post-assembly: `guideDir` |
 
-Cross-guide does **not** match bare sibling paths — those are intra-guide only. Publish-relative handles remaining `../` file links on publish outputs; see [Publish-relative link rewriting](./publish-relative-links.md).
+Cross-guide does **not** match bare sibling paths. Those are intra-guide only. Publish-relative handles remaining `../` file links in every guide. See [Publish-relative link rewriting](./publish-relative-links.md).
 
 ### guideDir misaligned with shard tree
 
@@ -103,12 +103,14 @@ Canonical ownership (manifest or path under `guideDir`) still wins for cross-out
 
 When the resolved absolute path is in the guide link index (and same-output preference does not already apply):
 
-| Case                                             | Rewritten target                                                        |
-| ------------------------------------------------ | ----------------------------------------------------------------------- |
-| Same compiled output as the assembling guide     | `#slug` or `#fragment` when the link includes a fragment                |
-| Different compiled output (`compile.outputFile`) | `{outputBasename}#slug` (for example `architecture-review.md#find-004`) |
-| Monolith output (no per-guide `outputFile`)      | `#slug`                                                                 |
-| Target guide in `ignoreGuides`                   | **unchanged** — keep source `.md` path (link to shard, not monolith)    |
+| Case                                                            | Rewritten target                                                                                                                  |
+| --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Same compiled output as the assembling guide                    | `#slug` or `#fragment` when the link includes a fragment                                                                          |
+| Different compiled output                                       | `{outputBasename}#slug` in the same directory (such as `architecture-review.md#find-004`), otherwise a relative path plus `#slug` |
+| Both guides in the monolith (neither sets `compile.outputFile`) | `#slug`, which broken-link marking then replaces (see below)                                                                      |
+| Target guide in `ignoreGuides`                                  | **unchanged**: keep source `.md` path (link to shard, not compiled output)                                                        |
+
+A link between two guides in the monolith compiles to a `#slug` that resolves in the monolith but not in the linking guide's own compiled guide. [Broken-link marking](../../features/link-validation.md#broken-link-marker) checks that slug against the linking guide's own slugs, so it replaces the link with a BROKEN LINK marker in both the linking guide's compiled guide and the monolith, and compile exits `1`. With `compile.links.markBroken: false` the `#slug` link stays, and it resolves only in the monolith.
 
 Finding shards (`FIND-*.md`) use the finding id from the filename (for example `#find-004`), not the parent outcomes section slug.
 
@@ -120,7 +122,7 @@ The pass **does not** transform:
 - Same-document `#fragment` links
 - Markdown links that do not resolve to an indexed shard
 - Non-markdown paths (handled by `codeEvidence` or left unchanged)
-- Links to shards in guides listed in `compile.crossGuideLinks.ignoreGuides` (publish-relative may still rebase the unchanged shard path for publish outputs — see [Publish-relative link rewriting](./publish-relative-links.md))
+- Links to shards in guides listed in `compile.crossGuideLinks.ignoreGuides` (publish-relative may still rebase the unchanged shard path; see [`ignoreGuides` interaction](./publish-relative-links.md#ignoreguides-interaction))
 
 ## Cross-guide config
 
@@ -162,7 +164,7 @@ Minimal multi-output setup — index and rewrite run automatically from `compile
 
 ### `compile.crossGuideLinks.ignoreGuides`
 
-Set on the **guide being compiled**. Guide names in this list keep source `.md` paths for cross-guide links instead of rewriting to that guide's monolith `#slug` target ([ignoreGuides](../../glossary/ignore-guides.md)). Use when one compiled guide should link to live shard files for specific guides (for example technical reference docs that are not folded into a review bundle).
+Set on the **guide being compiled**. Links from that guide to shards of a listed guide keep source `.md` paths instead of rewriting to a `#slug` in the file that contains the target guide: the monolith when the target guide is part of it, otherwise its compiled guide ([ignoreGuides](../../glossary/ignore-guides.md)). Use when one compiled guide should link to live shard files for specific guides (such as technical reference docs that are not folded into a review bundle).
 
 ```json
 {
@@ -218,14 +220,14 @@ Compiled `glossary.md` (each target keeps its guide output):
 See [FIND-004](architecture-review.md#find-004) and [Deployment](technical-guide.md#deployment).
 ```
 
-## Cross-guide ignore example (mixed monolith and shard links)
+## Cross-guide ignore example (mixed compiled-output and shard links)
 
-Same hub shard with `ignoreGuides: ["technical-guide"]` on the **glossary** guide:
+Same hub shard with `ignoreGuides: ["technical-guide"]` on the **glossary** guide. Compiled `glossary.md`:
 
 ```markdown
 ## Terms
 
-See [FIND-004](architecture-review.md#find-004) and [Deployment](../technical/deployment.md).
+See [FIND-004](architecture-review.md#find-004) and [Deployment](../../technical/deployment.md).
 ```
 
-Review targets use the compiled monolith; ignored guides keep shard paths. Tests in `packages/mdcp-core/test/cross-guide-links.test.ts` cover index entries, per-link routing, `ignoreGuides`, and end-to-end compile.
+Review targets use the compiled `architecture-review.md`. The ignored guide keeps its shard path, and publish-relative rewrite rebases that path relative to `_build/compiled/glossary.md`. Tests in `packages/mdcp-core/test/cross-guide-links.test.ts` cover index entries, per-link routing, `ignoreGuides`, and end-to-end compile.

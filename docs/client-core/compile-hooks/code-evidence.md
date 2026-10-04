@@ -11,9 +11,9 @@ Architecture and technical review shards cite **repo source files** as evidence.
 1. Resolves **line ranges** from link text (for example `L6-L8`, `lines 12–15`, `:42`)
 2. Resolves **symbols** from the URL fragment (`file.ts#symbol`) or from the link label when no fragment is present (for example ``[`orgCount`](../../functions/src/foo.ts)``)
 3. Appends GitHub-style **`#L` fragments** (`#L6`, `#L6-L8`) to the link target
-4. Rewrites the target path to be **relative to the rendered output** — the per-guide `compile.outputFile` when set, otherwise the monolith path (`outputDir` + `outputFile` from config)
+4. Rewrites the target path to be relative to the guide's [link base](./publish-relative-links.md#when-it-runs)
 
-Publish outputs (`compile.outputFile`) rewrite remaining relative file links automatically (for example `../../package.json` → `package.json` in `DEVELOPERS.md`). Same resolve-then-rebase model as publish-relative assembly; see [Publish-relative link rewriting](./publish-relative-links.md).
+Publish-relative assembly rebases every guide's remaining `../` file links against the same link base. In `DEVELOPERS.md`, `../../package.json` becomes `package.json`. See [Publish-relative link rewriting](./publish-relative-links.md).
 
 ## codeEvidence link matching
 
@@ -85,7 +85,7 @@ Runs by default — no hook list required. Path rewriting uses the monolith or p
 }
 ```
 
-When the guide publishes to its own file instead of the monolith, set `compile.outputFile` (paths are rebased to that file). When shards link across directories outside the guide tree, set `compile.scopeRoot` (typically `"."` for repo root) so manifest scoping and evidence lookup share one root:
+To publish the guide to a path you choose, set `compile.outputFile` (paths are rebased to that file). When shards link across directories outside the guide tree, set `compile.scopeRoot` (typically `"."` for repo root) so manifest scoping and evidence lookup share one root:
 
 ```json
 {

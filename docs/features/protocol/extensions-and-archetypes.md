@@ -4,7 +4,7 @@ How MDCP stays **broadly applicable** while allowing **project-specific** (and p
 
 ## Problem
 
-A single monolithic agent index cannot serve every documentation culture — open-source libraries with Javadoc-style API surfaces, SaaS products with Docusaurus sites, regulated industries with fixed templates, or teams that want **pointer shards** into source files instead of duplicating implementation detail.
+One agent index cannot serve every documentation culture: open-source libraries with Javadoc-style API surfaces, SaaS products with Docusaurus sites, regulated industries with fixed templates, or teams that want **pointer shards** into source files instead of duplicating implementation detail.
 
 MDCP separates:
 
@@ -55,7 +55,7 @@ Published and community extensions live as complementary skills under `skills/md
 
 **Bootstrap:** Install the skill with `npx skills add betsalel-williamson/mdcp --skill mdcp`. Commit the vendored skill in your agent's skills directory so agents share the same instructions.
 
-**Security:** Agent Skills operate with identical permissions to the user. Treat third-party Agent Skills as untrusted.
+**Security:** A skill runs with the same permissions as the user. Treat third-party skills as untrusted.
 
 Built-in workflows (such as the feature-level and doc-only workflows) are files inside the `mdcp` skill, which your host loads from the skills directory it discovers. Each Agent Skill is an isolated, independent entity.
 

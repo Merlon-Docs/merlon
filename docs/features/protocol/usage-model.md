@@ -21,7 +21,7 @@ Agents should load the parent **Agent Skill** (`/mdcp`, installed in your agent'
 
 ### Minimal
 
-One guide, `compile` + `check`, monolith output. Install the skill (`npx skills add betsalel-williamson/mdcp --skill mdcp`).
+One guide that compiles to `guide.md` and passes `check`. Install the skill (`npx skills add betsalel-williamson/mdcp --skill mdcp`).
 
 ### Typical
 

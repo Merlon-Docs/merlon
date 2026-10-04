@@ -27,4 +27,4 @@ genRefsFromCompiled(compiled, refsPath);
 checkRefsRegistry(compiled, refsPath);
 ```
 
-Use `writeCompiledGuides` when you need to write the monolith and per-guide publish outputs to disk.
+Use `writeCompiledGuides` to write each compiled guide to disk. It also writes the monolith when you pass its path and at least one guide has no `compile.outputFile`.

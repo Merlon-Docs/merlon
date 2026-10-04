@@ -4,9 +4,9 @@ MDCP treats documentation as library science for software product intent: settle
 
 The focal rule is **[shard single responsibility](../../glossary/shard-single-responsibility.md) for a documentation shard**. How shards assemble into guides is secondary. Frameworks that informed this thinking are listed in [Acknowledgments](./acknowledgments.md) — they are provenance, not the instruction set.
 
-## Shard single responsibility
+## Single responsibility rule
 
-A documentation shard has **one primary concern**, for **one audience tier**, serving **one job**:
+A documentation shard has **one primary concern**, for **one [guide tier](../../glossary/guide-tier.md)**, serving **one job**:
 
 | Axis     | Question                                              | Failure mode                                        |
 | -------- | ----------------------------------------------------- | --------------------------------------------------- |
@@ -16,11 +16,11 @@ A documentation shard has **one primary concern**, for **one audience tier**, se
 
 **Reason to change:** a shard should have one main reason to be edited. If product contract language and “run these five commands” must change for different events, they do not belong in the same file.
 
-**Complete for that job:** the shard is finished when a reader can use it for its job without the rest of the monolith _and_ without being misled. Completeness is not a line-count budget. Glossary leaves may be three lines; a single contract may need a longer section and still be one responsibility.
+**Complete for that job:** the shard is finished when a reader can use it for its job without the rest of the compiled guide _and_ without being misled. Completeness is not a line-count budget. Glossary leaves may be three lines; a single contract may need a longer section and still be one responsibility.
 
-## Idea mitosis
+## Splitting a shard (idea mitosis)
 
-When pressure builds along more than one axis, **split** the shard — [idea mitosis](../../glossary/idea-mitosis.md) — instead of growing a mini-monolith.
+When pressure builds along more than one axis, **split** the shard instead of letting it grow. Splitting a shard this way is [idea mitosis](../../glossary/idea-mitosis.md).
 
 ### Split when
 

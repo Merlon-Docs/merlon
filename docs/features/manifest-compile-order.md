@@ -1,6 +1,6 @@
 # Manifest compile order
 
-Each guide's **compile order** comes from markdown links in its manifest file — `index.md` by default, or `shards.md` when configured under `guides[].compile.manifest`. mdcp collects every link to a `.md` file in **document order** and stitches those shards in that sequence.
+Each guide's **compile order** comes from markdown links in its manifest file: `index.md` by default, or `shards.md` when configured under `guides[].compile.manifest`. mdcp collects every link to a `.md` file in **document order** and stitches those shards in that sequence. A same-document `#slug` link also adds `slug.md` when that file exists in the guide directory. Those shards compile after the shards the manifest links by path.
 
 Guide directories are **human source only** (`index.md`, shard files). Generated outputs (per-guide `{name}.md`, optional monolith, `.caches/refs.json`, explicit `compile.outputFile`) live under `outputDir`.
 
@@ -75,10 +75,18 @@ mdcp only considers links **at or after** `## Sections`. Preamble example links 
 | Situation                                                                                                                        | `sectionsHeading`            |
 | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
 | Manifest is a TOC — every `.md` link is a section                                                                                | Omit                         |
-| `shards.md` lists cross-tree shards only (review monoliths)                                                                      | Usually omit                 |
+| `shards.md` lists cross-tree shards only (compiled review guides)                                                                | Usually omit                 |
 | Preamble has inline `.md` links that are examples or cross-references, plus a separate ordered section list under a `##` heading | **Set** to that heading text |
 
 The heading match is exact: `sectionsHeading` `"Sections"` matches a line that starts with `##` followed by `Sections`, not `## Section list`.
+
+## Linked shards and the file-name fallback
+
+Compile also follows inline `.md` links inside the shards it stitches. A shard reached that way compiles after the manifest's shards when it is in the guide directory or under `compile.scopeRoot`. [Transitive section discovery](../client-core/compile-hooks/cross-guide-links.md#transitive-section-discovery) describes the walk.
+
+That walk serves shards in guide subdirectories and under `compile.scopeRoot`. The manifest must link every top-level shard in the guide directory directly, because the [orphan check](./feature-catalog.md#orphan-check-p13) reads only the manifest. A top-level shard that only another shard links still compiles, and `mdcp check` reports it as an orphan.
+
+When the manifest links no shards, compile takes every top-level `.md` file in the guide directory in file-name order, and the orphan check reports nothing for that guide.
 
 ## Workflow
 

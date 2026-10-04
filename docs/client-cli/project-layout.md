@@ -2,7 +2,7 @@
 
 ## One subdirectory = one guide
 
-Each folder directly under the docs root (`--docs-root`) is a **guide** when its name appears in `compileOrder`. The guide **`name`** in config matches the **directory name**.
+Each folder directly under the docs root (`--docs-root`) is a [guide](../glossary/guide.md) when its name appears in `compileOrder`. The guide **`name`** in config matches the **directory name**.
 
 | Piece                                           | Role                                                             |
 | ----------------------------------------------- | ---------------------------------------------------------------- |
@@ -39,4 +39,4 @@ docs/
 
 Publish outside `_build` (npm READMEs, repo-root docs) via `compile.outputFile` paths relative to `outputDir` (for example `../../packages/mdcp-cli/README.md`).
 
-When a manifest has preamble prose with example links, set `compile.sectionsHeading`. See [Manifest compile order](../features/manifest-compile-order.md).
+When a [manifest](../glossary/manifest.md) has preamble prose with example links, set `compile.sectionsHeading`. See [Manifest compile order](../features/manifest-compile-order.md).

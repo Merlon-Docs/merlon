@@ -50,7 +50,7 @@ githubSlugify('`--config` vs `--docs-root`');
 
 CLI authoring rules: [Cross-links and refs — heading slugs](../client-cli/cross-links-and-refs.md#heading-slugs-github-rules).
 
-## Manifest
+## Compile order
 
 | Export                          | Purpose                                        |
 | ------------------------------- | ---------------------------------------------- |

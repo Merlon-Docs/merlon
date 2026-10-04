@@ -19,7 +19,7 @@ A guide compiles a list of shards into one output. A [standalone guide](../gloss
 
 - a markdown file inside a guide directory (a guide listed in `compileOrder`),
 - a markdown file inside a guide's `compile.scopeRoot` (shared trees such as a glossary),
-- a guide output target (`compile.outputFile`, or the top-level `outputFile`), or
+- a guide output target: a [compiled guide](../glossary/compiled-guide.md) or the [monolith](../glossary/monolith.md), or
 - a `standaloneGuides[]` entry.
 
 Manifest membership inside a guide directory is the [orphan check](./feature-catalog.md#orphan-check-p13)'s job, so the coverage scan treats a whole guide directory as accounted for and does not double-report its shards.
@@ -36,8 +36,8 @@ The two sets are distinct: a file compiled from shards belongs to the guide outp
 
 A standalone guide is register-only:
 
-- Compile never stitches or rewrites it, and never emits it.
-- Its headings register into [refs](../glossary/refs.md) so other guides can link into it.
+- Compile doesn't write output for it. A guide still stitches it like any shard when the guide's manifest or `compile.scopeRoot` walk reaches it.
+- Its headings stay out of the [refs registry](../glossary/refs-registry.md) unless a guide stitches it into the text the registry is built from.
 - Its outbound links are validated: `.md` and source-file targets must resolve on disk, and same-file `#fragment` anchors must match a heading. See [built-in link validation](./link-validation.md#standalone-guide-validation).
 - Peer tools (markdownlint, Vale, Prettier) still process the file normally.
 
@@ -67,12 +67,14 @@ Machine-readable inventory (captured / uncaptured / standalone / missing) is ava
 
 The coverage scan does not replace the [orphan check](./feature-catalog.md#orphan-check-p13). They cover different mistakes:
 
-| Check         | Scope                                                       | Severity                                   |
-| ------------- | ----------------------------------------------------------- | ------------------------------------------ |
-| Orphan check  | A shard inside a guide directory missing from its manifest  | Error (fails `mdcp check`)                 |
-| Coverage scan | Any markdown file under the repo that no guide accounts for | Warning, or error when `scan.strict: true` |
+| Check         | Scope                                                                                                  | Severity                                   |
+| ------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------ |
+| Orphan check  | A top-level shard in a guide directory missing from its manifest, or a manifest link to a missing file | Error (fails `mdcp check`)                 |
+| Coverage scan | Any markdown file under the repo that no guide accounts for                                            | Warning, or error when `scan.strict: true` |
 
 The orphan check stays a hard error because a shard in a guide directory is clearly meant to compile. The coverage scan is a warning because an uncaptured file may be intentional until registered as standalone.
+
+The orphan check reads only the top level of each guide directory in `compileOrder`. The coverage scan treats each guide directory and each `compile.scopeRoot` tree as captured. A shard in a guide subdirectory or under a scope root that nothing links, such as a term in the shared glossary, passes both checks and never compiles.
 
 ## Config
 

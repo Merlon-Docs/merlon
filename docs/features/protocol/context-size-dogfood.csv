@@ -1,9 +1,7 @@
 metric,value,unit,notes,recorded_at
-features_monolith_chars,104957,chars,docs/_build/guides.md,2026-06-25
-feature_shard_count,19,count,excludes index.md,2026-06-25
-feature_shard_median_chars,4596,chars,docs/features/**/*.md,2026-06-25
-feature_shard_p90_chars,11576,chars,docs/features/**/*.md,2026-06-25
-median_shard_pct_of_monolith,4.4,percent,median shard / monolith character ratio,2026-06-25
-features_guide_raw_chars,104885,chars,per-guide output if present,2026-06-25
-features_guide_llm_export_chars,104885,chars,stripForLlm on features guide,2026-06-25
-llm_strip_delta_chars,0,chars,comments/banners/frontmatter removed,2026-06-25
+features_monolith_chars,260958,chars,docs/_build/guides.md,2026-10-04
+feature_shard_count,25,count,excludes index.md,2026-10-04
+feature_shard_median_chars,5304,chars,docs/features/**/*.md,2026-10-04
+feature_shard_p90_chars,10881,chars,docs/features/**/*.md,2026-10-04
+median_shard_pct_of_monolith,2,percent,median shard / monolith character ratio,2026-10-04
+features_guide_raw_chars,260957,chars,per-guide output if present,2026-10-04

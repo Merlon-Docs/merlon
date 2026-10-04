@@ -37,12 +37,12 @@ Disable markers per guide with `compile.links.markBroken: false`. `lint.links.en
 
 Guides with `compile.outputFile` are **publish-only** outputs (npm READMEs, `DEVELOPERS.md`, and similar). Link validation applies extra rules:
 
-| Target in publish output                                          | Result                             |
-| ----------------------------------------------------------------- | ---------------------------------- |
-| Another guide's compiled `outputFile`                             | Valid                              |
-| `#fragment` in the same document                                  | Valid when slug exists             |
-| Shard `.md` in an unpublished guide (not in `ignoreGuides`)       | **`missing publish path`**         |
-| Shard `.md` for a guide in `compile.crossGuideLinks.ignoreGuides` | Valid when the file exists on disk |
+| Target in publish output                                          | Result                                                                         |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Another guide's compiled `outputFile`                             | Valid                                                                          |
+| `#fragment` in the same document                                  | Valid when slug exists                                                         |
+| Shard `.md` in an unpublished guide (not in `ignoreGuides`)       | **`missing publish path`**                                                     |
+| Shard `.md` for a guide in `compile.crossGuideLinks.ignoreGuides` | Valid when the file exists on disk and any `#fragment` matches a heading in it |
 
 See [publish-relative rewrite](../client-core/compile-hooks/publish-relative-links.md) for how shard paths are rebased before this policy runs.
 
@@ -62,7 +62,7 @@ Compiled-phase checks run **after** cross-guide, publish-relative, and intra-gui
 
 ## Standalone guide validation
 
-Files registered under `standaloneGuides` are captured but never compiled, so the compiled phase cannot reach them. They are link-linted with the shard-phase checks instead, each file resolving against its own directory: there is no manifest or scope root to resolve against.
+A file registered under `standaloneGuides` doesn't get compile output, so the compiled phase checks it only when a guide stitches it as a shard (see [Standalone guide behavior](./coverage-scan.md#standalone-guide-behavior)). The standalone phase link-lints every registered file with the shard-phase checks, each file resolving against its own directory: there is no manifest or scope root to resolve against.
 
 Globs resolve against the **scan root** — `scan.root` when set, otherwise the invocation directory — the same root the coverage pass uses, so one registration covers both.
 

@@ -1,10 +1,10 @@
 # Feature catalog
 
-Command and capability reference. For the end-to-end mental model (shards, monolith vs publish outputs, validation pipeline, code map), read [Overview](./overview.md) first.
+Command and capability reference. For the end-to-end mental model, including how compiled guides relate to the optional monolith, read [Overview](./overview.md) first.
 
 ## Compile (P0.1)
 
-Stitch shard directories into canonical monoliths or publish outputs. Demotes headings, strips `about-this-guide` preamble, optional per-guide titles and publish paths. Injects source tags and a default warning banner. See [Source tags and default banner](./source-tags-and-banner.md).
+Stitch shard directories into compiled guides. Demotes headings, strips `about-this-guide` preamble, optional per-guide titles and publish paths. Injects source tags and a default warning banner. See [Source tags and default banner](./source-tags-and-banner.md).
 
 ```bash
 mdcp compile --config mdcp.config.json --docs-root .
@@ -16,7 +16,7 @@ Guides compile to per-guide files under `outputDir` by default (`{name}.md`, or 
 
 Heading-slug **registry** for validation after compile — see [Refs registry path](./refs-registry-path.md). Discover shards with host search (`rg`); confirm `#` cross-links with `mdcp check`.
 
-## Agent Skill
+## Agent Skill and workflows
 
 One Agent Skill at `skills/mdcp/SKILL.md` (install via `npx skills add` into your agent's skills directory). See [Agent Skill](./agent-skill.md).
 
@@ -49,7 +49,7 @@ Compile order is derived from each guide's `index.md` or `shards.md` link order.
 
 ## Shard split (P1.2)
 
-Split monolith into shards via md-tree.
+Split a source document into shards via md-tree.
 
 ```bash
 mdcp shard   # requires config.source
@@ -85,7 +85,7 @@ Built-in hooks:
 - **`codeEvidence`** — rewrites repo source links to `#L` line fragments (symbol or line range in link text); rebases paths for the rendered output automatically. See [codeEvidence](../client-core/compile-hooks/code-evidence.md).
 - **`inlineInserts`** — inlines captioned insert shards from shared libraries (`diagrams/`, `tables/`, `figures/`, `media/`); shard bodies may include tables, prose, or media (images, video, audio); numbered `####` headings per kind (`Table 1. …`); first mention per guide inlines, later references back-link. Optional `hooksConfig.inlineInserts.searchRoots`. See [inlineInserts](../client-core/compile-hooks/inline-inserts.md).
 
-**Link rewriting at assembly time:** every compile builds a cross-guide link index from `compileOrder`, rewrites inter-guide `.md` links per shard, rebases remaining `../` file paths on publish outputs (`compile.outputFile`) via absolute-path resolution, then rewrites same-guide `./section.md` links to in-document `#anchor` links. Optional `compile.crossGuideLinks.ignoreGuides` keeps shard `.md` paths for listed guides (publish-relative still rebases them for publish files). See [Cross-guide link rewriting](../client-core/compile-hooks/cross-guide-links.md) and [Publish-relative link rewriting](../client-core/compile-hooks/publish-relative-links.md).
+**Link rewriting at assembly time:** every compile builds a cross-guide link index from `compileOrder` and rewrites inter-guide `.md` links per shard. It then rebases remaining `../` file paths relative to each guide's [link base](../client-core/compile-hooks/publish-relative-links.md#when-it-runs), and rewrites same-guide `./section.md` links to in-document `#anchor` links. Optional `compile.crossGuideLinks.ignoreGuides` keeps shard `.md` paths for listed guides (publish-relative still rebases them the same way). See [Cross-guide link rewriting](../client-core/compile-hooks/cross-guide-links.md) and [Publish-relative link rewriting](../client-core/compile-hooks/publish-relative-links.md).
 
 ## Agent integration (consumer repo)
 

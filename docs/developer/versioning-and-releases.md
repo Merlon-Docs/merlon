@@ -48,11 +48,11 @@ There is **no calendar cadence** and **no Version Packages PR**. A release is a 
 
 If a prior run versioned/published but failed before tags/Releases finished, the next Release plan detects **missing** `name@version` git tags and/or GitHub Releases and the release job **heals** them without bumping versions again (tag + `gh release create … --target` at the commit that last changed that package’s `package.json`).
 
-**Agent Skills** live under `skills/` as the install surface (`npx skills add`). Version carriers and CHANGELOGs live under **`packages/skill-<id>/`** only — never under `skills/` (those files would pollute agent context on install). `pnpm release:main` syncs the carrier version into `skills/<id>/SKILL.md` `metadata.version`. Skill changes need a changeset; see [When to add a changeset](#when-to-add-a-changeset).
+**Skills** are under `skills/`, the directory that `npx skills add` installs from. Version carriers and CHANGELOGs are kept under **`packages/skill-<id>/`** only, never under `skills/`, because those files would pollute agent context on install. `pnpm release:main` syncs the carrier version into `skills/<id>/SKILL.md` `metadata.version`. Skill changes need a changeset. See [When to add a changeset](#when-to-add-a-changeset).
 
 ## Pre-1.0 policy (`0.x.y`)
 
-Packages and Agent Skills are **pre-1.0** while on `0.x.y`. Until a given item reaches **1.0.0**, that item has **no API stability guarantee**. **Major bumps are disabled** (`pnpm changeset:reject-major`). Use **patch**, **minor** (including breaking-within-0.x), or **build** via `pnpm release:build`.
+Packages and skills are **pre-1.0** while on `0.x.y`. Until an item reaches **1.0.0**, that item has **no API stability guarantee**. **Major bumps are disabled** (`pnpm changeset:reject-major`). Use **patch**, **minor** (including breaking-within-0.x), or **build** via `pnpm release:build`.
 
 | Bump      | When                                                                       |
 | --------- | -------------------------------------------------------------------------- |

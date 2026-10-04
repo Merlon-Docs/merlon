@@ -36,11 +36,11 @@ A [locale pack](../glossary/locale-pack.md) is MDCP compile-time wording — not
 
 MDCP knows the **full fileset** it manages: registered guides in `compileOrder`, resolved via `guides[].path` or `{docsRoot}/{name}/`. Shard markdownlint and Vale prose **only touch documents in that scope** — never legacy flat `.md` files, unregistered sibling folders, or other markdown under `--docs-root` that mdcp does not compile.
 
-| Command                                        | Default scope                                   | Out of scope (skipped)                                  |
-| ---------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------- |
-| Shard markdownlint (`mdcp lint`, `mdcp check`) | `compileOrder` guide directories                | Legacy flat docs, unrelated subdirs under `--docs-root` |
-| Vale prose (`mdcp prose`, `mdcp check`)        | Same guide directories                          | Same                                                    |
-| Compiled markdownlint                          | Monolith and publish outputs (`compiledConfig`) | Separate pass — not shard trees                         |
+| Command                                        | Default scope                                     | Out of scope (skipped)                                  |
+| ---------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------- |
+| Shard markdownlint (`mdcp lint`, `mdcp check`) | `compileOrder` guide directories                  | Legacy flat docs, unrelated subdirs under `--docs-root` |
+| Vale prose (`mdcp prose`, `mdcp check`)        | Same guide directories                            | Same                                                    |
+| Compiled markdownlint                          | Compiled outputs listed in `compiledConfig` globs | Shard trees (covered by the shard pass)                 |
 
 Optional overrides **narrow** scope further; they never widen it beyond what you explicitly list:
 

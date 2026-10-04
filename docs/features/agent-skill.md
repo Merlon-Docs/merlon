@@ -4,7 +4,7 @@ MDCP ships as one portable **documentation system** Agent Skill so projects inhe
 
 ## Why Agent Skills
 
-Agent Skills give:
+Packaging MDCP as an Agent Skill gives:
 
 - **Lower friction** — zero-install in the repo, or `npx skills add`
 - **Host interoperability** — Cursor, Copilot, Claude Code, VS Code, and CLI hosts
@@ -32,7 +32,7 @@ Skill `scripts/` are thin wrappers into the CLI — see [`skills/mdcp/references
 
 ## Versioning Strategy (Vendoring)
 
-Agent Skills use a **vendoring** approach: skill files live in the project and are versioned with Git.
+MDCP skills are **vendored**: skill files live in the project and are versioned with Git.
 
 1. **Commit to Git:** When you run `npx skills add`, the skill's files are copied into your agent's skills directory and tracked in your own source control.
 2. **Docs-as-code Evolution:** The skill version is tied to the commit in your repository. Agent instruction changes are reviewable in Pull Requests alongside the code or configuration changes they support.

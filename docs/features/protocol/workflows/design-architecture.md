@@ -2,7 +2,7 @@
 
 Product capability: the **design-architecture** workflow of the `mdcp` skill records
 architecture and design decisions as **MDCP shards** so agents and humans can
-load one concern at a time instead of growing a single architecture monolith.
+load one concern at a time instead of growing one large architecture document.
 
 Workflow file: [`skills/mdcp/references/workflows/design-architecture.md`](../../../../skills/mdcp/references/workflows/design-architecture.md).
 Shared workflow contract (intake, guide placement, glossary): [Skill workflows](../skill-workflows.md).
@@ -24,7 +24,7 @@ See [Atomic commit groups](../../../glossary/atomic-commit-groups.md) for the pl
 | Atomic commit groups        | Include numbered Atomic commit groups in the plan before “go”; one commit per group after approval      |
 | Land durable decisions      | Record accepted choices as ADRs under `docs/features/adr/` when the repo uses that layout               |
 | Keep docs sharded           | Prefer **one primary concern per shard**; update feature/ADR `index.md` so new shards are discoverable  |
-| Brownfield hygiene          | Split or retire legacy architecture monoliths; remove superseded planning from durable design shards    |
+| Brownfield hygiene          | Split or retire legacy architecture docs; remove superseded planning from durable design shards         |
 | Stay design-doc scoped      | No product/CLI/TypeScript implementation, no unit tests as delivery, no primary `docs/client/` work     |
 | Glossary hygiene            | Follow the shared glossary obligation; define non-universal design jargon per the inclusion bar         |
 | Skill QA                    | Current intended architecture only; no large implementation dumps; run repo `mdcp check` / docs scripts |

@@ -42,7 +42,7 @@ When `mdcp check` fails after continuing through peer linters, it prints a stder
 | `mdcp compile`   | Regenerate compiled outputs and `refs.json` under `outputDir` (exits 1 on broken links by default) |
 | `mdcp check`     | Full gate: orphans → compile → refs → links; optional peer linters; non-fatal coverage report      |
 | `mdcp review`    | Report documentation sprawl signals across guide shards (report-only; `--strict` to fail)          |
-| `mdcp shard`     | Split a monolith into shards (requires `config.source`)                                            |
+| `mdcp shard`     | Split a source document into shards (requires `config.source`)                                     |
 | `mdcp refs-list` | List heading slugs from `refs.json` as JSON                                                        |
 | `mdcp lint`      | markdownlint-cli2 on shards and compiled output (peer, if installed)                               |
 | `mdcp prose`     | Vale prose lint (peer, if installed)                                                               |

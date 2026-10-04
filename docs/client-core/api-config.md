@@ -38,14 +38,16 @@ Consumer path table: [Config essentials — path layout](../client-cli/config-es
 
 ### Publish outputs and link paths
 
-Guides with `compile.outputFile` publish outside the shard tree (npm READMEs, `DEVELOPERS.md`, and similar). Shard-authored `../` links are rebased automatically:
+Guides with `compile.outputFile` publish outside the shard tree (npm READMEs, `DEVELOPERS.md`, and similar).
+
+After cross-guide rewrite, every guide rebases the remaining shard-authored `../` links automatically:
 
 - Resolve each link from the **shard file** to an absolute path
-- Emit a path **relative to the publish output file**
+- Emit a path **relative to the guide's [link base](./compile-hooks/publish-relative-links.md#when-it-runs)**
 
-No per-guide path-prefix config — output location and shard path supply the geometry. See [Publish-relative link rewriting](./compile-hooks/publish-relative-links.md) for intent, pass ordering, and dogfood examples.
+You don't need per-guide path-prefix config. The output location and shard path supply the geometry. See [Publish-relative link rewriting](./compile-hooks/publish-relative-links.md) for intent, pass ordering, and examples from MDCP's own docs.
 
-Intra-guide `./section.md` links still rewrite to `#anchor` on every compile (post-stitch pass).
+Intra-guide `./section.md` links rewrite to `#anchor` (post-stitch pass).
 
 ## `compile.hooks`
 
@@ -61,6 +63,6 @@ Optional per-hook settings: `compile.hooksConfig` (`inlineInserts.searchRoots`).
 
 Assembly-time cross-guide link options on the **compiling** guide (not a compile hook):
 
-- **`ignoreGuides`** — `string[]` of guide names whose cross-guide shard links keep source `.md` paths instead of rewriting to monolith `#slug` targets
+- **`ignoreGuides`**: `string[]` of guide names. Links from the compiling guide to shards of a listed guide keep source `.md` paths instead of rewriting to `#slug` targets in the file that contains the target guide (the monolith when the target guide is part of it, otherwise its compiled guide)
 
 See [Cross-guide link rewriting](./compile-hooks/cross-guide-links.md) and [ignoreGuides](../glossary/ignore-guides.md).

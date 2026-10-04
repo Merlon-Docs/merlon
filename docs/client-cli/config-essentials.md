@@ -146,6 +146,7 @@ Defaults: `outputDir` `_build`, per-guide outputs `overview.md` and `admin-guide
 | `sourceTags`         | Wrap shards in HTML comments with relative paths (default `true`)    |
 | `banner`             | Global banner prepended to outputs (has default warning text)        |
 | `compile.outputFile` | Override per-guide output path (relative to `outputDir` or absolute) |
+| `compile.scopeRoot`  | Shared tree (relative to the docs root) that guide links pull from   |
 | `compile.sourceTags` | Per-guide override of the global `sourceTags` setting                |
 
 ### Default per-guide outputs
@@ -161,7 +162,7 @@ When `compile.outputFile` is set, that guide writes only to that path (for examp
 
 ### Optional monolith
 
-Set top-level `outputFile` (for example `"guides.md"`) to also stitch guides **without** explicit `compile.outputFile` into one file under `outputDir`.
+Set top-level `outputFile` (such as `"guides.md"`) to also stitch guides **without** explicit `compile.outputFile` into one file under `outputDir`. See [monolith](../glossary/monolith.md).
 
 ### `sectionsHeading`
 
@@ -177,6 +178,23 @@ When a manifest has preamble prose with example inline links before an ordered `
   }
 }
 ```
+
+## Shared glossary
+
+A glossary directory can feed several guides without its own entry in `compileOrder`. Set `compile.scopeRoot` on each guide that should include glossary terms. The value is a directory relative to the docs root:
+
+```json
+{
+  "name": "developer",
+  "compile": { "scopeRoot": "glossary" }
+}
+```
+
+Compile follows `.md` links from that guide's shards into the glossary tree and stitches each linked term shard into the output. Link `../glossary/index.md` from the guide manifest to publish the full glossary table of contents. A lean guide can skip that link and link individual terms. Compile also follows links from term to term. The output contains the linked terms plus every term reachable from them.
+
+A large glossary can move groups of term links into sub-index files that `index.md` links. The `scopeRoot` walk follows those links too.
+
+To publish the glossary as its own file, add `glossary` to `compileOrder` and set `compile.outputFile`. That guide's `index.md` must link every term shard in the directory directly, because the orphan check reports a term that only a sub-index links. The term shards then belong to the glossary guide. Guides that keep `compile.scopeRoot: glossary` still stitch the terms they link, but their term links point at the glossary's output file instead of the copy in their own output.
 
 ## Review thresholds
 

@@ -1,6 +1,6 @@
 # Docs dogfooding
 
-This repo's documentation is sharded under [`docs/`](../). Shards are the **source of truth**; compiled output is generated.
+This repo's documentation is sharded under [`docs/`](../../docs/). Shards are the **source of truth**. Compiled output is generated.
 
 ## Guide directories
 
@@ -33,7 +33,7 @@ Do **not** hand-edit `.agents/skills/` — see
 (`pnpm skill:install` is an alias of `skill:update`.)
 Manual invoke: `/mdcp`.
 
-Shard `../` links in publish guides (`developer`, `client-cli`, `client-core`) rebase automatically at compile — resolve from each shard file to an absolute path, then emit a path relative to the publish output. No per-guide path-prefix config. See [Publish-relative link rewriting](../client-core/compile-hooks/publish-relative-links.md).
+Shard `../` links rebase automatically at compile in every guide. Compile resolves each link from its shard file to an absolute path, then emits a path relative to the guide's [link base](../client-core/compile-hooks/publish-relative-links.md#when-it-runs). For a guide with `compile.outputFile` the link base is that file, such as `DEVELOPERS.md` or a package README. For `features` it is the monolith `docs/_build/guides.md`. You don't need per-guide path-prefix config.
 
 Repo scripts use `--config docs/mdcp.config.json --docs-root docs`: the config path is resolved from the **repo root** (invocation directory), while `--docs-root docs` sets the shard tree root. See [Config essentials — `--config` vs `--docs-root`](../client-cli/config-essentials.md#--config-vs---docs-root).
 
@@ -63,7 +63,7 @@ Read the related guides alongside the diff and flag any drift (stale guidance, a
 
 ## Agent context
 
-Prefer host search then read one shard under `docs/`. Compiled monoliths under `docs/_build/` are available when a broader read is intentional.
+Prefer host search then read one shard under `docs/`. Compiled guides under `docs/_build/` are available when a broader read is intentional.
 
 ## Linting docs
 

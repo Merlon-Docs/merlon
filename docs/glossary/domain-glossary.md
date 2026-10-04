@@ -12,16 +12,6 @@ The [getting-started workflow](../features/protocol/workflows/getting-started.md
 
 Each definition lives in its own `.md` file with a single `#` heading (the term). Link the term from feature shards on first use, for example `[GFM](./gfm.md)` or `../glossary/gfm.md` from another guide.
 
-## Multiple index files
+## Sub-index files
 
-When a glossary grows beyond a comfortable manifest size, group entries in sub-index manifests:
-
-| File                | Role                                                                                     |
-| ------------------- | ---------------------------------------------------------------------------------------- |
-| `index.md`          | Master index — preamble plus links to every term shard (required for cross-guide stitch) |
-| `index-protocol.md` | Example sub-index — protocol-related terms only                                          |
-| `index-format.md`   | Example sub-index — format and compile terms                                             |
-
-**Stitched into other guides:** link `../glossary/index.md` from each guide that should publish the full glossary TOC (typically maintainer guides). Lean consumer READMEs may omit the TOC and link individual terms instead. Set `compile.scopeRoot` to `glossary` on those guides so transitive `.md` links from the glossary tree pull term shards into compile output without listing every term in the parent manifest.
-
-**Standalone glossary output:** add `glossary` to `compileOrder` with `compile.outputFile` and optionally `compile.manifest: index-protocol.md` (or another sub-index) when you want a separate compiled glossary per group.
+When guides stitch glossary terms through `compile.scopeRoot`, a large glossary can group term links into sub-index files that `index.md` links. See [Shared glossary](../client-cli/config-essentials.md#shared-glossary).

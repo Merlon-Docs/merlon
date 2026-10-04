@@ -32,7 +32,7 @@ Content.
 <!-- mdcp-shard: end guide/section.md -->
 ```
 
-The path in the tag is relative to the directory of the compiled output file. This allows AI agents reading the compiled monolith to easily locate and edit the exact shard responsible for a specific section of text.
+The path in the tag is relative to the directory of the guide's [link base](../client-core/compile-hooks/publish-relative-links.md#when-it-runs). AI agents reading compiled output can use that path to easily locate and edit the exact shard responsible for a specific section of text.
 
 - **Global Config**: Disable source tags entirely by setting `sourceTags: false` in `mdcp.config.json`.
 - **Per-Guide Config**: Override for a specific guide by setting `compile.sourceTags: false` (or `true`) in its configuration. Useful for outputs where wrapping comments interfere with downstream tooling — for example a Slidev deck whose leading `---` frontmatter must stay at the top of the file.
