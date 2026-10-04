@@ -3,7 +3,7 @@
 ## Requirements
 
 - Node.js **>= 18.0.0** (see `engines` in root [`package.json`](../../package.json); [`.nvmrc`](../../.nvmrc) pins major version `18` for `nvm use`)
-- [pnpm](https://pnpm.io/) 9.x (see `packageManager` in root [`package.json`](../../package.json))
+- [pnpm](https://pnpm.io/) 11.x (see `packageManager` in root [`package.json`](../../package.json))
 - [Vale](https://vale.sh/docs/vale-cli/installation/) on `PATH` for prose lint (`pnpm docs:check` uses `--require-vale`). macOS: `brew install vale`; Linux: `snap install vale` or a [GitHub release](https://github.com/vale-cli/vale/releases) tarball. CI pins **3.15.1**.
 
 ## First-time bootstrap
@@ -23,13 +23,14 @@ If you use coding agents with the MDCP skill ([skills index](../../docs/skills.m
 | Command                  | Purpose                                                                                                                              |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
 | `pnpm build`             | Build all packages (`mdcp-core`, `mdcp-cli`)                                                                                         |
-| `pnpm test`              | Run `vitest` in `mdcp-core`                                                                                                          |
+| `pnpm test`              | Run every package's tests, then the repo script tests under `scripts/`                                                               |
 | `pnpm test:coverage`     | Vitest coverage for `mdcp-core` and `mdcp-cli` (HTML under `packages/*/coverage/`)                                                   |
 | `pnpm run typecheck`     | TypeScript across packages                                                                                                           |
 | `pnpm run lint`          | ESLint on TypeScript sources                                                                                                         |
 | `pnpm run format:check`  | Prettier check                                                                                                                       |
 | `pnpm run check`         | Full gate including skill:validate and docs:check                                                                                    |
 | `pnpm skill:update`      | Refresh vendor-managed dogfood installs under `.agents/skills/` from `skills/` (alias: `skill:install`; do not hand-edit `.agents/`) |
+| `pnpm skill:dev`         | Install this checkout's `mdcp` skill for Claude Code and Cursor without prompts (cloud session setup runs it)                        |
 | `pnpm docs:compile:repo` | Regenerate compiled docs (`guides.md`, `DEVELOPERS.md`, package READMEs)                                                             |
 | `pnpm docs:check`        | Validate repo docs + `examples/sample-guides`                                                                                        |
 

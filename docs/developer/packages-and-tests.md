@@ -48,18 +48,18 @@ Local runs print a text summary and write HTML/lcov under each package’s `cove
 
 JSONC markdownlint configs plus the shippable `MDCP` Vale style (`vale/MDCP/`). Dogfood-only styles live under [`docs/vale-local/`](../vale-local/README.md). Edit preset files directly — no TypeScript build.
 
-## Pull request checklist
+## Before you push
 
 1. `pnpm run build && pnpm test`
 2. `pnpm run lint && pnpm run format:check`
 3. `pnpm docs:compile:repo && pnpm docs:check` if you touched `docs/` shards
-4. `pnpm changeset` if you changed published package behavior (see [Versioning and releases](./versioning-and-releases.md))
+4. `pnpm changeset` when [a changeset is needed](./versioning-and-releases.md#when-to-add-a-changeset)
 
-CI runs the same core gates as `pnpm run check` (typecheck, lint, format, build, test, `docs:check`), plus:
+The land gate and CI run the same core gates as `pnpm run check` (typecheck, lint, format, build, test, `docs:check`), plus:
 
 - `pnpm run verify:peers` — confirm markdownlint-cli2 and Vale are on PATH
 - `pnpm audit --audit-level=high` — dependency vulnerability scan
 - `pnpm run prepare:docs` — `verify:peers` + `vale:sync` before `docs:check`
 - a separate **coverage** job runs `pnpm test:coverage`, appends package totals to the Actions job summary, and uploads `coverage/` artifacts (informational; no threshold enforcement)
 
-Pull requests also run the **changeset** job when package sources change.
+Both also run the changeset checks (`changeset:reject-major`, `changeset:status`).

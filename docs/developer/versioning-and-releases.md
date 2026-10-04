@@ -16,7 +16,7 @@ Independent versioning is configured in [`.changeset/config.json`](../../.change
 | Branch     | Role                                                                    | Who merges into it                                     |
 | ---------- | ----------------------------------------------------------------------- | ------------------------------------------------------ |
 | `develop`  | Integration trunk. Work lands here without a PR once it passes the gate | `claude/**` and `land/**` pushes, and Dependabot PRs   |
-| `main`     | Protected release branch. `npx skills add` and the docs site read it    | Release PRs from `develop`, and `hotfix/*` branches    |
+| `main`     | Protected release branch. `npx skills add` installs from it             | Release PRs from `develop`, and `hotfix/*` branches    |
 | `hotfix/*` | An urgent fix cut from `main` that can't wait for the next release      | Merged to `main`; the sync job carries it to `develop` |
 
 ### Landing on `develop`
@@ -48,7 +48,7 @@ There is **no calendar cadence** and **no Version Packages PR**. A release is a 
 
 If a prior run versioned/published but failed before tags/Releases finished, the next Release plan detects **missing** `name@version` git tags and/or GitHub Releases and the release job **heals** them without bumping versions again (tag + `gh release create … --target` at the commit that last changed that package’s `package.json`).
 
-**Agent Skills** live under `skills/` as the install surface (`npx skills add`). Version carriers and CHANGELOGs live under **`packages/skill-<id>/`** only — never under `skills/` (those files would pollute agent context on install). `pnpm release:main` syncs the carrier version into `skills/<id>/SKILL.md` `metadata.version`. Feature PRs must add a changeset targeting `@bwilliamson/skill-<id>` and must **not** hand-bump `metadata.version`. See [Agent Skill](./agent-skill.md).
+**Agent Skills** live under `skills/` as the install surface (`npx skills add`). Version carriers and CHANGELOGs live under **`packages/skill-<id>/`** only — never under `skills/` (those files would pollute agent context on install). `pnpm release:main` syncs the carrier version into `skills/<id>/SKILL.md` `metadata.version`. Skill changes need a changeset; see [When to add a changeset](#when-to-add-a-changeset).
 
 ## Pre-1.0 policy (`0.x.y`)
 
@@ -59,11 +59,6 @@ Packages and Agent Skills are **pre-1.0** while on `0.x.y`. Until a given item r
 | **patch** | Bug fixes, internal refactors with no intended API change                  |
 | **minor** | New capabilities, or breaking-within-0.x until majors are opened           |
 | **build** | Republish without API change (`0.1.0-build.1`, …) via `pnpm release:build` |
-
-### Community feedback
-
-- Visit [github.com/betsalel-williamson/mdcp](https://github.com/betsalel-williamson/mdcp) and **star** the repo
-- **Open an issue** or comment on PRs with bugs, adoption stories, or tooling feedback
 
 ## Release checklist (maintainers)
 
@@ -80,7 +75,7 @@ Pending `.changeset/*.md` files are temporary. Point consumers at package CHANGE
 
 ## When to add a changeset
 
-Run `pnpm changeset` when a PR changes:
+Run `pnpm changeset` when a change touches:
 
 - `packages/mdcp-core/src/**` → `@bwilliamson/mdcp-core`
 - `packages/mdcp-cli/src/**` → `@bwilliamson/mdcp-cli`
@@ -89,7 +84,7 @@ Run `pnpm changeset` when a PR changes:
 
 **Do not** put `package.json` or `CHANGELOG.md` under `skills/`. **Do not** hand-edit `skills/*/SKILL.md` `metadata.version`.
 
-CI runs `pnpm changeset:reject-major` and `pnpm changeset:status` on pull requests.
+The land gate and CI on pull requests both run `pnpm changeset:reject-major` and `pnpm changeset:status`.
 
 ## Dependabot
 

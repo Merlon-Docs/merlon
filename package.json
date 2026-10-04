@@ -45,7 +45,7 @@
     "release:build": "node scripts/release-build.mjs",
     "sync:skill-versions": "node scripts/sync-skill-versions.mjs",
     "prepare": "husky",
-    "skill:validate": "node scripts/lint-skill-frontmatter.mjs && skills-ref validate ./skills/mdcp && skills-ref validate ./skills/mdcp-arch-oss-library && skills-ref validate ./skills/mdcp-arch-product-docs-site && skills-ref validate ./skills/mdcp-arch-gtm",
+    "skill:validate": "node scripts/lint-skill-frontmatter.mjs && skills-ref validate ./skills/mdcp && skills-ref validate ./skills/mdcp-arch-oss-library && skills-ref validate ./skills/mdcp-arch-product-docs-site && skills-ref validate ./skills/mdcp-arch-gtm && skills-ref validate ./skills/mdcp-arch-research",
     "skill:install": "npx skills add .",
     "skill:update": "pnpm run skill:install",
     "skill:dev": "DISABLE_TELEMETRY=1 npx -y skills add . --skill mdcp --agent claude-code cursor --yes",

@@ -12,10 +12,10 @@ pnpm skill:update
 
 (`pnpm skill:install` is the same task — an alias kept for older docs and habits.)
 
-Cloud agent sessions install the skill on their own. The Claude Code session-start hook (`.claude/hooks/session-start.sh`) and the Cursor environment (`.cursor/environment.json`) both run `pnpm skill:dev`, which installs this checkout's `skills/mdcp` for Claude Code and Cursor with telemetry off. An agent working here therefore loads the skill as it stands on the branch, not a published release.
-
 That runs `npx skills add .` and refreshes dogfood installs under `.agents/skills/`
 from the publishable packs in `skills/` (see `skills-lock.json`).
+
+Cloud agent sessions install the skill on their own. The Claude Code session-start hook (`.claude/hooks/session-start.sh`) and the Cursor environment (`.cursor/environment.json`) both run `pnpm skill:dev`, which installs this checkout's `skills/mdcp` for Claude Code and Cursor with telemetry off. An agent working here therefore loads the skill as it stands on the branch, not a published release.
 
 ### Do not hand-edit `.agents/skills/`
 
@@ -26,7 +26,7 @@ agent load path). They are **not** the source of truth.
 | ---------------------------------------------------------------- | ----------------------------------------------------------------- |
 | Edit publishable packs under `skills/<name>/`                    | Hand-edit `.agents/skills/<name>/` to “fix” or tweak guidance     |
 | Run `pnpm skill:update` after skill edits so agents pick them up | Commit one-off edits that only exist under `.agents/`             |
-| Propose lasting skill changes as PRs against `skills/`           | Treat `.agents/skills/mdcp*` as durable docs or authoring surface |
+| Land lasting skill changes in `skills/`                          | Treat `.agents/skills/mdcp*` as durable docs or authoring surface |
 
 The skill and archetype dogfood trees (`.agents/skills/mdcp/`,
 `.agents/skills/mdcp-arch-*`) are gitignored. Refresh them with
@@ -50,7 +50,7 @@ When changing skill instructions:
 | `pnpm skill:validate` | Frontmatter fence lint + [skills-ref](https://agentskills.io/specification) validate on all skills under `skills/` |
 | `pnpm docs:check`     | Docs compile + lint gate after shard edits                                                                         |
 
-`pnpm skill:validate` runs in local `pnpm check`, PR CI, and during **`pnpm release:main`** after skill version sync (hard fail before the release commit / publish). It is not a [live skill eval](../glossary/live-skill-eval.md).
+`pnpm skill:validate` runs in local `pnpm check`, the land gate, PR CI, and during **`pnpm release:main`** after skill version sync (hard fail before the release commit / publish). It is not a [live skill eval](../glossary/live-skill-eval.md).
 
 ## Live skill evals (optional, local)
 
@@ -115,13 +115,13 @@ Current policy:
 true` and stay **out** of `skills.sh.json` until intentionally published.
    Maintainers use `INSTALL_INTERNAL_SKILLS=1` to install them locally.
 3. **When adding a release-ready skill under `skills/`** — add its `name:` to
-   the Documentation system `skills` array in the same PR. Do not add packs
+   the Documentation system `skills` array in the same change. Do not add packs
    that still carry `metadata.internal: true`.
 4. **Live evals are separate** — suite inventory and skill-creator loops live
    under [Live skill evals](./live-skill-evals.md). They never belong in
    `skills.sh.json`.
 
-When changing skill surface area, update this file in the same PR, and follow
+When changing skill surface area, update this file in the same change, and follow
 the skills.sh step in the
 [release checklist](./versioning-and-releases.md#release-checklist-maintainers).
 

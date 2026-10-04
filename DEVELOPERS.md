@@ -74,7 +74,7 @@ Each term is its own shard under `docs/glossary/`. For large glossaries, split m
 ### Requirements
 
 - Node.js **>= 18.0.0** (see `engines` in root [`package.json`](package.json); [`.nvmrc`](.nvmrc) pins major version `18` for `nvm use`)
-- [pnpm](https://pnpm.io/) 9.x (see `packageManager` in root [`package.json`](package.json))
+- [pnpm](https://pnpm.io/) 11.x (see `packageManager` in root [`package.json`](package.json))
 - [Vale](https://vale.sh/docs/vale-cli/installation/) on `PATH` for prose lint (`pnpm docs:check` uses `--require-vale`). macOS: `brew install vale`; Linux: `snap install vale` or a [GitHub release](https://github.com/vale-cli/vale/releases) tarball. CI pins **3.15.1**.
 
 ### First-time bootstrap
@@ -94,13 +94,14 @@ If you use coding agents with the MDCP skill ([skills index](docs/skills.md)), d
 | Command                  | Purpose                                                                                                                              |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
 | `pnpm build`             | Build all packages (`mdcp-core`, `mdcp-cli`)                                                                                         |
-| `pnpm test`              | Run `vitest` in `mdcp-core`                                                                                                          |
+| `pnpm test`              | Run every package's tests, then the repo script tests under `scripts/`                                                               |
 | `pnpm test:coverage`     | Vitest coverage for `mdcp-core` and `mdcp-cli` (HTML under `packages/*/coverage/`)                                                   |
 | `pnpm run typecheck`     | TypeScript across packages                                                                                                           |
 | `pnpm run lint`          | ESLint on TypeScript sources                                                                                                         |
 | `pnpm run format:check`  | Prettier check                                                                                                                       |
 | `pnpm run check`         | Full gate including skill:validate and docs:check                                                                                    |
 | `pnpm skill:update`      | Refresh vendor-managed dogfood installs under `.agents/skills/` from `skills/` (alias: `skill:install`; do not hand-edit `.agents/`) |
+| `pnpm skill:dev`         | Install this checkout's `mdcp` skill for Claude Code and Cursor without prompts (cloud session setup runs it)                        |
 | `pnpm docs:compile:repo` | Regenerate compiled docs (`guides.md`, `DEVELOPERS.md`, package READMEs)                                                             |
 | `pnpm docs:check`        | Validate repo docs + `examples/sample-guides`                                                                                        |
 
@@ -129,17 +130,17 @@ CI runs the full gate: `pnpm run check`.
 
 <!-- mdcp-shard: start docs/developer/cursor-cloud-environment.md -->
 
-### Cursor Cloud environment
+## Cursor Cloud environment
 
 How this repository behaves inside Cursor cloud agents: how to stand up a new cloud environment, and the platform limitations to plan around. For the standard local toolchain and daily commands, read [Local setup](#local-setup) — this section only adds cloud-specific setup and constraints.
 
 Durable, machine-facing notes for future agents also live in the repository `AGENTS.md` under "Cursor Cloud specific instructions". Keep the two in sync: this guide is the human-facing explanation; `AGENTS.md` is the short agent checklist.
 
-#### Setting up a new cloud environment
+### Setting up a new cloud environment
 
 A fresh cloud VM needs the same toolchain as [Local setup](#local-setup), plus a few cloud-specific steps:
 
-1. **Startup update script.** `.cursor/environment.json` holds the `install` command that runs on every VM start: it fetches remote refs, then runs `pnpm install`. That committed file is the source of truth and overrides any dashboard-saved environment. Keep it minimal — dependency refresh only, no service startup or build steps.
+1. **Startup update script.** `.cursor/environment.json` holds the `install` command that runs on every VM start: it fetches remote refs, runs `pnpm install`, then runs `pnpm skill:dev` so the agent loads this checkout's `mdcp` skill ([Agent Skill development](#agent-skill-development)). That committed file is the source of truth and overrides any dashboard-saved environment. Keep it minimal: no service startup or build steps.
 2. **Vale peer binary.** Vale is a peer binary, not an npm dependency. Install version 3.15.1 to `/usr/local/bin` (it persists in the VM snapshot); the exact release command is in [`.github/workflows/ci.yml`](.github/workflows/ci.yml). `pnpm docs:check` needs Vale on `PATH`.
 3. **gitleaks peer binary.** gitleaks is also a peer binary, not an npm dependency; the pre-commit hook runs `gitleaks protect --staged` when it is on `PATH`. Install version 8.30.1 to `/usr/local/bin` (persists in the VM snapshot). If it goes missing, reinstall from the [gitleaks releases](https://github.com/gitleaks/gitleaks/releases): download `gitleaks_8.30.1_linux_x64.tar.gz` and extract the `gitleaks` binary into `/usr/local/bin` (same pattern as Vale). CI runs its own scan via `gitleaks-action`, so the local install is defense-in-depth.
 4. **Build before docs or CLI.** `dist/` is gitignored and is not produced by the update script. Run `pnpm build` after a fresh checkout before `pnpm docs:check`, `pnpm docs:compile`, or invoking the `mdcp` CLI.
@@ -147,23 +148,23 @@ A fresh cloud VM needs the same toolchain as [Local setup](#local-setup), plus a
 6. **Node version.** The VM runs Node 22 (satisfies `engines >=18`); CI uses Node 24. Do not switch Node unless a version-specific issue appears.
 7. **Full gate.** `pnpm check` mirrors CI (typecheck, lint, format, build, test, skill:validate, docs:check).
 
-#### Platform limitations and workarounds
+### Platform limitations and workarounds
 
 These are cloud-agent constraints discovered in practice. Plan work around them rather than fighting them.
 
-| Limitation                                                                                      | Workaround                                                                                                                                              |
-| ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The `gh` CLI is **read-only** for the agent; it cannot create or modify issues or pull requests | Use the dedicated pull-request tooling for PRs and PR comments. A human creates GitHub issues from agent-supplied text; add `Closes #N` afterward.      |
-| **No GitHub MCP** is available, and we do not add one in the cloud                              | Accept it. MCP servers load at session start and `.cursor/*` (except `environment.json`) is gitignored, so an agent cannot self-enable one mid-run.     |
-| A GitHub **PAT in Secrets is not wired** to `gh` or any agent tool                              | Do not rely on a PAT to unblock issue creation in the cloud; it does not help. Issue creation stays a human step.                                       |
-| The agent **cannot merge PRs** or push to protected `main`                                      | A human merges. The agent may merge one working branch into another locally to unblock CI (for example, a dependency-fix branch into a feature branch). |
-| CI runs `pnpm audit --audit-level=high` **before** the build and test gates                     | A new advisory on a pre-existing devDependency fails audit and masks otherwise-green gates. Pin patched versions via `pnpm-workspace.yaml` overrides.   |
-| The pre-commit hook runs `pnpm audit` when dependency manifests change                          | Resolve advisories (overrides) before committing manifest changes, rather than bypassing the hook.                                                      |
-| commitlint rejects non-conventional subjects, including merge commits                           | Give merge commits a conventional subject such as `chore: merge …`, not `merge: …`.                                                                     |
+| Limitation                                                                                      | Workaround                                                                                                                                            |
+| ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The `gh` CLI is **read-only** for the agent; it cannot create or modify issues or pull requests | Use the dedicated pull-request tooling for PRs and PR comments. A human creates GitHub issues from agent-supplied text; add `Closes #N` afterward.    |
+| **No GitHub MCP** is available, and we do not add one in the cloud                              | Accept it. MCP servers load at session start and `.cursor/*` (except `environment.json`) is gitignored, so an agent cannot self-enable one mid-run.   |
+| A GitHub **PAT in Secrets is not wired** to `gh` or any agent tool                              | Do not rely on a PAT to unblock issue creation in the cloud; it does not help. Issue creation stays a human step.                                     |
+| The agent **cannot push to protected `main`** or merge the release PR                           | Work reaches `develop` by pushing a `land/**` branch through the land gate. A human merges the release PR into `main`.                                |
+| CI runs `pnpm audit --audit-level=high` **before** the build and test gates                     | A new advisory on a pre-existing devDependency fails audit and masks otherwise-green gates. Pin patched versions via `pnpm-workspace.yaml` overrides. |
+| The pre-commit hook runs `pnpm audit` when dependency manifests change                          | Resolve advisories (overrides) before committing manifest changes, rather than bypassing the hook.                                                    |
+| commitlint rejects non-conventional subjects, including merge commits                           | Give merge commits a conventional subject such as `chore: merge …`, not `merge: …`.                                                                   |
 
-#### Recording issues without issue-creation access
+### Recording issues without issue-creation access
 
-Because the agent cannot open GitHub issues, capture work items as ready-to-paste issue text (title, body with acceptance criteria, labels, and project fields per [Agent work-item tracking](#agent-work-item-tracking)) inside the pull request that delivers the work. A maintainer creates the issue and links it with `Closes #N`.
+Because the agent cannot open GitHub issues, capture work items as ready-to-paste issue text (title, body with acceptance criteria, labels, and project fields per [Agent work-item tracking](#agent-work-item-tracking)) in the commit message of the change that delivers the work. A maintainer creates the issue and links it with `Closes #N`.
 
 <!-- mdcp-shard: end docs/developer/cursor-cloud-environment.md -->
 
@@ -263,21 +264,21 @@ Local runs print a text summary and write HTML/lcov under each package’s `cove
 
 JSONC markdownlint configs plus the shippable `MDCP` Vale style (`vale/MDCP/`). Dogfood-only styles live under [`docs/vale-local/`](docs/vale-local/README.md). Edit preset files directly — no TypeScript build.
 
-### Pull request checklist
+### Before you push
 
 1. `pnpm run build && pnpm test`
 2. `pnpm run lint && pnpm run format:check`
 3. `pnpm docs:compile:repo && pnpm docs:check` if you touched `docs/` shards
-4. `pnpm changeset` if you changed published package behavior (see [Versioning and releases](#versioning-and-releases))
+4. `pnpm changeset` when [a changeset is needed](#when-to-add-a-changeset)
 
-CI runs the same core gates as `pnpm run check` (typecheck, lint, format, build, test, `docs:check`), plus:
+The land gate and CI run the same core gates as `pnpm run check` (typecheck, lint, format, build, test, `docs:check`), plus:
 
 - `pnpm run verify:peers` — confirm markdownlint-cli2 and Vale are on PATH
 - `pnpm audit --audit-level=high` — dependency vulnerability scan
 - `pnpm run prepare:docs` — `verify:peers` + `vale:sync` before `docs:check`
 - a separate **coverage** job runs `pnpm test:coverage`, appends package totals to the Actions job summary, and uploads `coverage/` artifacts (informational; no threshold enforcement)
 
-Pull requests also run the **changeset** job when package sources change.
+Both also run the changeset checks (`changeset:reject-major`, `changeset:status`).
 
 <!-- mdcp-shard: end docs/developer/packages-and-tests.md -->
 
@@ -457,8 +458,8 @@ gh issue list --repo betsalel-williamson/mdcp --state open --limit 100 \
 gh issue list --repo betsalel-williamson/mdcp --state open --label "priority:P0"
 gh issue list --repo betsalel-williamson/mdcp --state open --label "priority:P1"
 
-# Issues on the current delivery milestone (replace title as needed)
-gh issue list --repo betsalel-williamson/mdcp --milestone "v0.7" --state open
+# Issues on the current delivery milestone (replace <milestone> with its title)
+gh issue list --repo betsalel-williamson/mdcp --milestone "<milestone>" --state open
 ```
 
 Compare the open-issue set to the board (Project UI filter, or GraphQL `projectV2.items`) and add gaps via [Add an issue to the board](#add-an-issue-to-the-board-gh).
@@ -478,17 +479,19 @@ If none of the above apply, inspect enabled MCP tool descriptors or run `gh --he
 ### Git and delivery
 
 ```text
-Integration branch=develop (pull before branching; work lands by pushing a claude/** or land/** branch, never a PR to main)
-Feature branches=descriptive (e.g. feature/issue-29-default-compile-hooks)
-One branch per WORK_ITEM=do not mix unrelated features, designs, or doc scopes in one PR
+Integration branch=develop (pull before branching; see Versioning and releases → Landing on develop)
+Branch names=land/<issue>-<slug> (e.g. land/issue-29-default-compile-hooks); agent sessions use their claude/** branch. Only these two prefixes land
+One branch per WORK_ITEM=do not mix unrelated features, designs, or doc scopes in one landing
 Branch before work=create the feature branch before shards, tests, or code
 Commits=conventional; one concern per commit ([Atomic commit groups](../glossary/atomic-commit-groups.md))
 Atomic commit groups=coding and multi-concern plans MUST list numbered groups before “go” (id/name, one concern, exact files, conventional commit subject); after approval, `git commit` one group at a time — do not squash unrelated concerns
-Release notes=changeset in .changeset/ for published package changes (temporary until versioned into CHANGELOGs)
+Release notes=changeset in .changeset/ (see Versioning and releases → When to add a changeset)
 Docs=describe current behavior only; removed or breaking behavior belongs in changeset → package CHANGELOG, not feature/client shards
 ADRs=docs/features/adr/ (scope/removal decisions; link CHANGELOGs, never pending .changeset/*.md)
-Landing=push the branch; the land workflow gates and merges it into develop (no PR). Put evidence and "Closes #N" in the commit message. Review happens on the develop → main release PR
+Landing=push the branch; put evidence and "Closes #N" in the commit message
 ```
+
+How landing, the gate, and the release PR work is owned by [Landing on `develop`](#landing-on-develop).
 
 The skill's QA principles and its day-to-day workflows encode the same rule so plan-only agents inherit it: [Agent Skill](docs/features/agent-skill.md#quality-assurance-qa-principles), [Skill workflows](docs/features/protocol/skill-workflows.md).
 
@@ -499,7 +502,7 @@ The skill's QA principles and its day-to-day workflows encode the same rule so p
 3. **Stay focused** — one feature or design at a time. Treat acceptance criteria as the boundary unless WORK_ITEM explicitly expands scope.
 4. **Plan Atomic commit groups** — before waiting for human review / implementation, include numbered commit groups for multi-concern work (see [Git and delivery](#git-and-delivery)). After approval, land one group per commit.
 5. **Docs describe now** — update shards to match as-built behavior. Do not document superseded workflows in `docs/features/` or `docs/client/`; record consumer notice in the changeset (lands in package CHANGELOGs). Never link durable shards or ADRs to pending `.changeset/*.md` files.
-6. **Add a changeset** — run `pnpm changeset` (or manually create a `.changeset/*.md` file) if you changed published package behavior. This is required for release notes and versioning.
+6. **Add a changeset** — see [When to add a changeset](#when-to-add-a-changeset).
 7. **Issue intake** — when opening or first touching an issue, complete [New issue intake](#new-issue-intake-required) (labels, board, Track, Status, milestone).
 8. **Weekly triage** — once a week, run [Weekly triage run](#weekly-triage-run); prompt humans before closing stale or duplicate tickets.
 
@@ -517,7 +520,7 @@ WORK_ITEM=bare sibling link rewrite
 WORK_ITEM_LOOKUP=GitHub
 ```
 
-`WORK_ITEM` may be an issue number, URL, or a short name/description the agent can resolve. `WORK_ITEM_LOOKUP` may be this shard path or a plain location (e.g. GitHub) that points the agent at the tracker conventions here. For the helper skills catalog and invoke recipes, read [`docs/skills.md`](docs/skills.md).
+`WORK_ITEM` may be an issue number, URL, or a short name/description the agent can resolve. `WORK_ITEM_LOOKUP` may be this shard path or a plain location (e.g. GitHub) that points the agent at the tracker conventions here. For the skill's workflows and how to invoke them, read [`docs/skills.md`](docs/skills.md).
 
 <!-- mdcp-shard: end docs/developer/agent-work-item-tracking.md -->
 
@@ -735,10 +738,10 @@ pnpm skill:update
 
 (`pnpm skill:install` is the same task — an alias kept for older docs and habits.)
 
-Cloud agent sessions install the skill on their own. The Claude Code session-start hook (`.claude/hooks/session-start.sh`) and the Cursor environment (`.cursor/environment.json`) both run `pnpm skill:dev`, which installs this checkout's `skills/mdcp` for Claude Code and Cursor with telemetry off. An agent working here therefore loads the skill as it stands on the branch, not a published release.
-
 That runs `npx skills add .` and refreshes dogfood installs under `.agents/skills/`
 from the publishable packs in `skills/` (see `skills-lock.json`).
+
+Cloud agent sessions install the skill on their own. The Claude Code session-start hook (`.claude/hooks/session-start.sh`) and the Cursor environment (`.cursor/environment.json`) both run `pnpm skill:dev`, which installs this checkout's `skills/mdcp` for Claude Code and Cursor with telemetry off. An agent working here therefore loads the skill as it stands on the branch, not a published release.
 
 #### Do not hand-edit `.agents/skills/`
 
@@ -749,7 +752,7 @@ agent load path). They are **not** the source of truth.
 | ---------------------------------------------------------------- | ----------------------------------------------------------------- |
 | Edit publishable packs under `skills/<name>/`                    | Hand-edit `.agents/skills/<name>/` to “fix” or tweak guidance     |
 | Run `pnpm skill:update` after skill edits so agents pick them up | Commit one-off edits that only exist under `.agents/`             |
-| Propose lasting skill changes as PRs against `skills/`           | Treat `.agents/skills/mdcp*` as durable docs or authoring surface |
+| Land lasting skill changes in `skills/`                          | Treat `.agents/skills/mdcp*` as durable docs or authoring surface |
 
 The skill and archetype dogfood trees (`.agents/skills/mdcp/`,
 `.agents/skills/mdcp-arch-*`) are gitignored. Refresh them with
@@ -773,7 +776,7 @@ When changing skill instructions:
 | `pnpm skill:validate` | Frontmatter fence lint + [skills-ref](https://agentskills.io/specification) validate on all skills under `skills/` |
 | `pnpm docs:check`     | Docs compile + lint gate after shard edits                                                                         |
 
-`pnpm skill:validate` runs in local `pnpm check`, PR CI, and during **`pnpm release:main`** after skill version sync (hard fail before the release commit / publish). It is not a [live skill eval](#live-skill-eval).
+`pnpm skill:validate` runs in local `pnpm check`, the land gate, PR CI, and during **`pnpm release:main`** after skill version sync (hard fail before the release commit / publish). It is not a [live skill eval](#live-skill-eval).
 
 ### Live skill evals (optional, local)
 
@@ -838,13 +841,13 @@ Current policy:
 true` and stay **out** of `skills.sh.json` until intentionally published.
    Maintainers use `INSTALL_INTERNAL_SKILLS=1` to install them locally.
 3. **When adding a release-ready skill under `skills/`** — add its `name:` to
-   the Documentation system `skills` array in the same PR. Do not add packs
+   the Documentation system `skills` array in the same change. Do not add packs
    that still carry `metadata.internal: true`.
 4. **Live evals are separate** — suite inventory and skill-creator loops live
    under [Live skill evals](#live-skill-evals). They never belong in
    `skills.sh.json`.
 
-When changing skill surface area, update this file in the same PR, and follow
+When changing skill surface area, update this file in the same change, and follow
 the skills.sh step in the
 [release checklist](#release-checklist-maintainers).
 
@@ -998,7 +1001,7 @@ Independent versioning is configured in [`.changeset/config.json`](.changeset/co
 | Branch     | Role                                                                    | Who merges into it                                     |
 | ---------- | ----------------------------------------------------------------------- | ------------------------------------------------------ |
 | `develop`  | Integration trunk. Work lands here without a PR once it passes the gate | `claude/**` and `land/**` pushes, and Dependabot PRs   |
-| `main`     | Protected release branch. `npx skills add` and the docs site read it    | Release PRs from `develop`, and `hotfix/*` branches    |
+| `main`     | Protected release branch. `npx skills add` installs from it             | Release PRs from `develop`, and `hotfix/*` branches    |
 | `hotfix/*` | An urgent fix cut from `main` that can't wait for the next release      | Merged to `main`; the sync job carries it to `develop` |
 
 #### Landing on `develop`
@@ -1030,7 +1033,7 @@ There is **no calendar cadence** and **no Version Packages PR**. A release is a 
 
 If a prior run versioned/published but failed before tags/Releases finished, the next Release plan detects **missing** `name@version` git tags and/or GitHub Releases and the release job **heals** them without bumping versions again (tag + `gh release create … --target` at the commit that last changed that package’s `package.json`).
 
-**Agent Skills** live under `skills/` as the install surface (`npx skills add`). Version carriers and CHANGELOGs live under **`packages/skill-<id>/`** only — never under `skills/` (those files would pollute agent context on install). `pnpm release:main` syncs the carrier version into `skills/<id>/SKILL.md` `metadata.version`. Feature PRs must add a changeset targeting `@bwilliamson/skill-<id>` and must **not** hand-bump `metadata.version`. See [Agent Skill](#agent-skill-development).
+**Agent Skills** live under `skills/` as the install surface (`npx skills add`). Version carriers and CHANGELOGs live under **`packages/skill-<id>/`** only — never under `skills/` (those files would pollute agent context on install). `pnpm release:main` syncs the carrier version into `skills/<id>/SKILL.md` `metadata.version`. Skill changes need a changeset; see [When to add a changeset](#when-to-add-a-changeset).
 
 ### Pre-1.0 policy (`0.x.y`)
 
@@ -1041,11 +1044,6 @@ Packages and Agent Skills are **pre-1.0** while on `0.x.y`. Until a given item r
 | **patch** | Bug fixes, internal refactors with no intended API change                  |
 | **minor** | New capabilities, or breaking-within-0.x until majors are opened           |
 | **build** | Republish without API change (`0.1.0-build.1`, …) via `pnpm release:build` |
-
-#### Community feedback
-
-- Visit [github.com/betsalel-williamson/mdcp](https://github.com/betsalel-williamson/mdcp) and **star** the repo
-- **Open an issue** or comment on PRs with bugs, adoption stories, or tooling feedback
 
 ### Release checklist (maintainers)
 
@@ -1062,7 +1060,7 @@ Pending `.changeset/*.md` files are temporary. Point consumers at package CHANGE
 
 ### When to add a changeset
 
-Run `pnpm changeset` when a PR changes:
+Run `pnpm changeset` when a change touches:
 
 - `packages/mdcp-core/src/**` → `@bwilliamson/mdcp-core`
 - `packages/mdcp-cli/src/**` → `@bwilliamson/mdcp-cli`
@@ -1071,7 +1069,7 @@ Run `pnpm changeset` when a PR changes:
 
 **Do not** put `package.json` or `CHANGELOG.md` under `skills/`. **Do not** hand-edit `skills/*/SKILL.md` `metadata.version`.
 
-CI runs `pnpm changeset:reject-major` and `pnpm changeset:status` on pull requests.
+The land gate and CI on pull requests both run `pnpm changeset:reject-major` and `pnpm changeset:status`.
 
 ### Dependabot
 
@@ -1327,44 +1325,44 @@ We run **CodeQL** and **Zizmor** on push and pull request:
 
 This checklist tracks our compliance with the [OWASP GitHub Actions Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/GitHub_Actions_Security_Cheat_Sheet.html). See [GitHub Actions security posture](#github-actions-security-posture) for vocabulary and re-review guidance. All open risks are tracked under epic [#173](https://github.com/betsalel-williamson/mdcp/issues/173).
 
-| OWASP Topic                             | Status                       | Notes                                                                                                                                                              |
-| --------------------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Pipeline Governance**                 |                              |                                                                                                                                                                    |
-| Treat CI/CD as critical production code | `reviewed (2026-07-27)`      | Security posture docs, full `pnpm run check` gate, and checklist tracked under #173.                                                                               |
-| **Authentication & Authorization**      |                              |                                                                                                                                                                    |
-| Default `GITHUB_TOKEN` permissions      | `reviewed (2026-07-27)`      | Repo default is read-only.                                                                                                                                         |
-| Workflow-level `permissions: {}`        | `reviewed (2026-07-27)`      | Empty top-level on ci/gitleaks/release; job-scoped writes.                                                                                                         |
-| `persist-credentials: false`            | `reviewed (2026-07-30)`      | Set on all `actions/checkout` steps; release uses `RELEASE_GITHUB_TOKEN` only in the publish step env (not persisted at checkout).                                 |
-| Eliminate static credentials            | `reviewed (2026-07-30)`      | npm publish remains OIDC. Git push/releases use fine-grained **`RELEASE_GITHUB_TOKEN`** PAT (Contents write) — documented least-privilege; prefer App token later. |
-| OIDC for cloud providers                | `reviewed (2026-07-30)`      | Trusted Publishing on `release.yml` (push to `main` + `workflow_dispatch`).                                                                                        |
-| Secure handling of static credentials   | `reviewed (2026-07-30)`      | Only `RELEASE_GITHUB_TOKEN` for git push/releases; never logged; no classic cloud keys.                                                                            |
-| Secrets: inherit                        | `not a concern (2026-07-27)` | Not used.                                                                                                                                                          |
-| Mask sensitive data                     | `reviewed (2026-07-27)`      | GitHub auto-masks secrets; gitleaks enforces pre-merge scanning.                                                                                                   |
-| **Workflows & Execution**               |                              |                                                                                                                                                                    |
-| Pin actions to commit SHA               | `reviewed (2026-07-27)`      | All third-party actions pinned to full commit SHAs with tag comments in workflows.                                                                                 |
-| Third-party actions caution             | `reviewed (2026-07-27)`      | Documented current set.                                                                                                                                            |
-| Sanitize untrusted context / input      | `reviewed (2026-07-30)`      | Workflow contexts via env; release notes from Changesets CHANGELOGs (review pending `.changeset` in Release plan job before env approval).                         |
-| `pull_request_target` trigger           | `not a concern (2026-07-27)` | Not used.                                                                                                                                                          |
-| `workflow_run` trigger                  | `not a concern (2026-07-27)` | Not used.                                                                                                                                                          |
-| `issue_comment` trigger                 | `not a concern (2026-07-27)` | Not used.                                                                                                                                                          |
-| Curated shared workflows                | `not a concern (2026-07-27)` | Single-repo monorepo; no centralized shared-workflows repository.                                                                                                  |
-| Multi-repo shared workflows             | `not a concern (2026-07-27)` | Not used.                                                                                                                                                          |
-| **Runners & Environments**              |                              |                                                                                                                                                                    |
-| Self-hosted runners                     | `not a concern (2026-07-27)` | Using `ubuntu-latest` GitHub-hosted runners.                                                                                                                       |
-| Runner groups                           | `not a concern (2026-07-27)` | Not applicable to GitHub-hosted runners.                                                                                                                           |
-| Egress monitoring                       | `reviewed (2026-07-27)`      | Harden-Runner in audit mode only (not block).                                                                                                                      |
-| Environment required reviewers          | `reviewed (2026-07-27)`      | Bound to `release` env; required reviewers are maintainer ops.                                                                                                     |
-| **Code & Supply Chain**                 |                              |                                                                                                                                                                    |
-| Branch protection baseline              | `reviewed (2026-07-27)`      | Main branch protected with PR and status checks.                                                                                                                   |
-| Require approval for external           | `reviewed (2026-09-10)`      | CODEOWNERS on `main`; `require_code_owner_reviews` enabled. Separate approval count not required — only maintainers can merge.                                     |
-| Dependabot for Actions                  | `reviewed (2026-07-27)`      | Configured for weekly updates.                                                                                                                                     |
-| Dependabot cooldown                     | `reviewed (2026-07-27)`      | Explicit 7-day cooldown on `npm` and `github-actions`.                                                                                                             |
-| Artifact / cache poisoning              | `reviewed (2026-07-27)`      | Removed `cache: pnpm` from `release.yml`; CI jobs still cache.                                                                                                     |
-| Secret scanning                         | `reviewed (2026-07-27)`      | Gitleaks workflow is active.                                                                                                                                       |
-| Static analysis (CodeQL/Zizmor)         | `reviewed (2026-07-27)`      | CodeQL (`javascript-typescript` + `actions`) + Zizmor; Zizmor fails on findings.                                                                                   |
-| AI-in-CI                                | `not a concern (2026-07-27)` | No AI assistants used in CI.                                                                                                                                       |
-| **Incident Response**                   |                              |                                                                                                                                                                    |
-| Incident response plan                  | `reviewed (2026-07-27)`      | Covered in `SECURITY.md` and triage docs.                                                                                                                          |
+| OWASP Topic                             | Status                       | Notes                                                                                                                                                                                                                                                               |
+| --------------------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Pipeline Governance**                 |                              |                                                                                                                                                                                                                                                                     |
+| Treat CI/CD as critical production code | `reviewed (2026-07-27)`      | Security posture docs, full `pnpm run check` gate, and checklist tracked under #173.                                                                                                                                                                                |
+| **Authentication & Authorization**      |                              |                                                                                                                                                                                                                                                                     |
+| Default `GITHUB_TOKEN` permissions      | `reviewed (2026-07-27)`      | Repo default is read-only.                                                                                                                                                                                                                                          |
+| Workflow-level `permissions: {}`        | `reviewed (2026-10-04)`      | Empty top-level on every workflow; job-scoped writes.                                                                                                                                                                                                               |
+| `persist-credentials: false`            | `reviewed (2026-07-30)`      | Set on all `actions/checkout` steps; release uses `RELEASE_GITHUB_TOKEN` only in the publish step env (not persisted at checkout).                                                                                                                                  |
+| Eliminate static credentials            | `reviewed (2026-10-04)`      | npm publish remains OIDC. Two fine-grained PATs: **`RELEASE_GITHUB_TOKEN`** (release push and GitHub Releases) and **`DEPENDABOT_CHANGESET_TOKEN`** (Dependabot changeset commits). Landings and develop syncs push with `GITHUB_TOKEN`. Prefer an App token later. |
+| OIDC for cloud providers                | `reviewed (2026-07-30)`      | Trusted Publishing on `release.yml` (push to `main` + `workflow_dispatch`).                                                                                                                                                                                         |
+| Secure handling of static credentials   | `reviewed (2026-10-04)`      | `RELEASE_GITHUB_TOKEN` is scoped to the `release` environment; `DEPENDABOT_CHANGESET_TOKEN` is read only by the Dependabot changeset job. Never logged; no classic cloud keys.                                                                                      |
+| Secrets: inherit                        | `not a concern (2026-07-27)` | Not used.                                                                                                                                                                                                                                                           |
+| Mask sensitive data                     | `reviewed (2026-07-27)`      | GitHub auto-masks secrets; gitleaks enforces pre-merge scanning.                                                                                                                                                                                                    |
+| **Workflows & Execution**               |                              |                                                                                                                                                                                                                                                                     |
+| Pin actions to commit SHA               | `reviewed (2026-07-27)`      | All third-party actions pinned to full commit SHAs with tag comments in workflows.                                                                                                                                                                                  |
+| Third-party actions caution             | `reviewed (2026-07-27)`      | Documented current set.                                                                                                                                                                                                                                             |
+| Sanitize untrusted context / input      | `reviewed (2026-07-30)`      | Workflow contexts via env; release notes from Changesets CHANGELOGs (review pending `.changeset` in Release plan job before env approval).                                                                                                                          |
+| `pull_request_target` trigger           | `reviewed (2026-10-04)`      | Used only by `dependabot-changeset.yml`: the job runs when the PR author is `dependabot[bot]`, checks out the base branch, and reads PR files as data.                                                                                                              |
+| `workflow_run` trigger                  | `not a concern (2026-07-27)` | Not used.                                                                                                                                                                                                                                                           |
+| `issue_comment` trigger                 | `not a concern (2026-07-27)` | Not used.                                                                                                                                                                                                                                                           |
+| Curated shared workflows                | `not a concern (2026-07-27)` | Single-repo monorepo; no centralized shared-workflows repository.                                                                                                                                                                                                   |
+| Multi-repo shared workflows             | `not a concern (2026-07-27)` | Not used.                                                                                                                                                                                                                                                           |
+| **Runners & Environments**              |                              |                                                                                                                                                                                                                                                                     |
+| Self-hosted runners                     | `not a concern (2026-07-27)` | Using `ubuntu-latest` GitHub-hosted runners.                                                                                                                                                                                                                        |
+| Runner groups                           | `not a concern (2026-07-27)` | Not applicable to GitHub-hosted runners.                                                                                                                                                                                                                            |
+| Egress monitoring                       | `reviewed (2026-07-27)`      | Harden-Runner in audit mode only (not block).                                                                                                                                                                                                                       |
+| Environment required reviewers          | `reviewed (2026-07-27)`      | Bound to `release` env; required reviewers are maintainer ops.                                                                                                                                                                                                      |
+| **Code & Supply Chain**                 |                              |                                                                                                                                                                                                                                                                     |
+| Branch protection baseline              | `reviewed (2026-10-04)`      | `main` is protected with PR, code-owner review and status checks. `develop` takes pushes only from the land workflow after its gate passes, plus Dependabot PRs.                                                                                                    |
+| Require approval for external           | `reviewed (2026-09-10)`      | CODEOWNERS on `main`; `require_code_owner_reviews` enabled. Separate approval count not required — only maintainers can merge.                                                                                                                                      |
+| Dependabot for Actions                  | `reviewed (2026-07-27)`      | Configured for weekly updates.                                                                                                                                                                                                                                      |
+| Dependabot cooldown                     | `reviewed (2026-07-27)`      | Explicit 7-day cooldown on `npm` and `github-actions`.                                                                                                                                                                                                              |
+| Artifact / cache poisoning              | `reviewed (2026-07-27)`      | Removed `cache: pnpm` from `release.yml`; CI jobs still cache.                                                                                                                                                                                                      |
+| Secret scanning                         | `reviewed (2026-07-27)`      | Gitleaks workflow is active.                                                                                                                                                                                                                                        |
+| Static analysis (CodeQL/Zizmor)         | `reviewed (2026-07-27)`      | CodeQL (`javascript-typescript` + `actions`) + Zizmor; Zizmor fails on findings.                                                                                                                                                                                    |
+| AI-in-CI                                | `not a concern (2026-07-27)` | No AI assistants used in CI.                                                                                                                                                                                                                                        |
+| **Incident Response**                   |                              |                                                                                                                                                                                                                                                                     |
+| Incident response plan                  | `reviewed (2026-07-27)`      | Covered in `SECURITY.md` and triage docs.                                                                                                                                                                                                                           |
 
 <!-- mdcp-shard: end docs/developer/github-actions-security-checklist.md -->
 
