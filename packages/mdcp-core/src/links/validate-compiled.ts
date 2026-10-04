@@ -8,7 +8,12 @@ export interface LintCompiledLinksOptions {
   markdown: string;
   outputFile: string;
   guideName?: string;
+  /** @deprecated Ignored. Pass `knownOutputPaths`, which matches outputs by resolved path. */
   knownOutputBasenames?: Set<string>;
+  /** Absolute paths of every output in the current compile run (see `validateCompiledLinkTarget`). */
+  knownOutputPaths?: Set<string>;
+  /** Absolute paths of configured outputs this run doesn't write (see `validateCompiledLinkTarget`). */
+  unwrittenOutputPaths?: Set<string>;
   knownSlugs?: Set<string>;
   publishOnly?: boolean;
   allowedPublishPaths?: Set<string>;
@@ -54,7 +59,8 @@ export function lintCompiledLinks(options: LintCompiledLinksOptions): LinkIssue[
 
     const result = validateCompiledLinkTarget(link.target, registry, {
       outputFile: options.outputFile,
-      knownOutputBasenames: options.knownOutputBasenames,
+      knownOutputPaths: options.knownOutputPaths,
+      unwrittenOutputPaths: options.unwrittenOutputPaths,
       knownSlugs: options.knownSlugs,
       publishOnly: options.publishOnly,
       allowedPublishPaths: options.allowedPublishPaths,

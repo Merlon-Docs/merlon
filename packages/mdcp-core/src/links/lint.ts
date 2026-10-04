@@ -1,4 +1,4 @@
-import { basename, dirname, resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import type { CompileGuideResult } from '../compile/assemble.js';
 import { compileGuidesFromResults } from '../compile/assemble.js';
 import type { MdcpConfig } from '../config/schema.js';
@@ -95,22 +95,29 @@ export function lintLinks(options: LintLinksOptions): LinkIssue[] {
   const outputDir = config.outputDir;
   const fileExtensions = fileExtensionSet(config.lint);
 
-  const knownOutputBasenames = new Set(results.map((r) => basename(r.outputFile)));
-  if (config.outputFile !== undefined) {
-    knownOutputBasenames.add(basename(config.outputFile));
-  }
-
   const knownSlugs = new Set<string>();
   const absDocsRoot = resolve(docsRoot);
-  const allowedPublishPaths = new Set(
-    results
-      .filter((r) => r.publishOnly)
-      .map((r) => resolve(resolveUnderOutputDir(absDocsRoot, outputDir, r.outputFile))),
+  const configuredMonolith =
+    config.outputFile !== undefined
+      ? resolve(resolveUnderOutputDir(absDocsRoot, outputDir, config.outputFile))
+      : undefined;
+  // The monolith is written only when at least one guide is stitched into it.
+  const monolithPath = results.some((r) => !r.publishOnly) ? configuredMonolith : undefined;
+
+  // Every output this run writes, keyed like `slugRegistryCache`. A link is
+  // matched to an output by resolved path: a shared file name is not a match.
+  // This covers the publish outputs too, so `allowedPublishPaths` stays unset.
+  const knownOutputPaths = new Set(
+    results.map((r) => resolve(resolveUnderOutputDir(absDocsRoot, outputDir, r.outputFile))),
   );
-  if (config.outputFile !== undefined) {
-    allowedPublishPaths.add(
-      resolve(resolveUnderOutputDir(absDocsRoot, outputDir, config.outputFile)),
-    );
+  if (monolithPath !== undefined) knownOutputPaths.add(monolithPath);
+
+  // A configured monolith that no guide is stitched into is never written. A
+  // link to it fails even when an earlier run left the file on disk. A guide
+  // whose own output is that path still counts, because outputs match first.
+  const unwrittenOutputPaths = new Set<string>();
+  if (configuredMonolith !== undefined && monolithPath === undefined) {
+    unwrittenOutputPaths.add(configuredMonolith);
   }
 
   const slugRegistryCache = new Map<string, RefsRegistry>();
@@ -118,8 +125,7 @@ export function lintLinks(options: LintLinksOptions): LinkIssue[] {
     const outPath = resolve(resolveUnderOutputDir(absDocsRoot, outputDir, r.outputFile));
     slugRegistryCache.set(outPath, buildSlugRegistry(r.text));
   }
-  if (config.outputFile !== undefined && options.compileOptions) {
-    const monolithPath = resolve(resolveUnderOutputDir(absDocsRoot, outputDir, config.outputFile));
+  if (monolithPath !== undefined && options.compileOptions) {
     const monolithText = compileGuidesFromResults(results, options.compileOptions);
     slugRegistryCache.set(monolithPath, buildSlugRegistry(monolithText));
   }
@@ -183,10 +189,10 @@ export function lintLinks(options: LintLinksOptions): LinkIssue[] {
         markdown: r.text,
         outputFile: outPath,
         guideName: r.name,
-        knownOutputBasenames,
+        knownOutputPaths,
+        unwrittenOutputPaths,
         knownSlugs,
         publishOnly: r.publishOnly,
-        allowedPublishPaths,
         disallowedShardPaths,
         slugRegistryCache,
         fileExtensions,

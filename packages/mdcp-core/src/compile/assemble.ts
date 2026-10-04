@@ -71,6 +71,7 @@ export interface AssembleGuideOptions {
   ignoreGuides?: string[];
   markBroken?: boolean;
   guideName?: string;
+  /** @deprecated Ignored. Only `#fragment` targets are marked, and they never named an output. */
   knownOutputBasenames?: Set<string>;
   knownSlugs?: Set<string>;
   shardCache?: ShardCache;
@@ -208,7 +209,6 @@ export function assembleGuide(guideDir: string, options: AssembleGuideOptions = 
     enabled: options.markBroken !== false,
     guideName: options.guideName ?? guideName,
     compiledOutputPath: options.outputFile,
-    knownOutputBasenames: options.knownOutputBasenames,
     knownSlugs: intraSlugs,
   });
   compiled = marked.markdown;
@@ -266,18 +266,6 @@ export function compileGuideResultsWithContext(
     shardCache,
     linkedFilesByGuide,
   } = buildGuideLinkIndex(options, docsRoot);
-  const knownOutputBasenames = new Set(
-    options.compileOrder.map((name) => {
-      const cfg = guideConfigMap.get(name) as GuideConfig | undefined;
-      const compile = cfg?.compile;
-      const outputFile = effectiveGuideOutputFile(name, compile, orderLen);
-      return basename(outputFile);
-    }),
-  );
-  if (options.config?.outputFile !== undefined) {
-    knownOutputBasenames.add(basename(options.config.outputFile));
-  }
-
   const results = options.compileOrder.map((name) => {
     const cfg = guideConfigMap.get(name) as GuideConfig | undefined;
     const guideDir = resolveGuideDir(name, options.guidesRoot, cfg, docsRoot);
@@ -317,7 +305,6 @@ export function compileGuideResultsWithContext(
       ignoreGuides: compile?.crossGuideLinks?.ignoreGuides,
       markBroken: compile?.links?.markBroken,
       guideName: name,
-      knownOutputBasenames,
       shardCache,
       slugByPath,
       linkedFiles,

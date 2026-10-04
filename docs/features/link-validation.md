@@ -39,7 +39,7 @@ Guides with `compile.outputFile` are **publish-only** outputs (npm READMEs, `DEV
 
 | Target in publish output                                          | Result                                                                         |
 | ----------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| Another guide's compiled `outputFile`                             | Valid                                                                          |
+| Another output of the same run (a compiled guide or the monolith) | Valid when any `#fragment` matches a heading in that output                    |
 | `#fragment` in the same document                                  | Valid when slug exists                                                         |
 | Shard `.md` in an unpublished guide (not in `ignoreGuides`)       | **`missing publish path`**                                                     |
 | Shard `.md` for a guide in `compile.crossGuideLinks.ignoreGuides` | Valid when the file exists on disk and any `#fragment` matches a heading in it |
@@ -57,6 +57,8 @@ Publish-relative rewrite and publish-only lint are complementary: rewrite fixes 
 | Shard      | `lintLinks` / author time | Unresolved `.md` and source-file paths; same-shard `#fragment` vs demoted heading slugs             |
 | Standalone | `lintLinks`               | Same checks as shard phase, over every file matched by `standaloneGuides`                           |
 | Compiled   | After assemble            | `#fragment` vs `buildSlugRegistry`; relative `.md` and source-file paths from output file directory |
+
+A `.md` target names another output of the same run only when its resolved path equals that output's path. Its `#fragment` is then checked against the compiled text held in memory, so the output doesn't have to be written yet. This holds in publish-only output too. The monolith counts as an output only when at least one guide is stitched into it, because a run where every guide sets `compile.outputFile` never writes it. A link to a monolith that is never written reports `missing publish path`, even when an earlier run left the file on disk. A file that only shares a name with an output, such as a package's `README.md` when the root `README.md` is an output, gets the ordinary check: the file has to exist, and any `#fragment` has to match one of its headings.
 
 Compiled-phase checks run **after** cross-guide, publish-relative, and intra-guide rewrite. Co-compiled transitive targets (shards in `linkedSectionFiles` outside `guideDir`) are expected to rewrite to in-document `#slug` / `#fragment` via the guide link index and same-output preference — see [Cross-guide link rewriting](../client-core/compile-hooks/cross-guide-links.md#transitive-section-discovery). Validation treats remaining raw `../file.md` (or `./file.md`) to those co-compiled paths as broken when publish-only policy requires a compiled target. <!-- mdcp-paths: illustrative -->
 
@@ -169,6 +171,9 @@ link: docs/client-cli/consumer-migration.md:42: dead anchor "#missing-slug" (slu
 - A data-file link is validated and rebased but carries no `#L` fragment; the same extension listed in `lint.codeExtensions` gets one
 - Compiled dead anchor after demotion
 - Compiled dead path after publish-relative link rewrite
+- Compiled `.md` link to another output of the same run reports `dead anchor` when its `#fragment` matches no heading in that output, even before the output is written and from publish-only output
+- Compiled link to the configured monolith reports `missing publish path` when every guide is publish-only, even when an earlier run left the file on disk
+- Compiled `.md` link that only shares a file name with an output reports `missing publish path` when the file is gone and `dead anchor` for a stale `#fragment`, in publish-only output too
 - Manifest-first guide link index — transitive guide does not overwrite manifest owner; index includes every `linkedSectionFiles` path for the compiling guide
 - Co-compiled transitive targets rewrite before compiled validation (same-output `#slug` / `#fragment`)
 - Cross-guide publish link rewrites to `guides.md#slug`, not same-doc `#slug`

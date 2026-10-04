@@ -17,6 +17,7 @@ export interface MarkBrokenLinksOptions {
   enabled?: boolean;
   guideName?: string;
   compiledOutputPath?: string;
+  /** @deprecated Ignored. Only `#fragment` targets are marked, and they never named an output. */
   knownOutputBasenames?: Set<string>;
   /** Intra-guide section slugs valid after rewrite (FIND-* filename slugs, etc.). */
   knownSlugs?: Set<string>;
@@ -71,7 +72,6 @@ export function markBrokenLinks(
 
     const result = validateCompiledLinkTarget(link.target, registry, {
       outputFile: options.outputFile,
-      knownOutputBasenames: options.knownOutputBasenames,
       knownSlugs: options.knownSlugs,
     });
     if (result.valid) continue;

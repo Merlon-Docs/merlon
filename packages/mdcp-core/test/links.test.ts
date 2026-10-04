@@ -173,6 +173,255 @@ describe('validateCompiledLinkTarget', () => {
       expect(r.valid).toBe(true);
     });
   });
+
+  describe('compile outputs matched by resolved path, not file name', () => {
+    // An output named README.md at the repo root must not vouch for every other
+    // README.md: the target's file and fragment are checked on their own.
+    function options(work: string) {
+      const outputFile = join(work, 'docs', '_build', 'a.md');
+      return {
+        outputFile,
+        knownOutputBasenames: new Set(['a.md', 'README.md']),
+        knownOutputPaths: new Set([outputFile, join(work, 'README.md')]),
+      };
+    }
+
+    it('reports a dead fragment in a non-output file that shares an output basename', () => {
+      withTmpDir('mdcp-output-basename-', (work) => {
+        mkdirSync(join(work, 'pkg'), { recursive: true });
+        writeFileSync(join(work, 'pkg', 'README.md'), '# Pkg\n\n## Usage\n');
+        const registry = buildSlugRegistry('# A\n');
+
+        const dead = validateCompiledLinkTarget(
+          '../../pkg/README.md#nope',
+          registry,
+          options(work),
+        );
+        expect(dead).toMatchObject({
+          valid: false,
+          reason: 'dead anchor',
+          brokenTarget: '../../pkg/README.md#nope',
+        });
+        expect(
+          validateCompiledLinkTarget('../../pkg/README.md#usage', registry, options(work)).valid,
+        ).toBe(true);
+      });
+    });
+
+    it('reports a missing file that shares an output basename', () => {
+      withTmpDir('mdcp-output-basename-missing-', (work) => {
+        const r = validateCompiledLinkTarget(
+          '../../nothere/README.md',
+          buildSlugRegistry('# A\n'),
+          options(work),
+        );
+        expect(r).toMatchObject({ valid: false, reason: 'missing publish path' });
+      });
+    });
+
+    it('checks the fragment of an output not yet on disk against its cached registry', () => {
+      withTmpDir('mdcp-output-unwritten-', (work) => {
+        const slugRegistryCache = new Map([
+          [join(work, 'README.md'), buildSlugRegistry('# Readme\n\n## Start\n')],
+        ]);
+        const opts = { ...options(work), slugRegistryCache };
+        const registry = buildSlugRegistry('# A\n');
+
+        expect(validateCompiledLinkTarget('../../README.md', registry, opts).valid).toBe(true);
+        expect(validateCompiledLinkTarget('../../README.md#start', registry, opts).valid).toBe(
+          true,
+        );
+        expect(validateCompiledLinkTarget('../../README.md#nope', registry, opts)).toMatchObject({
+          valid: false,
+          reason: 'dead anchor',
+        });
+      });
+    });
+
+    it('does not match a publish output by file name in publish-only output', () => {
+      withTmpDir('mdcp-publish-basename-', (work) => {
+        const rootReadme = join(work, 'README.md');
+        const developers = join(work, 'DEVELOPERS.md');
+        writeFileSync(rootReadme, '# Readme\n\n## Usage\n');
+        writeFileSync(developers, '# Developers\n');
+
+        const r = validateCompiledLinkTarget(
+          'pkg/README.md#usage',
+          buildSlugRegistry('# Developers\n'),
+          {
+            outputFile: developers,
+            publishOnly: true,
+            allowedPublishPaths: new Set([rootReadme, developers]),
+            disallowedShardPaths: new Set(),
+          },
+        );
+        expect(r).toMatchObject({ valid: false, reason: 'missing publish path' });
+      });
+    });
+
+    it('checks the fragment of a publish output not yet on disk against its cached registry', () => {
+      withTmpDir('mdcp-publish-unwritten-', (work) => {
+        const rootReadme = join(work, 'README.md');
+        const developers = join(work, 'DEVELOPERS.md');
+        const opts = {
+          outputFile: developers,
+          publishOnly: true,
+          allowedPublishPaths: new Set([rootReadme, developers]),
+          disallowedShardPaths: new Set<string>(),
+          slugRegistryCache: new Map([[rootReadme, buildSlugRegistry('# Readme\n\n## Start\n')]]),
+        };
+        const registry = buildSlugRegistry('# Developers\n');
+
+        expect(validateCompiledLinkTarget('README.md#start', registry, opts).valid).toBe(true);
+        expect(validateCompiledLinkTarget('README.md#nope', registry, opts)).toMatchObject({
+          valid: false,
+          reason: 'dead anchor',
+        });
+      });
+    });
+
+    it('checks a publish-only link to an unwritten per-guide output against its cached registry', () => {
+      withTmpDir('mdcp-publish-to-guide-', (work) => {
+        // Cross-guide rewrite emits this link from a publish-only README to a
+        // guide without `compile.outputFile`. Nothing is written yet.
+        const readme = join(work, 'README.md');
+        const guideOutput = join(work, 'docs', '_build', 'a.md');
+        const opts = {
+          outputFile: readme,
+          publishOnly: true,
+          knownOutputPaths: new Set([readme, guideOutput]),
+          allowedPublishPaths: new Set([readme]),
+          disallowedShardPaths: new Set<string>(),
+          slugRegistryCache: new Map([
+            [readme, buildSlugRegistry('# Readme\n')],
+            [guideOutput, buildSlugRegistry('# Guide A\n\n## Setup\n')],
+          ]),
+        };
+        const registry = buildSlugRegistry('# Readme\n');
+
+        expect(validateCompiledLinkTarget('docs/_build/a.md', registry, opts).valid).toBe(true);
+        expect(validateCompiledLinkTarget('docs/_build/a.md#setup', registry, opts).valid).toBe(
+          true,
+        );
+        expect(validateCompiledLinkTarget('docs/_build/a.md#nope', registry, opts)).toMatchObject({
+          valid: false,
+          reason: 'dead anchor',
+          brokenTarget: 'docs/_build/a.md#nope',
+        });
+      });
+    });
+
+    it('accepts any fragment of an output with no cached registry and no file', () => {
+      withTmpDir('mdcp-output-no-registry-', (work) => {
+        // A library caller may pass output paths without a registry cache.
+        // With no compiled text and no file there is nothing to check against.
+        const outputFile = join(work, 'docs', '_build', 'a.md');
+        const r = validateCompiledLinkTarget('b.md#anything', buildSlugRegistry('# A\n'), {
+          outputFile,
+          knownOutputPaths: new Set([outputFile, join(work, 'docs', '_build', 'b.md')]),
+        });
+        expect(r.valid).toBe(true);
+      });
+    });
+
+    it('normalizes an absolute target before matching it to an output', () => {
+      withTmpDir('mdcp-output-absolute-', (work) => {
+        const outputFile = join(work, 'docs', '_build', 'a.md');
+        const readme = join(work, 'README.md');
+        const opts = {
+          outputFile,
+          knownOutputPaths: new Set([outputFile, readme]),
+          slugRegistryCache: new Map([[readme, buildSlugRegistry('# Readme\n\n## Start\n')]]),
+        };
+        const registry = buildSlugRegistry('# A\n');
+        const target = `${work}/docs/_build/../../README.md`;
+
+        expect(validateCompiledLinkTarget(`${target}#start`, registry, opts).valid).toBe(true);
+        expect(validateCompiledLinkTarget(`${target}#nope`, registry, opts)).toMatchObject({
+          valid: false,
+          reason: 'dead anchor',
+        });
+      });
+    });
+
+    it('normalizes output paths before matching a link to them', () => {
+      withTmpDir('mdcp-output-unnormalized-', (work) => {
+        const outputFile = join(work, 'docs', '_build', 'a.md');
+        const readme = join(work, 'README.md');
+        const opts = {
+          outputFile,
+          knownOutputPaths: new Set([outputFile, `${work}/docs/_build/../../README.md`]),
+          slugRegistryCache: new Map([[readme, buildSlugRegistry('# Readme\n\n## Start\n')]]),
+        };
+        const registry = buildSlugRegistry('# A\n');
+
+        expect(validateCompiledLinkTarget('../../README.md#start', registry, opts).valid).toBe(
+          true,
+        );
+        expect(validateCompiledLinkTarget('../../README.md#nope', registry, opts)).toMatchObject({
+          valid: false,
+          reason: 'dead anchor',
+        });
+      });
+    });
+
+    it('checks a package README fragment against that README in publish-only output', () => {
+      withTmpDir('mdcp-publish-package-readme-', (work) => {
+        // The root README publish output has no Usage heading. The package
+        // README beside it does, so only its headings decide the fragment.
+        const rootReadme = join(work, 'README.md');
+        const developers = join(work, 'DEVELOPERS.md');
+        mkdirSync(join(work, 'pkg'), { recursive: true });
+        writeFileSync(rootReadme, '# Readme\n');
+        writeFileSync(developers, '# Developers\n');
+        writeFileSync(join(work, 'pkg', 'README.md'), '# Pkg\n\n## Usage\n');
+        const opts = {
+          outputFile: developers,
+          publishOnly: true,
+          knownOutputPaths: new Set([rootReadme, developers]),
+          allowedPublishPaths: new Set([rootReadme, developers]),
+          disallowedShardPaths: new Set<string>(),
+        };
+        const registry = buildSlugRegistry('# Developers\n');
+
+        expect(validateCompiledLinkTarget('pkg/README.md#usage', registry, opts).valid).toBe(true);
+        expect(validateCompiledLinkTarget('pkg/README.md#nope', registry, opts)).toMatchObject({
+          valid: false,
+          reason: 'dead anchor',
+          brokenTarget: 'pkg/README.md#nope',
+        });
+      });
+    });
+
+    it.each([false, true])(
+      'reports an unwritten output left on disk by an earlier run (publishOnly: %s)',
+      (publishOnly) => {
+        withTmpDir('mdcp-output-unwritten-stale-', (work) => {
+          // The file has the heading, but this run never writes it, so it is stale.
+          const readme = join(work, 'README.md');
+          const monolith = join(work, 'docs', '_build', 'guides.md');
+          mkdirSync(dirname(monolith), { recursive: true });
+          writeFileSync(monolith, '# Old monolith\n\n## Start\n');
+          const opts = {
+            outputFile: readme,
+            publishOnly,
+            knownOutputPaths: new Set([readme]),
+            unwrittenOutputPaths: new Set([`${work}/docs/_build/../_build/guides.md`]),
+            disallowedShardPaths: new Set<string>(),
+          };
+          const registry = buildSlugRegistry('# Readme\n');
+
+          for (const target of ['docs/_build/guides.md', 'docs/_build/guides.md#start']) {
+            expect(validateCompiledLinkTarget(target, registry, opts)).toMatchObject({
+              valid: false,
+              reason: 'missing publish path',
+              brokenTarget: target,
+            });
+          }
+        });
+      },
+    );
+  });
 });
 
 describe('lintShardLinks', () => {
@@ -280,6 +529,232 @@ describe('lintLinks', () => {
         results,
       });
       expect(issues.length).toBeGreaterThan(0);
+    });
+  });
+
+  it('checks a .md link that shares a file name with another guide output', () => {
+    withTmpDir('mdcp-lint-output-paths-', (work) => {
+      const docsRoot = join(work, 'docs');
+      mkdirSync(join(docsRoot, 'a'), { recursive: true });
+      mkdirSync(join(docsRoot, 'r'), { recursive: true });
+      mkdirSync(join(work, 'pkg'), { recursive: true });
+      writeFileSync(join(work, 'pkg', 'README.md'), '# Pkg\n\n## Usage\n');
+      writeFileSync(join(docsRoot, 'a', 'index.md'), '# Guide A\n\n- [Intro](./intro.md)\n');
+      writeFileSync(
+        join(docsRoot, 'a', 'intro.md'),
+        [
+          '# Intro',
+          '',
+          '- [Usage](../../pkg/README.md#usage)',
+          '- [Stale](../../pkg/README.md#nope)',
+          '- [Gone](../../nothere/README.md)',
+          '- [Start](../../README.md#start)',
+          '- [Missing heading](../../README.md#nope)',
+          '',
+        ].join('\n'),
+      );
+      writeFileSync(join(docsRoot, 'r', 'index.md'), '# Readme guide\n\n- [Start](./start.md)\n');
+      writeFileSync(join(docsRoot, 'r', 'start.md'), '# Start\n\nHello.\n');
+
+      const configInput = {
+        compileOrder: ['a', 'r'],
+        guides: [{ name: 'r', compile: { outputFile: '../../README.md' } }],
+      };
+      const compileOptions = {
+        guidesRoot: docsRoot,
+        compileOrder: configInput.compileOrder,
+        docsRoot,
+        config: configInput,
+        guides: configInput.guides,
+      };
+      const results = compileGuideResults(compileOptions);
+
+      // Nothing is written: the root README output exists only in memory.
+      const issues = lintLinks({
+        config: MdcpConfigSchema.parse(configInput),
+        docsRoot,
+        results,
+        compileOptions,
+      });
+      const found = issues
+        .filter((i) => i.guideName === 'a')
+        .map((i) => `${i.kind} ${i.originalTarget}`)
+        .sort();
+      expect(found).toEqual([
+        'dead anchor ../../README.md#nope',
+        'dead anchor ../../pkg/README.md#nope',
+        'missing publish path ../../nothere/README.md',
+      ]);
+    });
+  });
+
+  it('checks a link to the unwritten monolith against its compiled text', () => {
+    withTmpDir('mdcp-lint-monolith-path-', (work) => {
+      const docsRoot = join(work, 'docs');
+      mkdirSync(join(docsRoot, 'a'), { recursive: true });
+      mkdirSync(join(docsRoot, 'b'), { recursive: true });
+      writeFileSync(join(docsRoot, 'a', 'index.md'), '# Guide A\n\n- [Intro](./intro.md)\n');
+      writeFileSync(
+        join(docsRoot, 'a', 'intro.md'),
+        '# Intro\n\nSee [good](../_build/guides.md#b-setup) and [bad](../_build/guides.md#nope).\n',
+      );
+      writeFileSync(join(docsRoot, 'b', 'index.md'), '# Guide B\n\n- [Setup](./setup.md)\n');
+      writeFileSync(join(docsRoot, 'b', 'setup.md'), '# B setup\n\nText.\n');
+
+      const configInput = { outputFile: 'guides.md', compileOrder: ['a', 'b'] };
+      const compileOptions = {
+        guidesRoot: docsRoot,
+        compileOrder: configInput.compileOrder,
+        docsRoot,
+        config: configInput,
+      };
+      const results = compileGuideResults(compileOptions);
+
+      // Nothing is written: guides.md exists only as the stitched text.
+      const issues = lintLinks({
+        config: MdcpConfigSchema.parse(configInput),
+        docsRoot,
+        results,
+        compileOptions,
+      });
+      expect(issues.map((i) => `${i.kind} ${i.originalTarget}`)).toEqual([
+        'dead anchor ../_build/guides.md#nope',
+      ]);
+    });
+  });
+
+  it('checks a publish-only link to an unwritten guide output against its compiled text', () => {
+    withTmpDir('mdcp-lint-publish-to-guide-', (work) => {
+      const docsRoot = join(work, 'docs');
+      mkdirSync(join(docsRoot, 'a'), { recursive: true });
+      mkdirSync(join(docsRoot, 'r'), { recursive: true });
+      writeFileSync(join(docsRoot, 'a', 'index.md'), '# Guide A\n\n- [Intro](./intro.md)\n');
+      writeFileSync(join(docsRoot, 'a', 'intro.md'), '# Intro\n\n## Setup\n\nText.\n');
+      writeFileSync(join(docsRoot, 'r', 'index.md'), '# Readme guide\n\n- [Start](./start.md)\n');
+      writeFileSync(
+        join(docsRoot, 'r', 'start.md'),
+        '# Start\n\nSee [setup](../a/intro.md#setup) and [stale](../a/intro.md#nope).\n',
+      );
+
+      const configInput = {
+        compileOrder: ['a', 'r'],
+        guides: [{ name: 'r', compile: { outputFile: '../../README.md' } }],
+      };
+      const compileOptions = {
+        guidesRoot: docsRoot,
+        compileOrder: configInput.compileOrder,
+        docsRoot,
+        config: configInput,
+        guides: configInput.guides,
+      };
+      const results = compileGuideResults(compileOptions);
+      expect(results.find((r) => r.name === 'r')?.text).toContain('(./docs/_build/a.md#setup)');
+
+      // Nothing is written: the README links to a.md, which exists only in memory.
+      const issues = lintLinks({
+        config: MdcpConfigSchema.parse(configInput),
+        docsRoot,
+        results,
+        compileOptions,
+      });
+      expect(issues.map((i) => `${i.kind} ${i.guideName} ${i.originalTarget}`)).toEqual([
+        'dead anchor r ./docs/_build/a.md#nope',
+      ]);
+    });
+  });
+
+  it.each([
+    ['absent', false],
+    ['left by an earlier run', true],
+  ])('reports links to a monolith that no guide is stitched into (file %s)', (_label, stale) => {
+    withTmpDir('mdcp-lint-monolith-unwritten-', (work) => {
+      // Every guide is publish-only, so the configured monolith is never written.
+      // An old copy on disk must not vouch for links to it.
+      const docsRoot = join(work, 'docs');
+      mkdirSync(join(docsRoot, 'r'), { recursive: true });
+      mkdirSync(join(docsRoot, 'd'), { recursive: true });
+      if (stale) {
+        mkdirSync(join(docsRoot, '_build'), { recursive: true });
+        writeFileSync(join(docsRoot, '_build', 'guides.md'), '# Old monolith\n\n## Start\n');
+      }
+      writeFileSync(join(docsRoot, 'r', 'index.md'), '# Readme guide\n\n- [Start](./start.md)\n');
+      writeFileSync(
+        join(docsRoot, 'r', 'start.md'),
+        '# Start\n\nSee [mono](docs/_build/guides.md#start) and [mono2](docs/_build/guides.md).\n',
+      );
+      writeFileSync(join(docsRoot, 'd', 'index.md'), '# Dev guide\n\n- [Setup](./setup.md)\n');
+      writeFileSync(join(docsRoot, 'd', 'setup.md'), '# Setup\n\nText.\n');
+
+      const configInput = {
+        outputFile: 'guides.md',
+        compileOrder: ['r', 'd'],
+        guides: [
+          { name: 'r', compile: { outputFile: '../../README.md' } },
+          { name: 'd', compile: { outputFile: '../../DEVELOPERS.md' } },
+        ],
+      };
+      const compileOptions = {
+        guidesRoot: docsRoot,
+        compileOrder: configInput.compileOrder,
+        docsRoot,
+        config: configInput,
+        guides: configInput.guides,
+      };
+      const results = compileGuideResults(compileOptions);
+
+      const issues = lintLinks({
+        config: MdcpConfigSchema.parse(configInput),
+        docsRoot,
+        results,
+        compileOptions,
+      });
+      expect(issues.map((i) => `${i.kind} ${i.originalTarget}`).sort()).toEqual([
+        'missing publish path docs/_build/guides.md',
+        'missing publish path docs/_build/guides.md#start',
+      ]);
+    });
+  });
+
+  it('accepts a link to the monolith path when a publish-only guide writes that file', () => {
+    withTmpDir('mdcp-lint-monolith-guide-output-', (work) => {
+      // No guide is stitched, but guide d writes the configured monolith path.
+      const docsRoot = join(work, 'docs');
+      mkdirSync(join(docsRoot, 'r'), { recursive: true });
+      mkdirSync(join(docsRoot, 'd'), { recursive: true });
+      writeFileSync(join(docsRoot, 'r', 'index.md'), '# Readme guide\n\n- [Start](./start.md)\n');
+      writeFileSync(
+        join(docsRoot, 'r', 'start.md'),
+        '# Start\n\nSee [setup](docs/_build/guides.md#setup) and [bad](docs/_build/guides.md#nope).\n',
+      );
+      writeFileSync(join(docsRoot, 'd', 'index.md'), '# Dev guide\n\n- [Setup](./setup.md)\n');
+      writeFileSync(join(docsRoot, 'd', 'setup.md'), '# Setup\n\nText.\n');
+
+      const configInput = {
+        outputFile: 'guides.md',
+        compileOrder: ['r', 'd'],
+        guides: [
+          { name: 'r', compile: { outputFile: '../../README.md' } },
+          { name: 'd', compile: { outputFile: 'guides.md' } },
+        ],
+      };
+      const compileOptions = {
+        guidesRoot: docsRoot,
+        compileOrder: configInput.compileOrder,
+        docsRoot,
+        config: configInput,
+        guides: configInput.guides,
+      };
+      const results = compileGuideResults(compileOptions);
+
+      const issues = lintLinks({
+        config: MdcpConfigSchema.parse(configInput),
+        docsRoot,
+        results,
+        compileOptions,
+      });
+      expect(issues.map((i) => `${i.kind} ${i.originalTarget}`)).toEqual([
+        'dead anchor docs/_build/guides.md#nope',
+      ]);
     });
   });
 });
