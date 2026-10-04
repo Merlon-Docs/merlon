@@ -137,21 +137,6 @@ Peer linters are **not bundled**. CI uses `--require-lint` / `--require-vale` to
 
 This repository uses MDCP on its own docs under `docs/`. The features guide compiles to `docs/_build/features.md` and is the only guide in the monolith `docs/_build/guides.md`. The other guides compile to publish outputs such as `DEVELOPERS.md` and the package READMEs. See `docs/mdcp.config.json` for a multi-output layout.
 
-## Code map (where to read implementation)
-
-| Concern                         | Core path                   | CLI command                     |
-| ------------------------------- | --------------------------- | ------------------------------- |
-| Config load / path resolution   | `src/config/`               | all commands                    |
-| Section list + assemble + write | `src/compile/assemble.ts`   | `compile`                       |
-| Per-shard hooks                 | `src/compile/hooks/`        | (config-driven)                 |
-| Shard split orchestration       | `src/shard/orchestrator.ts` | `shard`                         |
-| Slugs + refs registry           | `src/refs/`                 | `refs`                          |
-| Orphan validation               | `src/validate/orphans.ts`   | `check`                         |
-| Sprawl review                   | `src/validate/review.ts`    | `review`                        |
-| Peer binary resolution          | `src/peers/resolve.ts`      | `lint`, `prose`, `links`, `fix` |
-
-Start with `assemble.ts` and `cli.ts` if you are tracing a compile from config to disk.
-
 ## Where to go next
 
 - **Commands and priority tiers**: the [Feature catalog](./feature-catalog.md) and [Personas and priority tiers](./personas-and-priority-tiers.md)

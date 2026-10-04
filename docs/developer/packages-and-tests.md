@@ -4,16 +4,22 @@
 
 Library source: [`packages/mdcp-core/src/`](../../packages/mdcp-core/src/).
 
-| Area               | Path                          |
-| ------------------ | ----------------------------- |
-| Config schema      | `src/config/`                 |
-| Compile / assemble | `src/compile/`                |
-| Markdown helpers   | `src/markdown/`               |
-| Locale packs       | `src/locale/`                 |
-| Refs / slugs       | `src/refs/`                   |
-| Validation         | `src/validate/`, `src/links/` |
-| Shard (split)      | `src/shard/`                  |
-| Peer linters       | `src/peers/`                  |
+| Area                                       | Path                          | CLI command                           |
+| ------------------------------------------ | ----------------------------- | ------------------------------------- |
+| Config schema, loading and path resolution | `src/config/`                 | all except `fix`                      |
+| Compile                                    | `src/compile/`                | `compile`                             |
+| Section list, assembly and write           | `src/compile/assemble.ts`     | `compile`                             |
+| Per-shard compile hooks                    | `src/compile/hooks/`          | config-driven                         |
+| Markdown helpers                           | `src/markdown/`               | shared                                |
+| Locale packs                               | `src/locale/`                 | shared                                |
+| Refs and slugs                             | `src/refs/`                   | `refs-gen`, `refs-check`, `refs-list` |
+| Validation                                 | `src/validate/`, `src/links/` | `check`                               |
+| Orphan validation                          | `src/validate/orphans.ts`     | `check`                               |
+| Sprawl review                              | `src/validate/review.ts`      | `review`                              |
+| Shard split orchestration                  | `src/shard/orchestrator.ts`   | `shard`                               |
+| Peer linter binary resolution              | `src/peers/resolve.ts`        | `lint`, `prose`, `links`, `fix`       |
+
+`mdcp check` runs every area in the table except shard split and sprawl review. The `lint`, `links`, `refs-gen` and `refs-check` commands also compile before they run, so they use the compile rows too. Start with `assemble.ts` and `cli.ts` if you are tracing a compile from config to disk. The `compile` command in `cli.ts` calls the CLI's `compile-workspace.ts`, which calls `assemble.ts`.
 
 Shared heading/link helpers live under `src/markdown/` and `src/refs/` (`parseHeading` with ATX kind today, plain-text cleanup, GitHub-style **slugify**). They stay **language-agnostic**. Heading recognition is an ATX subset of GFM — see [GFM scope](../features/design-constraints/gfm-scope.md#headings). Compile-time wording lives under `src/locale/` (one BCP 47 JSON file per locale). Peer Vale owns prose cues and Pandoc ID authoring opinion — see [Locale and language boundary](../features/design-constraints/locale-and-language.md).
 
