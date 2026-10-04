@@ -22,5 +22,3 @@
 
 - [Why mdcp for coding agents](./why-mdcp-for-agents.md)
 - [Agent integration](./agent-integration.md)
-- [LLM collaboration](./llm-collaboration.md)
-- [Agent Skill (related)](./agent-skill.md)

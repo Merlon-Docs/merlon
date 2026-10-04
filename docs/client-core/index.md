@@ -5,7 +5,6 @@
 
 ## Get started
 
-- [Overview](./overview.md)
 - [Quick example](./quick-example.md)
 - [Related packages](./related-packages.md)
 

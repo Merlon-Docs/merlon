@@ -12,13 +12,13 @@ Install this package when you need the `mdcp` binary: **compile** shards into gu
 
 ### Not the Agent Skill
 
-This npm package is **not** the MDCP Agent Skill.
+This npm package is **not** the MDCP Agent Skill. Each piece of MDCP has its own job:
 
-- **This CLI** — shell/`npx` tool (`mdcp compile`, `mdcp check`, …) via `@bwilliamson/mdcp-cli` on npm
-- **Core** — programmatic library used by the CLI: [`@bwilliamson/mdcp-core`](https://www.npmjs.com/package/@bwilliamson/mdcp-core)
-- **Agent Skill** — host instructions (`SKILL.md` and its workflows): [root README](../../README.md) / `npx skills add … --skill mdcp`
+- **This CLI:** the shell command `mdcp` (`mdcp compile`, `mdcp check`, …) from `@bwilliamson/mdcp-cli` on npm
+- **Core:** the programmatic library the CLI is built on, [`@bwilliamson/mdcp-core`](https://www.npmjs.com/package/@bwilliamson/mdcp-core)
+- **Agent Skill:** the host instructions (`SKILL.md` and its workflows) an agent loads for `/mdcp`, which decide when the agent edits docs and which workflow it follows
 
-Slash `/mdcp` in an agent host loads the **skill**. The shell command `mdcp` runs **this CLI**. They are separate installs and separate docs.
+The CLI and the skill are separate installs with separate docs. [Get started](../../README.md#get-started) in the project README shows how to install the skill and start its bootstrap session, and the [skill catalog](../../docs/skills.md) lists its workflows. The skill doesn't include the `mdcp` binary, so a repository that runs `mdcp compile` or `mdcp check` in scripts or CI installs this package as well. [Agent integration](#agent-integration) shows the npm scripts.
 
 <!-- mdcp-shard: end ../../docs/client-cli/about.md -->
 
@@ -30,7 +30,7 @@ Slash `/mdcp` in an agent host loads the **skill**. The shell command `mdcp` run
 
 This package installs the **`mdcp` CLI** (MarkDown Context Protocol) for use in your repo or CI. It works in **any** codebase — language, framework, and repo layout do not matter; mdcp only manages your documentation shards and compile pipeline.
 
-This is **not** the Agent Skill. For skill install (`npx skills add`, `/mdcp help me get started`), see [root README](../../README.md) or [Agent Skill (related)](#agent-skill-related).
+To install the Agent Skill instead, see [Not the Agent Skill](#not-the-agent-skill).
 
 ### Requirements
 
@@ -726,7 +726,7 @@ Which **CLI commands** address common docs failures when agents edit the repo:
 
 Typical loop: edit shards → `mdcp compile` → `mdcp check` → optional `mdcp refs-list` → read one shard when the next turn needs doc context.
 
-Install and flags: [Install and quick start](#install-and-quick-start). Agent **behavior** (when to edit docs, which workflow to follow) is the [Agent Skill](../../README.md), not this package.
+[Install and quick start](#install-and-quick-start) covers install and flags, and the [Agent Skill](#not-the-agent-skill) contains the docs workflows an agent follows.
 
 <!-- mdcp-shard: end ../../docs/client-cli/why-mdcp-for-agents.md -->
 
@@ -734,7 +734,7 @@ Install and flags: [Install and quick start](#install-and-quick-start). Agent **
 
 ## Agent integration
 
-Wire **`@bwilliamson/mdcp-cli`** into CI or coding agents with npm scripts. This is CLI packaging — not the Agent Skill ([root README](../../README.md)).
+Wire **`@bwilliamson/mdcp-cli`** into CI or coding agents with npm scripts.
 
 ```json
 {
@@ -770,33 +770,6 @@ mdcp refs-list
 MIT
 
 <!-- mdcp-shard: end ../../docs/client-cli/agent-integration.md -->
-
-<!-- mdcp-shard: start ../../docs/client-cli/llm-collaboration.md -->
-
-## LLM collaboration
-
-Agent workflow (task workflows, intake, docs-first turns) lives in the **Agent Skill**, not this CLI package.
-
-- Skill landing: [root README](../../README.md)
-- Skill and workflow catalog: [`docs/skills.md`](../../docs/skills.md)
-
-This CLI package covers shell commands only. Wire scripts with [Agent integration](#agent-integration); install with [Install and quick start](#install-and-quick-start).
-
-<!-- mdcp-shard: end ../../docs/client-cli/llm-collaboration.md -->
-
-<!-- mdcp-shard: start ../../docs/client-cli/agent-skill.md -->
-
-## Agent Skill (related)
-
-The **MDCP Agent Skill** is a separate install from `@bwilliamson/mdcp-cli`.
-
-- Landing and bootstrap: [root README](../../README.md)
-- Install: `npx skills add betsalel-williamson/mdcp --skill mdcp`
-- Then: `/mdcp help me get started`
-
-The skill does **not** ship the `mdcp` binary. Keep this package (or [Agent integration](#agent-integration) scripts) for `mdcp compile` / `mdcp check`.
-
-<!-- mdcp-shard: end ../../docs/client-cli/agent-skill.md -->
 
 <!-- mdcp-shard: start ../../docs/glossary/guide.md -->
 

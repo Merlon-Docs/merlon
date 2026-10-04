@@ -6,29 +6,19 @@
 
 ## About @bwilliamson/mdcp-core
 
-The **programmatic core library** for the [MarkDown Context Protocol (MDCP)](https://github.com/betsalel-williamson/mdcp).
+[![npm version](https://img.shields.io/npm/v/@bwilliamson/mdcp-core.svg)](https://www.npmjs.com/package/@bwilliamson/mdcp-core)
+
+The **programmatic core library** for the [MarkDown Context Protocol (MDCP)](https://github.com/betsalel-williamson/mdcp). It compiles sharded Markdown guides and validates their structure. From the compiled output it also builds the registry of section links (`refs.json`).
 
 Use this package when you need compile, validation, and refs APIs in scripts, CI, editors, or other tools **without** shelling out to the CLI.
 
 ### Not the CLI or the Agent Skill
 
-- **This library** — TypeScript/Node API via `@bwilliamson/mdcp-core` on npm
-- **CLI** — command-line wrapper around this library: [`@bwilliamson/mdcp-cli`](https://www.npmjs.com/package/@bwilliamson/mdcp-cli)
-- **Agent Skill** — host instructions for docs-as-code agents: [root README](../../README.md) / `npx skills add … --skill mdcp`
+- **This library:** the TypeScript/Node API from `@bwilliamson/mdcp-core` on npm
+- **CLI:** the command-line wrapper around this library, [`@bwilliamson/mdcp-cli`](https://www.npmjs.com/package/@bwilliamson/mdcp-cli)
+- **Agent Skill:** the host instructions an agent loads for `/mdcp`, installed as [Get started](../../README.md#get-started) in the project README describes
 
-`@bwilliamson/mdcp-cli` depends on this package. Install `@bwilliamson/mdcp-core` directly only when you need the programmatic API. Agent Skill install does **not** replace this library.
-
-<!-- mdcp-shard: end ../../docs/client-core/about.md -->
-
-<!-- mdcp-shard: start ../../docs/client-core/overview.md -->
-
-## Overview
-
-[![npm version](https://img.shields.io/npm/v/@bwilliamson/mdcp-core.svg)](https://www.npmjs.com/package/@bwilliamson/mdcp-core)
-
-Core library for **mdcp** (MarkDown Context Protocol). It compiles sharded Markdown guides, builds section link registries, and validates structure.
-
-Use this package when you need mdcp behavior in scripts, CI pipelines, editors, or other tools without shelling out to the CLI. For the Agent Skill (host instructions), see [root README](../../README.md) — that is a separate install.
+`@bwilliamson/mdcp-cli` depends on this package, so install `@bwilliamson/mdcp-core` directly only when you need the programmatic API. The Agent Skill is a separate install: this library doesn't depend on it, and installing the skill does **not** install this library.
 
 ### Requirements
 
@@ -40,13 +30,11 @@ Use this package when you need mdcp behavior in scripts, CI pipelines, editors, 
 npm install @bwilliamson/mdcp-core
 ```
 
-The CLI (`@bwilliamson/mdcp-cli`) depends on this package. Install `@bwilliamson/mdcp-core` directly only when you need the programmatic API.
-
 ### Stability
 
-**Pre-1.0:** Until this package reaches **1.0.0**, there is **no API stability guarantee**. Exported functions, types, `mdcp.config.json` schema, and compile output may change in any `0.x.y` release. Read the package changelog before upgrading.
+**Pre-1.0:** there is **no API stability guarantee** before this package reaches **1.0.0**. Exported functions, types, `mdcp.config.json` schema, and compile output may change in any `0.x.y` release. Read the package changelog before upgrading.
 
-<!-- mdcp-shard: end ../../docs/client-core/overview.md -->
+<!-- mdcp-shard: end ../../docs/client-core/about.md -->
 
 <!-- mdcp-shard: start ../../docs/client-core/quick-example.md -->
 
@@ -91,8 +79,6 @@ Use `writeCompiledGuides` to write each compiled guide to disk. It also writes t
 | -------------------------------------------------------------------------------------- | ----------------------------- |
 | [`@bwilliamson/mdcp-cli`](https://www.npmjs.com/package/@bwilliamson/mdcp-cli)         | `mdcp` command-line interface |
 | [`@bwilliamson/mdcp-presets`](https://www.npmjs.com/package/@bwilliamson/mdcp-presets) | Starter markdownlint configs  |
-
-The [Agent Skill](../../README.md) is a separate install (`npx skills add`) — not an npm dependency of this library.
 
 ### Further reading
 

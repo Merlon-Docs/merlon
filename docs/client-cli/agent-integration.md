@@ -1,6 +1,6 @@
 # Agent integration
 
-Wire **`@bwilliamson/mdcp-cli`** into CI or coding agents with npm scripts. This is CLI packaging — not the Agent Skill ([root README](../../README.md)).
+Wire **`@bwilliamson/mdcp-cli`** into CI or coding agents with npm scripts.
 
 ```json
 {
