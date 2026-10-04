@@ -149,7 +149,7 @@ CI runs the full gate: `pnpm run check`.
 
 How this repository behaves inside Cursor cloud agents: how to stand up a new cloud environment, and the platform limitations to plan around. For the standard local toolchain and daily commands, read [Local setup](#local-setup) — this section only adds cloud-specific setup and constraints.
 
-Durable, machine-facing notes for future agents also live in the repository `AGENTS.md` under "Cursor Cloud specific instructions". Keep the two in sync: this guide is the human-facing explanation; `AGENTS.md` is the short agent checklist.
+The repository `AGENTS.md` (with `CLAUDE.md` as a symlink to it) stays short and links here for everything specific to Cursor cloud agents.
 
 ### Setting up a new cloud environment
 

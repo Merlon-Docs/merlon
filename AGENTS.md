@@ -1,84 +1,51 @@
 # AGENTS.md
 
+Instructions for coding agents in this repository. `CLAUDE.md` is a symlink to this file, and every agent reads the same text.
+
+## Project
+
+This is the mdcp monorepo: a documentation-system Agent Skill plus a TypeScript toolchain in pnpm workspaces. The application is the `mdcp` CLI in `packages/mdcp-cli`, built on `packages/mdcp-core` and driven through `pnpm` scripts. There is no web app or long-running server.
+
 ## Shard discipline (critical)
 
-Documentation is sharded under `docs/`. Shards are the **source of truth**;
-compiled output is generated. **Never hand-edit compiled files** (`README.md`,
-`DEVELOPERS.md`, package READMEs). Edit the source shard under `docs/` and run
-`pnpm docs:compile:repo`. Files containing `<!-- mdcp-shard: start ... -->`
-markers are compiled — the shard path in the marker names the source file. CI
-fails on `git diff` if compiled files are stale.
+Documentation is sharded under `docs/`. Shards are the source of truth and compiled output is generated. **Never hand-edit compiled files.** Edit the source shard under `docs/` and run `pnpm docs:compile:repo`. A file with `<!-- mdcp-shard: start ... -->` markers is compiled output, and each marker gives the path of its source shard.
 
-## Cursor Cloud specific instructions
+| Shard directory                | Compiled output                   |
+| ------------------------------ | --------------------------------- |
+| `docs/repo-readme/`            | `README.md`                       |
+| `docs/developer/`              | `DEVELOPERS.md`                   |
+| `docs/client-cli/`             | `packages/mdcp-cli/README.md`     |
+| `docs/client-core/`            | `packages/mdcp-core/README.md`    |
+| `docs/features/`               | `docs/_build/features.md`         |
+| `docs/presentation-la-devops/` | `presentations/la-devops-2026.md` |
+| Every guide above, stitched    | `docs/_build/guides.md`           |
 
-This repo is the **mdcp monorepo** — a documentation-system Agent Skill plus a
-TypeScript toolchain (pnpm workspaces). There is **no web app or long-running
-server**; the "application" is the `mdcp` CLI (`packages/mdcp-cli`) built on
-`packages/mdcp-core`, driven through `pnpm` scripts. Standard contributor
-commands live in `DEVELOPERS.md` ("Daily commands") and root `package.json`
-scripts — use those rather than duplicating them here.
+Shards in `docs/glossary/` compile into the guides whose pages link to them. CI recompiles every guide and fails when `git diff` shows a stale compiled file.
 
-### Environment already provisioned (do not re-run in normal sessions)
+## Before you run anything
 
-- The startup update command lives in `.cursor/environment.json` (`install`):
-  it runs `git fetch --all --prune --tags` (non-fatal, refreshes remote-tracking
-  branches) then `pnpm install`. That committed file is the source of truth and
-  takes precedence over any dashboard-saved environment. Package manager is
-  pinned via `packageManager` in `package.json`.
-- Node deps: `pnpm install` runs automatically on VM startup (the update
-  script). Package manager is pinned via `packageManager` in `package.json`.
-- **Vale** (prose linter) is a **peer binary**, not an npm dependency. Version
-  **3.15.1** is installed at `/usr/local/bin/vale` and persists in the VM
-  snapshot. `pnpm run docs:check` / `pnpm run check` invoke Vale with
-  `--require-vale`, so it must stay on `PATH`. If it ever goes missing, reinstall
-  from the GitHub release (`vale-cli/vale`, `v3.15.1`, `Linux_64-bit`) — the
-  exact command is in `.github/workflows/ci.yml`.
+`dist/` is gitignored and install does not build it. Run `pnpm build` after a fresh checkout, and after editing `packages/*/src`, before any docs script or CLI command. The docs checks need Vale on `PATH`, with its styles synced once by `pnpm vale:sync`. [Local setup](docs/developer/local-setup.md) has the full toolchain.
 
-### Non-obvious gotchas
+## Commands
 
-- **Build before running the CLI or docs scripts.** The `docs:*` scripts and the
-  `mdcp` binary run `node packages/mdcp-cli/dist/cli.js`, so `dist/` must exist.
-  Run `pnpm build` after a fresh checkout or after editing `packages/*/src`
-  before `pnpm docs:check` / `pnpm docs:compile` / invoking the CLI. `dist/` is
-  gitignored and is **not** produced by the startup update script.
-- **Run `pnpm vale:sync` before the first `docs:check`** on a fresh clone (or
-  after `.vale.ini` changes). It downloads Vale style packages (network
-  required) into gitignored `styles/` dirs; synced styles persist in the
-  snapshot.
-- `pnpm docs:check` regenerates and diffs compiled outputs — see
-  **Shard discipline** above.
-- Node on this VM is v22 (satisfies `engines >=18`); CI uses Node 24. Do not
-  switch Node via nvm/`.nvmrc` unless a version-specific issue appears.
-- `gitleaks` is a **peer binary** (not an npm dep), installed at
-  `/usr/local/bin/gitleaks` (v8.30.1) and persisted in the VM snapshot; the
-  pre-commit hook runs `gitleaks protect --staged`. If it goes missing,
-  reinstall from the gitleaks GitHub release (`gitleaks_8.30.1_linux_x64.tar.gz`
-  → `/usr/local/bin`), same as Vale. CI runs its own scan via `gitleaks-action`.
+```bash
+pnpm install             # dependencies (packageManager is pinned in package.json)
+pnpm build               # build every package
+pnpm test                # unit tests
+pnpm typecheck
+pnpm lint
+pnpm format:check
+pnpm docs:compile:repo   # recompile every output in the table above
+pnpm docs:check          # compile and check the repo docs and the examples
+pnpm run check           # typecheck, lint, format:check, build, test, skill:validate, docs:check
+```
 
-### Cloud-agent limitations & workarounds
+## Developer guides
 
-Human-facing detail: **Cursor Cloud environment** in `DEVELOPERS.md`
-(compiled from `docs/developer/cursor-cloud-environment.md`). Key constraints
-for agents in this environment:
+- [Versioning and releases](docs/developer/versioning-and-releases.md) covers how work reaches `develop` and how releases reach `main`.
+- [Agent Skill development](docs/developer/agent-skill.md) covers skill source under `skills/`, and why `.agents/skills/` is never hand-edited.
+- [Cursor Cloud environment](docs/developer/cursor-cloud-environment.md) covers cloud agent setup and limits.
 
-- `gh` is **read-only** — it cannot create or modify issues or PRs. Use the
-  dedicated PR tooling for PRs and PR comments; a human creates GitHub issues
-  from agent-supplied text (add `Closes #N` afterward).
-- **No GitHub MCP**, and we do not add one in the cloud. MCP servers load at
-  session start, `.cursor/*` (except `environment.json`) is gitignored, and a
-  GitHub PAT in Secrets is not wired to `gh` or any tool — so it does not
-  enable issue creation. Do not rely on it.
-- The agent **cannot merge PRs** or push to protected `main` (a human merges).
-  It may merge one working branch into another locally to unblock CI (for
-  example, a dependency-fix branch into a feature branch).
-- CI runs `pnpm audit --audit-level=high` **before** build/test; a new advisory
-  on a pre-existing devDependency fails it and masks otherwise-green gates. Fix
-  by pinning patched versions via `pnpm-workspace.yaml` `overrides`.
-- Merge commits need a **conventional subject** (`chore: merge …`) or commitlint
-  rejects them.
+## Code of conduct
 
-### Full verification gate
-
-`pnpm run check` runs typecheck → lint → format:check → build → test →
-skill:lint → skill:validate → docs:check (mirrors CI). Vale must be on `PATH`
-for the docs portion.
+This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md).

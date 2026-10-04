@@ -4,9 +4,9 @@
 
 ## What it reports
 
-- **Uncaptured** — files under the scan root that no guide, `compile.scopeRoot`, or `standaloneGuides[]` entry covers (`uncaptured: <path>`).
-- **Missing standalone** — `standaloneGuides[]` entries that match no file on disk (`missing-standalone: <path>`).
-- **Summary** — when gaps exist, a one-line `coverage:` count.
+- **Uncaptured**: files under the scan root that no guide, `compile.scopeRoot`, or `standaloneGuides[]` entry covers (`uncaptured: <path>`).
+- **Missing standalone**: `standaloneGuides[]` entries that match no file on disk (`missing-standalone: <path>`). The scan does not follow symbolic links, so an entry whose path is a symlink is reported here. Register the file it points to instead.
+- **Summary**: when gaps exist, a one-line `coverage:` count.
 
 ```bash
 mdcp check --config docs/mdcp.config.json --docs-root docs
