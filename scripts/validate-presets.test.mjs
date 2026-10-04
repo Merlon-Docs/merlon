@@ -18,8 +18,10 @@ describe('validate-presets', () => {
     assert.match(result.stdout, /OK vale\/MDCP\/UnlinkedSeeChapter\.yml/);
     assert.match(result.stdout, /OK vale\/MDCP\/BareSectionRef\.yml/);
     assert.match(result.stdout, /OK vale\/MDCP\/UnlinkedSeeSection\.yml/);
+    assert.match(result.stdout, /OK vale\/MDCP\/DatedClaim\.yml/);
     assert.match(result.stdout, /OK vale\/package\/\.vale\.ini/);
     assert.match(result.stdout, /OK vale\/package\/styles\/MDCP\/BareSectionRef\.yml/);
     assert.match(result.stdout, /OK vale\/package\/styles\/MDCP\/UnlinkedSeeSection\.yml/);
+    assert.match(result.stdout, /OK vale\/package\/styles\/MDCP\/DatedClaim\.yml/);
   });
 });

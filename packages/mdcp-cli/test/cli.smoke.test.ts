@@ -512,4 +512,70 @@ describe('cli smoke', () => {
       rmSync(docs, { recursive: true, force: true });
     }
   });
+  it('applies the presets README path section to the absolute paths mdcp passes Vale', () => {
+    if (!valeInstalled()) return;
+
+    // The documented .vale.ini block that exempts research records from MDCP.DatedClaim.
+    const readme = readFileSync(join(REPO_ROOT, 'packages/mdcp-presets/README.md'), 'utf-8');
+    const section = [...readme.matchAll(/```ini\n([\s\S]*?)```/g)]
+      .map((m) => m[1])
+      .find((block) => block.includes('MDCP.DatedClaim = NO'));
+    expect(section).toBeDefined();
+    const valeIni = (block: string) =>
+      `StylesPath = ${join(REPO_ROOT, 'packages/mdcp-presets/vale')}\nMinAlertLevel = suggestion\n\n${block}`;
+
+    const docs = mkdtempSync(join(tmpdir(), 'mdcp-vale-path-section-'));
+    const run = (args: string[]) => {
+      const r = spawnSync(
+        'node',
+        [CLI, ...args, '--config', 'mdcp.config.json', '--docs-root', docs],
+        { encoding: 'utf-8', cwd: docs },
+      );
+      return { status: r.status, output: `${r.stdout}${r.stderr}` };
+    };
+    try {
+      const claims: Record<string, string> = {
+        guide: 'The flag stays on until 2026-09-01.',
+        research: 'As of 2026-07-27 the runner image is pinned.',
+      };
+      for (const [name, claim] of Object.entries(claims)) {
+        mkdirSync(join(docs, name));
+        writeFileSync(join(docs, name, 'index.md'), `# ${name}\n\n- [notes](notes.md)\n`);
+        writeFileSync(join(docs, name, 'notes.md'), `# ${name}\n\n## Notes\n\n${claim}\n`);
+      }
+      writeFileSync(
+        join(docs, 'mdcp.config.json'),
+        JSON.stringify({
+          outputDir: '.',
+          outputFile: 'guides.md',
+          compileOrder: ['guide', 'research'],
+          guides: [
+            { name: 'guide', path: 'guide' },
+            { name: 'research', path: 'research' },
+          ],
+          refs: { registryFile: 'refs.json' },
+        }),
+      );
+
+      // The block as documented: dated claims are warnings, and research/ is exempt.
+      writeFileSync(join(docs, '.vale.ini'), valeIni(section!));
+      const prose = run(['prose', '--require-vale']);
+      expect(prose.status).toBe(0);
+      expect(prose.output).toMatch(/guide\/notes\.md/);
+      expect(prose.output).not.toMatch(/research\/notes\.md/);
+
+      // At the rule's own error level, only the research claim is left, so the check
+      // passes only when the path section matches.
+      writeFileSync(
+        join(docs, '.vale.ini'),
+        valeIni(section!.replace(/^MDCP\.DatedClaim = warning\n/m, '')),
+      );
+      writeFileSync(join(docs, 'guide', 'notes.md'), '# guide\n\n## Notes\n\nThe flag is on.\n');
+      const check = run(['check', '--require-vale']);
+      expect(check.output).toMatch(/mdcp check passed/);
+      expect(check.status).toBe(0);
+    } finally {
+      rmSync(docs, { recursive: true, force: true });
+    }
+  });
 });

@@ -671,7 +671,7 @@ Install **Vale** separately so `vale` is on your `PATH` — see [Vale installati
 
 Wire preset paths in `mdcp.config.json` under `lint.markdownlint`. See `@bwilliamson/mdcp-presets` on npm.
 
-A [locale pack](#locale-pack) is MDCP compile-time wording — not a Vale style. Unlinked numbered heading-mention prose ships as the **`MDCP` Vale style** in `@bwilliamson/mdcp-presets` (`vale/MDCP/`); see [Locale and language boundary](../../docs/features/design-constraints/locale-and-language.md).
+A [locale pack](#locale-pack) is MDCP compile-time wording, not a Vale style. The **`MDCP` Vale style** in `@bwilliamson/mdcp-presets` (`vale/MDCP/`) holds the en-US prose cues. Its rules flag a numbered heading mention with no link, and `MDCP.DatedClaim` flags `as of` or `until` before an ISO date. See [Locale and language boundary](../../docs/features/design-constraints/locale-and-language.md).
 
 ### In-scope guide fileset
 

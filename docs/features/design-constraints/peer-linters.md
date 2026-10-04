@@ -6,4 +6,4 @@ Detection order: `node_modules/.bin` → PATH → skip with info.
 
 Use `--require-lint` / `--require-vale` in CI.
 
-**Separation of concerns:** markdownlint covers **GFM / Markdown structure** (presets ship those configs). Vale styles cover **prose / language** static analysis — en-US unlinked heading-mention rules live in `@bwilliamson/mdcp-presets` (`vale/MDCP`), alongside optional host styles such as Microsoft. Core stays on protocol validation (orphans, refs, internal GFM links, compile) — see [Locale and language boundary](./locale-and-language.md).
+**Separation of concerns:** markdownlint covers **GFM / Markdown structure** (presets provide those configs). Vale styles cover **prose / language** static analysis. The en-US rules for unlinked heading mentions and dated claims are in `@bwilliamson/mdcp-presets` (`vale/MDCP`), and a host can add other styles such as Microsoft. Core stays on protocol validation (orphans, refs, internal GFM links, compile). See [Locale and language boundary](./locale-and-language.md).

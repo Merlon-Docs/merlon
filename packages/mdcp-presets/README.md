@@ -36,13 +36,25 @@ npm install -D @bwilliamson/mdcp-presets markdownlint-cli2 @bwilliamson/mdcp-cli
 
 ## Vale style (`MDCP`)
 
-English (en-US) prose cues when docs **mention** a numbered heading (`Chapter` / `Section` / `Ch.` / `Sec.`) without a GFM markdown link. MDCP itself only models headings and links; this style is language-specific static analysis. Keep [mdcp-core](https://www.npmjs.com/package/@bwilliamson/mdcp-core) on compile and protocol validation (including link targets). See [Locale and language boundary](../../docs/features/design-constraints/locale-and-language.md).
+English (en-US) prose cues when docs **mention** a numbered heading (`Chapter` / `Section` / `Ch.` / `Sec.`) without a GFM markdown link, or pin a claim to a date. MDCP itself only models headings and links. This style is language-specific static analysis. Keep [mdcp-core](https://www.npmjs.com/package/@bwilliamson/mdcp-core) on compile and protocol validation (including link targets). See [Locale and language boundary](../../docs/features/design-constraints/locale-and-language.md).
 
 | Path                 | Role                                            |
 | -------------------- | ----------------------------------------------- |
 | `vale/package/`      | Vale Packages-compatible layout for `vale sync` |
 | `vale/MDCP/`         | Source Vale style rules                         |
 | `vale/mdcp.vale.ini` | Sample `.vale.ini` snippet for consumers        |
+
+| Rule                      | Flags                                                                                |
+| ------------------------- | ------------------------------------------------------------------------------------ |
+| `MDCP.BareChapterRef`     | `Chapter 2`, `Ch. 2` or `Chapters 2 and 3` with no link                              |
+| `MDCP.BareSectionRef`     | `Section 2`, `Sec. 2` or `Sections 2 and 3` with no link                             |
+| `MDCP.UnlinkedSeeChapter` | `See Chapter 2` with no link                                                         |
+| `MDCP.UnlinkedSeeSection` | `See Section 2` with no link                                                         |
+| `MDCP.DatedClaim`         | `as of` or `until` before an ISO date, such as `as of 2026-07-27`, headings included |
+
+Every rule is error level, so `mdcp check --require-vale` fails on it. `MDCP.DatedClaim` asks for what is true now: a dated reason belongs in a dated record such as an ADR or CHANGELOG entry, linked from the shard. It flags every dated claim whatever its age, because a Vale rule can't compare a date with today.
+
+The `TokenIgnores` pattern skips each inline link from its label to its closing parenthesis, so a dated label such as `[as of 2026-07-27](./snapshot.md)` passes. A label may contain one level of brackets, as in `[Chapter 2 [draft]](./draft.md)`. A backslash-escaped bracket in a label counts as text. The rule still flags a reference-style label such as `[as of 2026-07-27][ref]`. It can miss a claim split by emphasis markers, such as `as of **2026-07-27**`.
 
 ### Enable with Vale Packages
 
@@ -55,7 +67,7 @@ Packages = https://github.com/betsalel-williamson/mdcp/releases/download/<tag>/m
 
 [*.{md,mdx}]
 BasedOnStyles = MDCP
-TokenIgnores = (?s)\[.*?\]\(.*?\)
+TokenIgnores = \[(?:\\.|[^\[\]\\]|\[(?:\\.|[^\[\]\\])*\])*\]\([^)]*\)
 ```
 
 Then run:
@@ -75,10 +87,10 @@ Packages = Microsoft, https://github.com/betsalel-williamson/mdcp/releases/downl
 
 [*.{md,mdx}]
 BasedOnStyles = Microsoft, MDCP
-TokenIgnores = (?s)\[.*?\]\(.*?\)
+TokenIgnores = \[(?:\\.|[^\[\]\\]|\[(?:\\.|[^\[\]\\])*\])*\]\([^)]*\)
 ```
 
-Shipped `MDCP` rules use `scope: ~heading` so ATX heading titles (which may contain the words Chapter/Section) are not matched. Dogfood `MDCP-PandocId` uses `scope: heading` for Pandoc IDs (`{#…}`).
+The heading-mention rules use `scope: ~heading` so ATX heading titles (which may contain the words Chapter/Section) are not matched. `MDCP.DatedClaim` keeps the default scope, so a dated heading is flagged too. The mdcp repo's local `MDCP-PandocId` style uses `scope: heading` for Pandoc IDs (`{#…}`).
 
 Run prose checks with:
 
@@ -133,6 +145,29 @@ markdownlint-cli2 expects a filesystem path in `--config`, so the `node_modules/
 ## Customizing
 
 Copy a preset into your repo and edit it, or extend via markdownlint-cli2's `extends` pattern / Vale rule toggles (`MDCP.BareChapterRef = NO`). The shipped presets are a starting point — tune rules to match your style guide.
+
+Set a rule's level in `.vale.ini`. `MDCP.DatedClaim = warning` keeps the alert but stops it failing `mdcp check`, and a path section turns it off for files that are dated by design, such as research records:
+
+```ini
+[*.{md,mdx}]
+BasedOnStyles = MDCP
+MDCP.DatedClaim = warning
+
+[**/research/*.md]
+MDCP.DatedClaim = NO
+```
+
+`mdcp prose` and `mdcp check` pass Vale absolute paths, so start a path section with `**/`. A section such as `[research/*.md]` matches only when Vale runs on a relative path.
+
+To exempt one passage, wrap it in Vale comments:
+
+```markdown
+<!-- vale MDCP.DatedClaim = NO -->
+
+As of 2026-07-27 the runner image is pinned to this digest.
+
+<!-- vale MDCP.DatedClaim = YES -->
+```
 
 ## Related packages
 

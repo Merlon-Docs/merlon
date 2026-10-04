@@ -8,6 +8,7 @@ Natural-language **static analysis** belongs with **[Vale](https://vale.sh/) sty
 
 - **GFM cross-refs** (`[label](./shard.md#slug)`) → **mdcp-core / CLI**. First-class [link validation](../link-validation.md) and [refs](../../glossary/refs.md). This is the compile/check job.
 - **Unlinked prose mentions** (en-US examples: "See Chapter…", bare `Ch. N`, "Section N" with no markdown link) → peer **Vale** style `MDCP` in `@bwilliamson/mdcp-presets` (`vale/MDCP`). Language-specific writing cues — not MDCP protocol vocabulary. Other languages need their own Vale styles.
+- **Dated claims** (en-US cues: `as of` or `until` before an ISO date) → peer **Vale** rule `MDCP.DatedClaim` in the same `MDCP` style. The cue words are Vale-style data, not locale-pack data: no compile code reads them, so they stay out of the locale pack.
 - **Pandoc IDs** (`{#…}` after a heading) → peer **Vale** (dogfood style `MDCP-PandocId` warns authors to **remove** them). Core may strip leftovers for cleanup; not an authoring feature.
 - **GFM / Markdown shape** → peer **markdownlint**.
 - **Generated caption / marker copy** (`Table 1. …`, `BROKEN LINK`) → compile-time locale pack (default `en-US`).
@@ -17,6 +18,9 @@ Natural-language **static analysis** belongs with **[Vale](https://vale.sh/) sty
 ```text
 # Illustrative — Vale MDCP (prose mention without a GFM link):
 See Chapter 2 for details.
+
+# Illustrative, Vale MDCP.DatedClaim: a claim pinned to a date
+As of 2026-07-27 the cache is warm.
 
 # Illustrative — Vale MDCP-PandocId (Pandoc ID after heading; remove it):
 ## Details {#…}
@@ -44,7 +48,7 @@ Vale does not replace link validation: Vale asks prose mentions to become links,
    BasedOnStyles = General
    ```
 
-   Path sections work the same way (`[en/docs/*.md]`, `[fr/docs/*.md]`). Official packages such as **Microsoft** are English style-guide implementations — another language gets another style package, not a different Markdown parser. An MDCP-owned prose style (unlinked heading mentions) is the same kind of package.
+   Path sections work the same way. mdcp passes Vale absolute paths, so start each one with `**/`, as in `[**/en/docs/*.md]` and `[**/fr/docs/*.md]`. Official packages such as **Microsoft** encode English style guides. Another language gets its own style package and keeps the same Markdown parser. An MDCP-owned prose style (unlinked heading mentions and dated claims) is the same kind of package.
 
 3. **Locale-named dictionaries** — Hunspell-compatible `en_US.{dic,aff}` under `styles/config/dictionaries/`, selected from `spelling` rules. <!-- mdcp-paths: illustrative -->
 

@@ -31,12 +31,14 @@ This constraint is why MDCP invests in the [check gate](../feature-catalog.md#ch
 | The refs registry is current                  | Gated                                | `mdcp check` refs step                              |
 | Every markdown file is accounted for          | Gated when `scan.strict: true`       | Coverage scan                                       |
 | Markdown structure and en-US prose cues       | Gated when peer linters are required | Peer linters                                        |
-| Shards describe the product as it works now   | **Advisory**                         | None                                                |
+| Shards describe the product as it works now   | **Advisory**                         | Partial: source-file links, `lint.paths`, Vale      |
 | One primary concern per shard                 | **Advisory**                         | None                                                |
 | No implementation detail in durable docs      | **Advisory**                         | None                                                |
-| No temporary information or backlogs in docs  | **Advisory**                         | Partial: pending changeset links fail the gate      |
+| No temporary information or backlogs in docs  | **Advisory**                         | Partial: pending changeset links, Vale              |
 
 Where the gated rows are specified: [orphan check](../feature-catalog.md#orphan-check-p13), [link validation](../link-validation.md), [documentation coverage scan](../coverage-scan.md), [peer linters](./peer-linters.md).
+
+A partial gate checks one fragment of an advisory rule. Link validation fails on a link to a missing source file. With `lint.paths.severity` set to `error`, `mdcp check` also fails on a backtick path that resolves nowhere. With peer Vale required, the `MDCP.DatedClaim` rule fails on `as of <date>`, a claim pinned to its date, and on `until <date>`, a temporary note. The path probe is specified in [path resolution](../path-resolution.md), and the Vale rule in [Locale and language boundary](./locale-and-language.md).
 
 The advisory rows are stated in the [Agent Skill](../agent-skill.md#quality-assurance-qa-principles). They are the rows worth moving, in whole or in fragments, as checks become possible.
 

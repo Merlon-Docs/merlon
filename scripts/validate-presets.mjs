@@ -17,6 +17,7 @@ const valeFiles = [
   'vale/MDCP/UnlinkedSeeChapter.yml',
   'vale/MDCP/BareSectionRef.yml',
   'vale/MDCP/UnlinkedSeeSection.yml',
+  'vale/MDCP/DatedClaim.yml',
   'vale/mdcp.vale.ini',
   'vale/package/.vale.ini',
   'vale/package/styles/MDCP/meta.json',
@@ -24,6 +25,7 @@ const valeFiles = [
   'vale/package/styles/MDCP/UnlinkedSeeChapter.yml',
   'vale/package/styles/MDCP/BareSectionRef.yml',
   'vale/package/styles/MDCP/UnlinkedSeeSection.yml',
+  'vale/package/styles/MDCP/DatedClaim.yml',
 ];
 
 function stripJsoncComments(text) {

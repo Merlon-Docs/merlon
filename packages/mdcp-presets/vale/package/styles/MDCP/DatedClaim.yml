@@ -1,0 +1,8 @@
+extends: existence
+message: "'%s' pins a claim to a date. Say what is true now, and move the dated reason to a dated record such as an ADR or CHANGELOG entry."
+link: https://github.com/betsalel-williamson/mdcp/blob/main/docs/features/design-constraints/enforceable-rules.md
+level: error
+ignorecase: true
+nonword: true
+tokens:
+  - '\b(?:as\s+of|until)\s+\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])(?:T|\b)'
