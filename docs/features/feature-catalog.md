@@ -14,7 +14,7 @@ Guides compile to per-guide files under `outputDir` by default (`{name}.md`, or 
 
 ## Refs registry file
 
-Heading-slug **registry** for validation after compile — see [Refs registry path](./refs-registry-path.md). Discover shards with host search (`rg`); confirm `#` cross-links with `mdcp check`.
+Heading-slug **registry** for validation after compile. See [Refs registry path](./refs-registry-path.md). Confirm `#` cross-links with `mdcp check`. What refs are and are not for: [refs](../glossary/refs.md).
 
 ## Agent Skill and workflows
 
@@ -102,9 +102,4 @@ Built-in hooks:
 
 ## Design constraints (summary)
 
-- [GFM](../glossary/gfm.md) only — no Pandoc IDs as authoring contract; heading recognition is an ATX subset today ([GFM scope](./design-constraints/gfm-scope.md#headings))
-- md-tree for split only — custom compile
-- Peer linters opt-in — `--require-lint` / `--require-vale` in CI
-- No preprocessor / templating — see [Preprocessor / templating (out of scope)](./design-constraints/preprocessor-templating.md#preprocessor--templating-out-of-scope)
-
-Details in [Design constraints](./design-constraints/index.md).
+Each limit and its one-line summary are on the [Design constraints](./design-constraints/index.md) page.

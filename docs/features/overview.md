@@ -26,32 +26,9 @@ The glossary defines the core terms:
 - [Compiled guide](../glossary/compiled-guide.md): the file compile writes for one guide.
 - [Publish output](../glossary/publish-output.md): a compiled guide at its own `compile.outputFile`, such as a package README.
 - [Monolith](../glossary/monolith.md): the optional single file that stitches the guides without `compile.outputFile`.
-- [Refs registry](../glossary/refs-registry.md): GitHub-style heading slugs from compile output, in `.caches/refs.json` by default.
+- [Refs registry](../glossary/refs-registry.md): GitHub-style heading slugs from compile output.
 
-Paths and config:
-
-| Term              | Meaning                                                                                                             |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------- |
-| **`--docs-root`** | Root of guide shard directories (one subfolder = one guide).                                                        |
-| **`outputDir`**   | Generated output root (default `_build`), safe to delete. All generated paths are relative here unless absolute.    |
-| **`--config`**    | Config file path, resolved relative to the **invocation** directory (where you run the command), not `--docs-root`. |
-
-### Path resolution (`--config` vs `--docs-root`)
-
-```bash
-mdcp compile --config docs/mdcp.config.json --docs-root docs
-```
-
-| Path                                 | Base          | Resolves to (example)                 |
-| ------------------------------------ | ------------- | ------------------------------------- |
-| `--config docs/mdcp.config.json`     | Invocation    | `/repo/docs/mdcp.config.json`         |
-| Guide `features/`                    | `--docs-root` | `/repo/docs/features/`                |
-| `outputDir: "_build"` (default)      | `--docs-root` | `/repo/docs/_build/`                  |
-| Default per-guide output             | `outputDir`   | `/repo/docs/_build/features.md`       |
-| `refs.registryFile` (default)        | `outputDir`   | `/repo/docs/_build/.caches/refs.json` |
-| `compile.outputFile: "../README.md"` | `outputDir`   | publish path from `_build`            |
-
-Consumer details: [Config essentials](../client-cli/config-essentials.md). API: `loadConfig(path, configBase)` uses the same `configBase` rule as the CLI.
+Paths and config: shards live under the docs root (`--docs-root`), one subdirectory per guide. Generated paths are relative to `outputDir`, which defaults to `_build` and is safe to delete. `--config` resolves from the directory you run the command in, not from the docs root ([`--config` vs `--docs-root`](../client-cli/config-essentials.md#--config-vs---docs-root)). [Path layout](../client-cli/config-essentials.md#path-layout) in Config essentials has every other path rule and default, and `loadConfig(path, configBase)` in the [config API](../client-core/api-config.md) follows the same rules.
 
 ## How the pieces fit together
 
@@ -154,8 +131,8 @@ Peer linters are **not bundled**. CI uses `--require-lint` / `--require-vale` to
 
 - **`compileOrder`**: which guides exist and in what order they appear in the monolith.
 - **`guides[].compile`**: per-guide manifest name, hooks, publish path, title, scope root, etc.
-- **`outputFile`**: optional monolith path (relative to `outputDir`).
-- **`refs`**: `registryFile` path (relative to `outputDir`) and slug algorithm.
+- **`outputFile`**: optional monolith path.
+- **`refs`**: registry file path and slug algorithm.
 - **`lint` / `vale`**: peer linter config paths and scan globs.
 
 This repository uses MDCP on its own docs under `docs/`. The features guide compiles to `docs/_build/features.md` and is the only guide in the monolith `docs/_build/guides.md`. The other guides compile to publish outputs such as `DEVELOPERS.md` and the package READMEs. See `docs/mdcp.config.json` for a multi-output layout.
@@ -175,43 +152,15 @@ This repository uses MDCP on its own docs under `docs/`. The features guide comp
 
 Start with `assemble.ts` and `cli.ts` if you are tracing a compile from config to disk.
 
-## Typical workflows
-
-### LLM authoring a new section
-
-Edit a shard (and `index.md` if section membership changed) → insert cross-links carefully → `mdcp check` (catches bad `#` fragments).
-
-### Human PR review
-
-`mdcp check --require-lint` in CI; optional `mdcp prose` locally.
-
-### Agent reading repo docs
-
-Find shards with host search and read **one** file; use compiled output under `outputDir` only when a broader read is intentional.
-
-### Publishing package README from shards
-
-Set `guides[].compile.outputFile` to the README path; run `mdcp compile`; README is generated, not hand-edited.
-
-This repository dogfoods a **publish landing** layout in [`docs/repo-readme/`](../repo-readme/index.md) → root `README.md`. See [Personas and priority tiers](./personas-and-priority-tiers.md) and [Benefit claims and evidence](./protocol/benefit-claims-and-evidence.md).
-
-## Design boundaries (intentional limits)
-
-- **[GFM](../glossary/gfm.md) only** — no Pandoc, wikilinks, or required Pandoc IDs; heading recognition is an ATX subset today ([GFM scope](./design-constraints/gfm-scope.md#headings))
-- **md-tree for split only** — custom compile/assemble; upstream md-tree `assemble` is not used
-- **GitHub slugs** — computed from compiled headings via [github-slugger](https://www.npmjs.com/package/github-slugger) (html-pipeline algorithm); see [Cross-links and refs — heading slugs](../client-cli/cross-links-and-refs.md#heading-slugs-github-rules)
-- **Peer linters opt-in** — host repo installs markdownlint, Vale, etc.
-- **[Locale and language boundary](./design-constraints/locale-and-language.md)** — GFM structure vs Vale prose vs compile-time locale pack
-- **No preprocessor / templating** — see [Preprocessor / templating (out of scope)](./design-constraints/preprocessor-templating.md#preprocessor--templating-out-of-scope)
-
-Details: [Design constraints](./design-constraints/index.md).
-
 ## Where to go next
 
 - **Commands and priority tiers**: the [Feature catalog](./feature-catalog.md) and [Personas and priority tiers](./personas-and-priority-tiers.md)
+- **Who runs which command**: the [Actors and obligations](./protocol/usage-model.md#actors-and-obligations) table in the usage model
+- **Intentional limits**: the [Design constraints](./design-constraints/index.md), each with a one-line summary
 - **Install and daily commands**: the [Client CLI guide](../client-cli/index.md)
 - **Programmatic API**: the [Client core guide](../client-core/index.md)
 - **Config fields**: the [config API](../client-core/api-config.md)
 - **Compile hooks**: the [Compile hooks overview](../client-core/compile-hooks/index.md)
 - **Contributing to this repo**: the [Developer guide](../developer/index.md)
 - **Performance SLOs at scale**: the [Performance goals](./protocol/performance.md) page
+- **A publish landing example**: this repository compiles its root `README.md` from [`docs/repo-readme/`](../repo-readme/index.md). Its copy follows the [Publish landing style](./personas-and-priority-tiers.md#publish-landing-style) and the claim tiers in [Benefit claims and evidence](./protocol/benefit-claims-and-evidence.md)

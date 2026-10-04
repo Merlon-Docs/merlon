@@ -15,6 +15,8 @@ Agents should load the parent **Agent Skill** (`/mdcp`, installed in your agent'
 | Agent (context consumer) | Agent Skill, single shards (`rg`/IDE) | —                | —                                            |
 | Maintainer               | skill pack + conformance              | protocol shards  | `docs:check:repo`                            |
 
+Authors can also run `mdcp prose` locally to see Vale findings before CI does.
+
 **Shards are source of truth; compiled files are generated.**
 
 ## Adoption paths
@@ -43,7 +45,7 @@ Above plus the four-tier guide layout (`features` / `client` / `developer` / `gl
 
 1. Activate the parent Agent Skill (`/mdcp`) when available
 2. Invoke `/mdcp` with the task; the skill picks a workflow and runs intake for `WORK_ITEM` — see [Skill workflows](./skill-workflows.md)
-3. Discover the shard with host tools (`rg`, IDE search, guide `index.md`) and **read one shard**
+3. Discover the shard with host tools (`rg`, IDE search, guide `index.md`) and **read one shard**; read a compiled guide under `outputDir` only when a broader read is intentional
 4. Rely on `mdcp check` for broken `#` cross-links (optionally inspect `mdcp refs-list`)
 
 Read [`docs/skills.md`](../../../docs/skills.md) for the skill and its workflow index.
