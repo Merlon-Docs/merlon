@@ -208,10 +208,10 @@ Details: [Design constraints](./design-constraints/index.md).
 
 ## Where to go next
 
-- **Commands and priority tiers** — [Feature catalog](./feature-catalog.md), [Personas and priority tiers](./personas-and-priority-tiers.md)
-- **Install and daily commands** — [Client CLI guide](../client-cli/index.md)
-- **Programmatic API** — [Client core guide](../client-core/index.md)
-- **Config fields** — [API — Config](../client-core/api-config.md)
-- **Compile hooks** — [Compile hooks overview](../client-core/compile-hooks/index.md)
-- **Contributing to this repo** — [Developer guide](../developer/index.md)
-- **Performance SLOs at scale** — [Performance goals and review](./protocol/performance.md)
+- **Commands and priority tiers**: the [Feature catalog](./feature-catalog.md) and [Personas and priority tiers](./personas-and-priority-tiers.md)
+- **Install and daily commands**: the [Client CLI guide](../client-cli/index.md)
+- **Programmatic API**: the [Client core guide](../client-core/index.md)
+- **Config fields**: the [config API](../client-core/api-config.md)
+- **Compile hooks**: the [Compile hooks overview](../client-core/compile-hooks/index.md)
+- **Contributing to this repo**: the [Developer guide](../developer/index.md)
+- **Performance SLOs at scale**: the [Performance goals](./protocol/performance.md) page

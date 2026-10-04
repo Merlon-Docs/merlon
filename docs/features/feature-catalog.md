@@ -37,7 +37,7 @@ Optional local with/without-skill grading for each workflow is maintainer work �
 
 ## Check gate (P0.4)
 
-Structural validation: orphans → compile → refs → **links**; peer linters optional. Built-in link validation catches dead internal `.md` paths and `#anchor` fragments — see [Link validation](./link-validation.md). Latency targets for large shard sets: [Performance goals and review](./protocol/performance.md).
+Structural validation: orphans → compile → refs → **links**. Peer linters are optional. Built-in link validation catches dead internal `.md` paths and `#anchor` fragments, as [Link validation](./link-validation.md) describes. Latency targets for large shard sets are in [Performance goals](./protocol/performance.md).
 
 ```bash
 mdcp check --require-lint
