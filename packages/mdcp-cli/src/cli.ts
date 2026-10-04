@@ -40,6 +40,7 @@ import {
   runBuiltInLinkLintFromWorkspace,
   resolveLinkSeverity,
 } from './compile-workspace.js';
+import { valeArgs } from './vale-args.js';
 
 interface GlobalOpts {
   config: string;
@@ -110,11 +111,6 @@ function guideEntries(config: MdcpConfig, docsRoot: string) {
       scopeRoot: cfg?.compile?.scopeRoot ? resolve(docsRoot, cfg.compile.scopeRoot) : undefined,
     };
   });
-}
-
-function valeMinAlertLevel(config: MdcpConfig, strictFlag?: boolean): string | undefined {
-  if (strictFlag) return 'error';
-  return config.vale?.strictMinAlertLevel;
 }
 
 function resolveLinkTarget(config: MdcpConfig, docsRoot: string): string | undefined {
@@ -313,17 +309,13 @@ cli
 
 cli
   .command('prose', 'Run Vale prose lint (peer)')
-  .option('--strict', 'Errors only')
+  .option('--strict', 'Show alerts at vale.strictMinAlertLevel and above (default error)')
   .option('--require-vale', 'Fail if Vale not installed')
   .action((opts: GlobalOpts & { strict?: boolean; requireVale?: boolean }) => {
     const config = getConfig(opts);
     const tool = findPeerBinary('vale', getDocsRoot(opts));
     const scanPaths = valeScanPaths(config, getDocsRoot(opts));
-    const valeConfig = config.vale?.config ?? '.vale.ini';
-    const minLevel = valeMinAlertLevel(config, opts.strict);
-    const args = minLevel
-      ? ['--config', valeConfig, `--minAlertLevel=${minLevel}`, ...scanPaths]
-      : ['--config', valeConfig, ...scanPaths];
+    const args = valeArgs(config, scanPaths, opts.strict === true);
     const r = runPeer(tool, { require: opts.requireVale, cwd: getDocsRoot(opts), args });
     if (r.exitCode !== 0) process.exit(r.exitCode);
   });
@@ -503,12 +495,10 @@ cli
       if (!opts.skipVale) {
         const vale = findPeerBinary('vale', getDocsRoot(opts));
         const scanPaths = valeScanPaths(config, getDocsRoot(opts));
-        const valeConfig = config.vale?.config ?? '.vale.ini';
-        const minLevel = valeMinAlertLevel(config, true) ?? 'error';
         const r = runPeer(vale, {
           require: opts.requireVale,
           cwd: getDocsRoot(opts),
-          args: ['--config', valeConfig, `--minAlertLevel=${minLevel}`, ...scanPaths],
+          args: valeArgs(config, scanPaths, true),
         });
         if (r.exitCode !== 0) {
           failures.push({

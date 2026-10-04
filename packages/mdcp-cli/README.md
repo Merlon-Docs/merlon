@@ -673,6 +673,20 @@ Wire preset paths in `mdcp.config.json` under `lint.markdownlint`. See `@bwillia
 
 A [locale pack](#locale-pack) is MDCP compile-time wording, not a Vale style. The **`MDCP` Vale style** in `@bwilliamson/mdcp-presets` (`vale/MDCP/`) holds the en-US prose cues. Its rules flag a numbered heading mention with no link, and `MDCP.DatedClaim` flags `as of` or `until` before an ISO date. See [Locale and language boundary](../../docs/features/design-constraints/locale-and-language.md).
 
+### Vale alert level
+
+`mdcp prose` passes no alert level to Vale, so the `MinAlertLevel` in your `.vale.ini` sets what it shows. `mdcp prose --strict` and `mdcp check` pass `--minAlertLevel` from `vale.strictMinAlertLevel`, which defaults to `error`. To show warnings in those runs too:
+
+```json
+{
+  "vale": {
+    "strictMinAlertLevel": "warning"
+  }
+}
+```
+
+Of Vale's alerts, only error-level ones fail `mdcp prose` or `mdcp check`, so a lower `vale.strictMinAlertLevel` adds warnings or suggestions to the output and leaves the exit code as it was. A Vale runtime error, such as a missing style, also fails both commands. To make a rule fail the check, set its level to `error` in `.vale.ini`. A rule set to `warning`, such as `MDCP.DatedClaim = warning`, no longer fails `mdcp check`, and `mdcp prose` still shows it when the `.vale.ini` `MinAlertLevel` is `warning` or lower.
+
 ### In-scope guide fileset
 
 MDCP knows the **full fileset** it manages: registered guides in `compileOrder`, resolved via `guides[].path` or `{docsRoot}/{name}/`. Shard markdownlint and Vale prose **only touch documents in that scope** — never legacy flat `.md` files, unregistered sibling folders, or other markdown under `--docs-root` that mdcp does not compile.

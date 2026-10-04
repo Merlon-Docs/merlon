@@ -146,7 +146,7 @@ markdownlint-cli2 expects a filesystem path in `--config`, so the `node_modules/
 
 Copy a preset into your repo and edit it, or extend via markdownlint-cli2's `extends` pattern / Vale rule toggles (`MDCP.BareChapterRef = NO`). The shipped presets are a starting point — tune rules to match your style guide.
 
-Set a rule's level in `.vale.ini`. `MDCP.DatedClaim = warning` keeps the alert but stops it failing `mdcp check`, and a path section turns it off for files that are dated by design, such as research records:
+Set a rule's level in `.vale.ini`. `MDCP.DatedClaim = warning` keeps the alert but stops it failing `mdcp check`. A plain `mdcp prose` shows the warning, and `mdcp check` shows it once `vale.strictMinAlertLevel` is `warning` (see [Vale alert level](../../docs/client-cli/optional-linters.md#vale-alert-level)). A path section turns the rule off for files that are dated by design, such as research records:
 
 ```ini
 [*.{md,mdx}]

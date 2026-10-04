@@ -55,6 +55,37 @@ function writeInScopeLintFixture(docs: string, configExtra: Record<string, unkno
   );
 }
 
+/**
+ * In-scope fixture plus a scratch Vale style with one warning-level rule (`zorblax`)
+ * and one error-level rule (`quuxly`). `body` goes into the guide's section shard.
+ */
+function writeValeLevelFixture(docs: string, vale: Record<string, unknown>, body: string): void {
+  writeInScopeLintFixture(docs, { vale });
+  const style = join(docs, 'styles', 'Scratch');
+  mkdirSync(style, { recursive: true });
+  writeFileSync(
+    join(style, 'Warn.yml'),
+    'extends: existence\nmessage: "Warn \'%s\'"\nlevel: warning\ntokens:\n  - zorblax\n',
+  );
+  writeFileSync(
+    join(style, 'Err.yml'),
+    'extends: existence\nmessage: "Err \'%s\'"\nlevel: error\ntokens:\n  - quuxly\n',
+  );
+  writeFileSync(
+    join(docs, '.vale.ini'),
+    'StylesPath = styles\nMinAlertLevel = suggestion\n\n[*.md]\nBasedOnStyles = Scratch\n',
+  );
+  writeFileSync(join(docs, 'guide', 'section.md'), `# Guide\n\n## Hello\n\n${body}\n`);
+}
+
+function runIn(docs: string, args: string[]) {
+  const r = spawnSync('node', [CLI, ...args, '--config', 'mdcp.config.json', '--docs-root', docs], {
+    encoding: 'utf-8',
+    cwd: docs,
+  });
+  return { status: r.status, output: `${r.stdout}${r.stderr}` };
+}
+
 describe('cli smoke', () => {
   it('prints version', () => {
     // cac exits 0 on --version but logs and terminates, so we can capture stdout via execFileSync
@@ -405,6 +436,56 @@ describe('cli smoke', () => {
         [CLI, 'check', '--config', 'mdcp.config.json', '--docs-root', docs, '--require-lint'],
         { encoding: 'utf-8', cwd: docs },
       );
+    } finally {
+      rmSync(docs, { recursive: true, force: true });
+    }
+  });
+
+  it('shows warnings in non-strict mdcp prose when a vale block is set (D3)', () => {
+    if (!valeInstalled()) return;
+
+    const docs = mkdtempSync(join(tmpdir(), 'mdcp-vale-prose-level-'));
+    try {
+      writeValeLevelFixture(docs, {}, 'The zorblax setting is on.');
+      const r = runIn(docs, ['prose', '--require-vale']);
+      expect(r.status).toBe(0);
+      expect(r.output).toMatch(/Scratch\.Warn/);
+    } finally {
+      rmSync(docs, { recursive: true, force: true });
+    }
+  });
+
+  it('shows only errors in mdcp prose --strict and mdcp check by default', () => {
+    if (!valeInstalled()) return;
+
+    const docs = mkdtempSync(join(tmpdir(), 'mdcp-vale-strict-level-'));
+    try {
+      writeValeLevelFixture(docs, {}, 'The zorblax setting is on.');
+      const prose = runIn(docs, ['prose', '--strict', '--require-vale']);
+      expect(prose.status).toBe(0);
+      expect(prose.output).not.toMatch(/Scratch\.Warn/);
+      const check = runIn(docs, ['check', '--require-vale']);
+      expect(check.status).toBe(0);
+      expect(check.output).not.toMatch(/Scratch\.Warn/);
+    } finally {
+      rmSync(docs, { recursive: true, force: true });
+    }
+  });
+
+  it('shows alerts at vale.strictMinAlertLevel in mdcp check and fails only on errors (D3)', () => {
+    if (!valeInstalled()) return;
+
+    const docs = mkdtempSync(join(tmpdir(), 'mdcp-vale-check-level-'));
+    try {
+      writeValeLevelFixture(docs, { strictMinAlertLevel: 'warning' }, 'The zorblax setting is on.');
+      const warned = runIn(docs, ['check', '--require-vale']);
+      expect(warned.output).toMatch(/Scratch\.Warn/);
+      expect(warned.status).toBe(0);
+
+      writeFileSync(join(docs, 'guide', 'section.md'), '# Guide\n\n## Hello\n\nThe quuxly flag.\n');
+      const failed = runIn(docs, ['check', '--require-vale']);
+      expect(failed.output).toMatch(/Scratch\.Err/);
+      expect(failed.status).toBe(1);
     } finally {
       rmSync(docs, { recursive: true, force: true });
     }

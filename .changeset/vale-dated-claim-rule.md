@@ -12,6 +12,8 @@ The rule is error level, so `mdcp check --require-vale` fails on a dated claim. 
 MDCP.DatedClaim = warning
 ```
 
+A plain `mdcp prose` shows the warning. To see it in `mdcp check` too, set `vale.strictMinAlertLevel` to `warning` in `mdcp.config.json`.
+
 Set it to `NO` in a path section to exempt files that are dated by design, such as research records. mdcp passes Vale absolute paths, so start the section with `**/`, as in `[**/research/*.md]`. To exempt one passage, wrap it in `<!-- vale MDCP.DatedClaim = NO -->` and `<!-- vale MDCP.DatedClaim = YES -->`.
 
 The `TokenIgnores` pattern in the package config now ends each match at the link's closing parenthesis, and it reads a backslash-escaped bracket in a label as text. The old pattern could start at a task-list checkbox and stop at the next link later in the file, which hid the text between them from every `MDCP` rule. If your `.vale.ini` repeats the old pattern, copy the new one from `vale/package/.vale.ini`.
