@@ -4,7 +4,8 @@
  *
  * - One page per shard in each published guide (see PUBLISHED_GUIDES).
  * - Page title = the shard's first `#` heading (removed from the body).
- * - Sidebar order comes from each guide's index.md manifest.
+ * - Sidebar order comes from each guide's index.md manifest; sub-indexes, and the subdirectory catalog
+ *   pages that manifest lists, become groups.
  * - Links are rewritten for the site:
  *   - relative `.md` links between published shards → site routes (+ page anchor);
  *   - compiled cross-links `[text](#slug)` → resolved through the refs registry
@@ -767,6 +768,21 @@ export function syncContent(opts) {
       if (target === null || target.startsWith('#') || /^[a-z]+:/i.test(target)) return null;
       return resolve(fromDir, decodeURI(target.split('#')[0]));
     };
+    // Every page the root manifest links, at any depth, and the directories they sit in.
+    const rootLinked = new Set();
+    (function collect(nodes) {
+      for (const n of nodes) {
+        const abs = resolveTarget(guideDir, n.target);
+        if (abs) rootLinked.add(abs);
+        collect(n.children);
+      }
+    })(parseManifest(readFileSync(rootIndex.abs, 'utf8')));
+    const rootListedDirs = new Set([...rootLinked].map((abs) => dirname(abs)));
+    // A catalog page in catalogDir never claims a page the root manifest links, nor a
+    // page in another directory the root manifest lists a page from, so a catalog listed
+    // deeper keeps its own pages.
+    const rootOwns = (abs, catalogDir) =>
+      rootLinked.has(abs) || (dirname(abs) !== catalogDir && rootListedDirs.has(dirname(abs)));
 
     function convert(nodes, fromDir) {
       const items = [];
@@ -783,7 +799,16 @@ export function syncContent(opts) {
           items.push(...convert(node.children, fromDir));
           continue;
         }
-        const isSubIndex = page.isIndex && page.abs !== rootIndex.abs;
+        // A catalog: a page in a subdirectory that the root manifest lists with no nested
+        // items, and that groups the pages its own list links under its directory, as a
+        // sub-index does. A page that only a sub-index or another catalog lists stays a page.
+        const isCatalog =
+          rootLinked.has(page.abs) &&
+          !page.isIndex &&
+          dirname(page.abs) !== guideDir &&
+          node.children.length === 0 &&
+          !used.has(page.abs);
+        const isSubIndex = (page.isIndex && page.abs !== rootIndex.abs) || isCatalog;
         if (isSubIndex) {
           const subDir = dirname(page.abs);
           const inside = [];
@@ -801,7 +826,13 @@ export function syncContent(opts) {
                   return children.length ? [{ ...c, children }] : [];
                 }
                 const childAbs = resolveTarget(subDir, c.target);
-                return childAbs && isUnder(subDir, childAbs) && !used.has(childAbs) ? [c] : [];
+                return childAbs &&
+                  childAbs !== page.abs &&
+                  isUnder(subDir, childAbs) &&
+                  !used.has(childAbs) &&
+                  !(isCatalog && rootOwns(childAbs, subDir))
+                  ? [c]
+                  : [];
               });
             const own = keep(parseManifest(readFileSync(page.abs, 'utf8')));
             used.add(page.abs);

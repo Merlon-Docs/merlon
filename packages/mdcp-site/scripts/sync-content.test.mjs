@@ -205,6 +205,7 @@ describe('syncContent (fixture repository)', () => {
   ];
 
   function setup(introExtra = '') {
+    rmSync(join(root, 'docs'), { recursive: true, force: true });
     write(
       'docs/mdcp.config.json',
       JSON.stringify({
@@ -347,6 +348,215 @@ describe('syncContent (fixture repository)', () => {
               { label: 'Leaves', items: [{ label: 'Leaf', slug: 'g/deep/leaf' }] },
             ],
           },
+        ],
+      },
+    ]);
+  });
+
+  it('groups the unlisted pages a subdirectory catalog page links, like a sub-index', () => {
+    setup();
+    write(
+      'docs/guide/index.md',
+      '# Guide\n\n- [Intro](./intro.md)\n- [Deep](./deep/index.md)\n- [Catalog](./more/catalog.md)\n',
+    );
+    write(
+      'docs/guide/more/catalog.md',
+      '# Catalog\n\n## Entries\n\n- [A](./a.md)\n- [B](./sub/b.md)\n- [Intro](../intro.md)\n',
+    );
+    write('docs/guide/more/a.md', '# A\n');
+    write('docs/guide/more/sub/b.md', '# B\n');
+    const result = run();
+    assert.deepEqual(result.unlisted, []);
+    const sidebar = JSON.parse(readFileSync(join(root, 'site/.generated/sidebar.json'), 'utf8'));
+    assert.deepEqual(sidebar[0].items[2], {
+      label: 'Catalog',
+      collapsed: true,
+      items: [
+        { label: 'Overview', slug: 'g/more/catalog' },
+        {
+          label: 'Entries',
+          items: [
+            { label: 'A', slug: 'g/more/a' },
+            { label: 'B', slug: 'g/more/sub/b' },
+          ],
+        },
+      ],
+    });
+  });
+
+  it('leaves a page in another listed catalog directory to that catalog', () => {
+    setup();
+    write(
+      'docs/guide/index.md',
+      '# Guide\n\n- [Intro](./intro.md)\n- [Deep](./deep/index.md)\n- [Goals](./more/goals.md)\n- [Records](./more/records/about.md)\n',
+    );
+    write('docs/guide/more/goals.md', '# Goals\n\n## Related\n\n- [Bench](./records/bench.md)\n');
+    write('docs/guide/more/records/about.md', '# Records\n\n## Records\n\n- [Bench](./bench.md)\n');
+    write('docs/guide/more/records/bench.md', '# Bench\n');
+    const result = run();
+    assert.deepEqual(result.unlisted, []);
+    const sidebar = JSON.parse(readFileSync(join(root, 'site/.generated/sidebar.json'), 'utf8'));
+    assert.deepEqual(sidebar[0].items.slice(2), [
+      { label: 'Goals', slug: 'g/more/goals' },
+      {
+        label: 'Records',
+        collapsed: true,
+        items: [
+          { label: 'Overview', slug: 'g/more/records/about' },
+          { label: 'Records', items: [{ label: 'Bench', slug: 'g/more/records/bench' }] },
+        ],
+      },
+    ]);
+  });
+
+  it('leaves a page the root manifest lists to the root, even in the catalog directory', () => {
+    setup();
+    write(
+      'docs/guide/index.md',
+      '# Guide\n\n- [Intro](./intro.md)\n- [Deep](./deep/index.md)\n- [Catalog](./more/catalog.md)\n- [C](./more/c.md)\n',
+    );
+    write('docs/guide/more/catalog.md', '# Catalog\n\n- [A](./a.md)\n- [C](./c.md)\n');
+    write('docs/guide/more/a.md', '# A\n');
+    write('docs/guide/more/c.md', '# C\n');
+    const result = run();
+    assert.deepEqual(result.unlisted, []);
+    const sidebar = JSON.parse(readFileSync(join(root, 'site/.generated/sidebar.json'), 'utf8'));
+    assert.deepEqual(sidebar[0].items.slice(2), [
+      {
+        label: 'Catalog',
+        collapsed: true,
+        items: [
+          { label: 'Overview', slug: 'g/more/catalog' },
+          { label: 'A', slug: 'g/more/a' },
+        ],
+      },
+      { label: 'C', slug: 'g/more/c' },
+    ]);
+  });
+
+  it('shows a catalog the root manifest lists twice once', () => {
+    setup();
+    write(
+      'docs/guide/index.md',
+      '# Guide\n\n- [Intro](./intro.md)\n- [Deep](./deep/index.md)\n- [Catalog](./more/catalog.md)\n- [Catalog again](./more/catalog.md)\n',
+    );
+    write('docs/guide/more/catalog.md', '# Catalog\n\n- [A](./a.md)\n');
+    write('docs/guide/more/a.md', '# A\n');
+    run();
+    const sidebar = JSON.parse(readFileSync(join(root, 'site/.generated/sidebar.json'), 'utf8'));
+    assert.deepEqual(sidebar[0].items.slice(2), [
+      {
+        label: 'Catalog',
+        collapsed: true,
+        items: [
+          { label: 'Overview', slug: 'g/more/catalog' },
+          { label: 'A', slug: 'g/more/a' },
+        ],
+      },
+    ]);
+  });
+
+  it('groups a subdirectory page listed with nested items by those items alone', () => {
+    setup();
+    write(
+      'docs/guide/index.md',
+      '# Guide\n\n- [Intro](./intro.md)\n- [Deep](./deep/index.md)\n- [Records](./more/records/about.md)\n  - [About](./more/records/about.md)\n  - [Bench](./more/records/bench.md)\n',
+    );
+    write('docs/guide/more/records/about.md', '# About\n\n- [Bench](./bench.md)\n');
+    write('docs/guide/more/records/bench.md', '# Bench\n');
+    const result = run();
+    assert.deepEqual(result.unlisted, []);
+    const sidebar = JSON.parse(readFileSync(join(root, 'site/.generated/sidebar.json'), 'utf8'));
+    assert.deepEqual(sidebar[0].items[2], {
+      label: 'Records',
+      collapsed: true,
+      items: [
+        { label: 'About', slug: 'g/more/records/about' },
+        { label: 'Bench', slug: 'g/more/records/bench' },
+      ],
+    });
+  });
+
+  it('keeps a top-level page a plain link when its list links a subdirectory page', () => {
+    setup();
+    write(
+      'docs/guide/index.md',
+      '# Guide\n\n- [Intro](./intro.md)\n- [Deep](./deep/index.md)\n- [Top](./top.md)\n',
+    );
+    write('docs/guide/top.md', '# Top\n\n## Related\n\n- [Note](./notes/note.md)\n');
+    write('docs/guide/notes/note.md', '# Note\n');
+    const result = run();
+    assert.deepEqual(result.unlisted, ['docs/guide/notes/note.md']);
+    const sidebar = JSON.parse(readFileSync(join(root, 'site/.generated/sidebar.json'), 'utf8'));
+    assert.deepEqual(sidebar[0].items.slice(2), [
+      { label: 'Top', slug: 'g/top' },
+      { label: 'Note', slug: 'g/notes/note' },
+    ]);
+  });
+
+  it('skips a sub-index link to itself', () => {
+    setup();
+    write(
+      'docs/guide/deep/index.md',
+      '# Deep\n\n- [Deep](./index.md)\n- [Leaf](./leaf.md)\n\n## Deep part\n\n### Details\n',
+    );
+    run();
+    const sidebar = JSON.parse(readFileSync(join(root, 'site/.generated/sidebar.json'), 'utf8'));
+    assert.deepEqual(sidebar[0].items.at(-1), {
+      label: 'Deep',
+      collapsed: true,
+      items: [
+        { label: 'Overview', slug: 'g/deep' },
+        { label: 'Leaf', slug: 'g/deep/leaf' },
+      ],
+    });
+  });
+
+  it('keeps a sub-index list flat when one of its pages links a later sibling', () => {
+    setup();
+    write('docs/guide/index.md', '# Guide\n\n- [Intro](./intro.md)\n- [Deep](./deep/index.md)\n');
+    write(
+      'docs/guide/deep/index.md',
+      '# Deep\n\n## Records\n\n- [Leaf](./leaf.md)\n- [X](./x.md)\n- [Y](./y.md)\n\n## Deep part\n\n### Details\n',
+    );
+    write('docs/guide/deep/x.md', '# X\n\n## Related\n\n- [Y](./y.md)\n');
+    write('docs/guide/deep/y.md', '# Y\n');
+    const result = run();
+    assert.deepEqual(result.unlisted, []);
+    const sidebar = JSON.parse(readFileSync(join(root, 'site/.generated/sidebar.json'), 'utf8'));
+    assert.deepEqual(sidebar[0].items[1], {
+      label: 'Deep',
+      collapsed: true,
+      items: [
+        { label: 'Overview', slug: 'g/deep' },
+        {
+          label: 'Records',
+          items: [
+            { label: 'Leaf', slug: 'g/deep/leaf' },
+            { label: 'X', slug: 'g/deep/x' },
+            { label: 'Y', slug: 'g/deep/y' },
+          ],
+        },
+      ],
+    });
+  });
+
+  it('groups the pages a sub-index lists when the root manifest lists them beside it', () => {
+    setup();
+    write(
+      'docs/guide/index.md',
+      '# Guide\n\n- [Intro](./intro.md)\n- [Deep](./deep/index.md)\n- [Leaf](./deep/leaf.md)\n',
+    );
+    const result = run();
+    assert.deepEqual(result.unlisted, []);
+    const sidebar = JSON.parse(readFileSync(join(root, 'site/.generated/sidebar.json'), 'utf8'));
+    assert.deepEqual(sidebar[0].items.slice(1), [
+      {
+        label: 'Deep',
+        collapsed: true,
+        items: [
+          { label: 'Overview', slug: 'g/deep' },
+          { label: 'Leaf', slug: 'g/deep/leaf' },
         ],
       },
     ]);

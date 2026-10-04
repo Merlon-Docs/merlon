@@ -14,7 +14,15 @@ Only the landing page (`packages/mdcp-site/src/content/docs/index.mdx`) is hand-
 | `docs/glossary/`    | Glossary            | `/glossary/`     |
 | `docs/developer/`   | Contributing        | `/contributing/` |
 
-The sync script reads `docs/mdcp.config.json` and each guide's `index.md` for sidebar order, and uses each shard's first `#` heading as the page title. It rewrites links for the site:
+The sync script reads `docs/mdcp.config.json` and each guide's `index.md` for sidebar order, and uses each shard's first `#` heading as the page title. These manifest entries become sidebar groups:
+
+- A page entry with nested items, other than a sub-index, groups its page and those items.
+- A sub-index (`index.md`) shows its page as the overview, then the entries nested under it whose pages are in its directory. Nested entries outside its directory follow the group at the same level. When it has no nested entries in its directory, it shows the pages its own list links under its directory that no earlier entry has placed.
+- When the guide's `index.md` lists a page other than an `index.md` from a subdirectory with no nested items, that page groups the pages its own list links the same way. Unlike a sub-index, it skips the pages the guide's `index.md` lists. It also skips pages in a deeper directory where the guide's `index.md` lists some page, so the page listed there can group them.
+
+The first group whose list links a page claims it. A page other than an `index.md` that only a sub-index or another such subdirectory page lists stays a plain sidebar link, and so does an entry whose list leaves nothing to group.
+
+The sync script rewrites links for the site:
 
 - Relative `.md` links between published shards become site routes.
 - Compiled cross-links such as `[text](#slug)` resolve through the refs registry (`docs/_build/refs.json`) and the per-guide compiled outputs. The `mdcp-shard` source markers in each compiled file name the shard that defines the slug.
