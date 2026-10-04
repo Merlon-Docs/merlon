@@ -13,7 +13,6 @@ Library source: [`packages/mdcp-core/src/`](../../packages/mdcp-core/src/).
 | Refs / slugs       | `src/refs/`                   |
 | Validation         | `src/validate/`, `src/links/` |
 | Shard (split)      | `src/shard/`                  |
-| Protocol helpers   | `src/export/`                 |
 | Peer linters       | `src/peers/`                  |
 
 Shared heading/link helpers live under `src/markdown/` and `src/refs/` (`parseHeading` with ATX kind today, plain-text cleanup, GitHub-style **slugify**). They stay **language-agnostic**. Heading recognition is an ATX subset of GFM — see [GFM scope](../features/design-constraints/gfm-scope.md#headings). Compile-time wording lives under `src/locale/` (one BCP 47 JSON file per locale). Peer Vale owns prose cues and Pandoc ID authoring opinion — see [Locale and language boundary](../features/design-constraints/locale-and-language.md).

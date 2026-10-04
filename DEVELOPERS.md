@@ -246,7 +246,6 @@ Library source: [`packages/mdcp-core/src/`](packages/mdcp-core/src).
 | Refs / slugs       | `src/refs/`                   |
 | Validation         | `src/validate/`, `src/links/` |
 | Shard (split)      | `src/shard/`                  |
-| Protocol helpers   | `src/export/`                 |
 | Peer linters       | `src/peers/`                  |
 
 Shared heading/link helpers live under `src/markdown/` and `src/refs/` (`parseHeading` with ATX kind today, plain-text cleanup, GitHub-style **slugify**). They stay **language-agnostic**. Heading recognition is an ATX subset of GFM — see [GFM scope](docs/features/design-constraints/gfm-scope.md#headings). Compile-time wording lives under `src/locale/` (one BCP 47 JSON file per locale). Peer Vale owns prose cues and Pandoc ID authoring opinion — see [Locale and language boundary](docs/features/design-constraints/locale-and-language.md).
@@ -710,7 +709,6 @@ Do **not** reintroduce `lintXrefs` or chapter-cue regexes in `mdcp-core`.
 | -------------------------------- | ------------------------------ | ----------------------------------------------- |
 | `compile/headings.ts` `FENCE_RE` | Fence open/close markers       | Anchored; `` `{3,}` `` / `~{3,}` then remainder |
 | `refs/slugs.ts` slug cleanup     | `[^a-z0-9]+`, trim dashes      | Single character-class replace                  |
-| `export/protocol-version.ts`     | `mdcp.v…llms.txt` filenames    | Anchored filename; `[\d.]+` is linear           |
 | `compile/section-slug.ts`        | `FIND-N.md`, `.md` suffix      | Anchored / suffix only                          |
 | `compile/section-manifest.ts`    | Dynamic `##` sections heading  | Escaped literal; anchored `^##\s+…\s*$`         |
 | `links/validate.ts`              | `https?://`, `.md` suffix      | Anchored / suffix                               |

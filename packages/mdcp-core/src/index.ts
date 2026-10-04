@@ -153,13 +153,6 @@ export {
   type PathProbeIssue,
   type PathProbeOptions,
 } from './validate/path-probe.js';
-export {
-  abbreviateProtocolVersion,
-  expandProtocolVersion,
-  parseLlmsIndexFilename,
-  isLlmsIndexDraftFilename,
-  protocolVersionToReleaseRef,
-} from './export/protocol-version.js';
 export { findPeerBinary, runPeer, type PeerTool } from './peers/resolve.js';
 export { shardFromMonolith, runMdTree, type ShardGuideMapping } from './shard/orchestrator.js';
 export {

@@ -51,7 +51,6 @@ Do **not** reintroduce `lintXrefs` or chapter-cue regexes in `mdcp-core`.
 | -------------------------------- | ------------------------------ | ----------------------------------------------- |
 | `compile/headings.ts` `FENCE_RE` | Fence open/close markers       | Anchored; `` `{3,}` `` / `~{3,}` then remainder |
 | `refs/slugs.ts` slug cleanup     | `[^a-z0-9]+`, trim dashes      | Single character-class replace                  |
-| `export/protocol-version.ts`     | `mdcp.v…llms.txt` filenames    | Anchored filename; `[\d.]+` is linear           |
 | `compile/section-slug.ts`        | `FIND-N.md`, `.md` suffix      | Anchored / suffix only                          |
 | `compile/section-manifest.ts`    | Dynamic `##` sections heading  | Escaped literal; anchored `^##\s+…\s*$`         |
 | `links/validate.ts`              | `https?://`, `.md` suffix      | Anchored / suffix                               |
