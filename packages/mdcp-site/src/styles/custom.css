@@ -10,3 +10,117 @@
   --sl-color-accent: #0b7a71;
   --sl-color-accent-high: #0a3a36;
 }
+
+/* Front page: facts row under the hero. */
+.mdcp-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  gap: 0.75rem;
+  margin: 0 0 2rem;
+  padding: 0;
+}
+
+.mdcp-facts > div {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.5rem;
+  text-align: center;
+}
+
+.mdcp-facts dt {
+  font-size: var(--sl-text-2xl);
+  font-weight: 700;
+  color: var(--sl-color-white);
+  line-height: 1.2;
+}
+
+.mdcp-facts dd {
+  margin: 0.25rem 0 0;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-3);
+}
+
+/* Front page: skill stack diagram. */
+.mdcp-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+}
+
+.mdcp-stack__layer {
+  display: grid;
+  grid-template-columns: 9rem 1fr;
+  gap: 0.25rem 1rem;
+  align-items: center;
+  padding: 0.9rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--sl-color-gray-5);
+}
+
+.mdcp-stack__label {
+  font-weight: 700;
+  color: var(--sl-color-white);
+}
+
+.mdcp-stack__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.mdcp-stack__chips > span {
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: var(--sl-text-sm);
+  background: var(--sl-color-gray-6);
+  color: var(--sl-color-gray-2);
+}
+
+.mdcp-stack__note {
+  grid-column: 2;
+  font-size: var(--sl-text-xs);
+  color: var(--sl-color-gray-3);
+}
+
+.mdcp-stack__layer--helpers {
+  border-style: dashed;
+}
+
+.mdcp-stack__layer--mdcp {
+  border: 2px solid var(--sl-color-accent);
+  background: var(--sl-color-accent-low);
+}
+
+.mdcp-stack__layer--mdcp .mdcp-stack__chips > span {
+  background: var(--sl-color-accent);
+  color: var(--sl-color-black);
+}
+
+.mdcp-stack__layer--repo {
+  background: var(--sl-color-gray-6);
+}
+
+.mdcp-stack__layer--repo .mdcp-stack__note {
+  grid-column: auto;
+  font-size: var(--sl-text-sm);
+}
+
+@media (max-width: 40rem) {
+  .mdcp-stack__layer {
+    grid-template-columns: 1fr;
+  }
+
+  .mdcp-stack__note,
+  .mdcp-stack__layer--repo .mdcp-stack__note {
+    grid-column: auto;
+  }
+}
+
+.mdcp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
