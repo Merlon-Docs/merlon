@@ -87,7 +87,7 @@ Mixing two jobs in one shard is a mitosis signal. Named lineage: [Acknowledgment
 
 ## Extensions beyond this archetype
 
-GTM/marketing/sales documentation is a separate WIP archetype (`mdcp-arch-gtm`), not part of the Code Repository Archetype — see [Extensions and archetypes](./extensions-and-archetypes.md).
+Go-to-market documentation, such as marketing and sales docs, belongs to a separate internal archetype (`mdcp-arch-gtm`) outside the Code Repository Archetype. See [Extensions and archetypes](./extensions-and-archetypes.md).
 
 ## Acceptance
 

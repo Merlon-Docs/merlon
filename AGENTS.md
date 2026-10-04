@@ -10,17 +10,17 @@ This is the mdcp monorepo: a documentation-system Agent Skill plus a TypeScript 
 
 Documentation is sharded under `docs/`. Shards are the source of truth and compiled output is generated. **Never hand-edit compiled files.** Edit the source shard under `docs/` and run `pnpm docs:compile:repo`. A file with `<!-- mdcp-shard: start ... -->` markers is compiled output, and each marker gives the path of its source shard.
 
-| Shard directory                | Compiled output                   |
-| ------------------------------ | --------------------------------- |
-| `docs/repo-readme/`            | `README.md`                       |
-| `docs/developer/`              | `DEVELOPERS.md`                   |
-| `docs/client-cli/`             | `packages/mdcp-cli/README.md`     |
-| `docs/client-core/`            | `packages/mdcp-core/README.md`    |
-| `docs/features/`               | `docs/_build/features.md`         |
-| `docs/presentation-la-devops/` | `presentations/la-devops-2026.md` |
-| Every guide above, stitched    | `docs/_build/guides.md`           |
+| Shard directory                | Compiled output                    |
+| ------------------------------ | ---------------------------------- |
+| `docs/repo-readme/`            | `README.md`                        |
+| `docs/developer/`              | `DEVELOPERS.md`                    |
+| `docs/client-cli/`             | `packages/mdcp-cli/README.md`      |
+| `docs/client-core/`            | `packages/mdcp-core/README.md`     |
+| `docs/features/`               | `docs/_build/features.md`          |
+| `docs/presentation-la-devops/` | `presentations/la-devops-2026.md`  |
+| `docs/features/`               | `docs/_build/guides.md` (monolith) |
 
-Shards in `docs/glossary/` compile into the guides whose pages link to them. CI recompiles every guide and fails when `git diff` shows a stale compiled file.
+Only guides without a `compile.outputFile` in `docs/mdcp.config.json` join the monolith. Shards in `docs/glossary/` compile into the guides whose pages link to them. CI recompiles every guide and fails when `git diff` shows a stale compiled file.
 
 ## Before you run anything
 

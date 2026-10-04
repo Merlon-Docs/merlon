@@ -30,7 +30,7 @@ Design constraints for the protocol and its ecosystem — analogous to SOLID in 
 
 ## Extensions directory
 
-Published and community extensions live as complementary skills under `skills/mdcp-arch-*` (WIP) or local `docs/extensions/`.
+Extensions are complementary skills. mdcp's own are the internal archetypes under `skills/mdcp-arch-*`, and a project can add its own in a local `docs/extensions/`.
 
 | Kind                | Purpose                                                            | Example                                   |
 | ------------------- | ------------------------------------------------------------------ | ----------------------------------------- |
