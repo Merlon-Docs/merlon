@@ -435,7 +435,9 @@ gh issue edit <N> --remove-label "priority:P2" --add-label "priority:P1"
 
 ### Weekly triage run
 
-Run **about once a week** (maintainer or coding agent with project scope). Goal: board and labels match reality; stale or duplicate tickets get a **human verification prompt** — never silent close-without-action.
+This run is **advisory**, because no workflow in this repo schedules it. Run it about once a week (a maintainer, or a coding agent with project scope). Goal: board and labels match reality, and stale or duplicate tickets get a **human verification prompt** instead of a silent close.
+
+A run that changes something leaves its evidence in the tracker. Step 5 leaves a **Triage** comment on each stale candidate, and step 6 leaves a comment that links the canonical issue. Whatever steps 2 to 4 change shows in each issue's history. A run that finds nothing to change doesn't leave a trace, so in the tracker a quiet week looks the same as a skipped one.
 
 #### Checklist
 
@@ -523,7 +525,7 @@ The skill's QA principles and its day-to-day workflows encode the same rule so p
 5. **Docs describe now** — update shards to match as-built behavior. Do not document superseded workflows in `docs/features/` or `docs/client/`; record consumer notice in the changeset (lands in package CHANGELOGs). Never link durable shards or ADRs to pending `.changeset/*.md` files.
 6. **Add a changeset** — see [When to add a changeset](#when-to-add-a-changeset).
 7. **Issue intake** — when opening or first touching an issue, complete [New issue intake](#new-issue-intake-required) (labels, board, Track, Status, milestone).
-8. **Weekly triage** — once a week, run [Weekly triage run](#weekly-triage-run); prompt humans before closing stale or duplicate tickets.
+8. **Weekly triage**: run the advisory [Weekly triage run](#weekly-triage-run) about once a week. It asks humans to confirm before any stale or duplicate ticket is closed.
 
 ### Example intake answers
 
@@ -1209,7 +1211,7 @@ First npm publish must happen from your machine with `npm login` before Trusted 
 2. Repository: `betsalel-williamson/mdcp`
 3. Workflow filename: `release.yml`
 
-Also enable **Settings → Actions → General → Workflow permissions → Allow GitHub Actions to create and approve pull requests** only if you still use other bots that open PRs; the release path no longer opens a Version Packages PR.
+Also enable **Settings → Actions → General → Workflow permissions → Allow GitHub Actions to create and approve pull requests**. The [sync workflow](#release-schedule-release-pr-from-develop-to-main) needs it. When merging `main` back into `develop` conflicts, that workflow opens a pull request from `main` to `develop` with its own `GITHUB_TOKEN`.
 
 #### `RELEASE_GITHUB_TOKEN`
 
@@ -1348,7 +1350,9 @@ Do not invent alternate labels. When a risk closes, update the row to `reviewed`
 
 ### Re-review cadence
 
-Re-run the checklist when any of the following change:
+This cadence is **advisory**, because no workflow re-runs the checklist. Whoever makes one of the changes below should re-run the rows it affects. When a coding agent makes the change, it should commit the re-run on the same branch. For a Dependabot bump of an action version, the maintainer who merges the PR should re-run those rows. Each re-run leaves its evidence as a new date on those rows in the [checklist](#github-actions-security-checklist).
+
+Re-run the affected rows when any of the following change:
 
 - Workflow files under `.github/workflows/` (triggers, permissions, action versions, secrets usage)
 - Repository or organization **Actions** settings (default `GITHUB_TOKEN` permissions, allowed actions, environments)
@@ -1356,7 +1360,9 @@ Re-run the checklist when any of the following change:
 - Dependabot or secret-scanning configuration
 - Release mechanics ([Publishing](#publishing) — OIDC, environments, npm trust)
 
-Even when nothing changes, schedule a **periodic pass** (for example quarterly) so third-party action advisories and OWASP guidance updates do not drift unnoticed.
+The [Zizmor](#static-analysis) job gates part of the review for workflow-file changes, since it fails on workflow misconfigurations. It scans Dependabot PRs and direct pushes to `develop` as they arrive, but for workflow changes that land through the land workflow, its first scan is on the release PR ([Landing on `develop`](#landing-on-develop)).
+
+Even when nothing changes, a maintainer should run a **periodic pass** by hand about once a quarter so third-party action advisories and OWASP guidance updates do not drift unnoticed. A full pass gives every dated row a new date, so an oldest date more than a quarter old shows that a pass is overdue.
 
 ### CODEOWNERS and external contributor review
 

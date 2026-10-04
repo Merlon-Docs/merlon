@@ -18,7 +18,9 @@ Do not invent alternate labels. When a risk closes, update the row to `reviewed`
 
 ## Re-review cadence
 
-Re-run the checklist when any of the following change:
+This cadence is **advisory**, because no workflow re-runs the checklist. Whoever makes one of the changes below should re-run the rows it affects. When a coding agent makes the change, it should commit the re-run on the same branch. For a Dependabot bump of an action version, the maintainer who merges the PR should re-run those rows. Each re-run leaves its evidence as a new date on those rows in the [checklist](./github-actions-security-checklist.md).
+
+Re-run the affected rows when any of the following change:
 
 - Workflow files under `.github/workflows/` (triggers, permissions, action versions, secrets usage)
 - Repository or organization **Actions** settings (default `GITHUB_TOKEN` permissions, allowed actions, environments)
@@ -26,7 +28,9 @@ Re-run the checklist when any of the following change:
 - Dependabot or secret-scanning configuration
 - Release mechanics ([Publishing](./publishing.md) — OIDC, environments, npm trust)
 
-Even when nothing changes, schedule a **periodic pass** (for example quarterly) so third-party action advisories and OWASP guidance updates do not drift unnoticed.
+The [Zizmor](#static-analysis) job gates part of the review for workflow-file changes, since it fails on workflow misconfigurations. It scans Dependabot PRs and direct pushes to `develop` as they arrive, but for workflow changes that land through the land workflow, its first scan is on the release PR ([Landing on `develop`](./versioning-and-releases.md#landing-on-develop)).
+
+Even when nothing changes, a maintainer should run a **periodic pass** by hand about once a quarter so third-party action advisories and OWASP guidance updates do not drift unnoticed. A full pass gives every dated row a new date, so an oldest date more than a quarter old shows that a pass is overdue.
 
 ## CODEOWNERS and external contributor review
 

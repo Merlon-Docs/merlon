@@ -21,7 +21,7 @@ First npm publish must happen from your machine with `npm login` before Trusted 
 2. Repository: `betsalel-williamson/mdcp`
 3. Workflow filename: `release.yml`
 
-Also enable **Settings → Actions → General → Workflow permissions → Allow GitHub Actions to create and approve pull requests** only if you still use other bots that open PRs; the release path no longer opens a Version Packages PR.
+Also enable **Settings → Actions → General → Workflow permissions → Allow GitHub Actions to create and approve pull requests**. The [sync workflow](./versioning-and-releases.md#release-schedule-release-pr-from-develop-to-main) needs it. When merging `main` back into `develop` conflicts, that workflow opens a pull request from `main` to `develop` with its own `GITHUB_TOKEN`.
 
 ### `RELEASE_GITHUB_TOKEN`
 
