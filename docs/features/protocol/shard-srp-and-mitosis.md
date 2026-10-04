@@ -48,7 +48,7 @@ A **guide** is an ordered constellation of shards for **one audience job family*
 
 - Each shard still passes single responsibility.
 - Manifest order tells a coherent story for that audience without requiring every reader to load every shard.
-- Placement stays by audience and job, not by topic keyword alone (the same subject may appear in more than one tier with different responsibilities).
+- Each shard passes the [placement test](./mdcp-1.0-spec.md#2-default-guide-layout-code-repository-archetype).
 
 The MDCP engine is domain-agnostic. Other archetypes may use different guide names; the SRP and mitosis rules still apply.
 
@@ -59,7 +59,7 @@ When a change touches documentation (or code whose behavior a guide documents):
 1. **In isolation** — each changed idea or shard is locally correct for its single responsibility.
 2. **Comprehensively** — against related shards and guides: duplication, better splits/merges/relocations, and agreement between what guides promise and what the change does.
 
-A review is complete only when the change and its guides agree. Guide-specific application for this repository: [Comprehensive review when guides are involved](../../developer/docs-dogfooding.md#comprehensive-review-when-guides-are-involved).
+A review is complete only when the change and its guides agree. Guides record the intent behind the code, so a review of the diff alone can miss where they disagree. To review a whole docs root as a set, use the [doc-review workflow](./workflows/doc-review.md).
 
 ## Supporting maps (optional depth)
 

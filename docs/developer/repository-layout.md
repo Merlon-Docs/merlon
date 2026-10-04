@@ -5,6 +5,7 @@ mdcp/
 ├── CODE_OF_CONDUCT.md      # Contributor Covenant (committed)
 ├── README.md               # Compiled from docs/repo-readme/ (committed)
 ├── DEVELOPERS.md           # Compiled from docs/developer/ (committed)
+├── presentations/          # Compiled from docs/presentation-*/ (committed)
 ├── skills/                 # Agent Skills install surface only (npx skills add)
 │   ├── mdcp/               # The MDCP skill + workflows (no package.json / CHANGELOG here)
 │   └── mdcp-arch-*/        # Internal archetypes (metadata.internal)
@@ -19,11 +20,12 @@ mdcp/
 │   └── skill-*/            # Private @bwilliamson/skill-* version carriers + CHANGELOGs
 ├── docs/                   # Sharded docs (mdcp.config.json) — dogfood target
 │   ├── glossary/           # Shared acronyms and terms (cross-guide, like insert libraries)
-│   ├── features/           # Tool capabilities → docs/_build/guides.md (local review, gitignored)
+│   ├── features/           # Tool capabilities → docs/_build/features.md (local review, gitignored)
 │   ├── developer/          # This guide → DEVELOPERS.md
 │   ├── client-cli/         # → packages/mdcp-cli/README.md
 │   ├── client-core/        # → packages/mdcp-core/README.md
 │   ├── repo-readme/        # → README.md (publish landing)
+│   ├── presentation-la-devops/ # → presentations/la-devops-2026.md (meetup talk)
 │   ├── vale-local/         # Dogfood-only Vale styles (MDCP-PandocId)
 │   └── .vale.ini           # Peer Vale config
 ├── examples/sample-guides/ # Minimal consumer fixture for tests and tutorials
