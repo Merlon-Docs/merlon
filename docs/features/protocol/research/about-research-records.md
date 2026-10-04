@@ -30,11 +30,14 @@ A record that no longer holds is superseded by a new record rather than edited, 
 - **Separate observation from recommendation.** A record ends by naming which durable position it feeds and links to it. It does not itself become the rule.
 - **Date it and leave it.** A superseding record is a new file.
 
-## Related
+## Records
 
 - [Field report: a fully automated repository](./field-report-automated-repository.md)
 - [Field report: the edge of the validated surface](./field-report-validated-surface.md)
 - [Skill eval round: measured changes to the mdcp skill](./skill-eval-round-2026-10-03.md)
+
+## Related
+
 - [Enforceable rules](../../design-constraints/enforceable-rules.md) — the position most records here feed
 - [Benefit claims and evidence](../benefit-claims-and-evidence.md) — what may be said publicly from a record
 - [Extensions and archetypes](../extensions-and-archetypes.md) — the archetype that packages this layout

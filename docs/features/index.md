@@ -1,10 +1,8 @@
-# MDCP Feature Catalog
+# Features Guide
 
-Product documentation for **what mdcp is designed to do** — the problems it solves, how commands connect, and where to read implementation details.
+Product documentation for **what mdcp is designed to do**: the problems it solves and how commands connect.
 
-**Start here:** [Overview](./overview.md) explains the mental model (shards → compile → validate → Agent Skill), package roles, and a code map. The sections below go deeper on specific topics.
-
-- [MDCP Feature Catalog](#table-of-contents)
+- [Features Guide](#table-of-contents)
   - [About this guide](./about-this-guide.md)
 
 ## Start here
@@ -29,21 +27,10 @@ Product documentation for **what mdcp is designed to do** — the problems it so
 
 - [Agent Skill](./agent-skill.md)
 - [Skill workflows](./protocol/skill-workflows.md)
-- [Getting-started workflow](./protocol/workflows/getting-started.md)
-- [Feature-level workflow](./protocol/workflows/feature-level.md)
-- [Doc-only workflow](./protocol/workflows/doc-only.md)
-- [Design-architecture workflow](./protocol/workflows/design-architecture.md)
-- [UX workflow](./protocol/workflows/ux.md)
-- [Doc-review workflow](./protocol/workflows/doc-review.md)
 
 ## Decisions and constraints
 
 - [Architecture decision records](./adr/index.md)
-- [ADR 0001 — Remove `mdcp export` profiles](./adr/0001-remove-export-profiles.md)
-- [ADR 0002 — Remove `mdcp refs lookup`](./adr/0002-remove-refs-lookup.md)
-- [ADR 0003 — Do not adopt OKF](./adr/0003-do-not-adopt-okf.md)
-- [ADR 0004 — Decline a hard-gated branch-before-edit skill rule](./adr/0004-decline-branch-before-edit-hard-gate.md)
-- [ADR 0005 — Keep linear TypeScript scanners over rg, Peggy, or Rust](./adr/0005-keep-ts-scanners-over-rg-peggy-rust.md)
 - [Design constraints](./design-constraints/index.md)
 
 ## Protocol
@@ -61,9 +48,5 @@ Product documentation for **what mdcp is designed to do** — the problems it so
 ## Evidence and research
 
 - [Benefit claims and evidence](./protocol/benefit-claims-and-evidence.md)
-- [Performance goals and review](./protocol/performance.md)
+- [Performance goals](./protocol/performance.md)
 - [Research records](./protocol/research/about-research-records.md)
-  - [About research records](./protocol/research/about-research-records.md)
-  - [Field report: a fully automated repository](./protocol/research/field-report-automated-repository.md)
-  - [Field report: the edge of the validated surface](./protocol/research/field-report-validated-surface.md)
-  - [Skill eval round: measured changes to the mdcp skill](./protocol/research/skill-eval-round-2026-10-03.md)
