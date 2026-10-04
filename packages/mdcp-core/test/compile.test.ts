@@ -226,6 +226,50 @@ describe('compileGuides', () => {
     });
   });
 
+  it('lands each rewritten section link on the heading that opens the section', () => {
+    withTmpDir('mdcp-section-slugs-', (work) => {
+      const guideDir = join(work, 'guide');
+      mkdirSync(guideDir, { recursive: true });
+      writeFileSync(
+        join(guideDir, 'index.md'),
+        '# Setup\n\n- [Overview](overview.md)\n- [Install](install.md)\n- [Setup](setup.md)\n- [Usage](usage.md)\n',
+      );
+      writeFileSync(
+        join(guideDir, 'overview.md'),
+        '# Overview\n\nSee [install](./install.md), [setup](./setup.md) and [usage](./usage.md).\n\n## Install\n\n```bash\n# usage\n```\n',
+      );
+      writeFileSync(join(guideDir, 'install.md'), '# Install\n\n~~~sh\n# setup\n~~~\n');
+      writeFileSync(join(guideDir, 'setup.md'), '# Setup\n\nBody.\n');
+      writeFileSync(join(guideDir, 'usage.md'), '# Usage\n\nBody.\n');
+
+      const [compiled] = compileGuideResults({
+        guidesRoot: work,
+        compileOrder: ['guide'],
+        docsRoot: work,
+        config: { compileOrder: ['guide'] },
+      });
+      const assembled = assembleGuide(guideDir, { outputFile: join(work, 'out', 'guide.md') });
+
+      for (const out of [compiled.text, assembled]) {
+        const lines = out.split('\n');
+        const headings = buildSlugRegistry(out).headings;
+        const landed: Record<string, number | undefined> = {};
+        const opening: Record<string, number> = {};
+        for (const name of ['install', 'setup', 'usage']) {
+          const fragment = new RegExp(`\\[${name}\\]\\(#([^)]*)\\)`).exec(out)?.[1];
+          landed[name] = headings.find((h) => h.slug === fragment)?.line;
+          // A start tag, a blank line, then the section's opening heading.
+          const tag = lines.findIndex(
+            (l) => l.startsWith('<!-- mdcp-shard: start') && l.endsWith(`/${name}.md -->`),
+          );
+          expect(lines[tag + 2]).toMatch(/^## /);
+          opening[name] = tag + 3;
+        }
+        expect(landed).toEqual(opening);
+      }
+    });
+  });
+
   it('injects source tags around sections by default when outputFile is provided', () => {
     withTmpDir('mdcp-source-tags-', (work) => {
       writeFileSync(join(work, 'index.md'), '# Example\n\n- [Section](section.md)\n');

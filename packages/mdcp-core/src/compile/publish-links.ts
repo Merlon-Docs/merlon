@@ -4,7 +4,7 @@ import { defaultSearchRoots, resolveRelativeFile } from './hooks/path-resolve.js
 import { maskInlineCode } from '../links/extract.js';
 import type { GuideLinkIndex, GuideLinkEntry } from './guide-link-index.js';
 import { sectionBodyForSlug, slugForDemotedSection } from './section-slug.js';
-import { assignSectionSlugs, type ShardCache } from './shard-cache.js';
+import { assignSectionSlugs, type SectionSlugContext, type ShardCache } from './shard-cache.js';
 
 /** Slug for a shard file after compile demotion (shared by index build and hooks). */
 export function slugForSectionFile(filePath: string, cache?: ShardCache): string | null {
@@ -61,13 +61,14 @@ function linkPrefixFromMatch(originalMatch: string, url: string): string {
   return originalMatch.slice(0, idx + 2);
 }
 
-/** Map shard file paths to GitHub-style slugs for the first heading after compile demotion. */
+/** Map shard file paths to the slug each section's opening heading gets in the compiled guide. */
 export function buildSectionSlugMap(
   sectionPaths: string[],
   cache?: ShardCache,
   preambleSection = 'about-this-guide.md',
+  context: SectionSlugContext = {},
 ): Map<string, string> {
-  return assignSectionSlugs(sectionPaths, cache, preambleSection);
+  return assignSectionSlugs(sectionPaths, cache, preambleSection, context);
 }
 
 /** A `../` target, including one made only of `../` segments such as `../` or `../../`. */

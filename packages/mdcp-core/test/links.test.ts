@@ -12,6 +12,7 @@ import { lintCompiledLinks } from '../src/links/validate-compiled.js';
 import { lintLinks, formatLinkIssue } from '../src/links/lint.js';
 import { buildSlugRegistry } from '../src/refs/slugs.js';
 import { compileGuideResults } from '../src/compile/assemble.js';
+import { createShardCache, loadShardSnapshot } from '../src/compile/shard-cache.js';
 import { MdcpConfigSchema } from '../src/config/schema.js';
 import { withTmpDir, withCwd } from './helpers/tmp-dir.js';
 
@@ -445,6 +446,22 @@ describe('lintShardLinks', () => {
       writeFileSync(shard, '## S\n\n[bad](#no-such-heading)\n');
       const issues = lintShardLinks({ shardFile: shard, guideDir });
       expect(issues.some((i) => i.kind === 'dead anchor')).toBe(true);
+    });
+  });
+
+  it('reports a #fragment that only matches a comment in a fenced code block', () => {
+    withTmpDir('mdcp-lint-frag-fence-', (work) => {
+      const guideDir = join(work, 'g');
+      mkdirSync(guideDir, { recursive: true });
+      const shard = join(guideDir, 'section.md');
+      writeFileSync(shard, '## S\n\n```bash\n# install\n```\n\n[install](#install)\n');
+      const snapshot = loadShardSnapshot(shard, createShardCache());
+      for (const issues of [
+        lintShardLinks({ shardFile: shard, guideDir }),
+        lintShardLinks({ shardFile: shard, guideDir, snapshot }),
+      ]) {
+        expect(issues.map((i) => [i.kind, i.line])).toEqual([['dead anchor', 7]]);
+      }
     });
   });
 });

@@ -4,11 +4,19 @@
  */
 import { describe, it, expect } from 'vitest';
 import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { buildGuideLinkIndex } from '../src/compile/guide-link-index.js';
+import { dirname, join } from 'node:path';
+import {
+  buildGuideLinkIndex,
+  buildGuideLinkIndexWithSlugs,
+} from '../src/compile/guide-link-index.js';
 import { rewriteCrossGuideFileLinks } from '../src/compile/publish-links.js';
-import { compileGuideResults, writeCompiledGuides } from '../src/compile/assemble.js';
+import {
+  assembleGuide,
+  compileGuideResults,
+  writeCompiledGuides,
+} from '../src/compile/assemble.js';
 import type { CompileOptionsInput } from '../src/compile/assemble.js';
+import { buildSlugRegistry } from '../src/refs/slugs.js';
 import { withTmpDir } from './helpers/tmp-dir.js';
 
 function writeThreeGuideFixture(
@@ -640,6 +648,304 @@ describe('cross-guide link rewriting', () => {
         expect(result.text).not.toMatch(/guide-[ab]\.md#shared-note/);
         expect(result.text).not.toMatch(/\]\(\.\.\/shared\/note\.md\)/);
       }
+    });
+  });
+});
+
+function writeTree(root: string, files: Record<string, string>): void {
+  for (const [rel, text] of Object.entries(files)) {
+    mkdirSync(dirname(join(root, rel)), { recursive: true });
+    writeFileSync(join(root, rel), text);
+  }
+}
+
+type GuideCompile = NonNullable<NonNullable<CompileOptionsInput['guides']>[number]['compile']>;
+
+function headingSlugAt(text: string, heading: string): string | undefined {
+  const line = text.split('\n').indexOf(heading) + 1;
+  return buildSlugRegistry(text).headings.find((h) => h.line === line)?.slug;
+}
+
+describe('section slugs count every earlier heading', () => {
+  it('numbers a section after an earlier sub-heading with the same title', () => {
+    withTmpDir('mdcp-section-slug-sub-', (work) => {
+      writeTree(work, {
+        'a/index.md': '# Guide A\n\n- [One](./one.md)\n- [Two](./two.md)\n',
+        'a/one.md': '# One\n\nSee [two](./two.md).\n\n## Two\n\nSub.\n',
+        'a/two.md': '# Two\n\nSection two.\n',
+      });
+      const [r] = compileGuideResults({
+        guidesRoot: work,
+        compileOrder: ['a'],
+        docsRoot: work,
+        config: { compileOrder: ['a'] },
+      });
+      expect(r.text).toContain('[two](#two-1)');
+    });
+  });
+
+  it('counts the guide H1 that assembly writes first', () => {
+    withTmpDir('mdcp-section-slug-h1-', (work) => {
+      writeTree(work, {
+        'a/index.md': '# Two\n\n- [One](./one.md)\n- [Two](./two.md)\n',
+        'a/one.md': '# One\n\nSee [two](./two.md).\n',
+        'a/two.md': '# Two\n\nSection two.\n',
+      });
+      const [r] = compileGuideResults({
+        guidesRoot: work,
+        compileOrder: ['a'],
+        docsRoot: work,
+        config: { compileOrder: ['a'] },
+      });
+      expect(r.text).toContain('[two](#two-1)');
+    });
+  });
+
+  it('counts compile.title once when the first section repeats it', () => {
+    withTmpDir('mdcp-section-slug-title-', (work) => {
+      writeTree(work, {
+        'a/index.md': '# Guide\n\n- [One](./one.md)\n- [Two](./two.md)\n- [Three](./three.md)\n',
+        'a/one.md': '# Overview\n\nBody.\n',
+        'a/two.md': '# Two\n\nSee [one](./one.md).\n\n## Overview\n\nAgain.\n',
+        'a/three.md': '# Overview\n\nSee [three](./three.md).\n',
+      });
+      const [r] = compileGuideResults({
+        guidesRoot: work,
+        compileOrder: ['a'],
+        docsRoot: work,
+        config: { compileOrder: ['a'] },
+        guides: [{ name: 'a', compile: { title: 'Overview' } }],
+      });
+      expect(r.text).toContain('[one](#overview)');
+      expect(r.text).toContain('[three](#overview-2)');
+      expect(headingSlugAt(r.text, '### Overview')).toBe('overview-1');
+    });
+  });
+
+  it('skips a fenced comment that repeats a later section title', () => {
+    withTmpDir('mdcp-section-slug-fence-', (work) => {
+      writeTree(work, {
+        'a/index.md': '# Guide\n\n- [One](./one.md)\n- [Install](./install.md)\n',
+        'a/one.md': '# One\n\n```bash\n# install\n```\n\nSee [install](./install.md).\n',
+        'a/install.md': '# Install\n\nSteps.\n',
+      });
+      const [r] = compileGuideResults({
+        guidesRoot: work,
+        compileOrder: ['a'],
+        docsRoot: work,
+        config: { compileOrder: ['a'] },
+      });
+      expect(r.text).toContain('[install](#install)');
+      expect(headingSlugAt(r.text, '## Install')).toBe('install');
+    });
+  });
+
+  it('keeps declared ids and counts their headings for later sections', () => {
+    withTmpDir('mdcp-section-slug-declared-', (work) => {
+      writeTree(work, {
+        'g/index.md':
+          '# Guide\n\n- [Find](./FIND-001.md)\n- [Anchored](./anchored.md)\n- [Install](./install.md)\n- [Setup](./setup.md)\n- [Links](./links.md)\n',
+        'g/FIND-001.md': '# Install\n\nFinding body.\n',
+        'g/anchored.md': '# Setup {#custom}\n\nAnchored body.\n',
+        'g/install.md': '# Install\n\nSteps.\n',
+        'g/setup.md': '# Setup\n\nSetup body.\n',
+        'g/links.md':
+          '# Links\n\n[f](./FIND-001.md) [a](./anchored.md) [i](./install.md) [s](./setup.md)\n',
+      });
+      const [r] = compileGuideResults({
+        guidesRoot: work,
+        compileOrder: ['g'],
+        docsRoot: work,
+        config: { compileOrder: ['g'] },
+      });
+      // The FIND-* and {#id} sections keep their ids, and their headings still take
+      // `install` and `setup`, so the later sections with the same titles take `-1`.
+      expect(r.text).toContain('[f](#find-001) [a](#custom) [i](#install-1) [s](#setup-1)');
+      const slugs = buildSlugRegistry(r.text).headings.map((h) => `${h.title}:${h.slug}`);
+      expect(slugs).toEqual([
+        'Guide:guide',
+        'Install:install',
+        'Setup:setup',
+        'Install:install-1',
+        'Setup:setup-1',
+        'Links:links',
+      ]);
+    });
+  });
+
+  it('numbers a heading by the title it renders when compile keeps the markers', () => {
+    withTmpDir('mdcp-section-slug-kept-markers-', (work) => {
+      writeTree(work, {
+        'g/index.md':
+          '# Guide\n\n- [Anchored](./anchored.md)\n- [One](./one.md)\n- [Setup](./setup.md)\n- [Install](./install.md)\n- [Links](./links.md)\n',
+        'g/anchored.md': '# Setup {#custom}\n\nAnchored body.\n',
+        'g/one.md': '# One\n\n## Install {#inst}\n\nText.\n',
+        'g/setup.md': '# Setup\n\nSetup body.\n',
+        'g/install.md': '# Install\n\nSteps.\n',
+        'g/links.md': '# Links\n\n[a](./anchored.md) [s](./setup.md) [i](./install.md)\n',
+      });
+      const compileWith = (compile: GuideCompile): string =>
+        compileGuideResults({
+          guidesRoot: work,
+          compileOrder: ['g'],
+          docsRoot: work,
+          config: { compileOrder: ['g'] },
+          guides: [{ name: 'g', compile }],
+        })[0].text;
+
+      // Neither strip runs, so the headings render as "Setup {#custom}" and "Install {#inst}".
+      // A renderer slugs them setup-custom and install-inst, and the later sections keep
+      // #setup and #install.
+      const kept = compileWith({ stripAnchors: false, hooks: { stripAnchors: false } });
+      expect(kept).toContain('## Setup {#custom}');
+      expect(kept).toContain('### Install {#inst}');
+      expect(kept).toContain('[a](#custom) [s](#setup) [i](#install)');
+      // assembleGuide runs no hooks unless asked, so stripAnchors: false keeps the markers too.
+      expect(assembleGuide(join(work, 'g'), { stripAnchors: false })).toContain(
+        '[a](#custom) [s](#setup) [i](#install)',
+      );
+
+      // Either strip removes the heading markers, so the later sections take -1.
+      for (const compile of [
+        { stripAnchors: false },
+        { hooks: { stripAnchors: false } },
+      ] as GuideCompile[]) {
+        const stripped = compileWith(compile);
+        expect(stripped).toContain('## Setup\n');
+        expect(stripped).toContain('[a](#custom) [s](#setup-1) [i](#install-1)');
+      }
+    });
+  });
+
+  it('gives a cross-guide link the slug the target guide assembles', () => {
+    withTmpDir('mdcp-section-slug-index-', (work) => {
+      writeTree(work, {
+        'a/index.md': '# Two\n\n- [One](./one.md)\n- [Two](./two.md)\n',
+        'a/one.md': '# One\n\nBody.\n',
+        'a/two.md': '# Two\n\nSection two.\n',
+        'b/index.md': '# Guide B\n\n- [Links](./links.md)\n',
+        'b/links.md': '# Links\n\nSee [two](../a/two.md).\n',
+      });
+      const opts: CompileOptionsInput = {
+        guidesRoot: work,
+        compileOrder: ['a', 'b'],
+        docsRoot: work,
+        config: { outputDir: '.', compileOrder: ['a', 'b'] },
+        guides: [
+          { name: 'a', path: 'a', compile: { outputFile: 'a.md' } },
+          { name: 'b', path: 'b', compile: { outputFile: 'b.md' } },
+        ],
+      };
+      const built = buildGuideLinkIndex(opts, work);
+      // The per-guide numbering stays internal, off the exported result type.
+      expect(built).not.toHaveProperty('slugsByGuide');
+      const { index } = built;
+      const { slugsByGuide } = buildGuideLinkIndexWithSlugs(opts, work);
+      const results = compileGuideResults(opts);
+      const a = results.find((r) => r.name === 'a')!.text;
+      const b = results.find((r) => r.name === 'b')!.text;
+
+      const assembled = headingSlugAt(a, '## Two');
+      expect(assembled).toBe('two-1');
+      expect(index.get(join(work, 'a', 'two.md'))?.slug).toBe(assembled);
+      // Compile reuses the index's per-guide numbering rather than slugging every guide again.
+      expect(slugsByGuide.get('a')?.get(join(work, 'a', 'two.md'))).toBe(assembled);
+      expect(b).toContain('[two](a.md#two-1)');
+    });
+  });
+
+  it('reads each section after the blank line that assembly writes before it', () => {
+    // one.md ends inside a list item's paragraph. Assembly puts a blank line between the
+    // sections, so two.md's indented fence is top-level code and its `# install` isn't a heading.
+    for (const sourceTags of [true, false]) {
+      withTmpDir('mdcp-section-slug-separator-', (work) => {
+        writeTree(work, {
+          'a/index.md':
+            '# Guide A\n\n- [One](./one.md)\n- [Two](./two.md)\n- [Three](./three.md)\n- [Install](./install.md)\n',
+          'a/one.md': '# One\n\nSee [install](./install.md).\n\n- item\n  para\n',
+          'a/two.md': 'Intro text without a heading.\n\n  ```\n# install\n  ```\n',
+          'a/three.md': '# Three\n\n```bash\nnpm i\n```\n',
+          'a/install.md': '# Install\n\nSteps.\n',
+        });
+        const [r] = compileGuideResults({
+          guidesRoot: work,
+          compileOrder: ['a'],
+          docsRoot: work,
+          config: { compileOrder: ['a'], sourceTags },
+        });
+        expect(headingSlugAt(r.text, '## Install')).toBe('install');
+        expect(r.text).toContain('See [install](#install).');
+      });
+    }
+  });
+
+  it('keeps an in-document anchor for a shard owned only through the transitive walk', () => {
+    withTmpDir('mdcp-section-slug-transitive-', (work) => {
+      writeTree(work, {
+        'shared/setup.md': '# Setup\n\nShared setup.\n',
+        'x/index.md': '# Guide X\n\n- [Intro](./intro.md)\n',
+        'x/intro.md': '# Intro\n\nSee [shared](../shared/setup.md).\n',
+        'y/index.md': '# Guide Y\n\n- [Setup](./setup.md)\n- [Links](./links.md)\n',
+        'y/links.md': '# Links\n\nSee [shared](../shared/setup.md).\n',
+        'y/setup.md': '# Setup\n\nY setup.\n',
+      });
+      const opts: CompileOptionsInput = {
+        guidesRoot: work,
+        compileOrder: ['x', 'y'],
+        docsRoot: work,
+        config: { outputDir: '_build', compileOrder: ['x', 'y'] },
+        guides: [
+          { name: 'x', path: 'x', compile: { scopeRoot: '.', outputFile: 'x.md' } },
+          { name: 'y', path: 'y', compile: { scopeRoot: '.', outputFile: 'y.md' } },
+        ],
+      };
+      const index = buildGuideLinkIndex(opts, work).index;
+      const results = compileGuideResults(opts);
+      const x = results.find((r) => r.name === 'x')!.text;
+      const y = results.find((r) => r.name === 'y')!.text;
+
+      expect(index.get(join(work, 'shared', 'setup.md'))).toMatchObject({
+        guideName: 'x',
+        slug: 'setup',
+        canonical: false,
+      });
+      expect(x).toContain('See [shared](#setup).');
+      // y stitches the shard after its own Setup section and numbers it there.
+      const ySetups = buildSlugRegistry(y).headings.filter((h) => h.title === 'Setup');
+      expect(ySetups.map((h) => h.slug)).toEqual(['setup', 'setup-1']);
+      expect(y).toContain('See [shared](#setup-1).');
+    });
+  });
+
+  it("takes a cross-guide slug from the owning guide's numbering", () => {
+    withTmpDir('mdcp-section-slug-owner-', (work) => {
+      writeTree(work, {
+        'x/index.md': '# Guide X\n\n- [Setup](./setup.md)\n',
+        'x/setup.md': '# Setup\n\nThen see [the other setup](../y/setup.md).\n',
+        'y/index.md': '# Guide Y\n\n- [Setup](./setup.md)\n',
+        'y/setup.md': '# Setup\n\nY setup.\n',
+      });
+      const opts: CompileOptionsInput = {
+        guidesRoot: work,
+        compileOrder: ['x', 'y'],
+        docsRoot: work,
+        config: { outputDir: '.', compileOrder: ['x', 'y'] },
+        guides: [
+          { name: 'x', path: 'x', compile: { scopeRoot: '.', outputFile: 'x.md' } },
+          { name: 'y', path: 'y', compile: { outputFile: 'y.md' } },
+        ],
+      };
+      const index = buildGuideLinkIndex(opts, work).index;
+      const results = compileGuideResults(opts);
+      const x = results.find((r) => r.name === 'x')!.text;
+      const y = results.find((r) => r.name === 'y')!.text;
+
+      expect(headingSlugAt(y, '## Setup')).toBe('setup');
+      expect(index.get(join(work, 'y', 'setup.md'))).toMatchObject({
+        guideName: 'y',
+        slug: 'setup',
+      });
+      expect(x).toContain('[the other setup](y.md#setup)');
     });
   });
 });

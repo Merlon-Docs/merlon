@@ -12,7 +12,7 @@ A marker goes with the whitespace before it on the same line. When a marker open
 
 ## stripAnchors heading lines
 
-A line that mdcp reads as a heading, an ATX heading at column 0, loses every marker, even inside a fenced code block or a code span. Heading slugs drop every marker from a title and don't skip fences. Stripping the whole line keeps the compiled heading on the slug that refs and link rewriting use.
+A line that mdcp reads as a heading, an ATX heading at column 0, loses every marker, even inside a fenced code block or a code span. Heading slugs drop every marker from a title and skip the lines that the fence scan below reads as code. The scan ignores HTML and can misread a fence there, so stripping every heading line keeps a marker off a rendered heading even then.
 
 To show the syntax on a heading inside a fenced example, start the heading line one to three spaces in. mdcp doesn't read that line as a heading. The strip treats it as fenced text and keeps its marker. Outside a fence the same line is prose, and its marker goes.
 
@@ -20,14 +20,18 @@ To show the syntax on a heading inside a fenced example, start the heading line 
 
 On any other line, a `{#id}` inside a fenced code block or an inline code span stays.
 
-A fence opens where three or more backticks or tildes start a line's text at most three columns in. It also opens on a list marker line, where the run follows the marker and one to four columns of whitespace, and the marker starts at most three columns in. A tab advances to the next multiple of four columns, and a backtick fence's info string can't hold a backtick.
+The fence scan follows list items. A bullet or numbered list marker followed by one to four columns of whitespace opens an item whose text starts after that whitespace. A marker with no text after it opens an empty item whose text would start one column past the marker, and a blank line right after an empty item ends it. When a marker starts at or past the column where an open item's text starts, it nests in that item. The item ends at the first non-blank line that starts left of its text, unless that line continues a paragraph. Headings, fences, blockquotes, thematic breaks and list items interrupt a paragraph, and any other line continues it. In its own item, a list item interrupts a paragraph only when it has text and, if numbered, starts at 1.
 
-A run of the same character, at least as long and with nothing after it, closes the fence when it starts less than four columns past the fence's container. For a fence that opens on a marker line, the container is the column where the item's text starts, and the fence also ends at the first non-blank line that starts left of it. For any other fence the container is column 0. A fence with no closer runs to the end of the text unless its list item ends first.
+The container of a fence is the column where the innermost open item's text starts, or column 0 outside any item. Three or more backticks or tildes open a fence where they start a line's text less than four columns past the container, or right after a list marker. Tabs advance to the next multiple of four columns, and a backtick fence's info string can't hold a backtick.
+
+A run of the same character, at least as long and with nothing after it, closes the fence when it starts less than four columns past the container. A non-blank line that starts left of the container ends the fence along with its list item. A fence with no closer runs to the end of the text unless its list item ends first.
 
 Code spans are paired within each line. A run of backticks opens a span that the next run of the same length closes.
 
 ## stripAnchors limits
 
-The fence scan doesn't read blockquotes or HTML. It misses a fence behind `>`, and it misses one indented four or more columns, as in a nested list item. Indented code blocks aren't fences either. The strip reads their lines as prose, and a marker there goes unless it's inside a code span on its line. A fence that opens on its own line inside a list item and stays unclosed runs on past the item's end. A fence line inside an HTML comment or HTML block opens or closes a fence like any other.
+The fence scan doesn't read blockquotes or HTML. It misses a fence behind `>`. It also doesn't let a line continue a quoted paragraph, so an unindented line right after a quote in a list item ends the item. A fence line inside an HTML comment or HTML block opens or closes a fence like any other. Indented code blocks aren't fences either. The strip reads their lines as prose, and a marker there goes unless it's inside a code span on its line.
+
+The scan doesn't open an item for a list marker followed by five or more columns of whitespace. CommonMark opens one there whose first line is indented code, so a fence in that item can run past the line where CommonMark ends it.
 
 Because code spans are paired within each line, a span that wraps onto the line, or a backslash-escaped backtick before it, can shift the pairing. A shifted pairing can drop a quoted marker or keep a prose one.

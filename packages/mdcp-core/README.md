@@ -213,6 +213,8 @@ Prefer outputDir-relative values in config (for example `".caches/refs.json"` wh
 | `githubSlugify`      | Single-heading slug via github-slugger               |
 | `buildSlugRegistry`  | Document-wide slugs; duplicates get numeric suffixes |
 
+`buildSlugRegistry` reads only headings outside fenced code blocks, with the fence scan that [stripAnchors](#stripanchors-code) describes. A `# comment` in a shell example doesn't get a slug, and it doesn't change the guide that later headings belong to. Compile numbers [section slugs](#cross-guide-section-slugs) through the same reader, so a rewritten section link and the registry agree, apart from the limits that section lists.
+
 ```typescript
 import { githubSlugify, headingTextToPlain } from '@bwilliamson/mdcp-core';
 
@@ -387,7 +389,7 @@ A marker goes with the whitespace before it on the same line. When a marker open
 
 ### stripAnchors heading lines
 
-A line that mdcp reads as a heading, an ATX heading at column 0, loses every marker, even inside a fenced code block or a code span. Heading slugs drop every marker from a title and don't skip fences. Stripping the whole line keeps the compiled heading on the slug that refs and link rewriting use.
+A line that mdcp reads as a heading, an ATX heading at column 0, loses every marker, even inside a fenced code block or a code span. Heading slugs drop every marker from a title and skip the lines that the fence scan below reads as code. The scan ignores HTML and can misread a fence there, so stripping every heading line keeps a marker off a rendered heading even then.
 
 To show the syntax on a heading inside a fenced example, start the heading line one to three spaces in. mdcp doesn't read that line as a heading. The strip treats it as fenced text and keeps its marker. Outside a fence the same line is prose, and its marker goes.
 
@@ -395,15 +397,19 @@ To show the syntax on a heading inside a fenced example, start the heading line 
 
 On any other line, a `{#id}` inside a fenced code block or an inline code span stays.
 
-A fence opens where three or more backticks or tildes start a line's text at most three columns in. It also opens on a list marker line, where the run follows the marker and one to four columns of whitespace, and the marker starts at most three columns in. A tab advances to the next multiple of four columns, and a backtick fence's info string can't hold a backtick.
+The fence scan follows list items. A bullet or numbered list marker followed by one to four columns of whitespace opens an item whose text starts after that whitespace. A marker with no text after it opens an empty item whose text would start one column past the marker, and a blank line right after an empty item ends it. When a marker starts at or past the column where an open item's text starts, it nests in that item. The item ends at the first non-blank line that starts left of its text, unless that line continues a paragraph. Headings, fences, blockquotes, thematic breaks and list items interrupt a paragraph, and any other line continues it. In its own item, a list item interrupts a paragraph only when it has text and, if numbered, starts at 1.
 
-A run of the same character, at least as long and with nothing after it, closes the fence when it starts less than four columns past the fence's container. For a fence that opens on a marker line, the container is the column where the item's text starts, and the fence also ends at the first non-blank line that starts left of it. For any other fence the container is column 0. A fence with no closer runs to the end of the text unless its list item ends first.
+The container of a fence is the column where the innermost open item's text starts, or column 0 outside any item. Three or more backticks or tildes open a fence where they start a line's text less than four columns past the container, or right after a list marker. Tabs advance to the next multiple of four columns, and a backtick fence's info string can't hold a backtick.
+
+A run of the same character, at least as long and with nothing after it, closes the fence when it starts less than four columns past the container. A non-blank line that starts left of the container ends the fence along with its list item. A fence with no closer runs to the end of the text unless its list item ends first.
 
 Code spans are paired within each line. A run of backticks opens a span that the next run of the same length closes.
 
 ### stripAnchors limits
 
-The fence scan doesn't read blockquotes or HTML. It misses a fence behind `>`, and it misses one indented four or more columns, as in a nested list item. Indented code blocks aren't fences either. The strip reads their lines as prose, and a marker there goes unless it's inside a code span on its line. A fence that opens on its own line inside a list item and stays unclosed runs on past the item's end. A fence line inside an HTML comment or HTML block opens or closes a fence like any other.
+The fence scan doesn't read blockquotes or HTML. It misses a fence behind `>`. It also doesn't let a line continue a quoted paragraph, so an unindented line right after a quote in a list item ends the item. A fence line inside an HTML comment or HTML block opens or closes a fence like any other. Indented code blocks aren't fences either. The strip reads their lines as prose, and a marker there goes unless it's inside a code span on its line.
+
+The scan doesn't open an item for a list marker followed by five or more columns of whitespace. CommonMark opens one there whose first line is indented code, so a fence in that item can run past the line where CommonMark ends it.
 
 Because code spans are paired within each line, a span that wraps onto the line, or a backslash-escaped backtick before it, can shift the pairing. A shifted pairing can drop a quoted marker or keep a prose one.
 
@@ -720,7 +726,7 @@ Multi-output consumer repos produce separate compiled guides (such as `glossary.
 
 At compile time, MDCP:
 
-1. Builds a **guide link index** from every guide in `compileOrder` — each path in that guide's `linkedSectionFiles` (manifest plus transitive inline `.md` links) maps to its compiled `{guideName, outputBasename, slug}` (slug from the demoted first heading, same rules as intra-guide rewrite)
+1. Builds a **guide link index** from every guide in `compileOrder`. Each path in that guide's `linkedSectionFiles` (manifest plus transitive inline `.md` links) maps to its compiled `{guideName, outputBasename, slug}`, where the slug is the one the shard's demoted first heading gets in the compiled document, numbered with every earlier heading (see [Cross-guide section slugs](#cross-guide-section-slugs))
 2. Rewrites **cross-guide** `.md` links per shard (using the shard path for relative resolution) before sections are stitched
 3. Rewrites **publish-relative** `../` file links per shard, relative to the guide's [link base](#when-it-runs)
 4. Rewrites **same-guide** section links per shard (intra-guide pass with `sourceFile`), then again on the assembled body (intra-guide pass scoped to `guideDir`)
@@ -791,6 +797,20 @@ Authors who need a readable path **without** pulling the target into the compile
 #### Default `_build` outputs and transitive targets
 
 With the default `outputDir` (`_build`), `./` and `../` links to transitively included shards outside `guideDir` rewrite through the guide link index and [same-output preference](#same-compiled-output-preference). Compiled `_build` output does **not** leave those co-compiled targets as raw `../file.md`.
+
+### Cross-guide section slugs
+
+A link to a shard points at the heading that opens the shard's section, so its `#slug` is the anchor that heading gets in the compiled guide. One slugger numbers the heading lines in stitch order, as the refs registry does. A heading line is an ATX heading at column 0, as [stripAnchors heading lines](#stripanchors-heading-lines) defines it. The slugger starts with the heading assembly writes first, `compile.title` or else the manifest's H1, and then reads each section's heading lines, sub-headings included. A heading whose slug an earlier heading already took gets a numeric suffix, starting at `-1`. So a section that follows a sub-heading with the same title gets `#title-1`, and so does a section that repeats the guide's H1.
+
+A line inside a fenced code block isn't a heading, so a `# comment` in a shell example doesn't take a number. The fence scan follows list items but doesn't read blockquotes or HTML, as [stripAnchors limits](#stripanchors-limits) describes.
+
+A `FIND-*.md` shard keeps its finding id, and a first heading with a `{#id}` marker keeps that id. Both headings still take their number, so later headings count them. Assembly drops the first section's heading when it repeats `compile.title`. Links to that section then point at the title, unless the section declares an id. A link keeps a `{#id}` from the dropped heading, though no heading in the output has that anchor.
+
+The slugger reads each title without its markers, since compile strips them from heading lines by default. When `compile.stripAnchors` is `false` and the `stripAnchors` hook doesn't run, the compiled headings keep their markers, and the slugger numbers each heading line by the title it renders, marker included. So `Setup {#custom}` takes `setup-custom`, and a later `Setup` section keeps `#setup`. The refs registry still reads titles without markers. Its slugs for those headings can differ from the rendered anchors.
+
+The guide link index takes a shard's slug from its owner's numbering when the owner stitches the shard. [Transitive section discovery](#transitive-section-discovery) defines the owner. When a link goes to the owner's output, it points at the heading as that output numbers it, even when the linking guide also stitches the shard. A guide that stitches a shard owned only through the transitive walk links to its own copy, with an in-document anchor that the guide numbers itself, as [Same compiled output preference](#same-compiled-output-preference) describes.
+
+Headings that a compile hook adds after numbering, such as [inlineInserts](#inlineinserts) captions, take no number. A caption whose slug matches a later section heading's slug moves that heading to `-1`, and links to the section miss it. A renderer that adds heading anchors also gives one to setext headings and to ATX headings indented one to three spaces or nested in a list item or blockquote, which mdcp doesn't read as headings. Such a heading earlier in the guide with a section's title has the same effect.
 
 ### Cross-guide resolution
 

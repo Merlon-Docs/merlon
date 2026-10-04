@@ -1,8 +1,8 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { join, resolve, basename, dirname, relative } from 'node:path';
-import { demoteHeadings, stripAboutThisGuideHeading, extractGuideH1 } from './headings.js';
-import { stripExplicitAnchorMarkers } from './anchors.js';
-import { extractFirstHeading, stripFirstHeadingLine, formatCompileTitle } from './compile-title.js';
+import { demoteHeadings, stripAboutThisGuideHeading, guideLeadHeading } from './headings.js';
+import { keepsAnchorMarkers, stripExplicitAnchorMarkers } from './anchors.js';
+import { extractFirstHeading, stripFirstHeadingLine } from './compile-title.js';
 import { applyCompileHooks, createCompileHookState } from './hooks.js';
 import './hooks/builtin.js';
 import {
@@ -11,13 +11,13 @@ import {
   rewriteIntraGuideFileLinks,
   rewritePublishRelativeLinks,
 } from './publish-links.js';
-import { buildGuideLinkIndex, type GuideLinkIndex } from './guide-link-index.js';
+import { buildGuideLinkIndexWithSlugs, type GuideLinkIndex } from './guide-link-index.js';
 import {
   linkedSectionFiles,
   linkedSectionFilesCacheKey,
   type SectionFilesOptions,
 } from './section-manifest.js';
-import { loadShardSnapshot, type ShardCache } from './shard-cache.js';
+import { guideSectionSlugs, loadShardSnapshot, type ShardCache } from './shard-cache.js';
 import type { GuideConfig, GuideConfigInput, MdcpConfigInput } from '../config/schema.js';
 import {
   resolveGuideLinkBase,
@@ -99,16 +99,18 @@ export function assembleGuide(guideDir: string, options: AssembleGuideOptions = 
   };
   const files = options.linkedFiles ?? linkedSectionFiles(guideDir, sectionOpts);
 
-  if (useTitle) {
-    parts.push(`${formatCompileTitle(useTitle)}\n\n`);
-  } else {
-    const h1 = extractGuideH1(indexText);
-    if (h1) parts.push(h1);
-  }
+  const lead = guideLeadHeading(indexText, useTitle);
+  if (lead) parts.push(`${lead}\n\n`);
 
   const hookState = createCompileHookState();
   const provenance: LinkProvenance[] = [];
-  const slugByPath = options.slugByPath ?? buildSectionSlugMap(files, cache, preambleSection);
+  const slugByPath =
+    options.slugByPath ??
+    buildSectionSlugMap(files, cache, preambleSection, {
+      heading: lead,
+      title: useTitle,
+      keepAnchorMarkers: keepsAnchorMarkers(options.stripAnchors, options.hooks),
+    });
 
   for (let i = 0; i < files.length; i++) {
     const filePath = files[i];
@@ -265,7 +267,8 @@ export function compileGuideResultsWithContext(
     index: linkIndex,
     shardCache,
     linkedFilesByGuide,
-  } = buildGuideLinkIndex(options, docsRoot);
+    slugsByGuide,
+  } = buildGuideLinkIndexWithSlugs(options, docsRoot);
   const results = options.compileOrder.map((name) => {
     const cfg = guideConfigMap.get(name) as GuideConfig | undefined;
     const guideDir = resolveGuideDir(name, options.guidesRoot, cfg, docsRoot);
@@ -283,7 +286,8 @@ export function compileGuideResultsWithContext(
     };
     const linkedKey = linkedSectionFilesCacheKey(guideDir, sectionOpts);
     const linkedFiles = linkedFilesByGuide.get(linkedKey)!;
-    const slugByPath = buildSectionSlugMap(linkedFiles, shardCache, preambleSection);
+    const slugByPath =
+      slugsByGuide.get(name) ?? guideSectionSlugs(guideDir, linkedFiles, shardCache, compile);
 
     const linkBase = resolve(
       resolveGuideLinkBase(options.config ?? {}, docsRoot, name, orderLen, compile),

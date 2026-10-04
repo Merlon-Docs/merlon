@@ -1,5 +1,5 @@
 import { resolve, basename } from 'node:path';
-import { assignSectionSlugs, createShardCache, type ShardCache } from './shard-cache.js';
+import { createShardCache, guideSectionSlugs, type ShardCache } from './shard-cache.js';
 import {
   sectionFiles,
   linkedSectionFiles,
@@ -32,6 +32,17 @@ export interface BuildGuideLinkIndexResult {
   shardCache: ShardCache;
   /** Memoized linkedSectionFiles per guide options key. */
   linkedFilesByGuide: Map<string, string[]>;
+}
+
+/** The index result plus the per-guide numbering that compile reuses. Internal to the package. */
+export interface GuideLinkIndexWithSlugs extends BuildGuideLinkIndexResult {
+  /**
+   * Each guide's section slugs by guide name: absolute shard path → the slug of the heading that
+   * opens the shard's section in that guide's output. One slugger numbers the guide's lead heading,
+   * then every heading line in stitch order, so each slug matches the compiled anchor. A FIND-*
+   * shard or a first-heading `{#id}` keeps its declared id.
+   */
+  slugsByGuide: Map<string, Map<string, string>>;
 }
 
 function resolveGuideDir(
@@ -134,6 +145,23 @@ export function buildGuideLinkIndex(
   cwd: string = options.docsRoot ?? process.cwd(),
   existingCache?: ShardCache,
 ): BuildGuideLinkIndexResult {
+  const { index, shardCache, linkedFilesByGuide } = buildGuideLinkIndexWithSlugs(
+    options,
+    cwd,
+    existingCache,
+  );
+  return { index, shardCache, linkedFilesByGuide };
+}
+
+/**
+ * `buildGuideLinkIndex`, plus each guide's section slugs so compile doesn't number the guides
+ * again. The package index doesn't export it.
+ */
+export function buildGuideLinkIndexWithSlugs(
+  options: CompileOptions,
+  cwd: string = options.docsRoot ?? process.cwd(),
+  existingCache?: ShardCache,
+): GuideLinkIndexWithSlugs {
   const guideConfigMap = new Map((options.guides ?? []).map((g) => [g.name, g]));
   const index: GuideLinkIndex = new Map();
   const manifestOwners = new Map<string, string>();
@@ -156,24 +184,28 @@ export function buildGuideLinkIndex(
     }
   }
 
+  // Number every guide's sections first, so an entry can take its slug from the owner's guide.
+  const filesByGuide = new Map<string, string[]>();
+  const slugsByGuide = new Map<string, Map<string, string>>();
   for (const name of options.compileOrder) {
-    const cfg = guideConfigMap.get(name);
-    const compile = cfg?.compile;
+    const compile = guideConfigMap.get(name)?.compile;
     const guideDir = guideDirs.get(name)!;
     const sectionOpts = sectionOptionsForGuide(guideDir, compile, cwd, shardCache);
     const files = getLinkedSectionFiles(guideDir, sectionOpts, linkedFilesByGuide);
-    const slugByPath = assignSectionSlugs(
-      files,
-      shardCache,
-      compile?.preambleSection ?? 'about-this-guide.md',
-    );
+    filesByGuide.set(name, files);
+    slugsByGuide.set(name, guideSectionSlugs(guideDir, files, shardCache, compile));
+  }
+
+  for (const name of options.compileOrder) {
+    const files = filesByGuide.get(name)!;
+    const slugByPath = slugsByGuide.get(name)!;
 
     for (const filePath of files) {
       // Index every path from linkedSectionFiles (manifest + transitive inline .md
       // links under guideDir / scopeRoot), including shards outside guideDir.
       const absPath = resolve(filePath);
-      const slug = slugByPath.get(absPath);
-      if (!slug) continue;
+      const ownSlug = slugByPath.get(absPath);
+      if (!ownSlug) continue;
 
       const owner = resolveShardOwner(
         absPath,
@@ -182,6 +214,8 @@ export function buildGuideLinkIndex(
         guideDirs,
         options.compileOrder,
       );
+      // The slug the shard gets in its owner's output, when the owner stitches it.
+      const slug = slugsByGuide.get(owner)?.get(absPath) ?? ownSlug;
       const existing = index.get(absPath);
       if (
         existing &&
@@ -216,5 +250,5 @@ export function buildGuideLinkIndex(
     }
   }
 
-  return { index, shardCache, linkedFilesByGuide };
+  return { index, shardCache, linkedFilesByGuide, slugsByGuide };
 }

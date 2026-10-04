@@ -84,6 +84,46 @@ describe('buildSlugRegistry', () => {
     const section = reg.headings.find((h) => h.title === 'Section');
     expect(section?.guide).toBe('guide');
   });
+
+  it('skips heading lines inside fenced code blocks', () => {
+    const text = [
+      '# Guide',
+      '',
+      '```bash',
+      '# install',
+      '```',
+      '',
+      '~~~~markdown',
+      '## Install',
+      '~~~',
+      '~~~~',
+      '',
+      '## Install',
+      '',
+    ].join('\n');
+    const reg = buildSlugRegistry(text);
+    expect(reg.headings.map((h) => [h.slug, h.line])).toEqual([
+      ['guide', 1],
+      ['install', 12],
+    ]);
+  });
+
+  it('counts a heading after a fence that an empty list item holds', () => {
+    // The fence belongs to the item that the bare `-` opens, so the unindented line ends both.
+    const reg = buildSlugRegistry('# Guide\n\n-\n  ```\n  code\n# Next\n');
+    expect(reg.headings.map((h) => [h.slug, h.line])).toEqual([
+      ['guide', 1],
+      ['next', 6],
+    ]);
+  });
+
+  it('keeps the guide when a fenced comment looks like a level-one heading', () => {
+    const reg = buildSlugRegistry('# Guide\n\n```bash\n# install the deps\n```\n\n## Setup\n');
+    expect(reg.headings.map((h) => [h.title, h.guide])).toEqual([
+      ['Guide', 'guide'],
+      ['Setup', 'guide'],
+    ]);
+  });
 });
 
 describe('public refs API', () => {

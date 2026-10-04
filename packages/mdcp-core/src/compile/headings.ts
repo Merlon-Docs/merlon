@@ -1,4 +1,5 @@
 import { formatHeadingAsAtx, parseHeading } from '../markdown/index.js';
+import { formatCompileTitle } from './compile-title.js';
 import { getLocalePack } from '../locale/index.js';
 import type { LocalePack } from '../locale/types.js';
 
@@ -112,4 +113,13 @@ export function extractGuideH1(indexText: string): string | null {
     }
   }
   return null;
+}
+
+/**
+ * The heading line assembleGuide writes before the first section: `compile.title` as an H2, else
+ * the manifest's first H1. Null when the guide gets neither.
+ */
+export function guideLeadHeading(indexText: string, title?: string): string | null {
+  if (title) return formatCompileTitle(title);
+  return extractGuideH1(indexText)?.trimEnd() ?? null;
 }

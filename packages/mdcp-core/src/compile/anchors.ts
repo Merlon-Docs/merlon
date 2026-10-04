@@ -73,20 +73,35 @@ function leadingBlanks(text: string): number {
 }
 
 /**
+ * True when compile leaves `{#id}` markers in a guide's output: `stripAnchors` is false, so the
+ * post-stitch strip is off, and the hook pipeline doesn't run the `stripAnchors` hook. Either strip
+ * removes every marker on a heading line.
+ */
+export function keepsAnchorMarkers(
+  stripAnchors: boolean | undefined,
+  hooks: readonly string[] | undefined,
+): boolean {
+  return stripAnchors === false && !(hooks ?? []).includes('stripAnchors');
+}
+
+/**
  * Remove Pandoc-style `{#id}` markers from compiled output, along with the whitespace before each
  * one on the same line. A marker that opens a line's text goes with the whitespace after it
  * instead, and the line keeps its indent. A line that held only a marker is dropped, and when that
  * line opens the text or follows a blank line, the blank line right after it goes too.
  *
  * A line that parses as an ATX heading at column 0 loses every marker, even inside a fenced code
- * block or a code span. Slug code removes every marker from such a line's title and does not skip
- * fences, so the compiled heading gives the slug that refs and rewritten links use, however a
- * fence is read. On any other line, a marker inside a fenced code block or an inline code span
- * stays as example syntax. The markdown helpers' fence scanner finds the fences: it sees fences
- * indented at most three columns, or opened right after a list marker, and it tracks no
- * blockquotes or HTML. Code spans are paired within each line, with no backslash escapes, so a
- * span that wraps onto the line, or an escaped backtick before it, can shift the pairing. A
- * shifted pairing can drop a quoted marker or keep a prose one.
+ * block or a code span. Heading slugs drop every marker from a title and skip the lines that the
+ * fence scan reads as code. The scan ignores HTML and can misread a fence there, so stripping
+ * every heading line keeps a marker off a rendered heading even then. On any other line, a marker
+ * inside a fenced code block or an inline code span stays as example syntax.
+ *
+ * A line-by-line fence scan finds the fences. It follows list items and sees a fence that starts
+ * at most three columns past the text of the innermost open item, or past column 0 outside any
+ * item, or right after a list marker. It reads no blockquotes or HTML. Code spans are paired
+ * within each line, with no backslash escapes, so a span that wraps onto the line, or an escaped
+ * backtick before it, can shift the pairing. A shifted pairing can drop a quoted marker or keep a
+ * prose one.
  */
 export function stripExplicitAnchorMarkers(markdown: string): string {
   if (markdown.indexOf('{#') === -1) return markdown;

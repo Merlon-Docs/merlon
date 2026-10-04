@@ -170,6 +170,8 @@ link: docs/client-cli/consumer-migration.md:42: dead anchor "#missing-slug" (slu
 - An extension listed in `lint.codeExtensions` or `lint.dataExtensions` is validated like a built-in one, with or without a leading dot
 - A data-file link is validated and rebased but carries no `#L` fragment; the same extension listed in `lint.codeExtensions` gets one
 - Compiled dead anchor after demotion
+- A shard link points at its section heading when an earlier heading in the compiled guide has the same title, the guide's H1 or a sub-heading in an earlier shard included
+- A heading line inside a fenced code block takes no slug, in the compiled phase and in the shard phase
 - Compiled dead path after publish-relative link rewrite
 - Compiled `.md` link to another output of the same run reports `dead anchor` when its `#fragment` matches no heading in that output, even before the output is written and from publish-only output
 - Compiled link to the configured monolith reports `missing publish path` when every guide is publish-only, even when an earlier run left the file on disk

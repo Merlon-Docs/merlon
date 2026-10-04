@@ -6,39 +6,15 @@ import {
   hasFileExtension,
   resolveRelativeFile,
 } from '../compile/hooks/path-resolve.js';
-import { parseHeading, stripPandocAnchors } from '../markdown/index.js';
-import { githubSlugify } from '../refs/slugs.js';
-import { demoteHeadings, stripAboutThisGuideHeading } from '../compile/headings.js';
-import { extractFirstHeading } from '../compile/compile-title.js';
-import type { ShardSnapshot } from '../compile/shard-cache.js';
+import { sectionAnchorSlugs, type ShardSnapshot } from '../compile/shard-cache.js';
+import { sectionBodyForSlug } from '../compile/section-slug.js';
 import type { LinkIssue } from './types.js';
 import type { LinkProvenance } from './mark-broken.js';
 
-function shardSlugSetFromText(name: string, raw: string): Set<string> {
-  let processed = raw.trim();
-  if (name === 'about-this-guide.md') {
-    const body = stripAboutThisGuideHeading(processed);
-    processed = body.trim() ? demoteHeadings(body, 1) : body;
-  } else {
-    processed = demoteHeadings(processed, 1);
-  }
-  const slugs = new Set<string>();
-  for (const line of processed.split('\n')) {
-    const m = parseHeading(line);
-    if (!m) continue;
-    const title = stripPandocAnchors(m.title).replace(/\*\*/g, '').trim();
-    if (title) slugs.add(githubSlugify(title));
-  }
-  const first = extractFirstHeading(processed);
-  if (first.anchor) slugs.add(first.anchor);
-  return slugs;
-}
-
 function shardSlugSet(filePath: string, snapshot?: ShardSnapshot): Set<string> {
   if (snapshot) return snapshot.anchorSlugs;
-  const name = basename(filePath);
-  const raw = readFileSync(filePath, 'utf-8');
-  return shardSlugSetFromText(name, raw);
+  const raw = readFileSync(filePath, 'utf-8').trim();
+  return sectionAnchorSlugs(sectionBodyForSlug(basename(filePath), raw));
 }
 
 export interface LintShardLinksOptions {

@@ -132,22 +132,24 @@ describe('stripExplicitAnchorMarkers', () => {
     }
   });
 
-  it('strips heading markers where the fence scanner and a renderer disagree', () => {
-    // A list item leaves its fence unclosed. The scanner keeps the fence open, while a renderer
-    // ends it with the item. The heading still loses its marker, and the prose keeps its own.
+  it('ends an unclosed fence with its list item, as a renderer does', () => {
     const unclosed = [
       '- Install:',
       '',
       '  ```bash',
-      '  npm i',
+      '  npm i {#keep}',
       '',
       '## Next {#next}',
       'Text {#t}.',
     ];
     expect(strip(unclosed)).toBe(
-      ['- Install:', '', '  ```bash', '  npm i', '', '## Next', 'Text {#t}.'].join('\n'),
+      ['- Install:', '', '  ```bash', '  npm i {#keep}', '', '## Next', 'Text.'].join('\n'),
     );
+  });
+
+  it('strips heading markers where the fence scanner and a renderer disagree', () => {
     // A fence line inside an HTML comment opens a fence for the scanner but not for a renderer.
+    // The heading still loses its marker, and the prose keeps its own.
     expect(strip(['<!--', '```', '-->', '', '## Next {#next}', 'Text {#t}.'])).toBe(
       ['<!--', '```', '-->', '', '## Next', 'Text {#t}.'].join('\n'),
     );

@@ -144,27 +144,95 @@ describe('createCodeFenceScanner', () => {
     ]);
   });
 
-  it('reads no other containers and no HTML', () => {
-    // A fence on its own line in a list item has column 0 as its container, so it outlives the
-    // item when the item leaves it unclosed.
+  it('ends a fence on its own line in a list item where the item ends', () => {
+    // The fence counts from the item's content column, so a line left of it ends the item and
+    // the fence, as a renderer reads it. The next fence line opens a new fence.
     expect(fenced(['- item', '', '  ```', '  x', '', 'Text', '  ```'])).toEqual([
       false,
       false,
       true,
       true,
       true,
+      false,
+      true,
+    ]);
+    expect(fenced(['- Install:', '', '  ```bash', '  npm i', '', '## Next', 'Text'])).toEqual([
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      false,
+    ]);
+  });
+
+  it('follows nested list items, on their own lines or after another marker', () => {
+    expect(fenced(['- a', '  - b', '', '    ```', '    x', '    ```', 'y'])).toEqual([
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+    ]);
+    expect(fenced(['1. - x', '     ```', '     y', '     ```', 'z'])).toEqual([
+      false,
+      true,
+      true,
+      true,
+      false,
+    ]);
+  });
+
+  it('keeps a list item open across a lazy paragraph line', () => {
+    expect(fenced(['- item', 'lazy', '  ```', '  code', 'Text', '  ```', 'x'])).toEqual([
+      false,
+      false,
+      true,
+      true,
+      false,
       true,
       true,
     ]);
-    // A fence in a nested list item or behind a blockquote marker goes unseen.
-    expect(fenced(['- a', '  - b', '', '    ```', '    x', '    ```'])).toEqual([
+    // A setext underline ends the paragraph, so the next line left of the item ends the item.
+    expect(fenced(['- item', '  text', '  ---', 'lazy', '  ```', 'x'])).toEqual([
       false,
       false,
       false,
       false,
-      false,
-      false,
+      true,
+      true,
     ]);
+  });
+
+  it('opens an empty list item on a marker with nothing or only whitespace after it', () => {
+    // A bare marker opens an item whose text starts one column past the marker.
+    expect(fenced(['-', '  ```', 'x', '# heading'])).toEqual([false, true, false, false]);
+    expect(fenced(['1.', '   ```', 'x', '   ```', 'y'])).toEqual([false, true, false, true, true]);
+    // An empty item holds no paragraph, so an unindented line after it ends the item.
+    expect(fenced(['- ', 'text', '  ```', 'x', '  ```'])).toEqual([false, false, true, true, true]);
+    // A blank line right after an empty item ends the item.
+    expect(fenced(['- ', '', '  ```', 'x', '  ```'])).toEqual([false, false, true, true, true]);
+    expect(fenced(['-', '', '  ```', 'x', '  ```'])).toEqual([false, false, true, true, true]);
+    // An empty item can't interrupt a paragraph, so a bare `-` there underlines it.
+    expect(fenced(['Text', '-', '```', 'x', '```'])).toEqual([false, false, true, true, true]);
+  });
+
+  it('opens no list item for a thematic break or a marker that cannot interrupt a paragraph', () => {
+    expect(fenced(['- - -', '  ```', 'x', '  ```'])).toEqual([false, true, true, true]);
+    expect(fenced(['Text', '2. two', '   ```', 'x', '   ```'])).toEqual([
+      false,
+      false,
+      true,
+      true,
+      true,
+    ]);
+  });
+
+  it('reads no blockquotes and no HTML', () => {
+    // A fence behind a blockquote marker goes unseen.
     expect(fenced(['> ```', '> x', '> ```'])).toEqual([false, false, false]);
     // A fence line inside an HTML comment counts like any other.
     expect(fenced(['<!--', '```', '-->', 'x'])).toEqual([false, true, true, true]);
@@ -174,6 +242,15 @@ describe('createCodeFenceScanner', () => {
 
   it('stays linear on long indents and long fence runs', () => {
     const lines = [manySpaces(40_000) + '```', '`'.repeat(40_000), '- ' + '`'.repeat(40_000)];
+    const ms = timeMs(() => {
+      for (let i = 0; i < 20; i++) fenced(lines);
+    });
+    expect(ms).toBeLessThan(100);
+  });
+
+  it('stays linear on deeply nested list markers and the lines after them', () => {
+    const lines = ['- '.repeat(5_000) + 'x', ...Array.from({ length: 500 }, () => 'lazy')];
+    lines.push(manySpaces(5_000) + '```', 'x');
     const ms = timeMs(() => {
       for (let i = 0; i < 20; i++) fenced(lines);
     });
