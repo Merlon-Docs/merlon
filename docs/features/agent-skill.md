@@ -37,7 +37,8 @@ MDCP skills are **vendored**: skill files live in the project and are versioned 
 1. **Commit to Git:** When you run `npx skills add`, the skill's files are copied into your agent's skills directory and tracked in your own source control.
 2. **Docs-as-code Evolution:** The skill version is tied to the commit in your repository. Agent instruction changes are reviewable in Pull Requests alongside the code or configuration changes they support.
 3. **Upgrading:** To upgrade a skill, re-run `npx skills add` (or manually copy the updated folder), review the resulting `git diff`, and commit the changes.
-4. **Authoring/Maintainer Versioning:** Upstream skills live under `skills/` (install surface) and version via private carriers in `packages/skill-<id>/`. Release notes are GitHub Releases / carrier CHANGELOGs — not files under `skills/`. `pnpm release:main` syncs carrier versions into `metadata.version` on matching `SKILL.md` files.
+
+[Versioning and releases](../developer/versioning-and-releases.md#release-schedule-release-pr-from-develop-to-main) says how maintainers release skill versions.
 
 ## Install surfaces
 
@@ -82,3 +83,12 @@ Landing identity for skills.sh:
 
 Maintainer detail: [Publishing the skill pack](../developer/agent-skill.md#publishing-the-skill-pack) says which skills are released, and
 [`skills.sh.json` (repo page layout)](../developer/agent-skill.md#skillsshjson-repo-page-layout) says what that file controls.
+
+## Agent Skill acceptance criteria
+
+1. The skill is a valid Agent Skills package, and its `name: mdcp` matches its folder under `skills/`.
+2. Consumer install docs describe one skill, installed with `npx skills add`.
+3. The skill encodes bootstrap, smallest-context loading and hard rules for docs-as-code agents, and it routes each task to one workflow file.
+4. The skill is host-agnostic, and no required step is Marketplace-only.
+5. Every skill under `skills/` passes skills-ref validation against the Agent Skills specification, locally and in CI.
+6. [`skills.sh.json`](../../skills.sh.json) lists only the skills that [Publishing the skill pack](../developer/agent-skill.md#publishing-the-skill-pack) releases.

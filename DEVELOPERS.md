@@ -773,8 +773,11 @@ When changing skill instructions:
 2. Do **not** invent new protocol in the skill — CLI and schemas stay in packages.
 3. Put archetype guidance in `skills/mdcp-arch-*` instead of growing the parent skill.
 4. Run `pnpm skill:update` after skill edits so local agents pick up changes, then `pnpm skill:validate` and `pnpm docs:check`.
+5. Add a changeset for the skill ([When to add a changeset](#when-to-add-a-changeset)).
 
 ### Verification
+
+The [Agent Skill acceptance criteria](docs/features/agent-skill.md#agent-skill-acceptance-criteria) say what a skill change must keep true.
 
 | Command               | Purpose                                                                                                            |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------ |
@@ -783,18 +786,7 @@ When changing skill instructions:
 
 `pnpm skill:validate` runs in local `pnpm check`, the land gate, PR CI, and during **`pnpm release:main`** after skill version sync (hard fail before the release commit / publish). It is not a [live skill eval](#live-skill-eval).
 
-### Live skill evals (optional, local)
-
-Qualitative with/without-skill grading is documented in [Live skill evals](#live-skill-evals) (suite inventory, layout contract, tooling). The glossary term is [live skill eval](#live-skill-eval). That loop is local-only — do **not** require Claude CLI or `skill-creator` in CI.
-
-### Acceptance criteria
-
-1. The skill is a valid Agent Skills package (`name: mdcp` matches folder under `skills/`).
-2. Consumer install docs describe one skill, installed with `npx skills add`.
-3. The skill encodes bootstrap / smallest-context / hard rules for docs-as-code agents and routes each task to one workflow file.
-4. Skill is host-agnostic — no Marketplace-only required steps.
-5. `pnpm skill:validate` ([skills-ref](https://github.com/agentskills/agentskills/tree/main/skills-ref)) passes locally and in CI for changes under `skills/`.
-6. [`skills.sh.json`](skills.sh.json) lists only the skills that [Publishing the skill pack](#publishing-the-skill-pack) releases.
+[Live skill evals](#live-skill-evals) covers the optional local loop, which grades agent runs with and without the skill and never runs in CI.
 
 ### Publishing the skill pack
 
