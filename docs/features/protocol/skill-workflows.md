@@ -57,15 +57,7 @@ Index: [skills.md](../../skills.md). Most workflows also have optional [live ski
 
 ## Guide placement obligations
 
-Place each shard by **audience and job**, not by topic keyword. The same subject (for example Agent Skills) can span tiers: product delivery in `features/`, consumer install in `client/`, maintainer evals in `developer/`.
-
-| Guide             | Holds (put here)                                                                                    | Keep out                                                        | Workflows that write here                    |
-| ----------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | -------------------------------------------- |
-| `docs/features/`  | What the product does — capabilities, design/ADRs, contracts, acceptance criteria                   | Maintainer runbooks, CI/eval loops, contributor setup           | feature-level, doc-only, design-architecture |
-| `docs/client/`    | How consumers use it — end-user value, install/config/usage for the shipped tool                    | Internal contributor process, skill-authoring, live eval suites | feature-level, doc-only, ux                  |
-| `docs/developer/` | How to work on this repo — setup, layout, validation, releases, skill development, live skill evals | Product capability specs or consumer tutorials                  | doc-only, getting-started                    |
-
-**Placement test:** If removing the shard would confuse a **consumer** of the tool, it is features or client. If only **contributors** to this monorepo need it, it is developer.
+Every workflow **MUST** apply the placement test in [Default guide layout](./mdcp-1.0-spec.md#2-default-guide-layout-code-repository-archetype) to each shard it writes. The **Primary guides** column in [Standard workflows](#standard-workflows) shows which guides each workflow writes.
 
 ## Glossary obligation (every workflow)
 
