@@ -750,26 +750,28 @@ mdcp check --require-lint
 mdcp refs-list
 ```
 
-### Related packages
+<!-- mdcp-shard: end ../../docs/client-cli/agent-integration.md -->
 
-| Package                                                                                | Use                                                         |
-| -------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| [`@bwilliamson/mdcp-core`](https://www.npmjs.com/package/@bwilliamson/mdcp-core)       | Programmatic compile, refs, and validation API              |
-| [`@bwilliamson/mdcp-presets`](https://www.npmjs.com/package/@bwilliamson/mdcp-presets) | Starter markdownlint configs for shards and compiled output |
+<!-- mdcp-shard: start ../../docs/client-cli/related-packages.md -->
+
+## Related packages
+
+- [`@bwilliamson/mdcp-core`](https://www.npmjs.com/package/@bwilliamson/mdcp-core): the programmatic compile, refs, and validation API
+- [`@bwilliamson/mdcp-presets`](https://www.npmjs.com/package/@bwilliamson/mdcp-presets): starter markdownlint configs for shards and compiled output, and the MDCP Vale style
 
 ### Further reading
 
-- [Project README](../../README.md) — Agent Skill landing
-- [Commands reference](#commands-reference) — full `mdcp` command list
-- [Core API](../../docs/client-core/index.md) — programmatic library
-- [Feature catalog](../../docs/features/feature-catalog.md) — maintainer depth
+- [Project README](../../README.md): the Agent Skill landing page
+- [Commands reference](#commands-reference): the full `mdcp` command list
+- [Core API](../../docs/client-core/index.md): the programmatic library
+- [Feature catalog](../../docs/features/feature-catalog.md): maintainer depth
 - [Sample guides](../../examples/sample-guides)
 
 ### License
 
 MIT
 
-<!-- mdcp-shard: end ../../docs/client-cli/agent-integration.md -->
+<!-- mdcp-shard: end ../../docs/client-cli/related-packages.md -->
 
 <!-- mdcp-shard: start ../../docs/glossary/guide.md -->
 

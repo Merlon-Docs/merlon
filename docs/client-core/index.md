@@ -6,7 +6,6 @@
 ## Get started
 
 - [Quick example](./quick-example.md)
-- [Related packages](./related-packages.md)
 
 ## API
 
@@ -22,3 +21,7 @@
 - [inlineInserts](./compile-hooks/inline-inserts.md)
 - [Cross-guide link rewriting](./compile-hooks/cross-guide-links.md)
 - [Publish-relative link rewriting](./compile-hooks/publish-relative-links.md)
+
+## See also
+
+- [Related packages](./related-packages.md)
