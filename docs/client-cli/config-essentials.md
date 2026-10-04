@@ -6,12 +6,12 @@
 
 These two global options answer different questions:
 
-| Option            | Resolved from                                                                        | Purpose                                                     |
-| ----------------- | ------------------------------------------------------------------------------------ | ----------------------------------------------------------- |
-| **`--config`**    | **Invocation directory** — where you run the command (repo root in most npm scripts) | Locates `mdcp.config.json` on disk                          |
-| **`--docs-root`** | N/A (you pass the shard tree root explicitly)                                        | Root of guide directories — see [Path layout](#path-layout) |
+| Option            | Resolved from                                                                       | Purpose                            |
+| ----------------- | ----------------------------------------------------------------------------------- | ---------------------------------- |
+| **`--config`**    | **Invocation directory**, where you run the command (repo root in most npm scripts) | Locates `mdcp.config.json` on disk |
+| **`--docs-root`** | N/A (you pass the shard tree root explicitly)                                       | Root of guide directories          |
 
-`--config` is never prefixed with `--docs-root`.
+`--config` is never prefixed with `--docs-root`. [Path layout](#path-layout) describes the docs root.
 
 ### Repo-root npm scripts
 
@@ -53,7 +53,7 @@ docs/                          ← --docs-root
   features/                    ← guide "features" (shards)
   client-cli/                  ← guide "client-cli"
   styles/                      ← support dir (not in compileOrder)
-  _build/                      ← outputDir (generated)
+  _build/                      ← outputDir (generated; gitignore it)
     features.md
     client-cli.md
     guides.md                  ← optional monolith (when outputFile set)
@@ -62,11 +62,9 @@ docs/                          ← --docs-root
       backups/                 ← opt-in prior output (--backup)
 ```
 
-### Guide = one subdirectory
+### Where each path resolves
 
-Each guide is a **folder** directly under the docs root. The guide **`name`** matches the **directory name**. Omit `guides[].path` unless shards live elsewhere.
-
-Only directories listed in `compileOrder` are compiled and linted. Support folders (for example `styles/`) stay on disk but are out of scope.
+Which directories are guides: [Project layout](./project-layout.md). Omit `guides[].path` unless a guide's shards live somewhere other than the directory of the same name.
 
 | Config field          | Resolved from | Example (`--docs-root docs`)        |
 | --------------------- | ------------- | ----------------------------------- |

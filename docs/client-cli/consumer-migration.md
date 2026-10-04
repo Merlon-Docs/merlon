@@ -16,20 +16,6 @@ When a manifest has preamble prose with example inline links (not section shards
 
 After changing a guide's `index.md`, run `mdcp compile` and `mdcp check` — there is no separate manifest sync step.
 
-## Output layout
-
-MDCP uses an NPM-style two-root layout.
-
-| Concept          | Default                            | Notes                                                                    |
-| ---------------- | ---------------------------------- | ------------------------------------------------------------------------ |
-| Docs root        | `--docs-root`                      | One subdirectory per guide; `compileOrder` selects which folders compile |
-| Output root      | `outputDir: "_build"`              | Safe to delete; all generated paths relative here unless absolute        |
-| Per-guide output | `{name}.md` under `_build`         | Or `guide.md` when only one guide                                        |
-| Monolith         | Opt-in via top-level `outputFile`  | Omitted by default                                                       |
-| Refs registry    | `.caches/refs.json` under `_build` | Derived state, not publish-facing                                        |
-
-Path resolution details: [Config essentials — path layout](./config-essentials.md#path-layout).
-
 ## Compile hooks and multi-guide links
 
 Built-in hooks run by default — omit `compile.hooks` for the common case. Specs and multi-guide / `ignoreGuides` examples live in **core** docs (not duplicated here):
