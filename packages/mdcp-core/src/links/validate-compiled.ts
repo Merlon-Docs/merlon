@@ -18,6 +18,7 @@ export interface LintCompiledLinksOptions {
   publishOnly?: boolean;
   allowedPublishPaths?: Set<string>;
   disallowedShardPaths?: Set<string>;
+  /** Slug registries keyed by output path. A registry must not change after a call (see `validateCompiledLinkTarget`). */
   slugRegistryCache?: Map<string, RefsRegistry>;
   /** Effective file extensions (see `fileExtensionSet`). Defaults apply when absent. */
   fileExtensions?: Set<string>;
@@ -25,7 +26,11 @@ export interface LintCompiledLinksOptions {
   locale?: LocalePack;
 }
 
-/** One `dead anchor` issue for each line outside fenced code that holds a BROKEN LINK marker. */
+/**
+ * One `dead anchor` issue for each line that holds a BROKEN LINK marker. A line that starts with
+ * three backticks, after any indent, opens or closes a fence, and lint skips the lines inside it.
+ * A `~~~` fence doesn't count.
+ */
 export function lintBrokenLinkMarkers(
   markdown: string,
   outputFile: string,
@@ -62,13 +67,23 @@ export function lintBrokenLinkMarkers(
 /** Validate links in assembled compiled guide output. */
 export function lintCompiledLinks(options: LintCompiledLinksOptions): LinkIssue[] {
   const locale = options.locale ?? getLocalePack();
-  const issues = lintBrokenLinkMarkers(
-    options.markdown,
-    options.outputFile,
-    options.guideName,
-    locale,
-  );
-  const registry = buildSlugRegistry(options.markdown);
+  return [
+    ...lintBrokenLinkMarkers(options.markdown, options.outputFile, options.guideName, locale),
+    ...lintCompiledLinkTargets(options),
+  ];
+}
+
+/**
+ * The link half of `lintCompiledLinks`: one issue for each link whose target fails, skipping lines
+ * that hold a BROKEN LINK marker. `registry` is the slug registry of `options.markdown`, for a
+ * caller that has built it already.
+ */
+export function lintCompiledLinkTargets(
+  options: LintCompiledLinksOptions,
+  registry: RefsRegistry = buildSlugRegistry(options.markdown),
+): LinkIssue[] {
+  const locale = options.locale ?? getLocalePack();
+  const issues: LinkIssue[] = [];
   const lines = options.markdown.split('\n');
 
   for (const link of extractLinks(options.markdown)) {

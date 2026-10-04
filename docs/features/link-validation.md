@@ -16,11 +16,9 @@ Peer `mdcp links` / `markdown-link-check` remains optional for external URL HTTP
 
 ## BROKEN LINK marker
 
-After cross-guide, publish-relative, and intra-guide rewrite passes, compile runs **`markBrokenLinks`** on each assembled guide body.
+After cross-guide, publish-relative, and intra-guide rewrite passes, compile runs **`markBrokenLinks`** on each assembled guide body. A `#fragment` there passes when it matches a heading of the body or a slug that assembly gave one of its sections, such as a `FIND-*` finding id or a declared `{#id}`. A shard in the guide's directory that the guide doesn't stitch has no section there. Its slug fails, even when another guide stitches the shard. Each compile result keeps that slug set, and link lint checks against the same set.
 
-A guide's copy in the [monolith](../glossary/monolith.md) is marked after every copy is assembled, against the headings of the whole monolith, so a `#fragment` there can point at a heading of any guide the monolith stitches. Link lint reports a line of a guide's copy in the monolith when a marker on it has no match in that guide's compiled guide. It matches markers one for one by their own text, since each file rebases paths and cross-guide links relative to itself and the rest of a marker's line can differ between the two files.
-
-A stale `#fragment` on a link to another guide in the monolith is reported once for each file. The linking guide's compiled guide keeps the link, such as `a.md#nope`, and link lint reports it as a dead anchor there. The monolith turns the same link into `#nope`, which compile marks, and link lint reports that marker for the monolith.
+A guide's copy in the [monolith](../glossary/monolith.md) is marked after every copy is assembled, against the headings of the whole monolith, so a `#fragment` there can point at a heading of any guide the monolith stitches. The copy also accepts the section slug of every copy there, whichever guide is the shard's owner.
 
 Broken links are replaced with visible prose (no clickable dead href):
 
@@ -58,13 +56,15 @@ Publish-relative rewrite and publish-only lint are complementary: rewrite fixes 
 
 ## Validation phases
 
-| Phase      | When                      | Validates                                                                                           |
-| ---------- | ------------------------- | --------------------------------------------------------------------------------------------------- |
-| Shard      | `lintLinks` / author time | Unresolved `.md` and source-file paths; same-shard `#fragment` vs demoted heading slugs             |
-| Standalone | `lintLinks`               | Same checks as shard phase, over every file matched by `standaloneGuides`                           |
-| Compiled   | After assemble            | `#fragment` vs `buildSlugRegistry`; relative `.md` and source-file paths from output file directory |
+| Phase      | When                      | Validates                                                                                                                           |
+| ---------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Shard      | `lintLinks` / author time | Unresolved `.md` and source-file paths; same-shard `#fragment` vs demoted heading slugs                                             |
+| Standalone | `lintLinks`               | Same checks as shard phase, over every file matched by `standaloneGuides`                                                           |
+| Compiled   | After assemble            | `#fragment` vs the headings and the slugs broken-link marking used; relative `.md` and source-file paths from output file directory |
 
 A `.md` target names another output of the same run only when its resolved path equals that output's path. Its `#fragment` is then checked against the compiled text held in memory, so the output doesn't have to be written yet. This holds in publish-only output too. The monolith counts as an output only when at least one guide is stitched into it, because a run where every guide sets `compile.outputFile` never writes it. A link to a monolith that is never written reports `missing publish path`, even when an earlier run left the file on disk. A file that only shares a name with an output, such as a package's `README.md` when the root `README.md` is an output, gets the ordinary check: the file has to exist, and any `#fragment` has to match one of its headings.
+
+The compiled phase reads each output as compile writes it, banner included, so the line in a diagnostic is a line of that file. A `#fragment` in an output has to match one of its headings or a slug from the set that broken-link marking used. A slug that only another guide's compiled guide has is a dead anchor, even when the monolith has that heading. So is the slug of a shard that the output doesn't stitch, even when the shard is in the directory of the output's guide. A fragment on a link to another output of the run has to match a heading of that output. A finding id or a declared `{#id}` doesn't, because the heading there takes its anchor from its text. So `architecture-review.md#find-004` is a dead anchor, though compile writes that link for a link to the finding's shard. [Cross-guide purpose](../client-core/compile-hooks/cross-guide-links.md#cross-guide-purpose) says which slug a link to a shard takes in an output without the shard's section, and when that slug matches another heading there. [Monolith link lint](./monolith-link-lint.md) says how the monolith is checked, and when an issue there repeats one in a compiled guide.
 
 Compiled-phase checks run **after** cross-guide, publish-relative, and intra-guide rewrite. Co-compiled transitive targets (shards in `linkedSectionFiles` outside `guideDir`) are expected to rewrite to in-document `#slug` / `#fragment` via the guide link index and same-output preference — see [Cross-guide link rewriting](../client-core/compile-hooks/cross-guide-links.md#transitive-section-discovery). Validation treats remaining raw `../file.md` (or `./file.md`) to those co-compiled paths as broken when publish-only policy requires a compiled target. <!-- mdcp-paths: illustrative -->
 
@@ -157,9 +157,22 @@ Global option (all commands that run link validation):
 
 ## Diagnostic shape
 
+Each issue starts with the file and line where link lint found it. The reason and target follow, then the guide the issue belongs to, when it has one. A compiled output's line is a line of the written file. On a line with a BROKEN LINK marker, the reason is `dead anchor` and the target is the whole line. Link lint reports that line once and doesn't check the other links on it.
+
+`mdcp check` prints these lines for a docs root at `/repo/docs` where guide a's `intro.md` has `First see [x](../b/topic.md#nope).` on line 3 and `Then see [x](#nope).` on line 5, and the standalone guide `AGENTS.md` links `./gone.md`:
+
 ```text
-link: docs/client-cli/consumer-migration.md:42: dead anchor "#missing-slug" (slug not found in compiled guide "client-cli")
-  → compiled: packages/mdcp-cli/README.md:696
+link: /repo/docs/AGENTS.md:3: missing file "./gone.md"
+link: /repo/docs/_build/a.md:11: dead anchor "Then see **BROKEN LINK:** "x" (`#nope`) → `#nope` (dead anchor in compiled guide)." (compiled guide "a")
+link: /repo/docs/_build/a.md:9: dead anchor "b.md#nope" (compiled guide "a")
+link: /repo/docs/_build/guides.md:9: dead anchor "First see **BROKEN LINK:** "x" (`../b/topic.md#nope`) → `#nope` (dead anchor in compiled guide)." (compiled guide "a")
+```
+
+`formatLinkIssue` adds a second line for an issue that records the shard it came from, with that shard's line and the target as written. The issues `markBrokenLinks` returns to an API caller record it, and their line is a line of the markdown it marked. Link lint reports a marked link by its marker line, as above, and that issue doesn't record a shard. This example comes from `markBrokenLinks` on a short string, not from the fixture above.
+
+```text
+link: /repo/docs/_build/a.md:5: dead anchor "#nope" (compiled guide "a")
+  → shard: /repo/docs/a/intro.md:5 → #nope
 ```
 
 ## Link validation acceptance criteria
@@ -190,12 +203,13 @@ link: docs/client-cli/consumer-migration.md:42: dead anchor "#missing-slug" (slu
 - A link to a shard under a monolith guide's directory that the guide doesn't stitch takes the slug of the shard's first copy in the monolith
 - A link between two guides in the monolith targets the other guide's compiled guide from the linking guide's compiled guide, and an in-document `#slug` in the monolith, with no BROKEN LINK marker in either
 - A link whose `#fragment` points at a sub-heading of another guide in the monolith doesn't compile to a BROKEN LINK marker in either document
-- Link lint reports a BROKEN LINK marker that appears only in the monolith
-- A stale `#fragment` on a link to another guide in the monolith is reported for the linking guide's compiled guide and for the monolith
-- A BROKEN LINK marker that appears in both a compiled guide and the monolith is reported once, for the compiled guide, even when the rest of its line differs between the two files
-- Link lint matches a marker in the monolith only against the compiled guide of the guide whose copy holds it
-- Link lint finds the guide's copy that holds a line of the monolith for the third guide there and every guide after it
-- Of two links with the same label in a guide's copy, link lint reports the monolith marker of the link that only the monolith marks
+- A compiled `#fragment` that only another guide's compiled guide has is a dead anchor, even when the monolith has that heading
+- A compiled `#fragment` set to the slug of a shard in the guide's directory that the guide doesn't stitch is a dead anchor in its compiled guide, and compile marks it, even when another guide stitches the shard or the shard is in a subdirectory
+- A `#fragment` set to a `FIND-*` id or a declared `{#id}` passes link lint in the output that stitches the shard, as it passes broken-link marking there
+- A link from another output, the monolith included, is a dead anchor when its `#fragment` is the `FIND-*` id or declared `{#id}` of a section there
+- A `#fragment` on a link to another output, the monolith included, is a dead anchor when it points at a shard that the output doesn't stitch and no heading there has that slug, even when the shard is in the directory of the output's guide
+- A link to a shard's file passes, and points at another heading, when the output it points into lacks the shard's section but has a heading with the link's slug
+- A diagnostic's line counts the banner, so it points at a line of the written file
 - A section link in the monolith points at its section heading when an earlier guide in the monolith has a heading with the same title
 - A guide in the monolith rebases paths and source tags in its compiled guide relative to that file, and in the monolith relative to the monolith, wherever the monolith is
 - `mdcp check` / `mdcp compile` exit **1** on broken links by default
@@ -205,6 +219,7 @@ link: docs/client-cli/consumer-migration.md:42: dead anchor "#missing-slug" (slu
 
 ## Link validation related
 
+- [Monolith link lint](./monolith-link-lint.md)
 - [Cross-guide link rewriting](../client-core/compile-hooks/cross-guide-links.md)
 - [Publish-relative link rewriting](../client-core/compile-hooks/publish-relative-links.md)
 - [Optional linters](../client-cli/optional-linters.md)

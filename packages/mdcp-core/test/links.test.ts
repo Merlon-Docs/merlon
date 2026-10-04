@@ -3,7 +3,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
-import { dirname, join, relative } from 'node:path';
+import { basename, dirname, join, relative } from 'node:path';
 import { extractLinks } from '../src/links/extract.js';
 import { markBrokenLinks, formatBrokenLinkMarker } from '../src/links/mark-broken.js';
 import { validateCompiledLinkTarget } from '../src/links/validate.js';
@@ -15,9 +15,13 @@ import {
   compileGuideResults,
   compileGuidesFromResults,
   monolithGuideFirstLines,
+  writeCompiledGuidesFromResults,
 } from '../src/compile/assemble.js';
+import { resolveOutputPath } from '../src/config/load.js';
 import { createShardCache, loadShardSnapshot } from '../src/compile/shard-cache.js';
 import { MdcpConfigSchema } from '../src/config/schema.js';
+import { registerCompileHook } from '../src/compile/hooks.js';
+import { enUS } from '../src/locale/index.js';
 import { withTmpDir, withCwd } from './helpers/tmp-dir.js';
 
 describe('extractLinks', () => {
@@ -567,6 +571,30 @@ describe('formatLinkIssue', () => {
     );
     expect(msg).toMatch(/^link-warn: a\.md:1:/);
   });
+
+  // The issues markBrokenLinks returns record their shard. Link lint reports a marked link by its
+  // marker line instead, which records none.
+  it('names the guide, and the shard of an issue that markBrokenLinks returns', () => {
+    const shard = (originalTarget: string, sourceLine: number) => ({
+      label: 'x',
+      originalTarget,
+      sourceFile: '/repo/docs/a/intro.md',
+      sourceLine,
+    });
+    const { issues } = markBrokenLinks(
+      '# Guide A\n\nFirst see [x](b.md#nope).\n\nThen see [x](#nope).\n',
+      {
+        compiledOutputPath: '/repo/docs/_build/a.md',
+        guideName: 'a',
+        provenance: [shard('../b/topic.md#nope', 3), shard('#nope', 5)],
+      },
+    );
+    const first = 'link: /repo/docs/_build/a.md:5: dead anchor "#nope" (compiled guide "a")';
+    expect(issues.map((i) => formatLinkIssue(i))).toEqual([
+      `${first}\n  → shard: /repo/docs/a/intro.md:5 → #nope`,
+    ]);
+    expect(formatLinkIssue({ ...issues[0], shardFile: undefined })).toBe(first);
+  });
 });
 
 describe('lintLinks', () => {
@@ -738,7 +766,7 @@ describe('lintLinks', () => {
       );
       expect(issues.map((i) => `${relative(docsRoot, i.file)} ${i.kind} ${i.guideName}`)).toEqual([
         '_build/b.md dead anchor b',
-        '_build/guides.md dead anchor undefined',
+        '_build/guides.md dead anchor b',
       ]);
       // The line counts the banner, as the written monolith does.
       const marker = issues[1];
@@ -787,6 +815,40 @@ describe('lintLinks', () => {
     },
   );
 
+  // A locale pack may leave out findMarkers. Link lint then matches a marker line in the monolith
+  // to a line of the same text in the guide's compiled guide, so a marker on lines that differ
+  // elsewhere is reported for both files.
+  it.each([
+    [
+      'only the monolith holds',
+      'Skip [the rest](../a/setup.md#nope).',
+      ['_build/b.md dead anchor b', '_build/guides.md dead anchor b'],
+    ],
+    ['both files hold on the same line', 'Skip [the rest](#nope).', ['_build/b.md dead anchor b']],
+    [
+      'both files hold on lines that differ elsewhere',
+      'See [setup](../a/setup.md) and skip [the rest](#nope).',
+      ['_build/b.md dead anchor b', '_build/guides.md dead anchor b'],
+    ],
+  ])(
+    'matches whole lines for a marker that %s when the locale pack has no findMarkers',
+    (_case, useBody, expected) => {
+      const brokenLinks = enUS.brokenLinks;
+      const findMarkers = brokenLinks.findMarkers;
+      delete brokenLinks.findMarkers;
+      try {
+        withTmpDir('mdcp-lint-monolith-marker-whole-line-', (work) => {
+          const { docsRoot, issues } = lintMonolithPair(work, useBody);
+          expect(
+            issues.map((i) => `${relative(docsRoot, i.file)} ${i.kind} ${i.guideName}`),
+          ).toEqual(expected);
+        });
+      } finally {
+        brokenLinks.findMarkers = findMarkers;
+      }
+    },
+  );
+
   // Both guides hold the line. The guide that owns the target marks it in its compiled guide and
   // in its copy in the monolith. The other guide's compiled guide links the owner's compiled guide,
   // which lint checks, and only its copy in the monolith marks it. So the monolith holds the same
@@ -804,7 +866,8 @@ describe('lintLinks', () => {
           [
             '_build/a.md dead anchor a',
             '_build/b.md dead anchor b',
-            '_build/guides.md dead anchor undefined',
+            // The guide whose copy holds the reported line.
+            `_build/guides.md dead anchor ${reportedCopy === 'first' ? 'a' : 'b'}`,
           ],
         );
         const lines = monolith.split('\n');
@@ -1308,6 +1371,1152 @@ describe('compileGuideResults link validation e2e', () => {
         });
         expect(issues.some((i) => i.kind === 'missing publish path')).toBe(true);
       });
+    });
+  });
+});
+
+describe('lintLinks over each written file', () => {
+  const BANNER = '<!-- generated -->\n\n';
+
+  /**
+   * Write `files` under `<work>/docs`, compile them with `configInput` and a two-line banner unless
+   * `configInput` sets another, write the outputs, and lint them. `summary` lists each issue as `file kind target guide`. Lint gets
+   * the compile options unless `passCompileOptions` is false.
+   */
+  function lintWritten(
+    work: string,
+    files: Record<string, string>,
+    configInput: Record<string, unknown> & { compileOrder: string[] },
+    { passCompileOptions = true } = {},
+  ) {
+    const docsRoot = join(work, 'docs');
+    for (const [rel, text] of Object.entries(files)) {
+      mkdirSync(dirname(join(docsRoot, rel)), { recursive: true });
+      writeFileSync(join(docsRoot, rel), text);
+    }
+    const config = MdcpConfigSchema.parse({ banner: BANNER, ...configInput });
+    const compileOptions = {
+      guidesRoot: docsRoot,
+      compileOrder: config.compileOrder,
+      banner: config.banner,
+      guides: config.guides,
+      docsRoot,
+      config,
+    };
+    const results = compileGuideResults(compileOptions);
+    writeCompiledGuidesFromResults(results, compileOptions, resolveOutputPath(config, docsRoot));
+    const issues = lintLinks({
+      config,
+      docsRoot,
+      results,
+      ...(passCompileOptions ? { compileOptions } : {}),
+    });
+    const summary = issues.map(
+      (i) => `${relative(docsRoot, i.file)} ${i.kind} ${i.brokenTarget} ${i.guideName}`,
+    );
+    const textOf = (rel: string) => readFileSync(join(docsRoot, rel), 'utf-8');
+    return { docsRoot, results, issues, summary, textOf, compileOptions };
+  }
+
+  /** The line of the written file that an issue names. */
+  function lineOf(issue: { file: string; line: number }): string {
+    return readFileSync(issue.file, 'utf-8').split('\n')[issue.line - 1] ?? '';
+  }
+
+  const monolithPair = (introBody: string): Record<string, string> => ({
+    'a/index.md': '# Guide A\n\n- [Intro](./intro.md)\n',
+    'a/intro.md': `# Intro\n\n${introBody}\n`,
+    'b/index.md': '# Guide B\n\n- [Topic](./topic.md)\n',
+    'b/topic.md': '# Topic B\n\nBody.\n',
+    'notes.md': '# Notes\n\nText.\n',
+  });
+
+  const unmarkedA = { name: 'a', compile: { links: { markBroken: false } } };
+
+  it("checks a compiled guide's #fragment against that file, not another guide's", () => {
+    withTmpDir('mdcp-lint-own-slugs-', (work) => {
+      const { summary, issues, textOf } = lintWritten(
+        work,
+        monolithPair('See [Topic](#topic-b).'),
+        { outputFile: 'guides.md', compileOrder: ['a', 'b'], guides: [unmarkedA] },
+      );
+      // Only guide b's compiled guide has the heading. The monolith has it too, so the monolith
+      // copy of the link is valid there.
+      expect(textOf('_build/guides.md')).toContain('See [Topic](#topic-b).');
+      expect(summary).toEqual(['_build/a.md dead anchor #topic-b a']);
+      expect(lineOf(issues[0])).toBe('See [Topic](#topic-b).');
+    });
+  });
+
+  // b/side.md is in guide b's directory, and b doesn't stitch it. So b.md has no section for it,
+  // and a link there to its slug is a dead anchor, wherever another guide stitches the shard.
+  const throughScopeRoot = { 'a/intro.md': '# Intro\n\nSee [s](../b/side.md).\n' };
+  const scopedA = { name: 'a', compile: { scopeRoot: '.' } };
+  it.each([
+    [
+      'another guide stitches the shard through its scope root',
+      throughScopeRoot,
+      { guides: [scopedA] },
+      // a.md links b's compiled guide too, which doesn't stitch the shard.
+      ['_build/a.md dead anchor b.md#side-notes a', '_build/b.md dead anchor #side-notes b'],
+    ],
+    [
+      'another guide in the monolith stitches the shard',
+      throughScopeRoot,
+      // The monolith stitches the shard in a's copy, so b's link is valid there.
+      { outputFile: 'guides.md', guides: [scopedA] },
+      ['_build/b.md dead anchor #side-notes b'],
+    ],
+    ['no guide stitches the shard', {}, { guides: [] }, ['_build/b.md dead anchor #side-notes b']],
+    [
+      "another guide's manifest lists the shard",
+      { 'a/index.md': '# Guide A\n\n- [Intro](./intro.md)\n- [Side](../b/side.md)\n' },
+      { guides: [] },
+      ['_build/b.md dead anchor #side-notes b'],
+    ],
+  ])(
+    "reports the slug of a shard in the guide's directory that it doesn't stitch when %s",
+    (_case, extraFiles, { guides, ...configInput }, expected) => {
+      withTmpDir('mdcp-lint-owned-shard-slug-', (work) => {
+        const { summary } = lintWritten(
+          work,
+          {
+            'a/index.md': '# Guide A\n\n- [Intro](./intro.md)\n',
+            'a/intro.md': '# Intro\n\nHello.\n',
+            'b/index.md': '# Guide B\n\n- [Topic](./topic.md)\n',
+            'b/topic.md': '# Topic B\n\nSee [side](#side-notes).\n',
+            'b/side.md': '# Side notes\n\nBody.\n',
+            ...extraFiles,
+          },
+          {
+            ...configInput,
+            compileOrder: ['a', 'b'],
+            guides: [...guides, { name: 'b', compile: { links: { markBroken: false } } }],
+          },
+        );
+        expect(summary).toEqual(expected);
+      });
+    },
+  );
+
+  it("marks a link to an unstitched shard's slug in a subdirectory of the guide", () => {
+    withTmpDir('mdcp-lint-owned-shard-subdir-', (work) => {
+      // The orphan scan doesn't look at b/notes/, so only compile and link lint can catch this.
+      const { issues, results, textOf } = lintWritten(
+        work,
+        {
+          'a/index.md': '# Guide A\n\n- [Intro](./intro.md)\n',
+          'a/intro.md': '# Intro\n\nSee [s](../b/notes/side.md).\n',
+          'b/index.md': '# Guide B\n\n- [Topic](./topic.md)\n',
+          'b/topic.md': '# Topic B\n\nSee [side](#side-notes).\n',
+          'b/notes/side.md': '# Side notes\n\nBody.\n',
+        },
+        { outputFile: 'guides.md', compileOrder: ['a', 'b'], guides: [scopedA] },
+      );
+      const b = results[1];
+      expect(b.knownSlugs).not.toContain('side-notes');
+      expect(b.text).toContain('**BROKEN LINK:** "side"');
+      // The monolith stitches the shard in a's copy, so b's link stays a link there.
+      expect(textOf('_build/guides.md')).toContain('See [side](#side-notes).');
+      expect(issues.map((i) => `${relative(join(work, 'docs'), i.file)} ${i.guideName}`)).toEqual([
+        '_build/b.md b',
+      ]);
+      expect(lineOf(issues[0])).toContain('**BROKEN LINK:** "side"');
+    });
+  });
+
+  it.each([false, true])(
+    'numbers the lines of a compiled guide as the written file (includeBanner %s)',
+    (includeBanner) => {
+      withTmpDir('mdcp-lint-banner-lines-', (work) => {
+        const { issues, textOf } = lintWritten(
+          work,
+          { 'g/index.md': '# G\n\n- [S](./s.md)\n', 'g/s.md': '# S\n\n[bad](#nope)\n' },
+          {
+            compileOrder: ['g'],
+            guides: [{ name: 'g', compile: { includeBanner, links: { markBroken: false } } }],
+          },
+        );
+        expect(textOf('_build/guide.md').startsWith(BANNER)).toBe(includeBanner);
+        expect(issues).toHaveLength(1);
+        expect(lineOf(issues[0])).toBe('[bad](#nope)');
+      });
+    },
+  );
+
+  // Compile ends a banner that lacks a trailing newline with one, in each compiled guide and in the
+  // monolith. The lead heading keeps its own line and its anchor, and the lines of each copy in the
+  // monolith count the added newline.
+  it('adds a newline to a banner without one, so the lead heading keeps its line', () => {
+    withTmpDir('mdcp-lint-banner-no-newline-', (work) => {
+      const { summary, issues, textOf } = lintWritten(
+        work,
+        monolithPair(
+          'Back to [top](#guide-a).\n\nFirst see [x](../b/topic.md#nope).\n\nThen see [x](#nope).',
+        ),
+        {
+          banner: '<!-- generated -->',
+          outputFile: 'guides.md',
+          compileOrder: ['a', 'b'],
+          guides: [unmarkedA],
+        },
+      );
+      for (const file of ['_build/a.md', '_build/b.md', '_build/guides.md']) {
+        expect(textOf(file).split('\n')[0]).toBe('<!-- generated -->');
+      }
+      expect(textOf('_build/a.md').split('\n')[1]).toBe('# Guide A');
+      expect(textOf('_build/guides.md').split('\n')[1]).toBe('# Guide A');
+      expect(summary).toEqual([
+        '_build/a.md dead anchor b.md#nope a',
+        '_build/a.md dead anchor #nope a',
+        '_build/guides.md dead anchor #nope a',
+      ]);
+      expect(issues.map(lineOf)).toEqual([
+        'First see [x](b.md#nope).',
+        'Then see [x](#nope).',
+        'First see [x](#nope).',
+      ]);
+    });
+  });
+
+  it('passes a link to the title after a banner without a trailing newline when the first section takes its slug', () => {
+    withTmpDir('mdcp-lint-banner-no-newline-title-', (work) => {
+      // compile.title repeats the first shard's heading, so assembly drops that heading and the
+      // section takes the title's slug.
+      const { results, summary, textOf } = lintWritten(
+        work,
+        {
+          'a/index.md': '# Guide A\n\n- [Intro](./intro.md)\n- [More](./more.md)\n',
+          'a/intro.md': '# Intro\n\nBody.\n',
+          'a/more.md': '# More\n\nBack to [top](#intro).\n',
+          'b/index.md': '# Guide B\n\n- [Topic](./topic.md)\n',
+          'b/topic.md': '# Topic B\n\nBody.\n',
+        },
+        {
+          banner: '<!-- generated -->',
+          compileOrder: ['a', 'b'],
+          guides: [{ name: 'a', compile: { title: 'Intro' } }],
+        },
+      );
+      expect(textOf('_build/a.md').split('\n').slice(0, 2)).toEqual([
+        '<!-- generated -->',
+        '## Intro',
+      ]);
+      expect(results[0].text).toContain('Back to [top](#intro).');
+      // The title heading in the written file has the slug the link names.
+      const writtenSlugs = buildSlugRegistry(textOf('_build/a.md')).headings.map((h) => h.slug);
+      expect(writtenSlugs).toContain('intro');
+      expect(summary).toEqual([]);
+    });
+  });
+
+  // A later heading repeats the title, so compile numbers its section installation-1. The written
+  // file keeps the title heading, so that heading has the slug installation-1 too.
+  it('keeps the numbering of a heading that repeats the title after a banner without a trailing newline', () => {
+    withTmpDir('mdcp-lint-banner-no-newline-repeat-', (work) => {
+      const { summary, textOf } = lintWritten(
+        work,
+        {
+          'a/index.md': '# Installation\n\n- [Intro](./intro.md)\n- [Install](./install.md)\n',
+          'a/intro.md': '# Intro\n\nGo to [install](./install.md).\n',
+          'a/install.md': '# Installation\n\nSteps.\n',
+          'b/index.md': '# Guide B\n\n- [Topic](./topic.md)\n',
+          'b/topic.md': '# Topic B\n\nBody.\n',
+        },
+        { banner: '<!-- generated -->', compileOrder: ['a', 'b'] },
+      );
+      expect(textOf('_build/a.md')).toContain('Go to [install](#installation-1).');
+      const writtenSlugs = buildSlugRegistry(textOf('_build/a.md')).headings.map((h) => h.slug);
+      expect(writtenSlugs).toEqual(['installation', 'intro', 'installation-1']);
+      expect(summary).toEqual([]);
+    });
+  });
+
+  it('takes the banner from compileOptions, which may have none, rather than from config', () => {
+    withTmpDir('mdcp-lint-no-banner-', (work) => {
+      const docsRoot = join(work, 'docs');
+      mkdirSync(join(docsRoot, 'g'), { recursive: true });
+      writeFileSync(join(docsRoot, 'g', 'index.md'), '# G\n\n- [S](./s.md)\n');
+      writeFileSync(join(docsRoot, 'g', 's.md'), '# S\n\n[bad](#nope)\n');
+      // The parsed config carries the default banner. The compile run had none.
+      const config = MdcpConfigSchema.parse({
+        compileOrder: ['g'],
+        guides: [{ name: 'g', compile: { links: { markBroken: false } } }],
+      });
+      const compileOptions = {
+        guidesRoot: docsRoot,
+        compileOrder: config.compileOrder,
+        guides: config.guides,
+        docsRoot,
+        config,
+      };
+      const results = compileGuideResults(compileOptions);
+      writeCompiledGuidesFromResults(results, compileOptions);
+      const issues = lintLinks({ config, docsRoot, results, compileOptions });
+      expect(issues).toHaveLength(1);
+      expect(lineOf(issues[0])).toBe('[bad](#nope)');
+    });
+  });
+
+  // Without compileOptions, lintLinks takes the banner from config. The lines then still count it,
+  // and the monolith is still linted.
+  it.each([
+    ['with compileOptions', true],
+    ['without compileOptions', false],
+  ])('lints the monolith as its own document, %s', (_case, passCompileOptions) => {
+    withTmpDir('mdcp-lint-monolith-doc-', (work) => {
+      // The link compiles to b.md#nope in a.md and to #nope in the monolith. Neither file has the
+      // heading, so each file reports its own copy.
+      const { summary, issues, textOf } = lintWritten(
+        work,
+        monolithPair('See [Topic](../b/topic.md#nope).'),
+        { outputFile: 'sub/guides.md', compileOrder: ['a', 'b'], guides: [unmarkedA] },
+        { passCompileOptions },
+      );
+      expect(textOf('_build/sub/guides.md')).toContain('See [Topic](#nope).');
+      expect(summary).toEqual([
+        '_build/a.md dead anchor b.md#nope a',
+        '_build/sub/guides.md dead anchor #nope a',
+      ]);
+      for (const issue of issues) {
+        expect(lineOf(issue)).toBe(`See [Topic](${issue.brokenTarget}).`);
+      }
+    });
+  });
+
+  // Each case compiles to the same target in both files, as written or as the file it resolves to.
+  it.each([
+    ['a same-document fragment', 'guides.md', '[x](#nope)', 'dead anchor #nope', '(#nope)'],
+    [
+      'a missing file, with the monolith in sub/',
+      'sub/guides.md',
+      '[x](./missing.md)',
+      'missing publish path ./missing.md',
+      '(./missing.md)',
+    ],
+    [
+      'a stale fragment on a file that is no output, with the monolith in sub/',
+      'sub/guides.md',
+      '[x](../notes.md#nope)',
+      'dead anchor ../notes.md#nope',
+      '(../../notes.md#nope)',
+    ],
+  ])(
+    'reports a link issue that a compiled guide and the monolith share once, with %s',
+    (_case, outputFile, link, reported, monolithTarget) => {
+      withTmpDir('mdcp-lint-monolith-dedupe-', (work) => {
+        const { summary, textOf } = lintWritten(work, monolithPair(`See ${link}.`), {
+          outputFile,
+          compileOrder: ['a', 'b'],
+          guides: [unmarkedA],
+        });
+        expect(textOf(`_build/${outputFile}`)).toContain(monolithTarget);
+        expect(summary).toEqual([`_build/a.md ${reported} a`]);
+      });
+    },
+  );
+
+  it('matches a monolith link issue to the compiled guide issue with the same label', () => {
+    withTmpDir('mdcp-lint-monolith-dedupe-label-', (work) => {
+      // Both links compile to #nope in the monolith. Only [two] is #nope in a.md as well.
+      const { issues, textOf } = lintWritten(
+        work,
+        monolithPair('See [one](../b/topic.md#nope) and [two](#nope).'),
+        { outputFile: 'guides.md', compileOrder: ['a', 'b'], guides: [unmarkedA] },
+      );
+      expect(textOf('_build/guides.md')).toContain('See [one](#nope) and [two](#nope).');
+      expect(issues.map((i) => `${i.file.split('/').pop()} ${i.label} ${i.brokenTarget}`)).toEqual([
+        'a.md one b.md#nope',
+        'a.md two #nope',
+        'guides.md one #nope',
+      ]);
+    });
+  });
+
+  it('leaves out at most one monolith link issue for each compiled guide issue', () => {
+    withTmpDir('mdcp-lint-monolith-dedupe-once-', (work) => {
+      // Both links have the same label and compile to #nope in the monolith. a.md reports #nope
+      // once, which leaves out one monolith issue. The other is the monolith copy of b.md#nope.
+      const { summary, issues, textOf } = lintWritten(
+        work,
+        monolithPair('See [x](#nope) and [x](../b/topic.md#nope).'),
+        { outputFile: 'guides.md', compileOrder: ['a', 'b'], guides: [unmarkedA] },
+      );
+      expect(textOf('_build/guides.md')).toContain('See [x](#nope) and [x](#nope).');
+      expect(summary).toEqual([
+        '_build/a.md dead anchor #nope a',
+        '_build/a.md dead anchor b.md#nope a',
+        '_build/guides.md dead anchor #nope a',
+      ]);
+      expect(issues.map(lineOf)).toEqual([
+        'See [x](#nope) and [x](b.md#nope).',
+        'See [x](#nope) and [x](b.md#nope).',
+        'See [x](#nope) and [x](#nope).',
+      ]);
+    });
+  });
+
+  it('matches a monolith link issue to the compiled guide issue at the same line of the copy', () => {
+    withTmpDir('mdcp-lint-monolith-dedupe-line-', (work) => {
+      // Both links have the same label and compile to #nope in the monolith. a.md reports the
+      // second link as #nope. The first is b.md#nope there, so its monolith copy is the one left.
+      const { summary, issues } = lintWritten(
+        work,
+        monolithPair('First see [x](../b/topic.md#nope).\n\nThen see [x](#nope).'),
+        { outputFile: 'guides.md', compileOrder: ['a', 'b'], guides: [unmarkedA] },
+      );
+      expect(summary).toEqual([
+        '_build/a.md dead anchor b.md#nope a',
+        '_build/a.md dead anchor #nope a',
+        '_build/guides.md dead anchor #nope a',
+      ]);
+      expect(issues.map(lineOf)).toEqual([
+        'First see [x](b.md#nope).',
+        'Then see [x](#nope).',
+        'First see [x](#nope).',
+      ]);
+    });
+  });
+
+  // a's intro.md links b's topic.md#nope, and b's topic.md links #nope. Both links are
+  // `[x](#nope)` in the monolith, at the same line of each guide's text. Only b.md reports b's
+  // link as #nope, so that issue leaves out the monolith issue in b's copy and not the one in a's.
+  it('matches a monolith link issue only against the compiled guide of the guide whose copy holds it', () => {
+    withTmpDir('mdcp-lint-monolith-dedupe-own-guide-', (work) => {
+      const unmarked = { compile: { links: { markBroken: false } } };
+      const { docsRoot, issues } = lintWritten(
+        work,
+        {
+          'a/index.md': '# Guide A\n\n- [Intro](./intro.md)\n',
+          'a/intro.md': '# Intro\n\nSee [x](../b/topic.md#nope).\n',
+          'b/index.md': '# Guide B\n\n- [Topic](./topic.md)\n',
+          'b/topic.md': '# Topic B\n\nSee [x](#nope).\n',
+        },
+        {
+          outputFile: 'guides.md',
+          compileOrder: ['a', 'b'],
+          guides: [
+            { name: 'a', ...unmarked },
+            { name: 'b', ...unmarked },
+          ],
+        },
+      );
+      expect(
+        issues.map(
+          (i) => `${relative(docsRoot, i.file)}:${i.line} ${i.brokenTarget} ${i.guideName}`,
+        ),
+      ).toEqual([
+        '_build/a.md:9 b.md#nope a',
+        '_build/b.md:9 #nope b',
+        '_build/guides.md:9 #nope a',
+      ]);
+      expect(issues.map(lineOf)).toEqual([
+        'See [x](b.md#nope).',
+        'See [x](#nope).',
+        'See [x](#nope).',
+      ]);
+    });
+  });
+
+  // Guide c's intro.md has two links with one label. c.md links a.md#nope for the first and keeps
+  // #nope for the second, and the monolith has #nope for both. Every copy after the first ends
+  // with one more blank line in the monolith, so a copy from the third on starts lower than the
+  // lines of the copies before it add up to.
+  const sameLabelInC = {
+    'a/index.md': '# Guide A\n\n- [Setup](./setup.md)\n',
+    'a/setup.md': '# Setup\n\nA.\n',
+    'b/index.md': '# Guide B\n\n- [Topic](./topic.md)\n',
+    'b/topic.md': '# Topic\n\nB.\n',
+    'c/index.md': '# Guide C\n\n- [Intro](./intro.md)\n',
+    'c/intro.md': '# Intro\n\nFirst see [x](../a/setup.md#nope).\n\nThen see [x](#nope).\n',
+    'd/index.md': '# Guide D\n\n- [Notes](./notes.md)\n',
+    'd/notes.md': '# Notes\n\nD.\n',
+  };
+  const lateCopies = [
+    ['third', ['a', 'b', 'c']],
+    ['fourth', ['a', 'b', 'd', 'c']],
+  ] as const;
+
+  it.each(lateCopies)(
+    'matches a monolith link issue at the same line of the copy of the %s guide',
+    (_place, compileOrder) => {
+      withTmpDir('mdcp-lint-monolith-dedupe-line-late-', (work) => {
+        const { summary, issues } = lintWritten(work, sameLabelInC, {
+          outputFile: 'guides.md',
+          compileOrder: [...compileOrder],
+          guides: [{ name: 'c', compile: { links: { markBroken: false } } }],
+        });
+        expect(summary).toEqual([
+          '_build/c.md dead anchor a.md#nope c',
+          '_build/c.md dead anchor #nope c',
+          '_build/guides.md dead anchor #nope c',
+        ]);
+        expect(issues.map(lineOf)).toEqual([
+          'First see [x](a.md#nope).',
+          'Then see [x](#nope).',
+          'First see [x](#nope).',
+        ]);
+      });
+    },
+  );
+
+  it.each(lateCopies)(
+    'reports the monolith marker of the link that only the monolith marks in the copy of the %s guide',
+    (_place, compileOrder) => {
+      withTmpDir('mdcp-lint-monolith-marker-late-', (work) => {
+        const { docsRoot, issues } = lintWritten(work, sameLabelInC, {
+          outputFile: 'guides.md',
+          compileOrder: [...compileOrder],
+        });
+        const marked = (target: string) =>
+          `**BROKEN LINK:** "x" (\`${target}\`) → \`#nope\` (dead anchor in compiled guide).`;
+        expect(issues.map((i) => `${relative(docsRoot, i.file)} ${i.guideName}`)).toEqual([
+          '_build/c.md c',
+          '_build/c.md c',
+          '_build/guides.md c',
+        ]);
+        expect(issues.map(lineOf)).toEqual([
+          `Then see ${marked('#nope')}`,
+          'First see [x](a.md#nope).',
+          `First see ${marked('../a/setup.md#nope')}`,
+        ]);
+      });
+    },
+  );
+
+  // b/use.md links guide a's setup.md, which only the monolith marks. b/sub/deep.md links b's own
+  // a/setup.md, written the same way, which both files mark. The two markers in b's copy read the
+  // same, so only their lines tell them apart.
+  it('matches a monolith marker to the marker at the same line of the copy first', () => {
+    withTmpDir('mdcp-lint-monolith-marker-line-', (work) => {
+      const { docsRoot, issues } = lintWritten(
+        work,
+        {
+          'a/index.md': '# Guide A\n\n- [Setup](./setup.md)\n',
+          'a/setup.md': '# Setup\n\nA.\n',
+          'b/index.md':
+            '# Guide B\n\n- [Use](./use.md)\n- [Local setup](./a/setup.md)\n- [Deep](./sub/deep.md)\n',
+          'b/use.md': '# Use\n\nFirst see [x](../a/setup.md#nope).\n',
+          'b/a/setup.md': '# Local setup\n\nB.\n',
+          'b/sub/deep.md': '# Deep\n\nThen see [x](../a/setup.md#nope).\n',
+        },
+        { outputFile: 'guides.md', compileOrder: ['a', 'b'] },
+      );
+      const marked = `**BROKEN LINK:** "x" (\`../a/setup.md#nope\`) → \`#nope\` (dead anchor in compiled guide).`;
+      expect(issues.map((i) => `${relative(docsRoot, i.file)} ${i.guideName}`)).toEqual([
+        '_build/b.md b',
+        '_build/b.md b',
+        '_build/guides.md b',
+      ]);
+      expect(issues.map(lineOf)).toEqual([
+        `Then see ${marked}`,
+        'First see [x](a.md#nope).',
+        `First see ${marked}`,
+      ]);
+    });
+  });
+
+  // A custom hook adds two lines to the monolith copy only, so the link sits two lines lower in
+  // the copy than in a.md. It is still the same link, so only a.md reports it, as a link issue or
+  // as the line of its marker.
+  it.each([
+    ['link issue', false, '#nope'],
+    [
+      'marker',
+      true,
+      'See **BROKEN LINK:** "x" (`#nope`) → `#nope` (dead anchor in compiled guide).',
+    ],
+  ])(
+    'matches a monolith %s on another line of the copy when none is on its line',
+    (_case, markBroken, reported) => {
+      withTmpDir('mdcp-lint-monolith-dedupe-shifted-', (work) => {
+        registerCompileHook('shiftMonolithCopyForTest', (ctx) =>
+          basename(ctx.outputFile ?? '') === 'guides.md' ? `Added line.\n\n${ctx.body}` : ctx.body,
+        );
+        const { summary, textOf } = lintWritten(work, monolithPair('See [x](#nope).'), {
+          outputFile: 'guides.md',
+          compileOrder: ['a', 'b'],
+          guides: [
+            {
+              name: 'a',
+              compile: { hooks: ['shiftMonolithCopyForTest'], links: { markBroken } },
+            },
+          ],
+        });
+        expect(textOf('_build/guides.md')).toContain('Added line.');
+        expect(textOf('_build/a.md')).not.toContain('Added line.');
+        expect(summary).toEqual([`_build/a.md dead anchor ${reported} a`]);
+      });
+    },
+  );
+
+  // A custom hook swaps the targets of the two links in the monolith copy only. Each a.md issue
+  // then has the target of the other link's monolith issue. Each stays with the monolith issue
+  // at its own line, which has its label, so both monolith issues are reported.
+  it('matches no compiled guide issue on another line when a monolith issue with its label is at its line', () => {
+    withTmpDir('mdcp-lint-monolith-dedupe-held-', (work) => {
+      registerCompileHook('swapMonolithTargetsForTest', (ctx) =>
+        basename(ctx.outputFile ?? '') === 'guides.md'
+          ? ctx.body
+              .replace('(#one)', '(#swap)')
+              .replace('(#two)', '(#one)')
+              .replace('(#swap)', '(#two)')
+          : ctx.body,
+      );
+      const { summary, issues } = lintWritten(
+        work,
+        monolithPair('First see [x](#one).\n\nThen see [x](#two).'),
+        {
+          outputFile: 'guides.md',
+          compileOrder: ['a', 'b'],
+          guides: [
+            {
+              name: 'a',
+              compile: { hooks: ['swapMonolithTargetsForTest'], links: { markBroken: false } },
+            },
+          ],
+        },
+      );
+      expect(summary).toEqual([
+        '_build/a.md dead anchor #one a',
+        '_build/a.md dead anchor #two a',
+        '_build/guides.md dead anchor #two a',
+        '_build/guides.md dead anchor #one a',
+      ]);
+      expect(issues.map(lineOf)).toEqual([
+        'First see [x](#one).',
+        'Then see [x](#two).',
+        'First see [x](#two).',
+        'Then see [x](#one).',
+      ]);
+    });
+  });
+
+  // Guide a stitches b's topic.md through its scope root and ignores guide b. a.md links the
+  // first link's section as #nope, while the monolith in sub/ keeps the path. The second link
+  // goes to c.md#nope in a.md and to #nope in the monolith. The a.md issue for #nope is the first
+  // link's, so the monolith issue of the second link is still reported.
+  it("reports a monolith issue whose target only another link's compiled guide issue has", () => {
+    withTmpDir('mdcp-lint-monolith-dedupe-held-ignored-', (work) => {
+      const { docsRoot, issues } = lintWritten(
+        work,
+        {
+          'a/index.md': '# Guide A\n\n- [Intro](./intro.md)\n',
+          'a/intro.md':
+            '# Intro\n\nFirst see [x](../b/topic.md#nope).\n\nThen see [x](../c/start.md#nope).\n',
+          'b/index.md': '# Guide B\n\n- [Topic](./topic.md)\n',
+          'b/topic.md': '# Topic B\n\nBody.\n',
+          'c/index.md': '# Guide C\n\n- [Start](./start.md)\n',
+          'c/start.md': '# Start\n\nBody.\n',
+        },
+        {
+          outputFile: 'sub/guides.md',
+          compileOrder: ['a', 'b', 'c'],
+          guides: [
+            {
+              name: 'a',
+              compile: {
+                scopeRoot: '.',
+                links: { markBroken: false },
+                crossGuideLinks: { ignoreGuides: ['b'] },
+              },
+            },
+          ],
+        },
+      );
+      expect(
+        issues.map(
+          (i) => `${relative(docsRoot, i.file)}:${i.line} ${i.brokenTarget} ${i.guideName}`,
+        ),
+      ).toEqual([
+        '_build/a.md:9 #nope a',
+        '_build/a.md:11 c.md#nope a',
+        '_build/sub/guides.md:9 ../../b/topic.md#nope a',
+        '_build/sub/guides.md:11 #nope a',
+      ]);
+      expect(issues.map(lineOf)).toEqual([
+        'First see [x](#nope).',
+        'Then see [x](c.md#nope).',
+        'First see [x](../../b/topic.md#nope).',
+        'Then see [x](#nope).',
+      ]);
+    });
+  });
+
+  it('reports a monolith link issue of another kind than the compiled guide issue', () => {
+    withTmpDir('mdcp-lint-monolith-dedupe-kind-', (work) => {
+      // ./b.md names no shard, so neither file rebases it. From _build/ it is guide b's compiled
+      // guide, which has no #nope heading. From _build/sub/ it names no file.
+      const { summary, textOf } = lintWritten(work, monolithPair('See [x](./b.md#nope).'), {
+        outputFile: 'sub/guides.md',
+        compileOrder: ['a', 'b'],
+        guides: [unmarkedA],
+      });
+      expect(textOf('_build/a.md')).toContain('See [x](./b.md#nope).');
+      expect(textOf('_build/sub/guides.md')).toContain('See [x](./b.md#nope).');
+      expect(summary).toEqual([
+        '_build/a.md dead anchor ./b.md#nope a',
+        '_build/sub/guides.md missing publish path ./b.md#nope a',
+      ]);
+    });
+  });
+
+  // Compile marks the #nope link and keeps the link to b.md, whose #gone no heading there has.
+  // Link lint reports the line once, by its marker, and doesn't check the other link on it.
+  it('reports a line that holds a BROKEN LINK marker once and skips its other links', () => {
+    withTmpDir('mdcp-lint-marker-line-links-', (work) => {
+      const { issues, textOf } = lintWritten(
+        work,
+        monolithPair('See [x](#nope) and [y](../b/topic.md#gone).'),
+        { compileOrder: ['a', 'b'] },
+      );
+      const line =
+        'See **BROKEN LINK:** "x" (`#nope`) → `#nope` (dead anchor in compiled guide) and [y](b.md#gone).';
+      expect(textOf('_build/a.md')).toContain(`\n${line}\n`);
+      expect(issues.map((i) => `${i.file.split('/').pop()} ${i.kind} ${i.guideName}`)).toEqual([
+        'a.md dead anchor a',
+      ]);
+      expect(issues.map(lineOf)).toEqual([line]);
+    });
+  });
+
+  // Guide b has no lead heading and no source tags, so the link is the first line of its copy in
+  // the monolith. That line belongs to b's copy, not to a's copy before it.
+  it.each([false, true])(
+    "matches an issue on a copy's first line to that copy's guide (markBroken %s)",
+    (markBroken) => {
+      withTmpDir('mdcp-lint-monolith-copy-first-line-', (work) => {
+        const { docsRoot, results, issues, compileOptions, textOf } = lintWritten(
+          work,
+          {
+            'a/index.md': '# Guide A\n\n- [Intro](./intro.md)\n',
+            'a/intro.md': '# Intro\n\nHello.\n',
+            'b/index.md': '- [Topic](./topic.md)\n',
+            'b/topic.md': 'See [x](#nope).\n\nMore.\n',
+          },
+          {
+            outputFile: 'guides.md',
+            compileOrder: ['a', 'b'],
+            guides: [{ name: 'b', compile: { sourceTags: false, links: { markBroken } } }],
+          },
+        );
+        const copyOfB = monolithGuideFirstLines(results, compileOptions)[1];
+        expect(copyOfB.name).toBe('b');
+        expect(textOf('_build/guides.md').split('\n')[copyOfB.firstLine - 1]).toMatch(/^See /);
+        expect(issues.map((i) => `${relative(docsRoot, i.file)} ${i.kind} ${i.guideName}`)).toEqual(
+          ['_build/b.md dead anchor b'],
+        );
+      });
+    },
+  );
+
+  // Compile names the section by its finding id or declared id, but the heading there takes its
+  // slug from its text, so no anchor in the target output has that id.
+  it.each([
+    ['a FIND-* id, from a compiled guide', {}],
+    ['a FIND-* id, from publish output', { outputFile: 'glossary.md' }],
+  ])('reports a fragment on a link to another output that names %s', (_case, glossaryCompile) => {
+    withTmpDir('mdcp-lint-output-find-', (work) => {
+      const { results, summary, textOf } = lintWritten(
+        work,
+        {
+          'glossary/index.md': '# Glossary\n\n- [Terms](./terms.md)\n',
+          'glossary/terms.md':
+            '# Terms\n\nSee [FIND-004](../review/outcomes/FIND-004.md) and [stale](../review/outcomes/FIND-004.md#nope).\n',
+          'review/shards.md': '# Architecture review\n\n- [FIND-004](./outcomes/FIND-004.md)\n',
+          'review/outcomes/FIND-004.md': '# FIND-004 — Example finding\n\nBody.\n',
+        },
+        {
+          compileOrder: ['glossary', 'architecture-review'],
+          guides: [
+            { name: 'glossary', path: 'glossary', compile: { scopeRoot: '.', ...glossaryCompile } },
+            {
+              name: 'architecture-review',
+              path: 'review',
+              compile: {
+                scopeRoot: '.',
+                manifest: 'shards.md',
+                outputFile: 'architecture-review.md',
+              },
+            },
+          ],
+        },
+      );
+      expect(results[0].text).toContain('(architecture-review.md#find-004)');
+      expect(textOf('_build/architecture-review.md')).toContain('## FIND-004 — Example finding\n');
+      expect(summary).toEqual([
+        '_build/glossary.md dead anchor architecture-review.md#find-004 glossary',
+        '_build/glossary.md dead anchor architecture-review.md#nope glossary',
+      ]);
+    });
+  });
+
+  it('reports a fragment on a link to another output that names a declared id', () => {
+    withTmpDir('mdcp-lint-output-declared-id-', (work) => {
+      const { results, summary, textOf } = lintWritten(
+        work,
+        {
+          'a/index.md': '# Guide A\n\n- [Intro](./intro.md)\n',
+          'a/intro.md': '# Intro\n\nSee [setup](../b/setup.md) and [stale](../b/setup.md#nope).\n',
+          'b/index.md': '# Guide B\n\n- [Setup](./setup.md)\n',
+          'b/setup.md': '# Setup steps {#custom-setup}\n\nText.\n',
+        },
+        { compileOrder: ['a', 'b'] },
+      );
+      expect(results[0].text).toContain('(b.md#custom-setup)');
+      // Compile strips the marker, so the heading's anchor is setup-steps.
+      expect(textOf('_build/b.md')).toContain('## Setup steps\n');
+      expect(summary).toEqual([
+        '_build/a.md dead anchor b.md#custom-setup a',
+        '_build/a.md dead anchor b.md#nope a',
+      ]);
+    });
+  });
+
+  it("checks a fragment on a link to another output against that output's headings", () => {
+    withTmpDir('mdcp-lint-output-sections-', (work) => {
+      // Guide b owns extra.md by its path but doesn't stitch it. Guide a stitches it through its
+      // scope root. Compile links it to b.md#extra-notes, a section that b.md doesn't have.
+      const { results, summary } = lintWritten(
+        work,
+        {
+          'a/index.md': '# Guide A\n\n- [Intro](./intro.md)\n',
+          'a/intro.md': '# Intro\n\nSee [s](../b/extra.md).\n',
+          'b/index.md': '# Guide B\n\n- [Topic](./topic.md)\n',
+          'b/topic.md': '# Topic B\n\nBody.\n',
+          'b/extra.md': '# Extra notes\n\nBody.\n',
+          'c/index.md': '# Guide C\n\n- [Start](./start.md)\n',
+          'c/start.md':
+            '# Start\n\nSee [extra](../b/extra.md#extra-notes) and [plain](../b/extra.md).\n',
+        },
+        { compileOrder: ['a', 'b', 'c'], guides: [{ name: 'a', compile: { scopeRoot: '.' } }] },
+      );
+      const [a, b, c] = results;
+      expect(a.text).toContain('## Extra notes');
+      expect(b.text).not.toContain('Extra notes');
+      expect(c.text).toContain('See [extra](b.md#extra-notes) and [plain](b.md#extra-notes).');
+      expect(summary).toEqual([
+        '_build/a.md dead anchor b.md#extra-notes a',
+        '_build/c.md dead anchor b.md#extra-notes c',
+        '_build/c.md dead anchor b.md#extra-notes c',
+      ]);
+      // b.md has no section for the shard, so marking doesn't accept its slug there either.
+      expect(b.knownSlugs).toEqual(['topic-b']);
+    });
+  });
+
+  it("checks a fragment on a link to the monolith against the monolith's headings", () => {
+    withTmpDir('mdcp-lint-monolith-sections-', (work) => {
+      // Guide b owns extra.md by its path, and no guide in the monolith stitches it. Publish-only
+      // guide p does. Compile links it to guides.md#extra-notes, a section the monolith doesn't have.
+      const { results, summary, textOf } = lintWritten(
+        work,
+        {
+          'a/index.md': '# Guide A\n\n- [Intro](./intro.md)\n',
+          'a/intro.md': '# Intro\n\nSee [x](../b/extra.md#extra-notes).\n',
+          'b/index.md': '# Guide B\n\n- [Topic](./topic.md)\n',
+          'b/topic.md': '# Topic B\n\nSee [extra notes](#extra-notes).\n',
+          'b/extra.md': '# Extra notes\n\nBody.\n',
+          'p/index.md': '# Pub\n\n- [Start](./start.md)\n',
+          'p/start.md': '# Start\n\nSee [s](../b/extra.md).\n',
+        },
+        {
+          outputFile: 'guides.md',
+          compileOrder: ['a', 'b', 'p'],
+          guides: [
+            { name: 'a', compile: { links: { markBroken: false } } },
+            { name: 'b', compile: { links: { markBroken: false } } },
+            { name: 'p', compile: { outputFile: 'p-out.md', scopeRoot: '.' } },
+          ],
+        },
+      );
+      expect(results[2].text).toContain('## Extra notes');
+      // In the monolith, a's link lands on the monolith itself, so it targets #extra-notes there.
+      expect(textOf('_build/guides.md')).toContain('See [x](#extra-notes).');
+      // b's own link is the same in b.md and the monolith, so only b.md reports it.
+      expect(summary).toEqual([
+        '_build/a.md dead anchor guides.md#extra-notes a',
+        '_build/b.md dead anchor #extra-notes b',
+        '_build/p-out.md dead anchor guides.md#extra-notes p',
+        '_build/guides.md dead anchor #extra-notes a',
+      ]);
+      expect(results[1].knownSlugs).toEqual(['topic-b']);
+      expect(results[1].monolithKnownSlugs).toEqual(['intro', 'topic-b']);
+    });
+  });
+
+  // b/notes/extra.md is titled Setup, and b doesn't stitch it. A link to it takes the slug of its
+  // section in the first guide that stitches it, setup. The output the link points into has no
+  // section for the shard, but another heading there has that slug, so compile leaves the link
+  // and link lint passes it. It points at the other heading.
+  const extraSetup = {
+    'b/index.md': '# Guide B\n\n- [Topic](./topic.md)\n',
+    'b/topic.md': '# Topic\n\nB.\n',
+    'b/notes/extra.md': '# Setup\n\nExtra setup steps.\n',
+  };
+  it.each([
+    [
+      'the monolith, where an earlier guide has a Setup heading',
+      {
+        'a/index.md': '# Guide A\n\n- [Setup](./setup.md)\n- [Intro](./intro.md)\n',
+        'a/setup.md': '# Setup\n\nInstall A.\n',
+        'a/intro.md': '# Intro\n\nSee [extra](../b/notes/extra.md).\n',
+        'p/index.md': '# Pub\n\n- [Start](./start.md)\n',
+        'p/start.md': '# Start\n\nRead [extra](../b/notes/extra.md).\n',
+      },
+      {
+        outputFile: 'guides.md',
+        compileOrder: ['a', 'b', 'p'],
+        guides: [{ name: 'p', compile: { outputFile: 'p-out.md', scopeRoot: '.' } }],
+      },
+      {
+        '_build/guides.md': 'See [extra](#setup).',
+        '_build/a.md': 'See [extra](guides.md#setup).',
+        '_build/p-out.md': 'Read [extra](guides.md#setup).',
+      },
+      // The monolith's only Setup heading is guide a's. p-out.md holds the shard's section.
+      { '_build/guides.md': 1, '_build/p-out.md': 1 },
+    ],
+    [
+      "the owner's compiled guide, which has a Setup heading of its own",
+      {
+        'a/index.md': '# Guide A\n\n- [Intro](./intro.md)\n',
+        'a/intro.md': '# Intro\n\nSee [extra](../b/notes/extra.md).\n',
+        'b/index.md': '# Guide B\n\n- [Setup](./setup.md)\n- [Topic](./topic.md)\n',
+        'b/setup.md': '# Setup\n\nInstall B.\n',
+      },
+      { compileOrder: ['a', 'b'], guides: [{ name: 'a', compile: { scopeRoot: '.' } }] },
+      { '_build/a.md': 'See [extra](b.md#setup).' },
+      // a.md holds the shard's section, and b.md's only Setup heading is b's own.
+      { '_build/a.md': 1, '_build/b.md': 1 },
+    ],
+  ])(
+    'passes a link to a shard whose section is missing from %s',
+    (_case, files, configInput, links, setupHeadings) => {
+      withTmpDir('mdcp-lint-unstitched-slug-collision-', (work) => {
+        const { summary, textOf } = lintWritten(work, { ...extraSetup, ...files }, configInput);
+        for (const [file, link] of Object.entries(links)) {
+          expect(textOf(file)).toContain(`\n${link}\n`);
+        }
+        for (const [file, count] of Object.entries(setupHeadings)) {
+          expect(textOf(file).match(/^#+ Setup$/gm)).toHaveLength(count);
+          expect(textOf(file)).not.toContain('BROKEN LINK');
+        }
+        expect(summary).toEqual([]);
+      });
+    },
+  );
+
+  // a/install.md declares setup as its id, and its heading takes the anchor install. Only p
+  // stitches b/notes/extra.md, so a link to it takes p's slug, setup. In the monolith, compile and
+  // link lint accept setup as the section slug of a's install.md, so the link stays there and
+  // points at no heading. a.md and p-out.md link guides.md#setup, which no heading there has.
+  it('passes a link in the monolith to a shard it lacks when a section there declares the slug', () => {
+    withTmpDir('mdcp-lint-unstitched-declared-id-', (work) => {
+      const { summary, textOf } = lintWritten(
+        work,
+        {
+          ...extraSetup,
+          'a/index.md': '# Guide A\n\n- [Install](./install.md)\n- [Intro](./intro.md)\n',
+          'a/install.md': '# Install {#setup}\n\nInstall A.\n',
+          'a/intro.md': '# Intro\n\nSee [extra](../b/notes/extra.md).\n',
+          'p/index.md': '# Pub\n\n- [Start](./start.md)\n',
+          'p/start.md': '# Start\n\nRead [extra](../b/notes/extra.md).\n',
+        },
+        {
+          outputFile: 'guides.md',
+          compileOrder: ['a', 'b', 'p'],
+          guides: [{ name: 'p', compile: { outputFile: 'p-out.md', scopeRoot: '.' } }],
+        },
+      );
+      const monolith = textOf('_build/guides.md');
+      expect(monolith).toContain('\nSee [extra](#setup).\n');
+      expect(monolith).toContain('\n## Install\n');
+      expect(monolith).not.toMatch(/^#+ Setup$/m);
+      expect(monolith).not.toContain('BROKEN LINK');
+      expect(summary).toEqual([
+        '_build/a.md dead anchor guides.md#setup a',
+        '_build/p-out.md dead anchor guides.md#setup p',
+      ]);
+    });
+  });
+
+  it('reports a fragment on a link to the monolith that names a section id of its second guide', () => {
+    withTmpDir('mdcp-lint-monolith-section-ids-', (work) => {
+      // Neither id is a heading slug of the monolith. Each is the slug that b's copy gives its
+      // section, which a link inside the monolith may name, but no anchor has it.
+      const { results, summary } = lintWritten(
+        work,
+        {
+          'a/index.md': '# Guide A\n\n- [Intro](./intro.md)\n',
+          'a/intro.md': '# Intro\n\nHello.\n',
+          'b/index.md': '# Guide B\n\n- [FIND-001](./FIND-001.md)\n- [Setup](./setup.md)\n',
+          'b/FIND-001.md': '# FIND-001 — First finding\n\nBody.\n',
+          'b/setup.md': '# Setup steps {#custom-setup}\n\nBody.\n',
+          'p/index.md': '# Pub\n\n- [Start](./start.md)\n',
+          'p/start.md':
+            '# Start\n\nSee [f](../b/FIND-001.md), [s](../b/setup.md) and [stale](../b/setup.md#nope).\n',
+        },
+        {
+          outputFile: 'guides.md',
+          compileOrder: ['a', 'b', 'p'],
+          guides: [
+            { name: 'p', compile: { outputFile: 'p-out.md', links: { markBroken: false } } },
+          ],
+        },
+      );
+      expect(results[2].text).toContain(
+        'See [f](guides.md#find-001), [s](guides.md#custom-setup) and [stale](guides.md#nope).',
+      );
+      expect(summary).toEqual([
+        '_build/p-out.md dead anchor guides.md#find-001 p',
+        '_build/p-out.md dead anchor guides.md#custom-setup p',
+        '_build/p-out.md dead anchor guides.md#nope p',
+      ]);
+    });
+  });
+
+  it('reports a link to a FIND-* shard of another guide in the monolith from the compiled guide only', () => {
+    withTmpDir('mdcp-lint-monolith-find-', (work) => {
+      const { results, summary, textOf } = lintWritten(
+        work,
+        {
+          'a/index.md': '# Guide A\n\n- [Intro](./intro.md)\n',
+          'a/intro.md': '# Intro\n\nSee [the finding](../b/FIND-001.md).\n',
+          'b/index.md': '# Guide B\n\n- [FIND-001](./FIND-001.md)\n',
+          'b/FIND-001.md': '# FIND-001 — First finding\n\nBody.\n',
+        },
+        { outputFile: 'guides.md', compileOrder: ['a', 'b'] },
+      );
+      // In a.md the link goes to another output, whose heading anchor is find-001--first-finding.
+      // In the monolith it is in-document, where the finding id is a section slug.
+      expect(results[0].text).toContain('See [the finding](b.md#find-001).');
+      expect(textOf('_build/guides.md')).toContain('See [the finding](#find-001).');
+      expect(summary).toEqual(['_build/a.md dead anchor b.md#find-001 a']);
+    });
+  });
+
+  it("checks a link in a guide's copy in the monolith against the section slugs there", () => {
+    withTmpDir('mdcp-lint-monolith-copy-slugs-', (work) => {
+      // Publish-only guide p owns the finding, and b's copy stitches it, so its id is a section
+      // slug of the monolith.
+      const { summary, textOf } = lintWritten(
+        work,
+        {
+          'p/index.md': '# Pub\n\n- [Start](./start.md)\n',
+          'p/start.md': '# Start\n\nSee [f](../shared/FIND-002.md).\n',
+          'a/index.md': '# Guide A\n\n- [Intro](./intro.md)\n',
+          'a/intro.md': '# Intro\n\nHello.\n',
+          'b/index.md': '# Guide B\n\n- [Topic](./topic.md)\n',
+          'b/topic.md': '# Topic B\n\nSee [the finding](../shared/FIND-002.md).\n',
+          'shared/FIND-002.md': '# FIND-002 — Shared finding\n\nBody.\n',
+        },
+        {
+          outputFile: 'guides.md',
+          compileOrder: ['p', 'a', 'b'],
+          guides: [
+            { name: 'p', compile: { outputFile: 'p-out.md', scopeRoot: '.' } },
+            { name: 'b', compile: { scopeRoot: '.' } },
+          ],
+        },
+      );
+      expect(textOf('_build/guides.md')).toContain('See [the finding](#find-002).');
+      expect(summary).toEqual([]);
+    });
+  });
+
+  // Inside the monolith, a copy accepts the section slug of any copy there. The guide that owns the
+  // finding is p, a publish-only guide, when p comes first in compileOrder, and b otherwise.
+  // Neither the owner nor a's markBroken changes what the monolith accepts.
+  it.each([
+    ['p, a, b', true, ['p', 'a', 'b']],
+    ['p, a, b', false, ['p', 'a', 'b']],
+    ['a, b, p', true, ['a', 'b', 'p']],
+    ['a, b, p', false, ['a', 'b', 'p']],
+  ])(
+    "accepts another copy's finding id in a guide's copy in the monolith, in compileOrder %s with markBroken %s",
+    (_order, markBroken, compileOrder) => {
+      withTmpDir('mdcp-lint-monolith-copy-slugs-outside-', (work) => {
+        const { summary, textOf } = lintWritten(
+          work,
+          {
+            'p/index.md': '# Pub\n\n- [Start](./start.md)\n',
+            'p/start.md': '# Start\n\nSee [f](../shared/FIND-002.md).\n',
+            'a/index.md': '# Guide A\n\n- [Intro](./intro.md)\n',
+            'a/intro.md': '# Intro\n\nSee [t](../b/topic.md#find-002).\n',
+            'b/index.md': '# Guide B\n\n- [Topic](./topic.md)\n',
+            'b/topic.md': '# Topic B\n\nSee [the finding](../shared/FIND-002.md).\n',
+            'shared/FIND-002.md': '# FIND-002 — Shared finding\n\nBody.\n',
+          },
+          {
+            outputFile: 'guides.md',
+            compileOrder,
+            guides: [
+              { name: 'p', compile: { outputFile: 'p-out.md', scopeRoot: '.' } },
+              { name: 'a', compile: { links: { markBroken } } },
+              { name: 'b', compile: { scopeRoot: '.' } },
+            ],
+          },
+        );
+        expect(textOf('_build/guides.md')).toContain('See [t](#find-002).');
+        // a.md links b.md, another output, where no heading has the finding id as its anchor.
+        expect(textOf('_build/a.md')).toContain('See [t](b.md#find-002).');
+        expect(summary).toEqual(['_build/a.md dead anchor b.md#find-002 a']);
+      });
+    },
+  );
+
+  it('accepts a declared id on a shard that another guide owns and this guide also stitches', () => {
+    withTmpDir('mdcp-lint-co-included-id-', (work) => {
+      const files: Record<string, string> = {
+        'shared/note.md': '# Shared note {#shared-id}\n\nBody.\n',
+      };
+      for (const name of ['guide-a', 'guide-b']) {
+        files[`${name}/index.md`] = `# ${name}\n\n- [Body](./body.md)\n`;
+        files[`${name}/body.md`] = '# Body\n\nSee [Shared](../shared/note.md).\n';
+      }
+      const { results, summary } = lintWritten(work, files, {
+        compileOrder: ['guide-a', 'guide-b'],
+        guides: ['guide-a', 'guide-b'].map((name) => ({
+          name,
+          path: name,
+          compile: { scopeRoot: '.', outputFile: `${name}.md`, links: { markBroken: false } },
+        })),
+      });
+      for (const r of results) expect(r.text).toContain('See [Shared](#shared-id).');
+      expect(summary).toEqual([]);
+    });
+  });
+
+  it('exposes the slugs each assembly accepted besides its headings', () => {
+    withTmpDir('mdcp-result-known-slugs-', (work) => {
+      const { results } = lintWritten(
+        work,
+        {
+          'a/index.md': '# Guide A\n\n- [Setup](./setup.md)\n',
+          'a/setup.md': '# Setup\n\nA.\n',
+          'b/index.md': '# Guide B\n\n- [Setup](./setup.md)\n- [FIND-002](./FIND-002.md)\n',
+          'b/setup.md': '# Setup\n\nB.\n',
+          'b/FIND-002.md': '# FIND-002 — Second finding\n\nBody.\n',
+          'p/index.md': '# Pub\n\n- [Start](./start.md)\n',
+          'p/start.md': '# Start\n\nGo.\n',
+        },
+        {
+          outputFile: 'guides.md',
+          compileOrder: ['a', 'b', 'p'],
+          guides: [{ name: 'p', compile: { outputFile: 'p-out.md' } }],
+        },
+      );
+      const [a, b, p] = results;
+      // Each compiled guide accepts the sections it stitches.
+      expect(a.knownSlugs).toEqual(['setup']);
+      expect(b.knownSlugs).toEqual(['setup', 'find-002']);
+      expect(p.knownSlugs).toEqual(['start']);
+      // Every copy in the monolith accepts the sections of every copy, and the monolith numbers
+      // b's Setup after a's.
+      expect(a.monolithKnownSlugs).toEqual(['setup', 'setup-1', 'find-002']);
+      expect(b.monolithKnownSlugs).toEqual(['setup', 'setup-1', 'find-002']);
+      expect(p.monolithKnownSlugs).toBeUndefined();
     });
   });
 });

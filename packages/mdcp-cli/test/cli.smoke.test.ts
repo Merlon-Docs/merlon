@@ -1304,6 +1304,84 @@ describe('cli smoke', () => {
     }
   });
 
+  it("reports a #fragment that only another guide's compiled guide has, at its written line", () => {
+    const docs = mkdtempSync(join(tmpdir(), 'mdcp-own-fragment-'));
+    try {
+      const files: Record<string, string> = {
+        'a/index.md': '# Guide A\n\n- [Intro](./intro.md)\n',
+        'a/intro.md': '# Intro\n\nSee [Topic](#topic-b).\n',
+        'b/index.md': '# Guide B\n\n- [Topic](./topic.md)\n',
+        'b/topic.md': '# Topic B\n\nBody.\n',
+      };
+      for (const [rel, text] of Object.entries(files)) {
+        mkdirSync(dirname(join(docs, rel)), { recursive: true });
+        writeFileSync(join(docs, rel), text);
+      }
+      writeFileSync(
+        join(docs, 'mdcp.config.json'),
+        JSON.stringify({
+          outputFile: 'guides.md',
+          compileOrder: ['a', 'b'],
+          guides: [{ name: 'a', compile: { links: { markBroken: false } } }],
+        }),
+      );
+
+      const checked = runIn(docs, ['check', '--skip-vale']);
+      expect(checked.status).toBe(1);
+      const own = readFileSync(join(docs, '_build', 'a.md'), 'utf-8').split('\n');
+      const line = own.indexOf('See [Topic](#topic-b).') + 1;
+      // The default banner takes the first two lines of the written file.
+      expect(line).toBe(9);
+      const reported = checked.output.split('\n').filter((l) => l.startsWith('link:'));
+      expect(reported).toEqual([
+        `link: ${join(docs, '_build', 'a.md')}:${line}: dead anchor "#topic-b" (compiled guide "a")`,
+      ]);
+    } finally {
+      rmSync(docs, { recursive: true, force: true });
+    }
+  });
+
+  // The examples under "Diagnostic shape" in docs/features/link-validation.md come from this run.
+  it('prints each link issue as the link validation spec shows it', () => {
+    const docs = mkdtempSync(join(tmpdir(), 'mdcp-diagnostic-shape-'));
+    try {
+      const files: Record<string, string> = {
+        'AGENTS.md': '# Agents\n\nRead [the guide](./gone.md).\n',
+        'a/index.md': '# Guide A\n\n- [Intro](./intro.md)\n',
+        'a/intro.md': '# Intro\n\nFirst see [x](../b/topic.md#nope).\n\nThen see [x](#nope).\n',
+        'b/index.md': '# Guide B\n\n- [Topic](./topic.md)\n',
+        'b/topic.md': '# Topic\n\nBody.\n',
+      };
+      for (const [rel, text] of Object.entries(files)) {
+        mkdirSync(dirname(join(docs, rel)), { recursive: true });
+        writeFileSync(join(docs, rel), text);
+      }
+      writeFileSync(
+        join(docs, 'mdcp.config.json'),
+        JSON.stringify({
+          outputFile: 'guides.md',
+          compileOrder: ['a', 'b'],
+          standaloneGuides: ['AGENTS.md'],
+        }),
+      );
+
+      const checked = runIn(docs, ['check', '--skip-vale']);
+      expect(checked.status).toBe(1);
+      const marker = (target: string) =>
+        `**BROKEN LINK:** "x" (\`${target}\`) → \`#nope\` (dead anchor in compiled guide).`;
+      // No issue here records its shard, so no line gives one.
+      const reported = checked.output.split('\n').filter((l) => /^(link:|\s+→ shard:)/.test(l));
+      expect(reported).toEqual([
+        `link: ${join(docs, 'AGENTS.md')}:3: missing file "./gone.md"`,
+        `link: ${join(docs, '_build', 'a.md')}:11: dead anchor "Then see ${marker('#nope')}" (compiled guide "a")`,
+        `link: ${join(docs, '_build', 'a.md')}:9: dead anchor "b.md#nope" (compiled guide "a")`,
+        `link: ${join(docs, '_build', 'guides.md')}:9: dead anchor "First see ${marker('../b/topic.md#nope')}" (compiled guide "a")`,
+      ]);
+    } finally {
+      rmSync(docs, { recursive: true, force: true });
+    }
+  });
+
   it('applies the presets README path section to the absolute paths mdcp passes Vale', () => {
     if (!valeInstalled()) return;
 

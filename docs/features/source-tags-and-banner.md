@@ -17,6 +17,7 @@ This helps prevent accidental edits to generated files, directing contributors t
 
 - **Global Config**: Override the banner text using the `banner` field in `mdcp.config.json`.
 - **Per-Guide Config**: Disable the banner for a specific guide by setting `compile.includeBanner: false` in its configuration. (Defaults to `true` for all outputs).
+- **Trailing newline**: compile writes the banner right before the output's first line. The default ends with a blank line. When a custom banner lacks a trailing newline, compile adds one. So the guide's title starts a line of its own and keeps its anchor. A later heading with the same title then keeps the number that compile's section links give it.
 
 ## Source Tags
 

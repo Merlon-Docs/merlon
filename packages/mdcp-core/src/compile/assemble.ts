@@ -75,6 +75,10 @@ export interface AssembleGuideOptions {
   guideName?: string;
   /** @deprecated Ignored. Only `#fragment` targets are marked, and they never named an output. */
   knownOutputBasenames?: Set<string>;
+  /**
+   * @deprecated Ignored. Broken-link marking accepts the headings and section slugs of the document
+   * being assembled, which assembly works out itself.
+   */
   knownSlugs?: Set<string>;
   shardCache?: ShardCache;
   slugByPath?: Map<string, string>;
@@ -86,13 +90,16 @@ export interface AssembleGuideOptions {
 interface AssembledGuide {
   markdown: string;
   provenance: LinkProvenance[];
-  /** Slugs a `#fragment` may name besides the headings of `markdown`, such as FIND-* ids. */
-  knownSlugs: Set<string>;
+  /**
+   * The slug of each section `markdown` stitches, such as a FIND-* id or a declared `{#id}`. A
+   * `#fragment` may name one of these besides the headings of `markdown`.
+   */
+  sectionSlugs: Set<string>;
 }
 
 /**
- * Mark broken links in an assembled guide. `documentSlugs` adds the headings of the whole document
- * the guide is stitched into, such as the monolith.
+ * Mark broken links in an assembled guide. `documentSlugs` adds the slugs of the whole document
+ * the guide is stitched into: in the monolith, every heading and the section slugs of every copy.
  */
 function markAssembledGuide(
   guide: AssembledGuide,
@@ -100,7 +107,7 @@ function markAssembledGuide(
   options: AssembleGuideOptions,
   documentSlugs?: Iterable<string>,
 ): string {
-  const knownSlugs = new Set(guide.knownSlugs);
+  const knownSlugs = new Set(guide.sectionSlugs);
   for (const slug of documentSlugs ?? []) knownSlugs.add(slug);
   return markBrokenLinks(guide.markdown, {
     outputFile: options.outputFile,
@@ -237,19 +244,10 @@ function assembleGuideUnmarked(guideDir: string, options: AssembleGuideOptions):
 
   compiled = rewriteIntraGuideFileLinks(compiled, slugByPath, guideDir);
 
-  const intraSlugs = new Set(slugByPath.values());
-  const assemblingGuide = options.guideName ?? guideName;
-  if (options.linkIndex && assemblingGuide) {
-    for (const entry of options.linkIndex.values()) {
-      if (options.outputFile !== undefined && entry.outputFile === options.outputFile) {
-        // A section of this output, the monolith included, which numbers every guide it holds.
-        intraSlugs.add(entry.monolithSlug ?? entry.slug);
-      } else if (entry.guideName === assemblingGuide) {
-        intraSlugs.add(entry.slug);
-      }
-    }
-  }
-  return { markdown: compiled, provenance, knownSlugs: intraSlugs };
+  // Only the slugs of sections this assembly stitches. A copy in the monolith also takes the
+  // section slugs of the other copies when it is marked. A shard that no copy stitches has no
+  // section, so a link to its slug is marked, unless a heading has that slug too.
+  return { markdown: compiled, provenance, sectionSlugs: new Set(slugByPath.values()) };
 }
 
 export interface CompileGuideResult {
@@ -265,6 +263,20 @@ export interface CompileGuideResult {
    * Set only for a guide stitched into the monolith. `compileGuidesFromResults` stitches these.
    */
   monolithText?: string;
+  /**
+   * Slugs a `#fragment` in `text` may name besides its headings, as broken-link marking took them:
+   * the slug of each section `text` stitches, such as a FIND-* finding id or a declared `{#id}`. A
+   * shard this guide owns but doesn't stitch has no section, so its slug isn't one of them. Link
+   * lint checks a fragment in `text` against the headings plus these. A fragment on a link from
+   * another output has to match a heading. When absent, a fragment in `text` has to match one too.
+   */
+  knownSlugs?: string[];
+  /**
+   * The same as `knownSlugs`, for `monolithText`: the slug of each section of the whole monolith,
+   * as the monolith numbers them. Every copy there takes this one set, since a link in one copy may
+   * name a section that another copy stitches. Set only when `monolithText` is.
+   */
+  monolithKnownSlugs?: string[];
   outputFile: string;
   /** True when `compile.outputFile` was set explicitly (excluded from optional monolith). */
   publishOnly: boolean;
@@ -274,6 +286,7 @@ export interface CompileGuideResult {
 export interface CompileOptions {
   guidesRoot: string;
   compileOrder: string[];
+  /** Text written before each output that takes a banner. Compile adds a newline when it lacks one. */
   banner?: string;
   guides?: GuideConfigInput[];
   docsRoot?: string;
@@ -375,7 +388,9 @@ export function compileGuideResultsWithContext(
     });
 
     const guideFile = resolve(resolveUnderOutputDir(docsRoot, outputDir, outputFile));
-    const text = assembleGuide(guideDir, assembleOptions(guideFile, slugByPath));
+    const guideOptions = assembleOptions(guideFile, slugByPath);
+    const guide = assembleGuideUnmarked(guideDir, guideOptions);
+    const text = markAssembledGuide(guide, name, guideOptions);
     if (inMonolith) {
       const copyOptions = assembleOptions(monolithFile, monolithSlugs);
       monolithCopies.set(name, {
@@ -385,24 +400,31 @@ export function compileGuideResultsWithContext(
     }
 
     const includeBanner = compile?.includeBanner ?? true;
+    const knownSlugs = [...guide.sectionSlugs];
 
-    return { name, text, outputFile, publishOnly, includeBanner };
+    return { name, text, knownSlugs, outputFile, publishOnly, includeBanner };
   });
 
   if (monolithCopies.size > 0) {
-    // A `#fragment` in the monolith may name a heading of any guide the monolith stitches, so
-    // the copies are marked against the headings of the whole monolith once they are all stitched.
+    // A `#fragment` in the monolith may name a heading of any guide the monolith stitches, or the
+    // section slug any copy there gives a shard. So the copies are marked against the whole
+    // monolith once they are all stitched, and each takes the same set whatever guide owns a shard.
+    const monolithSectionSlugs = new Set<string>();
     for (const r of results) {
       const copy = monolithCopies.get(r.name);
-      if (copy) r.monolithText = copy.guide.markdown;
+      if (!copy) continue;
+      r.monolithText = copy.guide.markdown;
+      for (const slug of copy.guide.sectionSlugs) monolithSectionSlugs.add(slug);
     }
-    const monolithHeadingSlugs = buildSlugRegistry(
-      applyMonolithBanner(options, results),
-    ).headings.map((h) => h.slug);
+    const documentSlugs = [
+      ...buildSlugRegistry(applyMonolithBanner(options, results)).headings.map((h) => h.slug),
+      ...monolithSectionSlugs,
+    ];
     for (const r of results) {
       const copy = monolithCopies.get(r.name);
-      if (copy)
-        r.monolithText = markAssembledGuide(copy.guide, r.name, copy.options, monolithHeadingSlugs);
+      if (!copy) continue;
+      r.monolithKnownSlugs = [...monolithSectionSlugs];
+      r.monolithText = markAssembledGuide(copy.guide, r.name, copy.options, documentSlugs);
     }
   }
 
@@ -442,7 +464,7 @@ export function monolithGuideFirstLines(
   options: CompileOptions,
 ): { name: string; firstLine: number }[] {
   const lineBreaks = (text: string) => text.split('\n').length - 1;
-  let line = 1 + (options.banner ? lineBreaks(options.banner) : 0);
+  let line = 1 + lineBreaks(bannerText(options));
   return monolithCopyTexts(results).map(({ name, text }) => {
     const firstLine = line;
     line += lineBreaks(text) + 1;
@@ -450,13 +472,19 @@ export function monolithGuideFirstLines(
   });
 }
 
+/**
+ * The banner as compile writes it: `options.banner`, with a newline added when it lacks one, so
+ * the first line of the output starts a line of its own. Empty without a banner.
+ */
+function bannerText(options: CompileOptions): string {
+  const banner = options.banner ?? '';
+  return banner === '' || banner.endsWith('\n') ? banner : `${banner}\n`;
+}
+
 function applyMonolithBanner(options: CompileOptions, results: CompileGuideResult[]): string {
   const body = buildMonolithBody(results);
   if (!body) return '';
-  if (options.banner) {
-    return options.banner + body;
-  }
-  return body;
+  return bannerText(options) + body;
 }
 
 export function compileGuidesFromResults(
@@ -473,6 +501,14 @@ export function compileGuides(options: CompileOptions): string {
   return compileGuidesFromResults(compileGuideResults(options), options);
 }
 
+/**
+ * The text written to a guide's compiled guide: the banner if the guide takes one, ending with a
+ * newline, then `text`.
+ */
+export function writtenGuideText(result: CompileGuideResult, options: CompileOptions): string {
+  return result.includeBanner ? bannerText(options) + result.text : result.text;
+}
+
 export function writeCompiledGuidesFromResults(
   results: CompileGuideResult[],
   options: CompileOptions,
@@ -485,8 +521,7 @@ export function writeCompiledGuidesFromResults(
 
   for (const r of results) {
     const outPath = resolveUnderOutputDir(docsRoot, outputDir, r.outputFile);
-    let text = r.text;
-    if (options.banner && r.includeBanner) text = options.banner + text;
+    const text = writtenGuideText(r, options);
     const { backupPath } = writeOutputFile(outPath, text, writeCtx);
     written.push({ path: outPath, lines: text.split('\n').length, backupPath });
   }

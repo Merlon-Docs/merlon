@@ -54,6 +54,8 @@ For the last two rows the benchmark writes a fixed 1, so only unit tests can cat
 
 A guide in the [monolith](../../glossary/monolith.md) is assembled once for its compiled guide and once for the monolith, because paths and section slugs differ between the two files. Shard reads stay at one per shard. The second assembly can push ms per shard past the 20% limit in the table above, and the double assembly is an accepted exception to that limit.
 
+Link lint reads the monolith as a document of its own, so it checks each link of a guide in the monolith in both files. That second check adds work for each link. Link lint builds the set of heading slugs of each output once, and on mdcp's own docs that saves more time than the second check costs. Where the second check raises ms per link, the rise is accepted.
+
 ## Related
 
 - [Usage model](./usage-model.md): query preference order and actor obligations

@@ -63,6 +63,11 @@ export {
   type CompileGuideResultsContext,
 } from './compile/assemble.js';
 export {
+  compiledOutputDocuments,
+  type CompiledOutputDocument,
+  type MonolithCopy,
+} from './compile/output-documents.js';
+export {
   type ShardCache,
   type ShardSnapshot,
   createShardCache,

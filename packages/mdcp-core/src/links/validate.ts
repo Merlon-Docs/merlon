@@ -36,6 +36,7 @@ export interface ValidateCompiledLinkOptions {
    * A path in `knownOutputPaths` is a written output and takes precedence.
    */
   unwrittenOutputPaths?: Set<string>;
+  /** Slugs a same-document `#fragment` may name besides the document's headings (FIND-* ids). */
   knownSlugs?: Set<string>;
   /** When true, `.md` links must target published outputs — not guide shard sources. */
   publishOnly?: boolean;
@@ -47,7 +48,10 @@ export interface ValidateCompiledLinkOptions {
   allowedPublishPaths?: Set<string>;
   /** Indexed shard paths that must not appear as link targets in publish output. */
   disallowedShardPaths?: Set<string>;
-  /** Cached slug registries keyed by the resolved absolute path of each output. */
+  /**
+   * Cached slug registries keyed by the resolved absolute path of each output. Like the
+   * `registry` argument, a registry here must not change after a call.
+   */
   slugRegistryCache?: Map<string, RefsRegistry>;
   /** Effective file extensions (see `fileExtensionSet`). Defaults apply when absent. */
   fileExtensions?: Set<string>;
@@ -75,14 +79,27 @@ function registryHasSlug(path: string, slug: string, cache?: Map<string, RefsReg
   return registry ? slugSet(registry).has(slug) : false;
 }
 
+const slugSets = new WeakMap<RefsRegistry, Set<string>>();
+
+/**
+ * The heading slugs of a registry, built once for each registry. Callers don't change a registry
+ * after its first check, as `validateCompiledLinkTarget` requires.
+ */
 function slugSet(registry: RefsRegistry): Set<string> {
-  return new Set(registry.headings.map((h) => h.slug));
+  let slugs = slugSets.get(registry);
+  if (!slugs) {
+    slugs = new Set(registry.headings.map((h) => h.slug));
+    slugSets.set(registry, slugs);
+  }
+  return slugs;
 }
 
 /**
  * Whether a link's `#fragment` names a heading in a compile output, which may
  * not be written yet. The output's compiled text in the cache comes first, then
- * the file on disk. With neither, there is no heading list to check against.
+ * the file on disk. With neither, there is no heading list to check against. A
+ * finding id or a declared `{#id}` isn't a heading slug there, since the heading
+ * takes its anchor from its text.
  */
 function outputHasFragment(
   path: string,
@@ -141,7 +158,12 @@ function validateSourceFileTarget(
   return { valid: false, reason: 'missing file', brokenTarget: target };
 }
 
-/** Validate a link target against a compiled document's slug registry and output path. */
+/**
+ * Validate a link target against a compiled document's slug registry and output path. The heading
+ * slugs of `registry`, and of each registry in `slugRegistryCache`, are read on first use and kept
+ * for later calls with the same registry object. Don't change a registry's headings after a call:
+ * build a new registry for changed text.
+ */
 export function validateCompiledLinkTarget(
   target: string,
   registry: RefsRegistry,

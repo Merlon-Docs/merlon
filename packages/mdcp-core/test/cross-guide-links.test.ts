@@ -1269,7 +1269,10 @@ describe('guides in the monolith', () => {
 
       const results = compileGuideResults(opts);
       expect(results.find((r) => r.name === 'm')!.text).toContain('See [extra](guides.md#extra).');
-      expect(compileGuidesFromResults(results, opts)).toContain('See [extra](#extra).');
+      // The monolith has no section for extra.md, so compile marks the link there.
+      expect(compileGuidesFromResults(results, opts)).toContain(
+        'See **BROKEN LINK:** "extra" (`../a/extra.md`) → `#extra` (dead anchor in compiled guide).',
+      );
     });
   });
 });
