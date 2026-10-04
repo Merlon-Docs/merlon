@@ -57,4 +57,10 @@ Pre-commit runs in two phases:
 | `docs/**`, `DEVELOPERS.md`, package README shards       | `docs:compile:repo` + `docs:check:repo`                  |
 | Root config (`package.json`, lockfile, eslint/tsconfig) | repo-wide typecheck + `format:check`                     |
 
-CI's Check job runs the steps of `pnpm run check`, except that it tests only mdcp-core, mdcp-cli and the repository scripts. The site's tests run in the Pages workflow. It also checks the peer binaries and runs `pnpm audit`, then recompiles every guide and fails if `git diff` shows a change. Coverage and the formal models run as separate CI jobs, and on pull requests the Changeset job requires a changeset where one is needed.
+## CI and the land gate
+
+CI's Check job runs the steps of `pnpm run check`, except that it tests only mdcp-core, mdcp-cli and the repository scripts. The site's tests run in the Pages workflow. Before those steps it runs `pnpm run verify:peers`, which confirms that markdownlint-cli2 and Vale are on `PATH`, and the dependency audit `pnpm audit --audit-level=high`. Before `docs:check` it runs `pnpm run prepare:docs`, which repeats the peer check and syncs the Vale styles. Last, it recompiles every guide and fails if `git diff` shows a change.
+
+The other CI jobs run beside Check. The Coverage job runs `pnpm test:coverage`, as [Test code coverage](./packages-and-tests.md#test-code-coverage) describes, and the Formal models job runs `pnpm formal:check`. On pull requests the Changeset job runs the changeset checks that [When to add a changeset](./versioning-and-releases.md#when-to-add-a-changeset) describes.
+
+The land gate's test step is the full `pnpm test`, so it also runs the site's tests. [Landing on `develop`](./versioning-and-releases.md#landing-on-develop) says what else it runs and what it pushes.

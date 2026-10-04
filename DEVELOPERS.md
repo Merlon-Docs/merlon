@@ -143,7 +143,13 @@ Pre-commit runs in two phases:
 | `docs/**`, `DEVELOPERS.md`, package README shards       | `docs:compile:repo` + `docs:check:repo`                  |
 | Root config (`package.json`, lockfile, eslint/tsconfig) | repo-wide typecheck + `format:check`                     |
 
-CI's Check job runs the steps of `pnpm run check`, except that it tests only mdcp-core, mdcp-cli and the repository scripts. The site's tests run in the Pages workflow. It also checks the peer binaries and runs `pnpm audit`, then recompiles every guide and fails if `git diff` shows a change. Coverage and the formal models run as separate CI jobs, and on pull requests the Changeset job requires a changeset where one is needed.
+### CI and the land gate
+
+CI's Check job runs the steps of `pnpm run check`, except that it tests only mdcp-core, mdcp-cli and the repository scripts. The site's tests run in the Pages workflow. Before those steps it runs `pnpm run verify:peers`, which confirms that markdownlint-cli2 and Vale are on `PATH`, and the dependency audit `pnpm audit --audit-level=high`. Before `docs:check` it runs `pnpm run prepare:docs`, which repeats the peer check and syncs the Vale styles. Last, it recompiles every guide and fails if `git diff` shows a change.
+
+The other CI jobs run beside Check. The Coverage job runs `pnpm test:coverage`, as [Test code coverage](#test-code-coverage) describes, and the Formal models job runs `pnpm formal:check`. On pull requests the Changeset job runs the changeset checks that [When to add a changeset](#when-to-add-a-changeset) describes.
+
+The land gate's test step is the full `pnpm test`, so it also runs the site's tests. [Landing on `develop`](#landing-on-develop) says what else it runs and what it pushes.
 
 <!-- mdcp-shard: end docs/developer/local-setup.md -->
 
@@ -165,7 +171,7 @@ A fresh cloud VM needs the same toolchain as [Local setup](#local-setup), plus a
 4. **Build before docs or CLI.** `dist/` is gitignored and is not produced by the update script. Run `pnpm build` after a fresh checkout before `pnpm docs:check`, `pnpm docs:compile`, or invoking the `mdcp` CLI.
 5. **Sync Vale styles once.** Run `pnpm vale:sync` before the first `docs:check` on a fresh clone (network required); synced styles then persist in the snapshot.
 6. **Node version.** The VM runs Node 22 (satisfies `engines >=18`); CI uses Node 24. Do not switch Node unless a version-specific issue appears.
-7. **Local gate.** `pnpm check` runs typecheck, lint, format, build, test, skill:validate and docs:check. [Local setup](#local-setup) says what CI adds.
+7. **Local gate.** `pnpm check` runs typecheck, lint, format, build, test, skill:validate and docs:check. [CI and the land gate](#ci-and-the-land-gate) says what they add.
 
 ### Platform limitations and workarounds
 
@@ -280,7 +286,7 @@ Vitest coverage for `@bwilliamson/mdcp-core` and `@bwilliamson/mdcp-cli` (not ro
 pnpm test:coverage
 ```
 
-Local runs print a text summary and write HTML/lcov under each package’s `coverage/` directory (gitignored). CI runs the same command in a separate **coverage** job, appends package totals to the Actions job summary, and uploads those `coverage/` trees as artifacts. Default `pnpm test` / `pnpm check` do not collect coverage and do not enforce percentage thresholds.
+Local runs print a text summary and write HTML/lcov under each package’s `coverage/` directory (gitignored). In CI a separate **coverage** job runs the same command. It adds package totals to the Actions job summary and uploads those `coverage/` trees as artifacts. The job is informational: it has no percentage threshold, so lower coverage doesn't fail it. Default `pnpm test` / `pnpm check` don't collect coverage at all, so a threshold can't apply to them either.
 
 ### mdcp-presets
 
@@ -293,15 +299,7 @@ JSONC markdownlint configs plus the shippable `MDCP` Vale style (`vale/MDCP/`). 
 3. `pnpm docs:compile:repo && pnpm docs:check` if you touched `docs/` shards
 4. `pnpm changeset` when [a changeset is needed](#when-to-add-a-changeset)
 
-The land gate and CI run the same core gates as `pnpm run check` (typecheck, lint, format, build, test, `docs:check`), plus:
-
-- `pnpm run verify:peers` — confirm markdownlint-cli2 and Vale are on PATH
-- `pnpm audit --audit-level=high` — dependency vulnerability scan
-- `pnpm run prepare:docs` — `verify:peers` + `vale:sync` before `docs:check`
-- `pnpm formal:check`: the [formal models](#formal-models) under `formal/alloy/`, in CI's Formal models job
-- a separate **coverage** job runs `pnpm test:coverage`, appends package totals to the Actions job summary, and uploads `coverage/` artifacts (informational; no threshold enforcement)
-
-Both also run the changeset checks (`changeset:reject-major`, `changeset:status`).
+CI and the land gate run more checks than these steps. [CI and the land gate](#ci-and-the-land-gate) lists them.
 
 <!-- mdcp-shard: end docs/developer/packages-and-tests.md -->
 
@@ -999,7 +997,7 @@ There is **no calendar cadence** and **no Version Packages PR**. A release is a 
 
 If a prior run versioned/published but failed before tags/Releases finished, the next Release plan detects **missing** `name@version` git tags and/or GitHub Releases and the release job **heals** them without bumping versions again (tag + `gh release create … --target` at the commit that last changed that package’s `package.json`).
 
-**Skills** are under `skills/`, the directory that `npx skills add` installs from. Version carriers and CHANGELOGs are kept under **`packages/skill-<id>/`** only, never under `skills/`, because those files would pollute agent context on install. `pnpm release:main` syncs the carrier version into `skills/<id>/SKILL.md` `metadata.version`. Skill changes need a changeset. See [When to add a changeset](#when-to-add-a-changeset).
+**Skills** are under `skills/`, the directory that `npx skills add` installs from. Each skill versions through a private carrier package in `packages/skill-<id>/`, which holds its `package.json` and CHANGELOG. Keep both files out of `skills/`, because every install would copy them into agent context. `pnpm release:main` syncs the carrier version into `skills/<id>/SKILL.md` `metadata.version`, so never edit that field by hand.
 
 ### Pre-1.0 policy (`0.x.y`)
 
@@ -1013,22 +1011,22 @@ Packages and skills are **pre-1.0** while on `0.x.y`. Until an item reaches **1.
 
 ### Durable docs vs pending changesets
 
-Pending `.changeset/*.md` files are temporary. Point consumers at package CHANGELOGs under `packages/*/` or GitHub Releases — never at pending changesets. Skill CHANGELOGs live under `packages/skill-<id>/CHANGELOG.md`, not under `skills/`.
+Pending `.changeset/*.md` files are temporary. Point consumers at package CHANGELOGs under `packages/*/` or at GitHub Releases, never at pending changesets.
 
 A notice to consumers about removed or breaking behavior goes in the changeset. The release turns it into a package CHANGELOG entry.
 
 ### When to add a changeset
 
-Run `pnpm changeset` when a change touches:
+Run `pnpm changeset` when a change touches a published item:
 
-- `packages/mdcp-core/src/**` → `@bwilliamson/mdcp-core`
-- `packages/mdcp-cli/src/**` → `@bwilliamson/mdcp-cli`
-- `packages/mdcp-presets/*.jsonc` → `@bwilliamson/mdcp-presets`
-- **`skills/<id>/**`** → `@bwilliamson/skill-<id>` (carrier under `packages/skill-<id>/`)
+- any file under `packages/mdcp-core/` → `@bwilliamson/mdcp-core`
+- any file under `packages/mdcp-cli/` → `@bwilliamson/mdcp-cli`
+- any file under `packages/mdcp-presets/` → `@bwilliamson/mdcp-presets`
+- any file under `skills/<id>/` or `packages/skill-<id>/` → `@bwilliamson/skill-<id>`
 
-**Do not** put `package.json` or `CHANGELOG.md` under `skills/`. **Do not** hand-edit `skills/*/SKILL.md` `metadata.version`.
+Every file in those paths counts, tests and compiled READMEs included, so a shard edit that changes `packages/mdcp-cli/README.md` or `packages/mdcp-core/README.md` needs a changeset for that package. The skill carriers count although they are private, because `.changeset/config.json` sets `privatePackages.version`. A change that edits only `devDependencies` in a package's `package.json` is exempt. `packages/mdcp-site/` is never published, and Changesets ignores it.
 
-The land gate and CI on pull requests both run `pnpm changeset:reject-major` and `pnpm changeset:status`.
+The land gate and CI on pull requests both run `pnpm changeset:reject-major` and `pnpm changeset:status`. For a package path, the status check fails unless the branch adds or edits a changeset. For `skills/<id>/` it fails only when no changeset is pending, so add one for the skill even when `develop` already has others. Release and sync diffs delete the changesets they consume, and the status check lets them pass.
 
 ### Dependabot
 
@@ -1047,7 +1045,6 @@ Once the workflow has committed to a PR, Dependabot stops rebasing it on its own
 
 - [Publishing](#publishing)
 - [Agent Skill](#agent-skill-development)
-- [.changeset/README.md](.changeset/README.md)
 
 <!-- mdcp-shard: end docs/developer/versioning-and-releases.md -->
 
@@ -1215,7 +1212,7 @@ pnpm audit --audit-level=moderate # full tree including presentation tooling
 pnpm why <package>                # which path pulls the vulnerable package
 ```
 
-CI gates on `pnpm audit --audit-level=high` (see [Packages and tests](#packages-and-tests)). Moderate noise in **dev-only** trees is hygiene, not an automatic security release of `@bwilliamson/mdcp-*`.
+CI fails when `pnpm audit --audit-level=high` finds a high or critical advisory (see [CI and the land gate](#ci-and-the-land-gate)). Moderate noise in **dev-only** trees is hygiene, not an automatic security release of `@bwilliamson/mdcp-*`.
 
 Workspace overrides for this monorepo live under `overrides:` in [`pnpm-workspace.yaml`](pnpm-workspace.yaml) (pnpm 11+ no longer reads `package.json` → `pnpm.overrides`).
 

@@ -47,7 +47,7 @@ There is **no calendar cadence** and **no Version Packages PR**. A release is a 
 
 If a prior run versioned/published but failed before tags/Releases finished, the next Release plan detects **missing** `name@version` git tags and/or GitHub Releases and the release job **heals** them without bumping versions again (tag + `gh release create … --target` at the commit that last changed that package’s `package.json`).
 
-**Skills** are under `skills/`, the directory that `npx skills add` installs from. Version carriers and CHANGELOGs are kept under **`packages/skill-<id>/`** only, never under `skills/`, because those files would pollute agent context on install. `pnpm release:main` syncs the carrier version into `skills/<id>/SKILL.md` `metadata.version`. Skill changes need a changeset. See [When to add a changeset](#when-to-add-a-changeset).
+**Skills** are under `skills/`, the directory that `npx skills add` installs from. Each skill versions through a private carrier package in `packages/skill-<id>/`, which holds its `package.json` and CHANGELOG. Keep both files out of `skills/`, because every install would copy them into agent context. `pnpm release:main` syncs the carrier version into `skills/<id>/SKILL.md` `metadata.version`, so never edit that field by hand.
 
 ## Pre-1.0 policy (`0.x.y`)
 
@@ -61,22 +61,22 @@ Packages and skills are **pre-1.0** while on `0.x.y`. Until an item reaches **1.
 
 ## Durable docs vs pending changesets
 
-Pending `.changeset/*.md` files are temporary. Point consumers at package CHANGELOGs under `packages/*/` or GitHub Releases — never at pending changesets. Skill CHANGELOGs live under `packages/skill-<id>/CHANGELOG.md`, not under `skills/`.
+Pending `.changeset/*.md` files are temporary. Point consumers at package CHANGELOGs under `packages/*/` or at GitHub Releases, never at pending changesets.
 
 A notice to consumers about removed or breaking behavior goes in the changeset. The release turns it into a package CHANGELOG entry.
 
 ## When to add a changeset
 
-Run `pnpm changeset` when a change touches:
+Run `pnpm changeset` when a change touches a published item:
 
-- `packages/mdcp-core/src/**` → `@bwilliamson/mdcp-core`
-- `packages/mdcp-cli/src/**` → `@bwilliamson/mdcp-cli`
-- `packages/mdcp-presets/*.jsonc` → `@bwilliamson/mdcp-presets`
-- **`skills/<id>/**`** → `@bwilliamson/skill-<id>` (carrier under `packages/skill-<id>/`)
+- any file under `packages/mdcp-core/` → `@bwilliamson/mdcp-core`
+- any file under `packages/mdcp-cli/` → `@bwilliamson/mdcp-cli`
+- any file under `packages/mdcp-presets/` → `@bwilliamson/mdcp-presets`
+- any file under `skills/<id>/` or `packages/skill-<id>/` → `@bwilliamson/skill-<id>`
 
-**Do not** put `package.json` or `CHANGELOG.md` under `skills/`. **Do not** hand-edit `skills/*/SKILL.md` `metadata.version`.
+Every file in those paths counts, tests and compiled READMEs included, so a shard edit that changes `packages/mdcp-cli/README.md` or `packages/mdcp-core/README.md` needs a changeset for that package. The skill carriers count although they are private, because `.changeset/config.json` sets `privatePackages.version`. A change that edits only `devDependencies` in a package's `package.json` is exempt. `packages/mdcp-site/` is never published, and Changesets ignores it.
 
-The land gate and CI on pull requests both run `pnpm changeset:reject-major` and `pnpm changeset:status`.
+The land gate and CI on pull requests both run `pnpm changeset:reject-major` and `pnpm changeset:status`. For a package path, the status check fails unless the branch adds or edits a changeset. For `skills/<id>/` it fails only when no changeset is pending, so add one for the skill even when `develop` already has others. Release and sync diffs delete the changesets they consume, and the status check lets them pass.
 
 ## Dependabot
 
@@ -95,4 +95,3 @@ Once the workflow has committed to a PR, Dependabot stops rebasing it on its own
 
 - [Publishing](./publishing.md)
 - [Agent Skill](./agent-skill.md)
-- [.changeset/README.md](../../.changeset/README.md)

@@ -19,7 +19,7 @@ pnpm audit --audit-level=moderate # full tree including presentation tooling
 pnpm why <package>                # which path pulls the vulnerable package
 ```
 
-CI gates on `pnpm audit --audit-level=high` (see [Packages and tests](./packages-and-tests.md)). Moderate noise in **dev-only** trees is hygiene, not an automatic security release of `@bwilliamson/mdcp-*`.
+CI fails when `pnpm audit --audit-level=high` finds a high or critical advisory (see [CI and the land gate](./local-setup.md#ci-and-the-land-gate)). Moderate noise in **dev-only** trees is hygiene, not an automatic security release of `@bwilliamson/mdcp-*`.
 
 Workspace overrides for this monorepo live under `overrides:` in [`pnpm-workspace.yaml`](../../pnpm-workspace.yaml) (pnpm 11+ no longer reads `package.json` → `pnpm.overrides`).
 

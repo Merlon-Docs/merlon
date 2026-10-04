@@ -43,7 +43,7 @@ Vitest coverage for `@bwilliamson/mdcp-core` and `@bwilliamson/mdcp-cli` (not ro
 pnpm test:coverage
 ```
 
-Local runs print a text summary and write HTML/lcov under each package’s `coverage/` directory (gitignored). CI runs the same command in a separate **coverage** job, appends package totals to the Actions job summary, and uploads those `coverage/` trees as artifacts. Default `pnpm test` / `pnpm check` do not collect coverage and do not enforce percentage thresholds.
+Local runs print a text summary and write HTML/lcov under each package’s `coverage/` directory (gitignored). In CI a separate **coverage** job runs the same command. It adds package totals to the Actions job summary and uploads those `coverage/` trees as artifacts. The job is informational: it has no percentage threshold, so lower coverage doesn't fail it. Default `pnpm test` / `pnpm check` don't collect coverage at all, so a threshold can't apply to them either.
 
 ## mdcp-presets
 
@@ -56,12 +56,4 @@ JSONC markdownlint configs plus the shippable `MDCP` Vale style (`vale/MDCP/`). 
 3. `pnpm docs:compile:repo && pnpm docs:check` if you touched `docs/` shards
 4. `pnpm changeset` when [a changeset is needed](./versioning-and-releases.md#when-to-add-a-changeset)
 
-The land gate and CI run the same core gates as `pnpm run check` (typecheck, lint, format, build, test, `docs:check`), plus:
-
-- `pnpm run verify:peers` — confirm markdownlint-cli2 and Vale are on PATH
-- `pnpm audit --audit-level=high` — dependency vulnerability scan
-- `pnpm run prepare:docs` — `verify:peers` + `vale:sync` before `docs:check`
-- `pnpm formal:check`: the [formal models](./formal-models.md) under `formal/alloy/`, in CI's Formal models job
-- a separate **coverage** job runs `pnpm test:coverage`, appends package totals to the Actions job summary, and uploads `coverage/` artifacts (informational; no threshold enforcement)
-
-Both also run the changeset checks (`changeset:reject-major`, `changeset:status`).
+CI and the land gate run more checks than these steps. [CI and the land gate](./local-setup.md#ci-and-the-land-gate) lists them.
