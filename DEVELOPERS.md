@@ -302,7 +302,7 @@ JSONC markdownlint configs plus the shippable `MDCP` Vale style (`vale/MDCP/`). 
 
 1. `pnpm run build && pnpm test`
 2. `pnpm run lint && pnpm run format:check`
-3. `pnpm docs:compile:repo && pnpm docs:check` if you touched `docs/` shards
+3. `pnpm docs:compile:repo && pnpm docs:check` if you touched `docs/` shards or a file that `standaloneGuides` registers, such as `AGENTS.md` or `skills/**/*.md`
 4. `pnpm changeset` when [a changeset is needed](#when-to-add-a-changeset)
 
 CI and the land gate run more checks than these steps. [CI and the land gate](#ci-and-the-land-gate) lists them.
@@ -593,7 +593,7 @@ Prefer host search then read one shard under `docs/`. Compiled guides under `doc
 ### Linting docs
 
 - **markdownlint** — shard preset + compiled preset (includes `DEVELOPERS.md` and published README paths)
-- **Vale**: prose lint on the `vale.scanGlobs` directories in the config, which are `glossary/`, `features/`, `developer/`, `client-cli/`, `client-core/`, `repo-readme/` and `presentation-la-devops/`. Vale is not an npm dependency, so install it on `PATH` as [Local setup](#requirements) describes.
+- **Vale**: prose lint on the `vale.scanGlobs` directories in the config, which are `glossary/`, `features/`, `developer/`, `client-cli/`, `client-core/`, `repo-readme/` and `presentation-la-devops/`, plus every `standaloneGuides` file. `docs/.vale.ini` opts `CODE_OF_CONDUCT.md` out, because its text is the vendored Contributor Covenant. Vale is not an npm dependency, so install it on `PATH` as [Local setup](#requirements) describes.
 - **Vale `MDCP` / `MDCP-PandocId`**: peer prose rules for unlinked heading mentions and dated claims, plus this repo's local rule against Pandoc IDs. They are not `mdcp check` core steps; enable them with `--require-vale`
 - **link lint** — built-in validation runs on every `docs:check` with default `"error"` severity; publish guides set `compile.crossGuideLinks.ignoreGuides: ["features"]` so cross-guide links keep live `docs/features/` shard paths (publish-relative rebase only); see [Publish-only link policy](docs/features/link-validation.md#publish-only-link-policy)
 
@@ -1508,7 +1508,7 @@ A **guide tier** is one category in an [archetype](docs/features/protocol/extens
 
 A **standalone guide** is a hand-authored markdown file listed in `standaloneGuides[]` that is both its source and the file readers open, such as a package `README.md` or a top-level `SECURITY.md`.
 
-Contrast with a [guide](#guide), whose shards compile into one output. Compile doesn't write output for a standalone guide, and listing it marks it as [captured](#coverage). [Standalone guide behavior](docs/features/coverage-scan.md#standalone-guide-behavior) covers how compile and link checks treat it.
+Contrast with a [guide](#guide), whose shards compile into one output. Compile doesn't write output for a standalone guide, and listing it marks it as [captured](#coverage). [Standalone guide behavior](docs/features/coverage-scan.md#standalone-guide-behavior) covers how compile treats it and which checks read it.
 
 <!-- mdcp-shard: end docs/glossary/standalone-guide.md -->
 

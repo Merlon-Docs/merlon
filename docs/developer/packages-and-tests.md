@@ -59,7 +59,7 @@ JSONC markdownlint configs plus the shippable `MDCP` Vale style (`vale/MDCP/`). 
 
 1. `pnpm run build && pnpm test`
 2. `pnpm run lint && pnpm run format:check`
-3. `pnpm docs:compile:repo && pnpm docs:check` if you touched `docs/` shards
+3. `pnpm docs:compile:repo && pnpm docs:check` if you touched `docs/` shards or a file that `standaloneGuides` registers, such as `AGENTS.md` or `skills/**/*.md`
 4. `pnpm changeset` when [a changeset is needed](./versioning-and-releases.md#when-to-add-a-changeset)
 
 CI and the land gate run more checks than these steps. [CI and the land gate](./local-setup.md#ci-and-the-land-gate) lists them.

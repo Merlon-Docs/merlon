@@ -48,21 +48,46 @@ Of Vale's alerts, only error-level ones fail `mdcp prose` or `mdcp check`, so a 
 
 ## In-scope guide fileset
 
-MDCP knows the **full fileset** it manages: registered guides in `compileOrder`, resolved via `guides[].path` or `{docsRoot}/{name}/`. Shard markdownlint and Vale prose **only touch documents in that scope** — never legacy flat `.md` files, unregistered sibling folders, or other markdown under `--docs-root` that mdcp does not compile.
+MDCP knows the **full fileset** it manages. The guides in `compileOrder` resolve via `guides[].path` or `{docsRoot}/{name}/`, and `standaloneGuides` registers the [standalone guides](../glossary/standalone-guide.md). Shard markdownlint lints the guide directories. Vale prose lints the guide directories and the standalone guides, because a file that never compiles still reaches readers as written. Both linters skip markdown that the config does not name, such as legacy flat `.md` files or unregistered sibling folders under `--docs-root`.
 
 | Command                                        | Default scope                                     | Out of scope (skipped)                                  |
 | ---------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------- |
 | Shard markdownlint (`mdcp lint`, `mdcp check`) | `compileOrder` guide directories                  | Legacy flat docs, unrelated subdirs under `--docs-root` |
-| Vale prose (`mdcp prose`, `mdcp check`)        | Same guide directories                            | Same                                                    |
+| Vale prose (`mdcp prose`, `mdcp check`)        | Guide directories plus `standaloneGuides` files   | Same                                                    |
 | Compiled markdownlint                          | Compiled outputs listed in `compiledConfig` globs | Shard trees (covered by the shard pass)                 |
 
-Optional overrides **narrow** scope further; they never widen it beyond what you explicitly list:
+Optional overrides replace the guide directories with the paths you list, so scope never reaches past what the config names:
 
-| Config field                    | Purpose                                                                               |
-| ------------------------------- | ------------------------------------------------------------------------------------- |
-| `lint.markdownlint.shardsGlobs` | Shard markdownlint paths relative to `--docs-root` (default: compileOrder guide dirs) |
-| `vale.scanGlobs`                | Vale prose paths relative to `--docs-root` (default: same guide dirs)                 |
+| Config field                    | Purpose                                                                                          |
+| ------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `lint.markdownlint.shardsGlobs` | Shard markdownlint paths relative to `--docs-root` (default: compileOrder guide dirs)            |
+| `vale.scanGlobs`                | Vale prose paths relative to `--docs-root` in place of the guide dirs; standalone guides stay in |
+
+Vale lints each standalone guide once, even when it is inside a scanned directory or two `standaloneGuides` entries match it. The exception is a guide that a scanned directory also reaches through a symlinked subdirectory. Vale follows that link when it walks the directory, so it lints the file under both names.
+
+Vale does not expand globs, so each `vale.scanGlobs` entry must be a file or directory that exists. Given more than one path, Vale stops with a runtime error on a missing one, and the `mdcp check` hint then points at the config. When a missing path is the only one Vale gets, Vale reads it as literal text, so that run passes without linting any file.
 
 The `@bwilliamson/mdcp-presets` shard config supplies **rules and exclusions** (`!**/index.md`, `!guides.md`). **Scope always comes from the CLI** — not from preset globs.
 
-`mdcp fix` is out of band: it runs unscoped `prettier --write .` and `markdownlint-cli2 --fix` across the repo and is not part of mdcp's guide fileset gate.
+`mdcp fix` is out of band: it runs `prettier --write .` and `markdownlint-cli2 --fix` from the docs root and is not part of mdcp's guide fileset gate. It reaches a standalone guide only when the file is under `--docs-root`.
+
+### Opt a standalone guide out of Vale
+
+To keep Vale off one standalone guide, such as vendored text, give it a section at the end of `.vale.ini`, after every section that matches the file, such as `[*.md]` or `[*.{md,mdx}]`:
+
+```ini
+[*.md]
+BasedOnStyles = MDCP
+MDCP.DatedClaim = warning
+
+; Last, after every section that matches the file: the last match wins.
+[**/CODE_OF_CONDUCT.md]
+BasedOnStyles =
+MDCP.DatedClaim = NO
+```
+
+Vale matches a section against the path it is given, and `mdcp prose` and `mdcp check` pass absolute paths. Start the section with `**/` to match them. A section such as `[CODE_OF_CONDUCT.md]` never matches. `**/` matches the file name at any depth, and adding parent directories, as in `[**/legal/CODE_OF_CONDUCT.md]`, narrows it.
+
+Vale takes `BasedOnStyles` from the last matching section that sets it, and a rule's level from the last matching section that sets that rule. Put the opt-out section last, after every section that matches the file, and its empty `BasedOnStyles` turns every style off. A rule that an earlier section sets by name, such as `MDCP.DatedClaim = warning`, stays on until the opt-out section sets it to `NO`.
+
+The file stays a standalone guide, so coverage and link validation still check it.

@@ -78,6 +78,61 @@ function writeValeLevelFixture(docs: string, vale: Record<string, unknown>, body
   writeFileSync(join(docs, 'guide', 'section.md'), `# Guide\n\n## Hello\n\n${body}\n`);
 }
 
+/**
+ * Repo-layout fixture: guide shards under `docs/`, standalone guides at the repo root
+ * (the scan root), and a `.vale.ini` in `docs/` on the shipped MDCP style. AGENTS.md
+ * trips the error-level `MDCP.UnlinkedSeeChapter`; the guide shard is clean.
+ */
+function writeStandaloneValeFixture(
+  repo: string,
+  opts: {
+    standalone?: Record<string, string>;
+    vale?: Record<string, unknown>;
+    ini?: string;
+    /** Body of the guide shard; clean by default. */
+    shard?: string;
+    /** Set `guides[].path` (default true); without it the guide resolves to `{docsRoot}/guide`. */
+    guidePath?: boolean;
+  } = {},
+): void {
+  const docs = join(repo, 'docs');
+  mkdirSync(join(docs, 'guide'), { recursive: true });
+  writeFileSync(join(docs, 'guide', 'index.md'), '# Guide\n\n- [section](section.md)\n');
+  writeFileSync(
+    join(docs, 'guide', 'section.md'),
+    `# Guide\n\n## Hello\n\n${opts.shard ?? 'The guide is clean.'}\n`,
+  );
+  const standalone = opts.standalone ?? { 'AGENTS.md': '# Agents\n\nSee Chapter 2 for details.\n' };
+  for (const [file, body] of Object.entries(standalone)) writeFileSync(join(repo, file), body);
+  writeFileSync(
+    join(docs, 'mdcp.config.json'),
+    JSON.stringify({
+      outputDir: '.',
+      outputFile: 'guides.md',
+      compileOrder: ['guide'],
+      ...(opts.guidePath === false ? {} : { guides: [{ name: 'guide', path: 'guide' }] }),
+      refs: { registryFile: 'refs.json' },
+      standaloneGuides: Object.keys(standalone),
+      ...(opts.vale ? { vale: opts.vale } : {}),
+    }),
+  );
+  writeFileSync(
+    join(docs, '.vale.ini'),
+    `StylesPath = ${join(REPO_ROOT, 'packages/mdcp-presets/vale')}\nMinAlertLevel = suggestion\n\n` +
+      (opts.ini ?? '[*.md]\nBasedOnStyles = MDCP\n'),
+  );
+}
+
+/** Run the CLI from the repo root, as `pnpm docs:check` does, with `docs/` as the docs root. */
+function runAtRepo(repo: string, args: string[]) {
+  const r = spawnSync(
+    'node',
+    [CLI, ...args, '--config', 'docs/mdcp.config.json', '--docs-root', 'docs'],
+    { encoding: 'utf-8', cwd: repo },
+  );
+  return { status: r.status, output: `${r.stdout}${r.stderr}` };
+}
+
 function runIn(docs: string, args: string[]) {
   const r = spawnSync('node', [CLI, ...args, '--config', 'mdcp.config.json', '--docs-root', docs], {
     encoding: 'utf-8',
@@ -488,6 +543,153 @@ describe('cli smoke', () => {
       expect(failed.status).toBe(1);
     } finally {
       rmSync(docs, { recursive: true, force: true });
+    }
+  });
+
+  it('runs Vale over standalone guides in mdcp check and mdcp prose (D2)', () => {
+    if (!valeInstalled()) return;
+
+    const repo = mkdtempSync(join(tmpdir(), 'mdcp-vale-standalone-'));
+    try {
+      writeStandaloneValeFixture(repo);
+      const check = runAtRepo(repo, ['check', '--require-vale']);
+      expect(check.output).toMatch(/AGENTS\.md[\s\S]*MDCP\.UnlinkedSeeChapter/);
+      expect(check.output).toMatch(/vale/);
+      // The failure hint names the per-file opt-out, not only --skip-vale, including the
+      // rules the Markdown section sets by name, which an empty BasedOnStyles leaves on.
+      expect(check.output).toMatch(/\[\*\*\/<file>\][\s\S]*Opt a standalone guide out of Vale/);
+      expect(check.output).toMatch(/after every section that matches the file/);
+      expect(check.output).toMatch(/set to `NO` each rule that an earlier section names/);
+      expect(check.output).not.toMatch(/runtime error/);
+      expect(check.status).toBe(1);
+
+      const prose = runAtRepo(repo, ['prose', '--require-vale']);
+      expect(prose.output).toMatch(/AGENTS\.md[\s\S]*MDCP\.UnlinkedSeeChapter/);
+      expect(prose.status).toBe(1);
+    } finally {
+      rmSync(repo, { recursive: true, force: true });
+    }
+  });
+
+  it('runs Vale over standalone guides when vale.scanGlobs is set (D2)', () => {
+    if (!valeInstalled()) return;
+
+    const repo = mkdtempSync(join(tmpdir(), 'mdcp-vale-standalone-globs-'));
+    try {
+      writeStandaloneValeFixture(repo, { vale: { scanGlobs: ['guide'] } });
+      const check = runAtRepo(repo, ['check', '--require-vale']);
+      expect(check.output).toMatch(/AGENTS\.md[\s\S]*MDCP\.UnlinkedSeeChapter/);
+      expect(check.status).toBe(1);
+    } finally {
+      rmSync(repo, { recursive: true, force: true });
+    }
+  });
+
+  it('lints guide shards and standalone guides with a relative --docs-root and no guides[].path (D2)', () => {
+    if (!valeInstalled()) return;
+
+    // The documented setup: `--docs-root docs` from the repo root, the guide at the default
+    // {docsRoot}/{name}/, no vale.scanGlobs. Vale runs with docs/ as its cwd, so a relative
+    // guide path would point at docs/docs/guide.
+    const repo = mkdtempSync(join(tmpdir(), 'mdcp-vale-standalone-relroot-'));
+    try {
+      writeStandaloneValeFixture(repo, {
+        guidePath: false,
+        shard: 'See Chapter 3 for details.',
+      });
+      const check = runAtRepo(repo, ['check', '--require-vale']);
+      expect(check.output).not.toMatch(/does not exist/);
+      expect(check.output).toMatch(/guide\/section\.md[\s\S]*MDCP\.UnlinkedSeeChapter/);
+      expect(check.output).toMatch(/AGENTS\.md[\s\S]*MDCP\.UnlinkedSeeChapter/);
+      expect(check.status).toBe(1);
+
+      const prose = runAtRepo(repo, ['prose', '--require-vale']);
+      expect(prose.output).toMatch(/guide\/section\.md[\s\S]*MDCP\.UnlinkedSeeChapter/);
+      expect(prose.output).toMatch(/AGENTS\.md[\s\S]*MDCP\.UnlinkedSeeChapter/);
+      expect(prose.status).toBe(1);
+    } finally {
+      rmSync(repo, { recursive: true, force: true });
+    }
+  });
+
+  it('lints a standalone guide that sits under node_modules in a scanned directory (D2)', () => {
+    if (!valeInstalled()) return;
+
+    // Vale's directory walk skips node_modules, so the file reaches Vale only by name.
+    const repo = mkdtempSync(join(tmpdir(), 'mdcp-vale-standalone-nodemodules-'));
+    try {
+      mkdirSync(join(repo, 'docs', 'guide', 'node_modules', 'pkg'), { recursive: true });
+      writeStandaloneValeFixture(repo, {
+        standalone: {
+          'docs/guide/node_modules/pkg/README.md': '# Pkg\n\nSee Chapter 2 for details.\n',
+        },
+      });
+      const prose = runAtRepo(repo, ['prose', '--require-vale']);
+      expect(prose.output).toMatch(/node_modules\/pkg\/README\.md[\s\S]*MDCP\.UnlinkedSeeChapter/);
+      expect(prose.status).toBe(1);
+    } finally {
+      rmSync(repo, { recursive: true, force: true });
+    }
+  });
+
+  it('points a Vale runtime error at the config, not the opt-out (D2)', () => {
+    if (!valeInstalled()) return;
+
+    // Vale does not expand globs: with more than one argument, a missing path stops the run.
+    const repo = mkdtempSync(join(tmpdir(), 'mdcp-vale-standalone-runtime-'));
+    try {
+      writeStandaloneValeFixture(repo, {
+        vale: { scanGlobs: ['guide/*.md'] },
+        standalone: { 'AGENTS.md': '# Agents\n\nThe agent notes are clean.\n' },
+      });
+      const check = runAtRepo(repo, ['check', '--require-vale']);
+      expect(check.output).toMatch(/guide\/\*\.md' does not exist/);
+      expect(check.output).toMatch(/Vale stopped with a runtime error/);
+      expect(check.output).toMatch(/Vale does not expand globs/);
+      expect(check.output).not.toMatch(/Opt a standalone guide out of Vale/);
+      expect(check.status).toBe(1);
+    } finally {
+      rmSync(repo, { recursive: true, force: true });
+    }
+  });
+
+  it('opts a standalone guide out of Vale with the .vale.ini section optional-linters documents', () => {
+    if (!valeInstalled()) return;
+
+    const shard = readFileSync(join(REPO_ROOT, 'docs/client-cli/optional-linters.md'), 'utf-8');
+    const block = [...shard.matchAll(/```ini\n([\s\S]*?)```/g)]
+      .map((m) => m[1])
+      .find((b) => /^BasedOnStyles =$/m.test(b!));
+    expect(block).toBeDefined();
+    const optOut = block!.slice(block!.search(/^;|^\[\*\*\//m));
+    expect(optOut).toMatch(/^\[\*\*\/CODE_OF_CONDUCT\.md\]$/m);
+
+    const repo = mkdtempSync(join(tmpdir(), 'mdcp-vale-standalone-optout-'));
+    const vendored = 'See Chapter 2 for details.\n\nAs of 2026-07-27 this text is vendored.\n';
+    const standalone = {
+      'AGENTS.md': '# Agents\n\nSee Chapter 2 for details.\n',
+      'CODE_OF_CONDUCT.md': `# Code of conduct\n\n${vendored}`,
+    };
+    try {
+      // Without the opt-out section, the vendored file fails the check.
+      writeStandaloneValeFixture(repo, { standalone, ini: block!.replace(optOut, '') });
+      const before = runAtRepo(repo, ['check', '--require-vale']);
+      expect(before.output).toMatch(/CODE_OF_CONDUCT\.md/);
+      expect(before.status).toBe(1);
+
+      // With the documented block, Vale skips the vendored file at every level and still
+      // lints the other standalone guide.
+      writeStandaloneValeFixture(repo, { standalone, ini: block! });
+      const prose = runAtRepo(repo, ['prose', '--require-vale']);
+      expect(prose.output).toMatch(/AGENTS\.md/);
+      expect(prose.output).not.toMatch(/CODE_OF_CONDUCT\.md/);
+
+      writeFileSync(join(repo, 'AGENTS.md'), '# Agents\n\nThe agent notes are clean.\n');
+      const check = runAtRepo(repo, ['check', '--require-vale']);
+      expect(check.output).toMatch(/mdcp check passed/);
+      expect(check.status).toBe(0);
+    } finally {
+      rmSync(repo, { recursive: true, force: true });
     }
   });
 

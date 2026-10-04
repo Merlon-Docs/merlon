@@ -480,9 +480,9 @@ When a file is intentionally standalone — a hand-authored README or a top-leve
 }
 ```
 
-`standaloneGuides` accepts file paths or globs. The scan honors your `.gitignore` by default, so version-controlled ignores (for example `node_modules`, `dist`, and build output) are skipped automatically; set `scan.gitignore: false` to turn that off. A built-in default always skips `.git`, `node_modules`, and `.agents`. `scan.ignore` extends what is skipped, and `scan.root` overrides the walk root (default: the invocation directory).
+`standaloneGuides` accepts file paths or globs. The scan honors your `.gitignore` by default, so it skips the paths that version control ignores, such as `node_modules` and `dist`. Set `scan.gitignore: false` to turn that off. A built-in default always skips `.git`, `node_modules`, and `.agents`. `scan.ignore` extends what is skipped, and `scan.root` overrides the walk root (default: the invocation directory). A `standaloneGuides` glob also matches the paths that these ignores skip, so `**/README.md` matches the READMEs under `node_modules` too. Link validation and Vale read every match, so keep the globs narrow.
 
-Standalone files are register-only: compile doesn't write output for them, and their outbound links are validated. A guide still stitches a standalone file like any shard when the guide's manifest or `compile.scopeRoot` walk reaches it.
+Standalone files are register-only: compile doesn't write output for them, and their outbound links are validated. `mdcp prose` and `mdcp check` run Vale over them, and a `.vale.ini` section keeps Vale off one file, as [Opt a standalone guide out of Vale](#opt-a-standalone-guide-out-of-vale) shows. A guide still stitches a standalone file like any shard when the guide's manifest or `compile.scopeRoot` walk reaches it.
 
 Do not list a compiled guide's output (a generated file such as `README.md` or `DEVELOPERS.md`) in `standaloneGuides`. Those outputs are already captured as guide output targets and are never flagged as uncaptured, so they stay out of the standalone set.
 
@@ -605,24 +605,49 @@ Of Vale's alerts, only error-level ones fail `mdcp prose` or `mdcp check`, so a 
 
 ### In-scope guide fileset
 
-MDCP knows the **full fileset** it manages: registered guides in `compileOrder`, resolved via `guides[].path` or `{docsRoot}/{name}/`. Shard markdownlint and Vale prose **only touch documents in that scope** — never legacy flat `.md` files, unregistered sibling folders, or other markdown under `--docs-root` that mdcp does not compile.
+MDCP knows the **full fileset** it manages. The guides in `compileOrder` resolve via `guides[].path` or `{docsRoot}/{name}/`, and `standaloneGuides` registers the [standalone guides](#standalone-guide). Shard markdownlint lints the guide directories. Vale prose lints the guide directories and the standalone guides, because a file that never compiles still reaches readers as written. Both linters skip markdown that the config does not name, such as legacy flat `.md` files or unregistered sibling folders under `--docs-root`.
 
 | Command                                        | Default scope                                     | Out of scope (skipped)                                  |
 | ---------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------- |
 | Shard markdownlint (`mdcp lint`, `mdcp check`) | `compileOrder` guide directories                  | Legacy flat docs, unrelated subdirs under `--docs-root` |
-| Vale prose (`mdcp prose`, `mdcp check`)        | Same guide directories                            | Same                                                    |
+| Vale prose (`mdcp prose`, `mdcp check`)        | Guide directories plus `standaloneGuides` files   | Same                                                    |
 | Compiled markdownlint                          | Compiled outputs listed in `compiledConfig` globs | Shard trees (covered by the shard pass)                 |
 
-Optional overrides **narrow** scope further; they never widen it beyond what you explicitly list:
+Optional overrides replace the guide directories with the paths you list, so scope never reaches past what the config names:
 
-| Config field                    | Purpose                                                                               |
-| ------------------------------- | ------------------------------------------------------------------------------------- |
-| `lint.markdownlint.shardsGlobs` | Shard markdownlint paths relative to `--docs-root` (default: compileOrder guide dirs) |
-| `vale.scanGlobs`                | Vale prose paths relative to `--docs-root` (default: same guide dirs)                 |
+| Config field                    | Purpose                                                                                          |
+| ------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `lint.markdownlint.shardsGlobs` | Shard markdownlint paths relative to `--docs-root` (default: compileOrder guide dirs)            |
+| `vale.scanGlobs`                | Vale prose paths relative to `--docs-root` in place of the guide dirs; standalone guides stay in |
+
+Vale lints each standalone guide once, even when it is inside a scanned directory or two `standaloneGuides` entries match it. The exception is a guide that a scanned directory also reaches through a symlinked subdirectory. Vale follows that link when it walks the directory, so it lints the file under both names.
+
+Vale does not expand globs, so each `vale.scanGlobs` entry must be a file or directory that exists. Given more than one path, Vale stops with a runtime error on a missing one, and the `mdcp check` hint then points at the config. When a missing path is the only one Vale gets, Vale reads it as literal text, so that run passes without linting any file.
 
 The `@bwilliamson/mdcp-presets` shard config supplies **rules and exclusions** (`!**/index.md`, `!guides.md`). **Scope always comes from the CLI** — not from preset globs.
 
-`mdcp fix` is out of band: it runs unscoped `prettier --write .` and `markdownlint-cli2 --fix` across the repo and is not part of mdcp's guide fileset gate.
+`mdcp fix` is out of band: it runs `prettier --write .` and `markdownlint-cli2 --fix` from the docs root and is not part of mdcp's guide fileset gate. It reaches a standalone guide only when the file is under `--docs-root`.
+
+#### Opt a standalone guide out of Vale
+
+To keep Vale off one standalone guide, such as vendored text, give it a section at the end of `.vale.ini`, after every section that matches the file, such as `[*.md]` or `[*.{md,mdx}]`:
+
+```ini
+[*.md]
+BasedOnStyles = MDCP
+MDCP.DatedClaim = warning
+
+; Last, after every section that matches the file: the last match wins.
+[**/CODE_OF_CONDUCT.md]
+BasedOnStyles =
+MDCP.DatedClaim = NO
+```
+
+Vale matches a section against the path it is given, and `mdcp prose` and `mdcp check` pass absolute paths. Start the section with `**/` to match them. A section such as `[CODE_OF_CONDUCT.md]` never matches. `**/` matches the file name at any depth, and adding parent directories, as in `[**/legal/CODE_OF_CONDUCT.md]`, narrows it.
+
+Vale takes `BasedOnStyles` from the last matching section that sets it, and a rule's level from the last matching section that sets that rule. Put the opt-out section last, after every section that matches the file, and its empty `BasedOnStyles` turns every style off. A rule that an earlier section sets by name, such as `MDCP.DatedClaim = warning`, stays on until the opt-out section sets it to `NO`.
+
+The file stays a standalone guide, so coverage and link validation still check it.
 
 <!-- mdcp-shard: end ../../docs/client-cli/optional-linters.md -->
 
@@ -813,6 +838,16 @@ Default `en-US` (one BCP 47 JSON file per locale under `src/locale/locales/`). L
 
 <!-- mdcp-shard: end ../../docs/glossary/locale-pack.md -->
 
+<!-- mdcp-shard: start ../../docs/glossary/standalone-guide.md -->
+
+## standalone guide
+
+A **standalone guide** is a hand-authored markdown file listed in `standaloneGuides[]` that is both its source and the file readers open, such as a package `README.md` or a top-level `SECURITY.md`.
+
+Contrast with a [guide](#guide), whose shards compile into one output. Compile doesn't write output for a standalone guide, and listing it marks it as [captured](#coverage). [Standalone guide behavior](../../docs/features/coverage-scan.md#standalone-guide-behavior) covers how compile treats it and which checks read it.
+
+<!-- mdcp-shard: end ../../docs/glossary/standalone-guide.md -->
+
 <!-- mdcp-shard: start ../../docs/glossary/shard.md -->
 
 ## shard
@@ -832,16 +867,6 @@ A **compiled guide** is the file compile writes for one [guide](#guide). A guide
 See [Default per-guide outputs](#default-per-guide-outputs) for the default paths.
 
 <!-- mdcp-shard: end ../../docs/glossary/compiled-guide.md -->
-
-<!-- mdcp-shard: start ../../docs/glossary/standalone-guide.md -->
-
-## standalone guide
-
-A **standalone guide** is a hand-authored markdown file listed in `standaloneGuides[]` that is both its source and the file readers open, such as a package `README.md` or a top-level `SECURITY.md`.
-
-Contrast with a [guide](#guide), whose shards compile into one output. Compile doesn't write output for a standalone guide, and listing it marks it as [captured](#coverage). [Standalone guide behavior](../../docs/features/coverage-scan.md#standalone-guide-behavior) covers how compile and link checks treat it.
-
-<!-- mdcp-shard: end ../../docs/glossary/standalone-guide.md -->
 
 <!-- mdcp-shard: start ../../docs/glossary/orphan.md -->
 

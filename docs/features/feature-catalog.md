@@ -73,7 +73,7 @@ Report markdown files that no guide accounts for. Register single files as [stan
 
 ## Peer linter orchestration
 
-Orchestrate markdownlint-cli2, Vale, Prettier, markdown-link-check from host repo. Shard markdownlint and Vale prose only touch registered guide shard trees (`compileOrder`); optional `shardsGlobs` / `vale.scanGlobs` narrow scope further.
+Orchestrate markdownlint-cli2, Vale, Prettier, markdown-link-check from host repo. Shard markdownlint touches only the registered guide shard trees (`compileOrder`). Vale prose touches those trees and the [standalone guides](../glossary/standalone-guide.md). `shardsGlobs` and `vale.scanGlobs` replace the guide trees with the paths they list, and the standalone guides stay in Vale's scope.
 
 The peer commands are `mdcp lint`, `mdcp prose`, `mdcp links` and `mdcp fix`. The [command summary](../client-cli/commands-reference.md#command-summary) says what each one runs.
 

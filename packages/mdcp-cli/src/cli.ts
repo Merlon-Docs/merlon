@@ -9,7 +9,6 @@ import {
   resolveDocsRoot,
   resolveGuideDir,
   getGuideConfig,
-  guideScanDirs,
   shardLintPaths,
   checkOrphansForGuides,
   computeCoverage,
@@ -40,7 +39,7 @@ import {
   runBuiltInLinkLintFromWorkspace,
   resolveLinkSeverity,
 } from './compile-workspace.js';
-import { valeArgs } from './vale-args.js';
+import { valeArgs, valeCheckHints, valeScanPaths } from './vale-args.js';
 
 interface GlobalOpts {
   config: string;
@@ -92,12 +91,6 @@ function coverageInputs(config: MdcpConfig, opts: GlobalOpts): CoverageOptions {
     ignore: config.scan?.ignore ?? [],
     gitignore: config.scan?.gitignore ?? true,
   };
-}
-
-function valeScanPaths(config: MdcpConfig, docsRoot: string): string[] {
-  return (
-    config.vale?.scanGlobs?.map((g) => resolve(docsRoot, g)) ?? guideScanDirs(config, docsRoot)
-  );
 }
 
 function guideEntries(config: MdcpConfig, docsRoot: string) {
@@ -314,7 +307,7 @@ cli
   .action((opts: GlobalOpts & { strict?: boolean; requireVale?: boolean }) => {
     const config = getConfig(opts);
     const tool = findPeerBinary('vale', getDocsRoot(opts));
-    const scanPaths = valeScanPaths(config, getDocsRoot(opts));
+    const scanPaths = valeScanPaths(config, getDocsRoot(opts), getScanRoot(config));
     const args = valeArgs(config, scanPaths, opts.strict === true);
     const r = runPeer(tool, { require: opts.requireVale, cwd: getDocsRoot(opts), args });
     if (r.exitCode !== 0) process.exit(r.exitCode);
@@ -494,7 +487,7 @@ cli
 
       if (!opts.skipVale) {
         const vale = findPeerBinary('vale', getDocsRoot(opts));
-        const scanPaths = valeScanPaths(config, getDocsRoot(opts));
+        const scanPaths = valeScanPaths(config, getDocsRoot(opts), getScanRoot(config));
         const r = runPeer(vale, {
           require: opts.requireVale,
           cwd: getDocsRoot(opts),
@@ -504,9 +497,7 @@ cli
           failures.push({
             step: 'vale',
             detail: 'peer exited non-zero (see Vale output above)',
-            hints: [
-              'Fix prose style alerts, or use `--skip-vale` only when prose is intentionally out of scope.',
-            ],
+            hints: valeCheckHints(r),
           });
         }
       }

@@ -39,9 +39,13 @@ A standalone guide is register-only:
 - Compile doesn't write output for it. A guide still stitches it like any shard when the guide's manifest or `compile.scopeRoot` walk reaches it.
 - Its headings stay out of the [refs registry](../glossary/refs-registry.md) unless a guide stitches it into the text the registry is built from.
 - Its outbound links are validated: `.md` and source-file targets must resolve on disk, and same-file `#fragment` anchors must match a heading. See [built-in link validation](./link-validation.md#standalone-guide-validation).
-- Peer tools (markdownlint, Vale, Prettier) still process the file normally.
+- `mdcp prose` and `mdcp check` run Vale over it, along with the guide directories or the `vale.scanGlobs` paths. A `.vale.ini` section opts one file out, as [Opt a standalone guide out of Vale](../client-cli/optional-linters.md#opt-a-standalone-guide-out-of-vale) shows.
+- The markdownlint passes in `mdcp lint` and `mdcp check` lint it only when a shard lint path reaches it or the compiled config's globs list it. The shard lint paths are the guide directories, or `lint.markdownlint.shardsGlobs` in their place.
+- `mdcp fix` runs `prettier --write .` from `--docs-root`, so it formats a standalone guide only when the file is under the docs root.
 
 `standaloneGuides[]` accepts file paths or globs (for example `packages/*/README.md`), resolved from the scan root. It doubles as the canonical inventory of intentionally isolated shards.
+
+A `standaloneGuides[]` glob can match any file under the scan root, even a path that [the scan skips](#what-the-scan-skips): `**/README.md` also matches the READMEs under `node_modules`. Link validation and Vale read every match, as does the [path probe](./path-resolution.md) when `lint.paths` is on. Keep the globs narrow.
 
 ## What the scan skips
 
