@@ -3,7 +3,15 @@ import { execFile, execFileSync, spawnSync } from 'node:child_process';
 import { promisify } from 'node:util';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { existsSync, mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
+import {
+  existsSync,
+  mkdtempSync,
+  mkdirSync,
+  writeFileSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -20,6 +28,10 @@ async function runCli(args: string[], cwd: string): Promise<string> {
 const SHARDS_PRESET = join(
   REPO_ROOT,
   'packages/mdcp-presets/markdownlint-shards.markdownlint-cli2.jsonc',
+);
+const COMPILED_PRESET = join(
+  REPO_ROOT,
+  'packages/mdcp-presets/markdownlint-compiled.markdownlint-cli2.jsonc',
 );
 
 function valeInstalled(): boolean {
@@ -139,6 +151,50 @@ function runIn(docs: string, args: string[]) {
     cwd: docs,
   });
   return { status: r.status, output: `${r.stdout}${r.stderr}` };
+}
+
+/**
+ * Repo-layout markdownlint fixture for `runAtRepo`: one guide at the default
+ * `{docsRoot}/guide/` (no `guides[].path`) and the monolith at the default
+ * `_build/guides.md`. The section shard has no blank line after its `## Hello`
+ * heading, which markdownlint reports as MD022 in the shard and in the monolith.
+ */
+function writeMarkdownlintFixture(repo: string, markdownlint: Record<string, unknown>): void {
+  const docs = join(repo, 'docs');
+  mkdirSync(join(docs, 'guide'), { recursive: true });
+  writeFileSync(join(docs, 'guide', 'index.md'), '# Guide\n\n- [section](section.md)\n');
+  writeFileSync(join(docs, 'guide', 'section.md'), '# Guide\n\n## Hello\nNo blank line.\n');
+  writeFileSync(
+    join(docs, 'mdcp.config.json'),
+    JSON.stringify({ outputFile: 'guides.md', compileOrder: ['guide'], lint: { markdownlint } }),
+  );
+}
+
+/**
+ * An in-root guide at `docs/inner` and a guide at `../pkg/guide` (`guides[].path`), each with
+ * one clean section shard. The outer manifest has a trailing space, which markdownlint
+ * reports as MD009 unless the shard preset's `!**` + `/index.md` reaches it. Returns the
+ * docs root.
+ */
+function writeOutsideRootFixture(repo: string, markdownlint: Record<string, unknown>): string {
+  const docs = join(repo, 'docs');
+  mkdirSync(join(docs, 'inner'), { recursive: true });
+  writeFileSync(join(docs, 'inner', 'index.md'), '# Inner\n\n- [a](a.md)\n');
+  writeFileSync(join(docs, 'inner', 'a.md'), '# Inner\n\n## A\n\nText.\n');
+  const outer = join(repo, 'pkg', 'guide');
+  mkdirSync(outer, { recursive: true });
+  writeFileSync(join(outer, 'index.md'), '# Outer \n\n- [b](b.md)\n');
+  writeFileSync(join(outer, 'b.md'), '# Outer\n\n## B\n\nText.\n');
+  writeFileSync(
+    join(docs, 'mdcp.config.json'),
+    JSON.stringify({
+      outputFile: 'guides.md',
+      compileOrder: ['inner', 'outer'],
+      guides: [{ name: 'outer', path: '../pkg/guide' }],
+      lint: { markdownlint },
+    }),
+  );
+  return docs;
 }
 
 describe('cli smoke', () => {
@@ -472,6 +528,377 @@ describe('cli smoke', () => {
       expect(out).toContain('mdcp check passed');
     } finally {
       rmSync(docs, { recursive: true, force: true });
+    }
+  });
+
+  it('lints guide shards with a relative --docs-root and no guides[].path', () => {
+    // The documented setup: `--docs-root docs` from the repo root, the guide at the default
+    // {docsRoot}/{name}/, no shardsGlobs. markdownlint-cli2 runs with docs/ as its cwd, so
+    // a relative guide path would point at docs/docs/guide and lint 0 files.
+    const repo = mkdtempSync(join(tmpdir(), 'mdcp-mdlint-relroot-'));
+    try {
+      writeMarkdownlintFixture(repo, { shardsConfig: SHARDS_PRESET });
+      const lint = runAtRepo(repo, ['lint', '--require-lint']);
+      expect(lint.output).toMatch(/Linting: 1 file\b/);
+      expect(lint.output).toMatch(/guide\/section\.md:\d+.*MD022/);
+      expect(lint.status).toBe(1);
+
+      const check = runAtRepo(repo, ['check', '--require-lint', '--skip-vale']);
+      expect(check.output).toMatch(/Linting: 1 file\b/);
+      expect(check.output).toMatch(/markdownlint \(shards\): peer exited non-zero/);
+      expect(check.status).toBe(1);
+    } finally {
+      rmSync(repo, { recursive: true, force: true });
+    }
+  });
+
+  it('lints the monolith under the default _build outputDir with the compiled preset', () => {
+    const repo = mkdtempSync(join(tmpdir(), 'mdcp-mdlint-compiled-'));
+    try {
+      writeMarkdownlintFixture(repo, { compiledConfig: COMPILED_PRESET });
+      const lint = runAtRepo(repo, ['lint', '--require-lint']);
+      expect(lint.output).toMatch(/Linting: 1 file\b/);
+      expect(lint.output).toMatch(/_build\/guides\.md:\d+.*MD022/);
+      expect(lint.status).toBe(1);
+
+      const check = runAtRepo(repo, ['check', '--require-lint', '--skip-vale']);
+      expect(check.output).toMatch(/markdownlint \(compiled\): peer exited non-zero/);
+      expect(check.status).toBe(1);
+    } finally {
+      rmSync(repo, { recursive: true, force: true });
+    }
+  });
+
+  it('passes shard content the shard preset allows through the compiled preset', () => {
+    // Two guides that each have an Overview section compile into one monolith with a duplicate
+    // heading. The dev shard also uses <details>, a fence with no language and a bold-only
+    // line. The shard preset turns MD024, MD033, MD040 and MD036 off, so the compiled preset
+    // must too, or every default-layout monolith fails on content its shards may hold.
+    const repo = mkdtempSync(join(tmpdir(), 'mdcp-mdlint-compiled-rules-'));
+    try {
+      const docs = join(repo, 'docs');
+      for (const guide of ['admin', 'dev']) {
+        mkdirSync(join(docs, guide), { recursive: true });
+        writeFileSync(join(docs, guide, 'index.md'), `# ${guide}\n\n- [Overview](overview.md)\n`);
+      }
+      writeFileSync(join(docs, 'admin', 'overview.md'), '# admin\n\n## Overview\n\nAdmin text.\n');
+      writeFileSync(
+        join(docs, 'dev', 'overview.md'),
+        [
+          '# dev',
+          '',
+          '## Overview',
+          '',
+          '<details>',
+          '<summary>More</summary>',
+          '',
+          'Hidden text.',
+          '',
+          '</details>',
+          '',
+          '```',
+          'plain code',
+          '```',
+          '',
+          '**Note heading**',
+          '',
+        ].join('\n'),
+      );
+      writeFileSync(
+        join(docs, 'mdcp.config.json'),
+        JSON.stringify({
+          outputFile: 'guides.md',
+          compileOrder: ['admin', 'dev'],
+          lint: { markdownlint: { shardsConfig: SHARDS_PRESET, compiledConfig: COMPILED_PRESET } },
+        }),
+      );
+      const check = runAtRepo(repo, ['check', '--require-lint', '--skip-vale']);
+      expect(check.output).toMatch(/Linting: 2 files\b/);
+      expect(check.output).toMatch(/Finding: _build\/guides\.md[^\n]*\nLinting: 1 file\b/);
+      expect(check.output).not.toMatch(/MD0\d\d\//);
+      expect(check.output).toMatch(/mdcp check passed/);
+      expect(check.status).toBe(0);
+    } finally {
+      rmSync(repo, { recursive: true, force: true });
+    }
+  });
+
+  it('lints only the Markdown files in a guide directory', () => {
+    // markdownlint-cli2 expands a bare directory to every file in it, so an image or a text
+    // file beside the shards was linted as Markdown.
+    const repo = mkdtempSync(join(tmpdir(), 'mdcp-mdlint-md-only-'));
+    try {
+      writeMarkdownlintFixture(repo, { shardsConfig: SHARDS_PRESET });
+      const guide = join(repo, 'docs', 'guide');
+      writeFileSync(join(guide, 'section.md'), '# Guide\n\n## Hello\n\nClean.\n');
+      writeFileSync(
+        join(guide, 'photo.jpg'),
+        Buffer.from('\xff\xd8\xff\xe0 JFIF\tdata \x00', 'latin1'),
+      );
+      writeFileSync(join(guide, 'notes.txt'), 'trailing space \nno final newline');
+      const lint = runAtRepo(repo, ['lint', '--require-lint']);
+      expect(lint.output).toMatch(/Linting: 1 file\b/);
+      expect(lint.output).not.toMatch(/photo\.jpg|notes\.txt/);
+      expect(lint.status).toBe(0);
+    } finally {
+      rmSync(repo, { recursive: true, force: true });
+    }
+  });
+
+  it('lints guide shards when the checkout path has glob characters', () => {
+    // markdownlint-cli2 reads each shard lint path as a glob. A glob built from a checkout
+    // under `repo (copy)` or `proj {a,b}` matched nothing, so the shard pass printed
+    // "Linting: 0 files" and passed, with any form of --docs-root.
+    const repo = mkdtempSync(join(tmpdir(), 'mdcp (copy) {a,b} '));
+    try {
+      writeMarkdownlintFixture(repo, { shardsConfig: SHARDS_PRESET });
+      const docs = join(repo, 'docs');
+      const check = ['check', '--require-lint', '--skip-vale'];
+      const dot = spawnSync(
+        'node',
+        [CLI, ...check, '--config', 'mdcp.config.json', '--docs-root', '.'],
+        { encoding: 'utf-8', cwd: docs },
+      );
+      const runs = {
+        '--docs-root docs': runAtRepo(repo, check),
+        '--docs-root .': { status: dot.status, output: `${dot.stdout}${dot.stderr}` },
+        'absolute --docs-root': runIn(docs, check),
+      };
+      for (const [form, run] of Object.entries(runs)) {
+        expect(run.output, form).toMatch(/Linting: 1 file\b/);
+        expect(run.output, form).toMatch(/guide\/section\.md:\d+.*MD022/);
+        expect(run.output, form).toMatch(/markdownlint \(shards\): peer exited non-zero/);
+        expect(run.status, form).toBe(1);
+      }
+    } finally {
+      rmSync(repo, { recursive: true, force: true });
+    }
+  });
+
+  it('lints a guide directory whose name has glob characters', () => {
+    const repo = mkdtempSync(join(tmpdir(), 'mdcp (copy) '));
+    try {
+      const guide = join(repo, 'docs', 'guide (v2) {a,b}');
+      mkdirSync(guide, { recursive: true });
+      writeFileSync(join(guide, 'index.md'), '# Guide\n\n- [section](section.md)\n');
+      writeFileSync(join(guide, 'section.md'), '# Guide\n\n## Hello\nNo blank line.\n');
+      writeFileSync(
+        join(repo, 'docs', 'mdcp.config.json'),
+        JSON.stringify({
+          outputFile: 'guides.md',
+          compileOrder: ['guide'],
+          guides: [{ name: 'guide', path: 'guide (v2) {a,b}' }],
+          lint: { markdownlint: { shardsConfig: SHARDS_PRESET } },
+        }),
+      );
+      const lint = runAtRepo(repo, ['lint', '--require-lint']);
+      expect(lint.output).toMatch(/Linting: 1 file\b/);
+      expect(lint.output).toMatch(/guide \(v2\) \{a,b\}\/section\.md:\d+.*MD022/);
+      expect(lint.status).toBe(1);
+    } finally {
+      rmSync(repo, { recursive: true, force: true });
+    }
+  });
+
+  it('passes shardsGlobs to markdownlint-cli2 as written, so a negated entry excludes files', () => {
+    // markdownlint-cli2 resolves each entry against its cwd, the docs root. An entry resolved
+    // to an absolute path carried the checkout path into the glob, and `!guide/legacy/**`
+    // became `<docs>/!guide/legacy/**`, which excludes nothing.
+    const repo = mkdtempSync(join(tmpdir(), 'mdcp (copy) '));
+    try {
+      writeMarkdownlintFixture(repo, {
+        shardsConfig: SHARDS_PRESET,
+        shardsGlobs: ['guide', '!guide/legacy/**'],
+      });
+      const legacy = join(repo, 'docs', 'guide', 'legacy');
+      mkdirSync(legacy, { recursive: true });
+      writeFileSync(join(legacy, 'old.md'), '# Old\n\n## Old heading\nNo blank line.\n');
+      const lint = runAtRepo(repo, ['lint', '--require-lint']);
+      expect(lint.output).toMatch(/Linting: 1 file\b/);
+      expect(lint.output).toMatch(/guide\/section\.md:\d+.*MD022/);
+      expect(lint.output).not.toMatch(/legacy\/old\.md/);
+      expect(lint.status).toBe(1);
+    } finally {
+      rmSync(repo, { recursive: true, force: true });
+    }
+  });
+
+  it('keeps the preset exclusions on a guide outside the docs root', () => {
+    // An in-root guide plus a guide at ../pkg/guide whose manifest fails MD009. As a `../`
+    // glob next to an in-root glob, the guide lost the preset's `!**/index.md`, because globby
+    // rebases `**/` negations onto `../` only when every pattern shares that prefix.
+    const repo = mkdtempSync(join(tmpdir(), 'mdcp-mdlint-outroot-'));
+    try {
+      const docs = writeOutsideRootFixture(repo, { shardsConfig: SHARDS_PRESET });
+      const runs = {
+        '--docs-root docs': runAtRepo(repo, ['lint', '--require-lint']),
+        'absolute --docs-root': runIn(docs, ['lint', '--require-lint']),
+      };
+      for (const [form, run] of Object.entries(runs)) {
+        expect(run.output, form).toMatch(/Linting: 2 files\b/);
+        expect(run.output, form).not.toMatch(/MD009/);
+        expect(run.status, form).toBe(0);
+      }
+    } finally {
+      rmSync(repo, { recursive: true, force: true });
+    }
+  });
+
+  it('keeps the preset and config exclusions on a shardsGlobs entry outside the docs root', () => {
+    // As written, ../pkg/guide next to inner lost `!**/index.md`, and under the absolute
+    // path that keeps it, `!../pkg/guide/legacy` would exclude nothing.
+    const repo = mkdtempSync(join(tmpdir(), 'mdcp-mdlint-outroot-globs-'));
+    try {
+      const docs = writeOutsideRootFixture(repo, {
+        shardsConfig: SHARDS_PRESET,
+        shardsGlobs: ['inner', '../pkg/guide', '!../pkg/guide/legacy'],
+      });
+      const legacy = join(repo, 'pkg', 'guide', 'legacy');
+      mkdirSync(legacy, { recursive: true });
+      writeFileSync(join(legacy, 'old.md'), '# Old\n\n## Old heading\nNo blank line.\n');
+      const runs = {
+        '--docs-root docs': runAtRepo(repo, ['lint', '--require-lint']),
+        'absolute --docs-root': runIn(docs, ['lint', '--require-lint']),
+      };
+      for (const [form, run] of Object.entries(runs)) {
+        expect(run.output, form).toMatch(/Linting: 2 files\b/);
+        expect(run.output, form).not.toMatch(/MD009|MD022/);
+        expect(run.status, form).toBe(0);
+      }
+    } finally {
+      rmSync(repo, { recursive: true, force: true });
+    }
+  });
+
+  it('lints a guide outside a docs root that is a symlink', () => {
+    // docs links to ../real/docs. markdownlint-cli2 runs in the link target, so a ../pkg/guide
+    // glob resolved beside real/docs, matched nothing, and the guide's MD022 went unreported.
+    const work = mkdtempSync(join(tmpdir(), 'mdcp-mdlint-symlink-'));
+    try {
+      const real = join(work, 'real', 'docs');
+      mkdirSync(join(real, 'inner'), { recursive: true });
+      writeFileSync(join(real, 'inner', 'index.md'), '# Inner\n\n- [a](a.md)\n');
+      writeFileSync(join(real, 'inner', 'a.md'), '# Inner\n\n## A\n\nText.\n');
+      const repo = join(work, 'repo');
+      const outer = join(repo, 'pkg', 'guide');
+      mkdirSync(outer, { recursive: true });
+      writeFileSync(join(outer, 'index.md'), '# Outer\n\n- [b](b.md)\n');
+      writeFileSync(join(outer, 'b.md'), '# Outer\n\n## B\nNo blank line.\n');
+      symlinkSync(join('..', 'real', 'docs'), join(repo, 'docs'), 'dir');
+      writeFileSync(
+        join(real, 'mdcp.config.json'),
+        JSON.stringify({
+          outputFile: 'guides.md',
+          compileOrder: ['inner', 'outer'],
+          guides: [{ name: 'outer', path: '../pkg/guide' }],
+          lint: { markdownlint: { shardsConfig: SHARDS_PRESET } },
+        }),
+      );
+      const lint = runAtRepo(repo, ['lint', '--require-lint']);
+      expect(lint.output).toMatch(/Linting: 2 files\b/);
+      expect(lint.output).toMatch(/pkg\/guide\/b\.md:\d+.*MD022/);
+      expect(lint.status).toBe(1);
+    } finally {
+      rmSync(work, { recursive: true, force: true });
+    }
+  });
+
+  it('keeps the compiled outputs out of the shard pass for a guide at the docs root', () => {
+    // A guide at "." gets **/*.{md,markdown}, and a "." shardsGlobs entry becomes **. Both
+    // reach _build, so the shard pass linted the compiled outputs unless the shard preset
+    // excludes _build. The config sits beside docs/ so that ** reaches only Markdown files.
+    const variants: Record<string, string[] | undefined> = {
+      'guides[].path "."': undefined,
+      'shardsGlobs ["."]': ['.'],
+    };
+    for (const [form, shardsGlobs] of Object.entries(variants)) {
+      const repo = mkdtempSync(join(tmpdir(), 'mdcp-mdlint-rootguide-'));
+      try {
+        const docs = join(repo, 'docs');
+        mkdirSync(docs, { recursive: true });
+        writeFileSync(join(docs, 'index.md'), '# Guide\n\n- [a](a.md)\n');
+        writeFileSync(join(docs, 'a.md'), '# Guide\n\n## A\n\nText.\n');
+        writeFileSync(
+          join(repo, 'mdcp.config.json'),
+          JSON.stringify({
+            outputFile: 'guides.md',
+            compileOrder: ['guide'],
+            guides: [{ name: 'guide', path: '.' }],
+            lint: { markdownlint: { shardsConfig: SHARDS_PRESET, shardsGlobs } },
+          }),
+        );
+        const run = (args: string[]) => {
+          const r = spawnSync(
+            'node',
+            [CLI, ...args, '--config', 'mdcp.config.json', '--docs-root', 'docs'],
+            { encoding: 'utf-8', cwd: repo },
+          );
+          return { status: r.status, output: `${r.stdout}${r.stderr}` };
+        };
+        expect(run(['compile']).status, form).toBe(0);
+        expect(existsSync(join(docs, '_build', 'guides.md')), form).toBe(true);
+        const lint = run(['lint', '--require-lint']);
+        // Without the exclusion, ** and **/*.{md,markdown} also matched _build/guide.md and
+        // _build/guides.md ("Linting: 3 files").
+        expect(lint.output, form).toMatch(/Linting: 1 file\b/);
+        expect(lint.status, form).toBe(0);
+      } finally {
+        rmSync(repo, { recursive: true, force: true });
+      }
+    }
+  });
+
+  it('lints guides whose names have quote characters', () => {
+    // markdownlint-cli2's brace expansion reads ', " and ` as quoting, so a glob such as
+    // what's-new/**/*.{md,markdown} never expanded {md,markdown}, matched nothing and passed.
+    const repo = mkdtempSync(join(tmpdir(), 'mdcp-mdlint-quotes-'));
+    try {
+      const docs = join(repo, 'docs');
+      const names = ["what's-new", 'say "hi"', 'run `x`'];
+      for (const name of names) {
+        mkdirSync(join(docs, name), { recursive: true });
+        writeFileSync(join(docs, name, 'index.md'), '# Guide\n\n- [s](s.md)\n');
+        writeFileSync(join(docs, name, 's.md'), '# Guide\n\n## S\nNo blank line.\n');
+      }
+      writeFileSync(
+        join(docs, 'mdcp.config.json'),
+        JSON.stringify({
+          outputFile: 'guides.md',
+          compileOrder: names,
+          lint: { markdownlint: { shardsConfig: SHARDS_PRESET } },
+        }),
+      );
+      const lint = runAtRepo(repo, ['lint', '--require-lint']);
+      expect(lint.output).toMatch(/Linting: 3 files\b/);
+      for (const name of names) {
+        expect(lint.output, name).toContain(`${name}/s.md:3 error MD022`);
+      }
+      expect(lint.status).toBe(1);
+    } finally {
+      rmSync(repo, { recursive: true, force: true });
+    }
+  });
+
+  it('reports an orphan beside a nested shard of the same name with a relative --docs-root', () => {
+    // The manifest links sub/a.md; a.md at the guide top level is in no manifest. A guide
+    // dir built from a relative --docs-root never prefixes the absolute shard paths, so the
+    // nested shard was keyed as guide/a.md and hid the orphan.
+    const repo = mkdtempSync(join(tmpdir(), 'mdcp-orphan-relroot-'));
+    try {
+      const guide = join(repo, 'docs', 'guide');
+      mkdirSync(join(guide, 'sub'), { recursive: true });
+      writeFileSync(join(guide, 'index.md'), '# Guide\n\n- [a](sub/a.md)\n');
+      writeFileSync(join(guide, 'sub', 'a.md'), '# Guide\n\n## Nested A\n');
+      writeFileSync(join(guide, 'a.md'), '# Guide\n\n## Top A\n');
+      writeFileSync(
+        join(repo, 'docs', 'mdcp.config.json'),
+        JSON.stringify({ outputFile: 'guides.md', compileOrder: ['guide'] }),
+      );
+      const check = runAtRepo(repo, ['check', '--skip-vale']);
+      expect(check.output).toMatch(/Orphaned shard not in sections manifest: guide\/a\.md/);
+      expect(check.status).toBe(1);
+    } finally {
+      rmSync(repo, { recursive: true, force: true });
     }
   });
 

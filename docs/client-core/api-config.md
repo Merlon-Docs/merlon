@@ -10,12 +10,12 @@
 
 ## Path resolution: `configBase` vs docs root
 
-| Concern                    | Base                          | Example                                                                       |
-| -------------------------- | ----------------------------- | ----------------------------------------------------------------------------- |
-| Finding `mdcp.config.json` | `configBase` (invocation dir) | `--config docs/mdcp.config.json` → `<repo>/docs/mdcp.config.json`             |
-| Guide shards (default)     | Docs root (`--docs-root`)     | `resolveGuideDir('features', config, docsRoot)` → `<docsRoot>/features`       |
-| `outputDir`                | Docs root                     | `_build` → `<docsRoot>/_build`                                                |
-| All generated paths        | `outputDir`                   | `features.md` → `<docsRoot>/_build/features.md`; `.caches/refs.json` for refs |
+| Concern                    | Base                          | Example                                                                          |
+| -------------------------- | ----------------------------- | -------------------------------------------------------------------------------- |
+| Finding `mdcp.config.json` | `configBase` (invocation dir) | `--config docs/mdcp.config.json` → `<repo>/docs/mdcp.config.json`                |
+| Guide shards (default)     | Docs root (`--docs-root`)     | `resolveGuideDir('features', config, docsRoot)` → absolute `<docsRoot>/features` |
+| `outputDir`                | Docs root                     | `_build` → `<docsRoot>/_build`                                                   |
+| All generated paths        | `outputDir`                   | `features.md` → `<docsRoot>/_build/features.md`; `.caches/refs.json` for refs    |
 
 All generated paths use `resolveUnderOutputDir(docsRoot, outputDir, file)` — relative to `outputDir` unless `file` is absolute. Details: [API — Refs](./api-refs-validation.md).
 
@@ -27,6 +27,14 @@ const featuresDir = resolveGuideDir('features', config, join(process.cwd(), 'doc
 ```
 
 Pass `process.cwd()` as `configBase` for `loadConfig`. Pass the docs root as `docsRoot` to `resolveGuideDir`, `resolveOutputPath`, and `resolveRefsPath`.
+
+`resolveGuideDir` and `guideScanDirs` return absolute paths. A relative `docsRoot` such as `docs` resolves against the process cwd. The CLI runs markdownlint-cli2 and Vale with the docs root as their cwd, where a relative `docs/features` would name `docs/docs/features`, a directory that doesn't exist.
+
+`shardLintPaths` returns paths for markdownlint-cli2 running with the docs root as its cwd, as the CLI runs it. Run markdownlint-cli2 from the docs root with them. From any other cwd, markdownlint-cli2 resolves the relative paths against that directory, so it misses the guide shards and lints the wrong files or none. It returns most `lint.markdownlint.shardsGlobs` entries as written, so a negated entry still excludes files. A `.` entry comes back as `**`, so markdownlint-cli2 lints every file under the docs root. Given `.` as its only path, it would lint the Markdown files at the top of the docs root and nothing below them.
+
+Without `shardsGlobs`, `shardLintPaths` returns a glob for the Markdown files in each guide directory, such as `features/**/*.{md,markdown}`. markdownlint-cli2 expands a bare directory to every file in it, images included. A guide under the docs root gets a glob relative to it, which keeps glob characters in the checkout path, such as the parentheses in `repo (copy)`, out of the pattern. A guide outside the docs root gets an absolute glob. As a `../` glob next to an in-root glob, it would lose the shard preset's `!**/index.md`, because globby rebases a `**/` negation onto `../` only when every pattern starts with the same `../`. Under a symlinked docs root, markdownlint-cli2 runs in the link target, where `../` names another directory. Glob characters and quotes in the path are escaped. Use `guideScanDirs` for the directories themselves.
+
+A `shardsGlobs` entry that starts with `../` gets the escaped absolute path of the directory those segments name in their place, followed by `/**` when the entry is a directory. A negated entry gets `**` in front of the absolute path, because globby reads most absolute negations as relative to its cwd.
 
 `loadConfig` validates the file with `MdcpConfigSchema` and fills the top-level defaults, such as `outputDir`, `banner`, `sourceTags`, `scan`, `backup`, `refs` and `review`. A key inside an omitted optional object, such as `lint`, `lint.links`, `vale` or a guide's `compile`, is `undefined` after loading, and the code that reads it applies the documented default. Config essentials lists the output layout and its defaults under [Path layout](../client-cli/config-essentials.md#path-layout). The default banner text is in [Source tags and default banner](../features/source-tags-and-banner.md).
 

@@ -605,26 +605,34 @@ Of Vale's alerts, only error-level ones fail `mdcp prose` or `mdcp check`, so a 
 
 ### In-scope guide fileset
 
-MDCP knows the **full fileset** it manages. The guides in `compileOrder` resolve via `guides[].path` or `{docsRoot}/{name}/`, and `standaloneGuides` registers the [standalone guides](#standalone-guide). Shard markdownlint lints the guide directories. Vale prose lints the guide directories and the standalone guides, because a file that never compiles still reaches readers as written. Both linters skip markdown that the config does not name, such as legacy flat `.md` files or unregistered sibling folders under `--docs-root`.
+MDCP knows the **full fileset** it manages. The guides in `compileOrder` resolve via `guides[].path` or `{docsRoot}/{name}/`, and `standaloneGuides` registers the [standalone guides](#standalone-guide). Shard markdownlint lints the Markdown files in the guide directories. Vale prose lints the guide directories and the standalone guides, because a file that never compiles still reaches readers as written. Both linters skip markdown that the config does not name, such as legacy flat `.md` files or unregistered sibling folders under `--docs-root`.
 
 | Command                                        | Default scope                                     | Out of scope (skipped)                                  |
 | ---------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------- |
-| Shard markdownlint (`mdcp lint`, `mdcp check`) | `compileOrder` guide directories                  | Legacy flat docs, unrelated subdirs under `--docs-root` |
+| Shard markdownlint (`mdcp lint`, `mdcp check`) | Markdown in `compileOrder` guide directories      | Legacy flat docs, unrelated subdirs under `--docs-root` |
 | Vale prose (`mdcp prose`, `mdcp check`)        | Guide directories plus `standaloneGuides` files   | Same                                                    |
 | Compiled markdownlint                          | Compiled outputs listed in `compiledConfig` globs | Shard trees (covered by the shard pass)                 |
 
 Optional overrides replace the guide directories with the paths you list, so scope never reaches past what the config names:
 
-| Config field                    | Purpose                                                                                          |
-| ------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `lint.markdownlint.shardsGlobs` | Shard markdownlint paths relative to `--docs-root` (default: compileOrder guide dirs)            |
-| `vale.scanGlobs`                | Vale prose paths relative to `--docs-root` in place of the guide dirs; standalone guides stay in |
+| Config field                    | Purpose                                                                                               |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `lint.markdownlint.shardsGlobs` | Shard markdownlint paths relative to `--docs-root` (default: the Markdown in compileOrder guide dirs) |
+| `vale.scanGlobs`                | Vale prose paths relative to `--docs-root` in place of the guide dirs; standalone guides stay in      |
+
+Both markdownlint passes run with the docs root as their cwd. For each guide directory, mdcp passes the shard pass a glob for the `.md` and `.markdown` files in it, such as `features/**/*.{md,markdown}`, so an image or text file beside the shards stays out of the shard pass. For a guide under the docs root, the glob is relative to the docs root and leaves the checkout path out. A relative or absolute `--docs-root` then lints the same shards, even under a directory whose name has glob characters, such as `repo (copy)`. A guide outside the docs root gets an absolute glob. With it, the shard preset's exclusions still apply to the guide, and markdownlint-cli2 still finds the guide under a symlinked docs root. mdcp escapes the glob characters and quotes in each path it puts in a glob.
+
+A `lint.markdownlint.shardsGlobs` entry goes to markdownlint-cli2 as written, and markdownlint-cli2 resolves it against the docs root. The exceptions are `.`, which mdcp passes as `**`, and an entry that starts with `../`, negated or not, which mdcp makes absolute for the same reasons as a guide outside the docs root. Given `.` as its only path, markdownlint-cli2 would lint the Markdown files at the top of the docs root and nothing below them. It lints every file under any other directory entry, and an entry that starts with `!` or `#` excludes the files it matches. The compiled pass gets only `--config` from mdcp, and markdownlint-cli2 resolves the `globs` in `compiledConfig` against its cwd, the docs root.
 
 Vale lints each standalone guide once, even when it is inside a scanned directory or two `standaloneGuides` entries match it. The exception is a guide that a scanned directory also reaches through a symlinked subdirectory. Vale follows that link when it walks the directory, so it lints the file under both names.
 
 Vale does not expand globs, so each `vale.scanGlobs` entry must be a file or directory that exists. Given more than one path, Vale stops with a runtime error on a missing one, and the `mdcp check` hint then points at the config. When a missing path is the only one Vale gets, Vale reads it as literal text, so that run passes without linting any file.
 
-The `@bwilliamson/mdcp-presets` shard config supplies **rules and exclusions** (`!**/index.md`, `!guides.md`). **Scope always comes from the CLI** — not from preset globs.
+The shard config in `@bwilliamson/mdcp-presets` supplies **rules and exclusions** (`!**/index.md`, `!guides.md`, `!_build/**`). **Scope always comes from the CLI**, not from preset globs. `!guides.md` and `!_build/**` keep the compiled outputs out of the shard pass when a guide at `.` or a `.` entry in `shardsGlobs` reaches the whole docs root. Any other compiled output, such as one under another `outputDir`, needs its own exclusion in a copy of the preset.
+
+The `@bwilliamson/mdcp-presets` compiled config lists `_build/guides.md` and `guides.md`: a monolith named `guides.md` under the default `outputDir` or under `outputDir: "."`. A glob that matches no file is skipped without an error. With no monolith, or a monolith with another name or path, the compiled pass lints 0 files and passes, so copy the preset and point its `globs` at your compiled outputs. The preset also lints a `guides.md` that an earlier `outputDir: "."` layout left at the docs root. Compile doesn't update that file under the default `outputDir`, so delete it when you move to `_build`.
+
+The compiled config keeps every rule setting of the shard config and also turns on `MD052` and `MD053`, which check reference links and their definitions across the monolith. A rule the shard pass turns off stays off on the monolith, so a heading that two guides share doesn't fail `MD024` there. Link fragments (`MD051`) stay off in both, because the [built-in link validation](../../docs/features/link-validation.md) in `mdcp check` checks them when `lint.links` is enabled, as it is by default.
 
 `mdcp fix` is out of band: it runs `prettier --write .` and `markdownlint-cli2 --fix` from the docs root and is not part of mdcp's guide fileset gate. It reaches a standalone guide only when the file is under `--docs-root`.
 

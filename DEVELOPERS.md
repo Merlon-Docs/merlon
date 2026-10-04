@@ -592,7 +592,7 @@ Prefer host search then read one shard under `docs/`. Compiled guides under `doc
 
 ### Linting docs
 
-- **markdownlint** — shard preset + compiled preset (includes `DEVELOPERS.md` and published README paths)
+- **markdownlint**: the shard preset on the shards, then the repo's own compiled config, [`docs/compiled-lint.markdownlint-cli2.jsonc`](docs/compiled-lint.markdownlint-cli2.jsonc), on the monolith, `DEVELOPERS.md` and the published READMEs. That config turns off fewer rules than the compiled preset in `@bwilliamson/mdcp-presets`, which the examples use.
 - **Vale**: prose lint on the `vale.scanGlobs` directories in the config, which are `glossary/`, `features/`, `developer/`, `client-cli/`, `client-core/`, `repo-readme/` and `presentation-la-devops/`, plus every `standaloneGuides` file. `docs/.vale.ini` opts `CODE_OF_CONDUCT.md` out, because its text is the vendored Contributor Covenant. Vale is not an npm dependency, so install it on `PATH` as [Local setup](#requirements) describes.
 - **Vale `MDCP` / `MDCP-PandocId`**: peer prose rules for unlinked heading mentions and dated claims, plus this repo's local rule against Pandoc IDs. They are not `mdcp check` core steps; enable them with `--require-vale`
 - **link lint** — built-in validation runs on every `docs:check` with default `"error"` severity; publish guides set `compile.crossGuideLinks.ignoreGuides: ["features"]` so cross-guide links keep live `docs/features/` shard paths (publish-relative rebase only); see [Publish-only link policy](docs/features/link-validation.md#publish-only-link-policy)

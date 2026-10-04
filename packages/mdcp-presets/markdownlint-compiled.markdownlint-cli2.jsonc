@@ -1,8 +1,25 @@
 {
-  "globs": ["guides.md"],
+  // markdownlint-cli2 resolves these against its cwd, which mdcp lint and mdcp check set to
+  // --docs-root: a monolith named guides.md under the default outputDir (_build) or under
+  // outputDir ".". A glob that matches no file is skipped.
+  "globs": ["_build/guides.md", "guides.md"],
+  // The monolith joins the shards, so every rule matches the shard preset except MD052 and
+  // MD053, which check reference links and their definitions across the whole monolith.
   "config": {
+    "default": true,
+    "MD001": false,
+    "MD003": { "style": "atx" },
+    "MD004": false,
+    "MD007": { "indent": 2 },
     "MD012": false,
     "MD013": false,
+    "MD024": false,
+    "MD025": { "front_matter_title": "" },
+    "MD033": false,
+    "MD036": false,
+    "MD040": false,
+    "MD041": false,
+    "MD042": false,
     "MD051": false,
     "MD052": true,
     "MD053": true,

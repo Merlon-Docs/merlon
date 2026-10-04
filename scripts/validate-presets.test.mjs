@@ -24,4 +24,19 @@ describe('validate-presets', () => {
     assert.match(result.stdout, /OK vale\/package\/styles\/MDCP\/UnlinkedSeeSection\.yml/);
     assert.match(result.stdout, /OK vale\/package\/styles\/MDCP\/DatedClaim\.yml/);
   });
+
+  it('checks that the compiled preset keeps the shard rules and turns MD052 and MD053 on', () => {
+    // The monolith is the shards joined together, so a rule the shard preset turns off for
+    // shard content must stay off on the monolith too.
+    const result = spawnSync(process.execPath, ['scripts/validate-presets.mjs'], {
+      cwd: root,
+      encoding: 'utf8',
+    });
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(
+      result.stdout,
+      /OK compiled preset matches the shard rules, with MD052 and MD053 on/,
+    );
+  });
 });

@@ -58,10 +58,10 @@ CLI authoring rules: [Cross-links and refs — heading slugs](../client-cli/cros
 
 ## Validation
 
-| Export                  | Purpose                                                                            |
-| ----------------------- | ---------------------------------------------------------------------------------- |
-| `checkOrphansForGuides` | Detect unlinked or missing shard files                                             |
-| `lintLinks`             | Internal markdown link validation                                                  |
-| `reviewDocs`            | Sprawl signals behind `mdcp review` (`formatReviewReport` renders the text report) |
-| `computeCoverage`       | Markdown files no guide captures, behind the `check` coverage report               |
-| `probeDocumentPaths`    | Backtick-path resolution behind `lint.paths` (`ILLUSTRATIVE_MARKER` opts out)      |
+| Export                  | Purpose                                                                                   |
+| ----------------------- | ----------------------------------------------------------------------------------------- |
+| `checkOrphansForGuides` | Detect unlinked or missing shard files; a relative `dir` resolves against the process cwd |
+| `lintLinks`             | Internal markdown link validation                                                         |
+| `reviewDocs`            | Sprawl signals behind `mdcp review` (`formatReviewReport` renders the text report)        |
+| `computeCoverage`       | Markdown files no guide captures, behind the `check` coverage report                      |
+| `probeDocumentPaths`    | Backtick-path resolution behind `lint.paths` (`ILLUSTRATIVE_MARKER` opts out)             |

@@ -1,5 +1,5 @@
 import { readdirSync, existsSync } from 'node:fs';
-import { join, basename, relative, resolve } from 'node:path';
+import { join, basename, relative, resolve, sep } from 'node:path';
 import { sectionFiles } from '../compile/assemble.js';
 
 export interface OrphanIssue {
@@ -21,7 +21,9 @@ export function checkOrphansForGuides(guides: GuideDirEntry[]): OrphanIssue[] {
   const registered = new Set<string>();
 
   for (const guide of guides) {
-    const { name, dir, manifest, sectionsHeading, scopeRoot } = guide;
+    const { name, manifest, sectionsHeading, scopeRoot } = guide;
+    // sectionFiles returns absolute paths, so a relative dir would never prefix them.
+    const dir = resolve(guide.dir);
     if (!existsSync(dir)) {
       issues.push({
         type: 'missing_guide',
@@ -48,7 +50,9 @@ export function checkOrphansForGuides(guides: GuideDirEntry[]): OrphanIssue[] {
     }
 
     for (const f of files) {
-      const relKey = f.startsWith(dir) ? join(name, relative(dir, f)) : join(name, basename(f));
+      // The separator keeps a sibling such as guide-shared/x.md out of guide.
+      const inDir = f.startsWith(dir + sep);
+      const relKey = inDir ? join(name, relative(dir, f)) : join(name, basename(f));
       registered.add(relKey);
       if (!existsSync(f)) {
         issues.push({
@@ -61,7 +65,8 @@ export function checkOrphansForGuides(guides: GuideDirEntry[]): OrphanIssue[] {
   }
 
   for (const guide of guides) {
-    const { name, dir, manifest = 'index.md' } = guide;
+    const { name, manifest = 'index.md' } = guide;
+    const dir = resolve(guide.dir);
     if (!existsSync(dir)) continue;
 
     const skip = new Set([manifest, 'shards.md']);

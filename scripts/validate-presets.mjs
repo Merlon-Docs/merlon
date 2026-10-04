@@ -46,6 +46,23 @@ for (const file of files) {
   }
 }
 
+// The monolith joins the shards, so the compiled preset must keep every rule setting of the
+// shard preset. Only the reference-link rules differ: they are on for the whole monolith.
+const [shardRules, compiledRules] = files.map(
+  (file) => JSON.parse(stripJsoncComments(readFileSync(join(presetsDir, file), 'utf-8'))).config,
+);
+const crossFileRules = ['MD052', 'MD053'];
+for (const rule of new Set([...Object.keys(shardRules), ...Object.keys(compiledRules)])) {
+  const expected = crossFileRules.includes(rule) ? true : shardRules[rule];
+  if (JSON.stringify(compiledRules[rule]) !== JSON.stringify(expected)) {
+    console.error(
+      `Compiled preset sets ${rule} to ${JSON.stringify(compiledRules[rule])}, expected ${JSON.stringify(expected)}`,
+    );
+    process.exit(1);
+  }
+}
+console.log('OK compiled preset matches the shard rules, with MD052 and MD053 on');
+
 for (const file of valeFiles) {
   const path = join(presetsDir, file);
   try {

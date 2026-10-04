@@ -21,18 +21,22 @@ npm install -D @bwilliamson/mdcp-presets markdownlint-cli2 @bwilliamson/mdcp-cli
 | File                                            | Targets                                       | Intent                                                                                  |
 | ----------------------------------------------- | --------------------------------------------- | --------------------------------------------------------------------------------------- |
 | `markdownlint-shards.markdownlint-cli2.jsonc`   | Registered guide shard trees (scope from CLI) | Relaxed rules for shard authoring — each shard starts with `#`, duplicates are expected |
-| `markdownlint-compiled.markdownlint-cli2.jsonc` | `guides.md` only                              | Stricter link rules (`MD052`, `MD053`) on the compiled monolith                         |
+| `markdownlint-compiled.markdownlint-cli2.jsonc` | `_build/guides.md` and `guides.md`            | Shard rules plus reference-link rules (`MD052`, `MD053`) on the compiled monolith       |
 
 ### Shard preset highlights
 
 - ATX headings (`#`), 2-space list indent
 - `MD001`, `MD013` (line length), `MD024` (duplicate headings), `MD041` (first line H1) disabled — mdcp compile handles structure
 - `MD025` front-matter title disabled
+- Excludes the `index.md` manifests and the compiled outputs under the default `outputDir` (`_build/**`) or in a `guides.md` at the docs root, so a guide at `.` doesn't lint the compiled outputs. Exclude any other compiled output in a copy of the preset
 
 ### Compiled preset highlights
 
-- Validates fragment and reference link integrity on `guides.md`
-- Line-length and duplicate-heading rules stay relaxed (compile output differs from shard layout)
+- Checks reference links and their definitions (`MD052`, `MD053`) across the monolith. Link fragments (`MD051`) stay off, because the built-in link validation in `mdcp check` covers them when `lint.links` is enabled (the default)
+- Keeps every other rule as the shard preset sets it, so a rule the shard pass turns off, such as line length (`MD013`) or duplicate headings (`MD024`), stays off on the monolith
+- Targets a monolith named `guides.md`: `_build/guides.md` under the default `outputDir`, or `guides.md` with `outputDir: "."`. markdownlint-cli2 resolves the globs against its cwd, which `mdcp lint` and `mdcp check` set to `--docs-root`
+- Lints 0 files and passes when there is no monolith, or the monolith has another name or path, so copy the preset and point its `globs` at your compiled outputs
+- Lints a `guides.md` left at the docs root by an earlier `outputDir: "."` layout too, so delete that file when you move to `_build`
 
 ## Vale style (`MDCP`)
 
@@ -127,7 +131,7 @@ mdcp check --require-lint
 
 `mdcp lint` runs the shards config first, recompiles, then runs the compiled config.
 
-Shard lint scope comes from `compileOrder` guide directories (or `lint.markdownlint.shardsGlobs` in config) — the preset supplies rules and exclusions only, not file scope.
+Shard lint scope comes from the Markdown files in the `compileOrder` guide directories, or from `lint.markdownlint.shardsGlobs` in config. The preset supplies rules and exclusions only, not file scope.
 
 ## Package exports
 
