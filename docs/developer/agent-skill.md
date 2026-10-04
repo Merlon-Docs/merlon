@@ -12,6 +12,8 @@ pnpm skill:update
 
 (`pnpm skill:install` is the same task — an alias kept for older docs and habits.)
 
+Cloud agent sessions install the skill on their own. The Claude Code session-start hook (`.claude/hooks/session-start.sh`) and the Cursor environment (`.cursor/environment.json`) both run `pnpm skill:dev`, which installs this checkout's `skills/mdcp` for Claude Code and Cursor with telemetry off. An agent working here therefore loads the skill as it stands on the branch, not a published release.
+
 That runs `npx skills add .` and refreshes dogfood installs under `.agents/skills/`
 from the publishable packs in `skills/` (see `skills-lock.json`).
 
