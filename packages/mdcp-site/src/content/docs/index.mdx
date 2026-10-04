@@ -1,11 +1,11 @@
 ---
 title: MarkDown Context Protocol
-description: The MarkDown Context Protocol (MDCP) is an open protocol and agent skill that keeps a repository's documentation accurate as its code changes. Helper skills change the code, and MDCP fails the pull request when the docs stop matching.
+description: The MarkDown Context Protocol (MDCP) is an open protocol and agent skill that keeps a repository's documentation accurate as agents change the code. Tests check the code. MDCP checks the docs that describe it.
 template: splash
 editUrl: false
 hero:
   title: MarkDown Context Protocol (MDCP)
-  tagline: An open protocol for documentation that ages with the code it describes. Agents and people read the same Markdown, and a check in CI fails the pull request that lets the docs drift. Install it as the one skill every project starts with, under whatever helper skills you choose.
+  tagline: An open protocol that keeps a repository's docs accurate while agents change the code. Tests check the code. MDCP checks the docs that describe it.
   actions:
     - text: Get started
       link: ./guide/install-and-quick-start/
@@ -14,152 +14,132 @@ hero:
       link: ./concepts/protocol/mdcp-10-spec/
       icon: open-book
       variant: secondary
-    - text: View on GitHub
-      link: https://github.com/betsalel-williamson/mdcp
-      icon: external
-      variant: minimal
 ---
 
-import {
-  Card,
-  CardGrid,
-  FileTree,
-  LinkButton,
-  LinkCard,
-  Steps,
-} from '@astrojs/starlight/components';
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
 
-<dl class="mdcp-facts">
-  <div>
-    <dt>1.0 draft</dt>
-    <dd>Specification</dd>
-  </div>
-  <div>
-    <dt>1 skill</dt>
-    <dd>6 workflows</dd>
-  </div>
-  <div>
-    <dt>4</dt>
-    <dd>Guide tiers</dd>
-  </div>
-  <div>
-    <dt>GFM</dt>
-    <dd>Plain Markdown</dd>
-  </div>
-  <div>
-    <dt>MIT</dt>
-    <dd>Licensed</dd>
-  </div>
-</dl>
-
-Add the skill to any repository that runs an agent host with [Agent Skills](https://agentskills.io) support:
+<ul class="mdcp-status" aria-label="Project status">
+  <li>
+    <strong>Specification</strong> 1.0 draft
+  </li>
+  <li>
+    <strong>License</strong> MIT
+  </li>
+  <li>
+    <strong>Runs in</strong> any host that supports Agent Skills
+  </li>
+  <li>
+    <strong>This site</strong> compiled and checked with MDCP
+  </li>
+</ul>
 
 ```bash
 npx skills add betsalel-williamson/mdcp --skill mdcp
 ```
 
-## The foundation under your helper skills
+## The guardrail under your helper skills
 
-Coding agents now pull in skills the way projects pull in libraries. One skill runs brainstorming and planning, another enforces test-driven development, and others handle debugging, code review or frontend design. Each helper makes the agent better at a task, and each one is finished when that task merges.
+Agents pick up helper skills for each task, such as planning, test-driven development or code review. Those skills change the code. MDCP is the skill that fails the change when the docs no longer match it, so it belongs in every repository whichever helpers you add.
 
-The project keeps going after the merge. The README, the user guide and the design records still have to describe the code as it is now, and no helper skill does that work. Their plans and specs describe a change while it is in flight, then sit unchanged as the code moves on.
+<div class="mdcp-demo">
+  <ol class="mdcp-demo__story">
+    <li>A helper skill refactors a module and renames a test file. Its tests pass.</li>
+    <li>A docs shard still links to the old file name.</li>
+    <li>
+      <code>mdcp check</code> fails the same pull request and names the broken link.
+    </li>
+  </ol>
+  <div class="mdcp-demo__output">
 
-MDCP does. It is the guardrail beneath the helpers: whichever skill wrote the change, `mdcp check` runs on the same pull request and fails it when the docs no longer match. Pick helper skills for how your team likes to work. Install MDCP once, and the docs keep matching the code whichever ones you pick.
+```text
+$ mdcp check
+link: docs/_build/features.md:2119: missing file
+  "../../../packages/mdcp-core/test/shard-cache.test.ts"
 
-<div
-  class="mdcp-stack"
-  aria-label="Skill stack: helper skills on top, MDCP beneath them, the repository and CI at the base"
->
-  <div class="mdcp-stack__layer mdcp-stack__layer--helpers">
-    <span class="mdcp-stack__label">Helper skills</span>
-    <span class="mdcp-stack__chips">
-      <span>Planning</span>
-      <span>Test-driven development</span>
-      <span>Debugging</span>
-      <span>Code review</span>
-      <span>Frontend design</span>
-      <span>Your own</span>
-    </span>
-    <span class="mdcp-stack__note">Swap in and out per task</span>
-  </div>
-  <div class="mdcp-stack__layer mdcp-stack__layer--mdcp">
-    <span class="mdcp-stack__label">MDCP</span>
-    <span class="mdcp-stack__chips">
-      <span>Shards</span>
-      <span>Compiled READMEs</span>
-      <span>Check in CI</span>
-    </span>
-    <span class="mdcp-stack__note">Installed once, runs on every pull request</span>
-  </div>
-  <div class="mdcp-stack__layer mdcp-stack__layer--repo">
-    <span class="mdcp-stack__label">Your repository</span>
-    <span class="mdcp-stack__note">Code, docs and CI in one version history</span>
+mdcp check failed:
+  - built-in links: 1 issue(s)
+    → missing file: create the target file or fix
+      the relative path in the shard.
+```
+
   </div>
 </div>
 
-|                  | Helper skills                        | MDCP                                     |
-| ---------------- | ------------------------------------ | ---------------------------------------- |
-| Scope            | One task at a time                   | Every doc the repository publishes       |
-| What it produces | Plans, code and working notes        | Shards compiled into the READMEs         |
-| Lifetime         | Until the change merges              | As long as the project lives             |
-| How it holds     | Instructions the agent should follow | A check that fails the build when broken |
+The output above comes from running the check on this repository after renaming that file. The pull request can't go green until someone fixes the shard, and the `mdcp` skill tells the agent to update the shard in the same change.
 
-## What makes it a protocol
+## What MDCP is
+
+Docs live in a `docs/` folder as small Markdown files called shards, one topic per file, grouped into guides by who reads them.
+
+```text
+docs/
+├── mdcp.config.json
+├── features/    what the product does and why
+├── client/      install and usage for the people who use it
+├── developer/   setup and workflow for contributors
+└── glossary/    one term per file
+```
+
+From there the protocol does two things. **Compile** stitches each guide's shards into the README or guide that readers open on GitHub and npm. **Check** runs in CI and fails when a link points at a missing file or heading, or when a compiled file no longer matches its shards. The [quick start](./guide/install-and-quick-start/) has the commands.
 
 <CardGrid>
-  <Card title="Open" icon="open-book">
-    MIT licensed. The specification and the reference CLI live in one public repository, and the
-    protocol version is tracked apart from package releases.
-  </Card>
   <Card title="Plain Markdown" icon="document">
-    Shards are GitHub Flavored Markdown with no custom syntax. Any editor opens them, and if you
-    stop using MDCP you keep ordinary docs.
+    Shards are GitHub Flavored Markdown with no custom syntax. If you stop using MDCP, you keep
+    ordinary docs.
   </Card>
   <Card title="Enforced in CI" icon="approve-check">
-    `mdcp check` turns the protocol's rules into a build step. The check runs on the pull request
-    itself, whoever reviews it.
+    Rules are checks that fail the build, so they apply on the pull request itself, whoever reviews
+    it.
   </Card>
-  <Card title="For agents and people" icon="puzzle">
+  <Card title="Small reads for agents" icon="puzzle">
     An agent opens the one shard its task needs, while a person reads the compiled README built from
-    that same shard.
+    it.
+  </Card>
+  <Card title="Open" icon="open-book">
+    MIT licensed. The specification and the reference CLI are developed in one public repository.
   </Card>
 </CardGrid>
 
-## How it works
+## Governance and evidence
 
-<Steps>
+MDCP is young, so this page doesn't claim adopters. You can verify these today:
 
-1. **Shard.** Each topic is a small Markdown file in a guide directory under `docs/`. A manifest sets the reading order, and the default layout splits guides by audience.
+- **A versioned specification.** [MDCP 1.0](./concepts/protocol/mdcp-10-spec/) is a draft written with RFC 2119 keywords. The protocol version moves separately from package releases.
+- **Public decisions.** Design choices are recorded as [architecture decision records](./concepts/adr/), including the ideas that were turned down.
+- **An evidence policy.** Public copy follows a [claims policy](./concepts/protocol/benefit-claims-and-evidence/) that bans unmeasured outcomes, and [research records](./concepts/protocol/research/about-research-records/) keep what was measured.
+- **Built with itself.** This site and the repository's READMEs compile from MDCP shards, and `mdcp check` runs in this repository's CI.
 
-   ```text
-   docs/
-   ├── mdcp.config.json
-   ├── features/    product capabilities and design records
-   ├── client/      install and usage for consumers
-   ├── developer/   setup, workflow and releases for contributors
-   └── glossary/    one term per shard
-   ```
+## Questions
 
-2. **Compile.** `mdcp compile` stitches the shards into the files readers open on GitHub and npm, rewriting cross-links so they resolve in the published location. Compiled files are output, and you edit the shard instead.
+<details>
+  <summary>Does MDCP replace my other skills?</summary>
 
-   ```bash
-   mdcp compile --config docs/mdcp.config.json --docs-root docs
-   ```
+No. Helper skills plan, write and review code. MDCP keeps the docs about that code accurate. Install both.
 
-3. **Check.** `mdcp check` runs in CI. It fails when a link points at a heading that no longer exists, when a compiled file is stale, or when a peer linter you turned on reports a problem.
+</details>
 
-   ```text
-   link: packages/mdcp-cli/README.md:115: dead anchor … (compiled guide "client-cli")
+<details>
+  <summary>Do I need the agent skill to use it?</summary>
 
-   mdcp check failed:
-     - built-in links: 1 issue(s) (see `link:` lines above)
-   ```
+No. The `mdcp` CLI compiles and checks docs on its own, in CI or locally. The skill adds the instructions an agent follows to update shards as it works.
 
-4. **Keep going.** The `mdcp` skill tells the agent when to update a shard and how. It picks a workflow from the request: bootstrap, docs-only, design, feature, UX or doc review.
+</details>
 
-</Steps>
+<details>
+  <summary>Which agents does it work with?</summary>
 
-## New to MDCP? Start here
+Any host that supports [Agent Skills](https://agentskills.io), including Claude Code, Cursor and GitHub Copilot.
+
+</details>
+
+<details>
+  <summary>Is MDCP an MCP server?</summary>
+
+No. The Model Context Protocol connects agents to live tools and data. MDCP works on files in your repository and runs in CI. See [scope and positioning](./concepts/protocol/01-scope-and-positioning/).
+
+</details>
+
+## Start here
 
 <CardGrid>
   <LinkCard
@@ -168,55 +148,14 @@ MDCP does. It is the guardrail beneath the helpers: whichever skill wrote the ch
     description="Add the CLI to a repository and run your first compile."
   />
   <LinkCard
-    title="How MDCP fits together"
-    href="./concepts/overview/"
-    description="The mental model behind shards and the compile pipeline."
-  />
-  <LinkCard
     title="Why MDCP for coding agents"
     href="./guide/why-mdcp-for-agents/"
     description="How docs fail when agents edit a repository, and the command that catches each failure."
   />
   <LinkCard
-    title="Glossary"
-    href="./glossary/"
-    description="Shards, guides, manifests and the other terms the protocol uses."
-  />
-</CardGrid>
-
-## The specification
-
-MDCP 1.0 is a draft. The reference CLI and library lead, and the prose is reconciled against `@bwilliamson/mdcp-core` before the specification is called final. It uses RFC 2119 keywords and defines the default guide layout, the skill workflows and how agents receive context. Wire transport is out of scope.
-
-<div class="mdcp-actions">
-  <LinkButton href="./concepts/protocol/mdcp-10-spec/" icon="right-arrow">
-    Read the specification
-  </LinkButton>
-  <LinkButton href="./concepts/protocol/format-specification/" variant="secondary">
-    Format specification
-  </LinkButton>
-  <LinkButton href="./concepts/protocol/01-scope-and-positioning/" variant="minimal">
-    Scope and positioning
-  </LinkButton>
-</div>
-
-## Find your way in
-
-<CardGrid>
-  <LinkCard
-    title="Use it in a repository"
-    href="./guide/about/"
-    description="The user guide for the mdcp CLI: config, commands and CI."
-  />
-  <LinkCard
-    title="Build on it"
-    href="./api/about/"
-    description="Compile and validate docs from your own code with the core library."
-  />
-  <LinkCard
-    title="Read the design"
-    href="./concepts/protocol/00-vision-and-roadmap/"
-    description="Vision, decision records and the evidence behind the protocol's claims."
+    title="Read the specification"
+    href="./concepts/protocol/mdcp-10-spec/"
+    description="The MDCP 1.0 draft: guide layout, skill workflows and agent context."
   />
   <LinkCard
     title="Contribute"
