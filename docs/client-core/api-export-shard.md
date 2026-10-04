@@ -1,8 +1,4 @@
-# API — Export, shard, and peers
-
-## Export
-
-There is no token-strip LLM export API. Prefer the Agent Skill and one-shard reads.
+# API — Shard and peers
 
 ## Shard (split)
 

@@ -45,7 +45,7 @@ CLI config path rules remain in [Config essentials](./config-essentials.md).
 1. Add `mdcp.config.json` to your docs shard directory
 2. Add repo-root npm scripts, for example `mdcp compile --config docs/mdcp.config.json --docs-root docs` (see [Config essentials](./config-essentials.md#--config-vs---docs-root))
 3. Add `mdcp check --require-lint` (and `--require-vale` when Vale is configured)
-4. Discover shards with host search; validate cross-link slugs with `mdcp check` (optional `mdcp refs-list`; prefer GitHub auto-slugs over `{#heading-ids}`)
+4. Discover shards with host search; validate cross-link slugs with `mdcp check` (optional `mdcp refs-list`; prefer GitHub auto-slugs over explicit heading ids)
 5. Update CI to build and invoke `@bwilliamson/mdcp-cli`
 
 Upgrade notes from earlier MDCP releases are in package **CHANGELOGs** (and GitHub Releases), not in the feature catalog.

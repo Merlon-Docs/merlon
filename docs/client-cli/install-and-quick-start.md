@@ -62,9 +62,4 @@ mdcp check --config docs/mdcp.config.json --docs-root docs
 
 `--config` is resolved from where you run the command; `--docs-root` sets the docs root. Details: [Config essentials](./config-essentials.md#--config-vs---docs-root).
 
-Global options (apply to every command):
-
-| Option                | Default            | Purpose                                                                          |
-| --------------------- | ------------------ | -------------------------------------------------------------------------------- |
-| `-c, --config <path>` | `mdcp.config.json` | Config file path, resolved from the **invocation directory** (not `--docs-root`) |
-| `--docs-root <path>`  | current directory  | Docs root — one subdirectory per guide shard tree                                |
+Every command also takes the [global options](./commands-reference.md#global-options).

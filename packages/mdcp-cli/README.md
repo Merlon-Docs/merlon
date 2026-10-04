@@ -88,12 +88,7 @@ mdcp check --config docs/mdcp.config.json --docs-root docs
 
 `--config` is resolved from where you run the command; `--docs-root` sets the docs root. Details: [Config essentials](#--config-vs---docs-root).
 
-Global options (apply to every command):
-
-| Option                | Default            | Purpose                                                                          |
-| --------------------- | ------------------ | -------------------------------------------------------------------------------- |
-| `-c, --config <path>` | `mdcp.config.json` | Config file path, resolved from the **invocation directory** (not `--docs-root`) |
-| `--docs-root <path>`  | current directory  | Docs root — one subdirectory per guide shard tree                                |
+Every command also takes the [global options](#global-options).
 
 <!-- mdcp-shard: end ../../docs/client-cli/install-and-quick-start.md -->
 
@@ -262,6 +257,14 @@ Built-in internal link validation is on by default. Broken links emit **`BROKEN 
 | `lint.links.enabled`       | `true`    | Run built-in link validation                          |
 | `lint.links.severity`      | `"error"` | `"warn"` exits 0; use `--warn-broken-links` on CLI    |
 | `lint.links.config`        | —         | Peer `markdown-link-check` config only                |
+| `lint.codeExtensions`      | `[]`      | Extra code extensions; links to them must resolve     |
+| `lint.dataExtensions`      | `[]`      | Extra data extensions, checked for existence only     |
+| `lint.paths.severity`      | `"off"`   | Resolve backtick paths in prose (`warn` or `error`)   |
+| `lint.paths.searchRoots`   | `[]`      | Extra roots tried after the scan root                 |
+| `lint.paths.generated`     | `[]`      | Prefixes absent in a clean checkout (build, caches)   |
+| `lint.paths.vocabulary`    | `[]`      | Exact paths documented but not present here           |
+
+Path resolution, its opt-out marker, and these keys in depth: [Path resolution in prose](../../docs/features/path-resolution.md).
 
 ---
 
@@ -399,7 +402,7 @@ CLI config path rules remain in [Config essentials](#config-essentials).
 1. Add `mdcp.config.json` to your docs shard directory
 2. Add repo-root npm scripts, for example `mdcp compile --config docs/mdcp.config.json --docs-root docs` (see [Config essentials](#--config-vs---docs-root))
 3. Add `mdcp check --require-lint` (and `--require-vale` when Vale is configured)
-4. Discover shards with host search; validate cross-link slugs with `mdcp check` (optional `mdcp refs-list`; prefer GitHub auto-slugs over ``)
+4. Discover shards with host search; validate cross-link slugs with `mdcp check` (optional `mdcp refs-list`; prefer GitHub auto-slugs over explicit heading ids)
 5. Update CI to build and invoke `@bwilliamson/mdcp-cli`
 
 Upgrade notes from earlier MDCP releases are in package **CHANGELOGs** (and GitHub Releases), not in the feature catalog.
@@ -428,6 +431,9 @@ Every command accepts:
 | `-c, --config <path>` | `mdcp.config.json` | Config file path, resolved from the **invocation directory** (not `--docs-root`) |
 | `--docs-root <path>`  | current directory  | Docs root — one subdirectory per guide shard tree                                |
 | `--warn-broken-links` | off                | Report broken internal links but exit 0 (overrides `lint.links.severity`)        |
+| `--backup`            | off                | Move existing output files to the cache before overwriting them                  |
+| `--backup-dir <path>` | from config        | Backup directory, relative to `outputDir`                                        |
+| `--backup-ext <ext>`  | from config        | Suffix for backup file names                                                     |
 
 **Repo-root npm scripts** typically use both flags:
 
@@ -440,10 +446,10 @@ mdcp compile --config docs/mdcp.config.json --docs-root docs
 ### Daily workflow
 
 ```bash
-# Regenerate the monolith from shards (link order from each guide's index.md / shards.md)
+# Compile every guide from its shards (link order from each guide's index.md / shards.md)
 mdcp compile
 
-# Full validation gate (orphans → compile → refs → links; optional peer linters)
+# Full validation gate (orphans → compile → refs → links → peer linters → paths → coverage)
 mdcp check
 ```
 
@@ -498,25 +504,13 @@ Without `--strict`, `mdcp review` exits 0. Thresholds live under `review` in con
 
 ### Refs subcommands
 
-| Command           | Purpose                                                                    |
-| ----------------- | -------------------------------------------------------------------------- |
-| `mdcp refs gen`   | Generate `refs.json` from compiled output                                  |
-| `mdcp refs check` | Verify `refs.json` matches compiled output                                 |
-| `mdcp refs-list`  | List heading slugs from `refs.json` (run `mdcp check` or `refs gen` first) |
+| Command           | Purpose                                                                                                |
+| ----------------- | ------------------------------------------------------------------------------------------------------ |
+| `mdcp refs-gen`   | Generate `refs.json` from compiled output                                                              |
+| `mdcp refs-check` | Verify `refs.json` matches compiled output                                                             |
+| `mdcp refs-list`  | List heading slugs from `refs.json` (`--format json` or `table`; run `mdcp check` or `refs-gen` first) |
 
 Discover shards with host search (`rg`, IDE search). Validate fragment links with `mdcp check`; use `mdcp refs-list` when you need to inspect registry slugs.
-
-### Agent context
-
-```bash
-# Full structural gate (includes refs + link validation)
-mdcp check
-
-# Optional: inspect registry headings after compile or check
-mdcp refs list
-```
-
-Discover shards with host search, then read **one** file. Prefer that over pasting a full compiled monolith.
 
 <!-- mdcp-shard: end ../../docs/client-cli/commands-reference.md -->
 
@@ -619,7 +613,7 @@ mdcp refs-list
 
 1. Prefer unique subheadings (duplicate titles get `-1`, `-2` slug suffixes).
 2. Validate with `mdcp check` — do not guess anchors from shard-only titles.
-3. Prefer GitHub auto-slugs over explicit `` overrides.
+3. Prefer GitHub auto-slugs over explicit heading-id overrides.
 
 Slug algorithm, examples, and programmatic APIs: [Core — heading slugs](../mdcp-core/README.md#heading-slugs-github-slugger).
 

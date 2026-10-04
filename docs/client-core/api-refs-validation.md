@@ -38,7 +38,7 @@ Prefer outputDir-relative values in config (for example `".caches/refs.json"` wh
 ```typescript
 import { githubSlugify, headingTextToPlain } from '@bwilliamson/mdcp-core';
 
-headingTextToPlain('**Authored GFM** `{#gfm}`');
+headingTextToPlain('**Authored** `GFM`');
 // → 'Authored GFM'
 
 githubSlugify('Preprocessor / templating (out of scope)');
@@ -63,3 +63,5 @@ CLI authoring rules: [Cross-links and refs — heading slugs](../client-cli/cros
 | `checkOrphansForGuides` | Detect unlinked or missing shard files                                             |
 | `lintLinks`             | Internal markdown link validation                                                  |
 | `reviewDocs`            | Sprawl signals behind `mdcp review` (`formatReviewReport` renders the text report) |
+| `computeCoverage`       | Markdown files no guide captures, behind the `check` coverage report               |
+| `probeDocumentPaths`    | Backtick-path resolution behind `lint.paths` (`ILLUSTRATIVE_MARKER` opts out)      |

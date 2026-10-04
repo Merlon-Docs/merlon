@@ -16,6 +16,6 @@ mdcp refs-list
 
 1. Prefer unique subheadings (duplicate titles get `-1`, `-2` slug suffixes).
 2. Validate with `mdcp check` — do not guess anchors from shard-only titles.
-3. Prefer GitHub auto-slugs over explicit `{#id}` overrides.
+3. Prefer GitHub auto-slugs over explicit heading-id overrides.
 
 Slug algorithm, examples, and programmatic APIs: [Core — heading slugs](../client-core/api-refs-validation.md#heading-slugs-github-slugger).

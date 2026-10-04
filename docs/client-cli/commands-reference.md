@@ -9,6 +9,9 @@ Every command accepts:
 | `-c, --config <path>` | `mdcp.config.json` | Config file path, resolved from the **invocation directory** (not `--docs-root`) |
 | `--docs-root <path>`  | current directory  | Docs root — one subdirectory per guide shard tree                                |
 | `--warn-broken-links` | off                | Report broken internal links but exit 0 (overrides `lint.links.severity`)        |
+| `--backup`            | off                | Move existing output files to the cache before overwriting them                  |
+| `--backup-dir <path>` | from config        | Backup directory, relative to `outputDir`                                        |
+| `--backup-ext <ext>`  | from config        | Suffix for backup file names                                                     |
 
 **Repo-root npm scripts** typically use both flags:
 
@@ -21,10 +24,10 @@ mdcp compile --config docs/mdcp.config.json --docs-root docs
 ## Daily workflow
 
 ```bash
-# Regenerate the monolith from shards (link order from each guide's index.md / shards.md)
+# Compile every guide from its shards (link order from each guide's index.md / shards.md)
 mdcp compile
 
-# Full validation gate (orphans → compile → refs → links; optional peer linters)
+# Full validation gate (orphans → compile → refs → links → peer linters → paths → coverage)
 mdcp check
 ```
 
@@ -79,22 +82,10 @@ Without `--strict`, `mdcp review` exits 0. Thresholds live under `review` in con
 
 ## Refs subcommands
 
-| Command           | Purpose                                                                    |
-| ----------------- | -------------------------------------------------------------------------- |
-| `mdcp refs gen`   | Generate `refs.json` from compiled output                                  |
-| `mdcp refs check` | Verify `refs.json` matches compiled output                                 |
-| `mdcp refs-list`  | List heading slugs from `refs.json` (run `mdcp check` or `refs gen` first) |
+| Command           | Purpose                                                                                                |
+| ----------------- | ------------------------------------------------------------------------------------------------------ |
+| `mdcp refs-gen`   | Generate `refs.json` from compiled output                                                              |
+| `mdcp refs-check` | Verify `refs.json` matches compiled output                                                             |
+| `mdcp refs-list`  | List heading slugs from `refs.json` (`--format json` or `table`; run `mdcp check` or `refs-gen` first) |
 
 Discover shards with host search (`rg`, IDE search). Validate fragment links with `mdcp check`; use `mdcp refs-list` when you need to inspect registry slugs.
-
-## Agent context
-
-```bash
-# Full structural gate (includes refs + link validation)
-mdcp check
-
-# Optional: inspect registry headings after compile or check
-mdcp refs list
-```
-
-Discover shards with host search, then read **one** file. Prefer that over pasting a full compiled monolith.

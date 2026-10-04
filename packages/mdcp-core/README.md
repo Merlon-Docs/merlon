@@ -245,7 +245,7 @@ Prefer outputDir-relative values in config (for example `".caches/refs.json"` wh
 ```typescript
 import { githubSlugify, headingTextToPlain } from '@bwilliamson/mdcp-core';
 
-headingTextToPlain('**Authored GFM** ``');
+headingTextToPlain('**Authored** `GFM`');
 // → 'Authored GFM'
 
 githubSlugify('Preprocessor / templating (out of scope)');
@@ -270,16 +270,14 @@ CLI authoring rules: [Cross-links and refs — heading slugs](../mdcp-cli/README
 | `checkOrphansForGuides` | Detect unlinked or missing shard files                                             |
 | `lintLinks`             | Internal markdown link validation                                                  |
 | `reviewDocs`            | Sprawl signals behind `mdcp review` (`formatReviewReport` renders the text report) |
+| `computeCoverage`       | Markdown files no guide captures, behind the `check` coverage report               |
+| `probeDocumentPaths`    | Backtick-path resolution behind `lint.paths` (`ILLUSTRATIVE_MARKER` opts out)      |
 
 <!-- mdcp-shard: end ../../docs/client-core/api-refs-validation.md -->
 
 <!-- mdcp-shard: start ../../docs/client-core/api-export-shard.md -->
 
-## API — Export, shard, and peers
-
-### Export
-
-There is no token-strip LLM export API. Prefer the Agent Skill and one-shard reads.
+## API — Shard and peers
 
 ### Shard (split)
 

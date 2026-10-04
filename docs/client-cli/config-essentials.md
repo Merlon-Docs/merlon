@@ -114,6 +114,14 @@ Built-in internal link validation is on by default. Broken links emit **`BROKEN 
 | `lint.links.enabled`       | `true`    | Run built-in link validation                          |
 | `lint.links.severity`      | `"error"` | `"warn"` exits 0; use `--warn-broken-links` on CLI    |
 | `lint.links.config`        | —         | Peer `markdown-link-check` config only                |
+| `lint.codeExtensions`      | `[]`      | Extra code extensions; links to them must resolve     |
+| `lint.dataExtensions`      | `[]`      | Extra data extensions, checked for existence only     |
+| `lint.paths.severity`      | `"off"`   | Resolve backtick paths in prose (`warn` or `error`)   |
+| `lint.paths.searchRoots`   | `[]`      | Extra roots tried after the scan root                 |
+| `lint.paths.generated`     | `[]`      | Prefixes absent in a clean checkout (build, caches)   |
+| `lint.paths.vocabulary`    | `[]`      | Exact paths documented but not present here           |
+
+Path resolution, its opt-out marker, and these keys in depth: [Path resolution in prose](../features/path-resolution.md).
 
 ---
 
