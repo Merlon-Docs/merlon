@@ -5,7 +5,7 @@ MDCP shards as a technical-writer pass — durable guide content without changin
 functional product code.
 
 Workflow file: [`skills/mdcp/references/workflows/doc-only.md`](../../../../skills/mdcp/references/workflows/doc-only.md).
-Shared workflow contract (intake, guide placement, glossary): [Skill workflows](../skill-workflows.md).
+[Skill workflows](../skill-workflows.md) covers the shared workflow contract: intake, atomic commit groups, guide placement, and the glossary.
 
 ## End-user value
 
@@ -15,12 +15,9 @@ durable docs so search stays trustworthy.
 
 ## What this workflow is for
 
-See [Atomic commit groups](../../../glossary/atomic-commit-groups.md) for the plan-field contract.
-
 | Obligation             | As-built expectation                                                                                    |
 | ---------------------- | ------------------------------------------------------------------------------------------------------- |
 | Work-item intake       | Resolve `WORK_ITEM` and `WORK_ITEM_LOOKUP` from the request; ask only for what is missing               |
-| Atomic commit groups   | Include numbered Atomic commit groups in the plan before “go”; one commit per group after approval      |
 | Docs-only branch       | One documentation scope per branch; revise `docs/features/`, `docs/client/`, and/or `docs/developer/`   |
 | Contracts not samples  | Put intent, contracts, and acceptance in shards — not implementation dumps or product source paths      |
 | Glossary hygiene       | Follow the shared glossary obligation; define non-universal jargon per the inclusion bar                |

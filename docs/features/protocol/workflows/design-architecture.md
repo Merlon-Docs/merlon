@@ -5,7 +5,7 @@ architecture and design decisions as **MDCP shards** so agents and humans can
 load one concern at a time instead of growing one large architecture document.
 
 Workflow file: [`skills/mdcp/references/workflows/design-architecture.md`](../../../../skills/mdcp/references/workflows/design-architecture.md).
-Shared workflow contract (intake, guide placement, glossary): [Skill workflows](../skill-workflows.md).
+[Skill workflows](../skill-workflows.md) covers the shared workflow contract: intake, atomic commit groups, guide placement, and the glossary.
 
 ## End-user value
 
@@ -15,13 +15,11 @@ instead of living only in chat or a thousand-line wiki page.
 
 ## What this workflow is for
 
-See [Atomic commit groups](../../../glossary/atomic-commit-groups.md) for the plan-field contract.
-
 | Obligation                  | As-built expectation                                                                                    |
 | --------------------------- | ------------------------------------------------------------------------------------------------------- |
 | Work-item intake            | Resolve `WORK_ITEM` and `WORK_ITEM_LOOKUP` from the request; ask only for what is missing               |
+| One design scope            | Create a branch for one `WORK_ITEM` before drafting design shards; do not mix unrelated designs         |
 | Capture architecture intent | Draft system diagrams, API/data contracts, and boundaries as shards under `docs/features/`              |
-| Atomic commit groups        | Include numbered Atomic commit groups in the plan before “go”; one commit per group after approval      |
 | Land durable decisions      | Record accepted choices as ADRs under `docs/features/adr/` when the repo uses that layout               |
 | Keep docs sharded           | Prefer **one primary concern per shard**; update feature/ADR `index.md` so new shards are discoverable  |
 | Brownfield hygiene          | Split or retire legacy architecture docs; remove superseded planning from durable design shards         |
@@ -58,6 +56,7 @@ A successful design-architecture session typically:
 4. Leaves `packages/` / product `src/` unchanged
 5. Avoids multi-function implementation dumps in durable shards
 6. When deep design critique is requested, advises pairing and still lands the agreed intent as shards
+7. Links `WORK_ITEM` in review
 
 Optional local with/without-skill grading for this workflow:
 [design-architecture workflow live evals](../../../../tests/skills/mdcp/evals/design-architecture/README.md)

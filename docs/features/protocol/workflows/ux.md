@@ -7,7 +7,7 @@ Interfaces and UI implementation are in scope when they serve those flows, not
 as the sole focus.
 
 Workflow file: [`skills/mdcp/references/workflows/ux.md`](../../../../skills/mdcp/references/workflows/ux.md).
-Shared workflow contract (intake, guide placement, glossary): [Skill workflows](../skill-workflows.md).
+[Skill workflows](../skill-workflows.md) covers the shared workflow contract: intake, atomic commit groups, guide placement, and the glossary.
 
 ## End-user value
 
@@ -17,12 +17,9 @@ product development stays anchored on what the end user must accomplish.
 
 ## What this workflow is for
 
-See [Atomic commit groups](../../../glossary/atomic-commit-groups.md) for the plan-field contract.
-
 | Obligation                  | As-built expectation                                                                                             |
 | --------------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | Work-item intake            | Resolve `WORK_ITEM` and `WORK_ITEM_LOOKUP` from the request; ask only for what is missing                        |
-| Atomic commit groups        | Include numbered Atomic commit groups in the plan before “go”; one commit per group after approval               |
 | One UX scope                | Branch from updated `main` for a single UX issue; do not mix unrelated UX work                                   |
 | User-centric value first    | State the end-user outcome and friction to remove before designing steps or UI                                   |
 | Map processes and workflows | Document the ideal journey under `docs/client/` — steps to accomplish X, decision points, failure/recovery paths |

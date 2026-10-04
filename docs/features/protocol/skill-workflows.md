@@ -27,11 +27,11 @@ Agents **MUST** load the issue (or equivalent) before editing shards or code. On
 
 ## Atomic commit groups (plan obligation)
 
-Coding and multi-concern plans **MUST** include an **[Atomic commit groups](../../glossary/atomic-commit-groups.md)** section before waiting for human review / “go”. Each group lists id/name, one concern, exact files, and an intended conventional commit subject. After approval, implement and `git commit` one group at a time — do not squash unrelated concerns.
+Coding and multi-concern plans **MUST** include an **[Atomic commit groups](../../glossary/atomic-commit-groups.md)** section before waiting for human review / “go”. Each numbered group lists id/name, one concern, exact files, and an intended conventional commit subject. After approval, work through the groups one at a time and `git commit` each one. Don't squash unrelated concerns into one commit.
 
 Why: reviewable diffs, one concern per commit, and it matches small batches (the skill's [QA Principles](../agent-skill.md#quality-assurance-qa-principles)).
 
-Day-to-day workflows that produce a plan (feature-level, doc-only, design-architecture, UX, doc-review) **MUST** require this section before “go” (doc-review plans its groups in Step 4). Bootstrap scaffold (getting-started steps 1–6) stays out of scope for commit grouping; when the optional first-feature tutorial runs, each phase follows the matching day-to-day workflow (including commit groups).
+Day-to-day workflows that produce a plan (feature-level, doc-only, design-architecture, UX, doc-review) **MUST** require this section before “go” (doc-review plans its groups in Step 4, the other four in Step 1). Bootstrap scaffold (getting-started steps 1 to 6) stays out of scope for commit grouping; when the optional first-feature tutorial runs, each phase follows the matching day-to-day workflow (including commit groups).
 
 ## Standard workflows
 
@@ -85,33 +85,6 @@ an optional afterthought for doc-only or UX alone.
   shorthand when the bar is unclear.
 
 Shared layout and term mechanics: [domain glossary](../../glossary/domain-glossary.md).
-
-## Feature-level workflow (normative summary)
-
-When the skill routes to the feature-level workflow
-(detail: [Feature-level workflow](./workflows/feature-level.md)):
-
-1. Complete intake (`WORK_ITEM`, `WORK_ITEM_LOOKUP`)
-2. Outline the plan with [Atomic commit groups](../../glossary/atomic-commit-groups.md) before “go”
-3. Branch from updated `main` for `WORK_ITEM`
-4. Load issue via `WORK_ITEM_LOOKUP`
-5. **Docs first** — update `features/` and `client/` shards; update each guide `index.md`
-6. **TDD** — implement against documented acceptance criteria (one commit group at a time after approval)
-7. **Validate** — `mdcp check` (and repo test commands)
-8. **Wrap-up** — changeset for breaking/removed behavior (do not link durable shards/ADRs to `.changeset/*.md`); docs describe current behavior only
-
-## Design-architecture workflow (normative summary)
-
-When the skill routes to the design-architecture workflow
-(detail: [Design-architecture workflow](./workflows/design-architecture.md)):
-
-1. Complete intake (`WORK_ITEM`, `WORK_ITEM_LOOKUP`)
-2. Outline the plan with [Atomic commit groups](../../glossary/atomic-commit-groups.md) before “go”
-3. Branch from updated `main` for `WORK_ITEM`
-4. Draft or split architecture intent under `docs/features/` (and ADRs under `docs/features/adr/` when appropriate); update indexes
-5. Retire superseded design text from durable shards; leave product code and client guides to other workflows
-6. **Validate** — `mdcp check` (and repo docs validation)
-7. **Wrap-up** — link `WORK_ITEM`; defer implementation / UX polish explicitly when the ask was oversized
 
 ## Entrypoint chain
 

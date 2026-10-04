@@ -5,7 +5,7 @@ documents shipped features using a **docs-first** then **TDD** loop so MDCP
 shards stay the contract before product code changes.
 
 Workflow file: [`skills/mdcp/references/workflows/feature-level.md`](../../../../skills/mdcp/references/workflows/feature-level.md).
-Shared workflow contract (intake, guide placement, glossary): [Skill workflows](../skill-workflows.md).
+[Skill workflows](../skill-workflows.md) covers the shared workflow contract: intake, atomic commit groups, guide placement, and the glossary.
 
 ## End-user value
 
@@ -15,12 +15,9 @@ of drifting in chat-only designs.
 
 ## What this workflow is for
 
-See [Atomic commit groups](../../../glossary/atomic-commit-groups.md) for the plan-field contract.
-
 | Obligation            | As-built expectation                                                                                        |
 | --------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Work-item intake      | Resolve `WORK_ITEM` and `WORK_ITEM_LOOKUP` from the request; ask only for what is missing                   |
-| Atomic commit groups  | Include numbered Atomic commit groups in the plan before “go”; one commit per group after approval          |
 | One focused branch    | Branch from updated `main` for a single issue; do not mix unrelated features                                |
 | Place by audience     | User-facing work → `docs/features/` + `docs/client/`; maintainer-only → `docs/developer/` only              |
 | Docs first            | Update guide shards and indexes before product code; put contracts in shards, not implementation dumps      |

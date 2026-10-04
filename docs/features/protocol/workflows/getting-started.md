@@ -8,7 +8,7 @@ design → feature → UX → doc-only so teams learn the full workflow circuit.
 Workflow file: [`skills/mdcp/references/workflows/getting-started.md`](../../../../skills/mdcp/references/workflows/getting-started.md)
 (tutorial script:
 [`skills/mdcp/references/workflows/first-feature-tutorial.md`](../../../../skills/mdcp/references/workflows/first-feature-tutorial.md)).
-Shared workflow contract (intake, guide placement, glossary): [Skill workflows](../skill-workflows.md).
+[Skill workflows](../skill-workflows.md) covers the shared workflow contract: intake, guide placement, and the glossary.
 
 ## End-user value
 
@@ -46,9 +46,10 @@ before handing off to normal delivery.
 - **Architecture-as-shards / ADR drafting alone** — use
   the [design-architecture workflow](./design-architecture.md).
 - **End-user / client journey design alone** — use the [ux workflow](./ux.md).
-- **Code TDD rituals, [Atomic commit groups](../../../glossary/atomic-commit-groups.md), or local engineering process during bootstrap scaffold** —
-  out of scope for scaffold; when the first-feature tutorial runs, each phase
-  follows the matching day-to-day workflow (including commit groups in plans).
+- **Engineering process during bootstrap scaffold**, such as code TDD rituals or
+  [atomic commit groups](../skill-workflows.md#atomic-commit-groups-plan-obligation).
+  Scaffold leaves these out. When the first-feature tutorial runs, each phase
+  follows the matching day-to-day workflow.
 - **Inventing the inclusion bar without the end user** — the bar is project
   judgment recorded with the people who own the docs, not a one-size-fits-all list.
 - **Auto-running all four workflows without user pauses** — phases require “go”
