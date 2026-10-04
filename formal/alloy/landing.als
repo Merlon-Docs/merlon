@@ -13,8 +13,10 @@ module landing
  * property that holds, `expect 1` for a counterexample or a reachable scenario.
  *
  * Modelled from the workflows. land-develop.yml runs the gate on the merge and
- * pushes it with GITHUB_TOKEN, which starts no workflow, and sync-develop.yml
- * pushes its merge the same way. ci.yml runs on a pull request when it opens
+ * pushes it with GITHUB_TOKEN, which starts no workflow. sync-develop.yml pushes
+ * its merge to land/sync-main and dispatches land-develop.yml on it, which is
+ * the SyncThroughGate guard; the sync step here includes that landing.
+ * ci.yml runs on a pull request when it opens
  * and when a person pushes its head, never when its base changes; the
  * CIOnRetarget guard adds that run. A check's latest run on a head commit is
  * the one a branch rule reads.
@@ -27,11 +29,13 @@ module landing
  * Bounded: every check covers traces of up to seven steps over six commits and
  * one pull request, which is enough for each counterexample below to appear.
  *
- * Assumed throughout: force-push is blocked, merges are clean (two commits
- * merge to one tree, so sync-develop never opens its conflict PR), and code
- * owner approval is given whenever it is needed. No branch or PR changes the
- * workflow that checks it, although a pushed branch runs its own copy of
- * land-develop.yml and a PR its own copy of ci.yml and release-source.yml.
+ * Assumed throughout: force-push to develop and main is blocked, while a
+ * pushed branch may move to any commit, as the sync's force-push of
+ * land/sync-main does. Merges are clean (two commits merge to one tree, so
+ * sync-develop never opens its conflict PR), and code owner approval is given
+ * whenever it is needed. No branch or PR changes the workflow that checks it,
+ * although a pushed branch runs its own copy of land-develop.yml and a PR its
+ * own copy of ci.yml and release-source.yml.
  */
 
 sig Tree {}
@@ -71,7 +75,7 @@ var sig Open in PR {}
 
 abstract sig Guard {}
 one sig
-  NoDirectPushToDevelop,    -- branch rule: people cannot push develop; the land and sync workflows still can
+  NoDirectPushToDevelop,    -- branch rule: people cannot push develop; the land workflow, which also lands the sync, still can
   UpToDatePRsToDevelop,     -- branch rule: a PR's head must contain develop's tip before it merges; workflow pushes exempt
   SyncThroughGate,          -- sync-develop starts the land gate on its merge instead of pushing it
   CIOnRetarget,             -- ci.yml also runs when a PR's base changes

@@ -34,9 +34,9 @@ The model checks three properties. Each one is true only while all of its guards
 
 GitHub's up-to-date rule asks only that a PR's head contain the base branch's latest commit. It does not ask which base CI last ran against, and CI does not run on the `edited` event that a base change sends. GitHub proposes `main` as the base of a new PR. If its author then moves it to `develop`, as the Release source check asks, it can merge on its run against `main`.
 
-The sync in `.github/workflows/sync-develop.yml` pushes its merge straight to `develop`, so this property fails whatever the branch settings are. When an untested merge breaks `develop`, every later landing fails its gate until someone fixes `develop`. A gated sync would have to dispatch the land workflow, because a push made with the workflow's own `GITHUB_TOKEN` does not start a workflow.
+The sync in `.github/workflows/sync-develop.yml` pushes a clean merge to the `land/sync-main` branch and dispatches the land workflow on it. A push made with the workflow's own `GITHUB_TOKEN` doesn't start a workflow, but a dispatch does. The land gate then tests the merge like any other landing, and `develop` moves only when the gate passes. Without that gate, an untested merge that broke `develop` would fail every later landing until someone fixed `develop`.
 
-The land and sync workflows push `develop` themselves, with that `GITHUB_TOKEN`. So both branch rules for `develop` have to exempt the identity those workflows push as. Otherwise they block landings along with everyone else.
+Only the land workflow pushes `develop`, with that `GITHUB_TOKEN`. So both branch rules for `develop` have to exempt the identity it pushes as. Otherwise they block landings along with everyone else. The sync force-pushes `land/sync-main` as the same identity, so a rule that blocks force-push has to leave that branch out.
 
 ### `main` only moves to a tested tree
 
@@ -63,7 +63,7 @@ The third guard is in place. `.github/workflows/release-source.yml` runs on the 
 
 With every guard on, the model also runs scenarios that show the checks above are not vacuous. A landing is followed by a release PR. The release commit syncs back to `develop`. A Dependabot PR merges into `develop` after a landing moves it, and a hotfix merged into `main` reaches `develop`.
 
-Every check covers traces of up to seven steps over six commits and one pull request. A passing check means no counterexample exists within that bound, which is large enough for each counterexample above to appear. The model assumes merges are clean and force-push is blocked. It also assumes a code owner approves whenever a rule requires it, and that no branch changes the workflow that checks it. A pushed branch runs its own copy of the land workflow, and a PR runs its own copy of CI and Release source. On a PR into `main`, code owner review of `.github/` is what catches such a change. A landing's copy of the land workflow runs before anyone reviews it.
+Every check covers traces of up to seven steps over six commits and one pull request. A passing check means no counterexample exists within that bound, which is large enough for each counterexample above to appear. The model assumes merges are clean and that force-push to `develop` and `main` is blocked. A pushed branch may move to any commit, as the sync's force-push of `land/sync-main` does. It also assumes a code owner approves whenever a rule requires it, and that no branch changes the workflow that checks it. A pushed branch runs its own copy of the land workflow, and a PR runs its own copy of CI and Release source. On a PR into `main`, code owner review of `.github/` is what catches such a change. A landing's copy of the land workflow runs before anyone reviews it.
 
 ## Adding a model
 

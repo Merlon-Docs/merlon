@@ -5,12 +5,17 @@ name: Land on develop
 # jobs, plus the Formal models job when formal/ changed), and pushed to develop
 # when it passes. No pull request is needed for develop; review and approval
 # happen once, on the release PR from develop to main.
+#
+# sync-develop.yml dispatches this workflow on land/sync-main, because its push
+# is made with GITHUB_TOKEN and starts no workflow. A dispatch on any branch
+# outside claude/** and land/** fails in the gate.
 
 on:
   push:
     branches:
       - 'claude/**'
       - 'land/**'
+  workflow_dispatch:
 
 concurrency:
   # One landing at a time, so develop only moves under a tested tree.
@@ -51,6 +56,14 @@ jobs:
           BRANCH: ${{ github.ref_name }}
         run: |
           set -euo pipefail
+          # A dispatch can name any ref; only the branches a push lands may land.
+          case "$GITHUB_REF" in
+            refs/heads/claude/* | refs/heads/land/*) ;;
+            *)
+              echo "::error::Only claude/** and land/** branches land on develop, not ${GITHUB_REF}."
+              exit 1
+              ;;
+          esac
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin develop
@@ -147,7 +160,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin develop
           if [ "$(git rev-parse origin/develop)" != "${DEVELOP_SHA}" ]; then
-            echo "::error::develop moved while ${BRANCH} was being tested. Push the branch again to re-run the gate."
+            echo "::error::develop moved while ${BRANCH} was being tested. Re-run all jobs of this workflow, or push a new commit to the branch, to test it against the new develop. Re-running only the failed job reuses the old develop and fails again."
             exit 1
           fi
           git merge --no-edit "${DEVELOP_SHA}" -m "chore: merge develop into ${BRANCH}" >/dev/null || {

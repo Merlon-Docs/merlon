@@ -9,6 +9,9 @@
  * 3. If `skills/` changed since base and there is no pending `.changeset/*.md`
  *    (other than README.md / config.json), fails — unless this PR consumed
  *    changesets (release versioning deleted `.changeset/*.md`).
+ *    Both checks pass when changesets were consumed, including a hotfix
+ *    changeset that a release commit on main deleted before develop saw it
+ *    (see lib/consumed-changesets.mjs).
  *
  * Resolution order for base:
  * 1. CHANGESET_SINCE (explicit)
@@ -19,6 +22,7 @@
 import { spawnSync, execSync } from 'node:child_process';
 import { readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { consumedChangesets } from './lib/consumed-changesets.mjs';
 import { isDevDependencyOnlyPackageChange } from './lib/dev-dep-only-package-changes.mjs';
 
 function tryExec(cmd) {
@@ -62,11 +66,6 @@ function pendingChangesetFiles() {
   );
 }
 
-function changesetsConsumed(since) {
-  const deleted = tryExec(`git diff --name-only --diff-filter=D ${since}..HEAD -- .changeset/`);
-  return deleted.split('\n').filter((p) => p.endsWith('.md') && !p.endsWith('README.md')).length;
-}
-
 function readPackageJsonPair(since, path) {
   const beforeRaw = tryExec(`git show ${since}:${path}`);
   const afterRaw = tryExec(`git show HEAD:${path}`);
@@ -91,7 +90,7 @@ const result = spawnSync('pnpm', ['exec', 'changeset', 'status', `--since=${sinc
 let exitCode = result.status ?? 1;
 
 if (exitCode !== 0) {
-  const consumed = changesetsConsumed(since);
+  const consumed = consumedChangesets(since).length;
   if (consumed > 0) {
     console.log(
       'Changesets consumed in this PR (release versioning) — skipping package changeset check.',
@@ -110,7 +109,7 @@ if (skillChanges.length > 0) {
   console.log(`skills/ changed (${skillChanges.length} file(s) since ${since})`);
   const pending = pendingChangesetFiles();
   if (pending.length === 0) {
-    const consumed = changesetsConsumed(since);
+    const consumed = consumedChangesets(since).length;
     if (consumed > 0) {
       console.log(
         'Changesets consumed in this PR (release versioning) — skipping skills changeset check.',
