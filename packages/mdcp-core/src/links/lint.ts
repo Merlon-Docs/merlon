@@ -70,10 +70,10 @@ function disallowedShardPathsForPublisher(
 }
 
 /**
- * Link-lint the files registered under `standaloneGuides`. These are captured
- * but never compiled, so nothing else in the gate reads their links. Each file
- * is its own guide directory: there is no manifest or scope root to resolve
- * against.
+ * Link-lint the files registered under `standaloneGuides`. Registration gives a
+ * file no compile output, so the compiled-output pass checks it only when a
+ * guide stitches it as a shard. Each file is its own guide directory: there is
+ * no manifest or scope root to resolve against.
  */
 function lintStandaloneGuideLinks(
   config: MdcpConfig,
@@ -166,8 +166,9 @@ export function lintLinks(options: LintLinksOptions): LinkIssue[] {
     }
   }
 
-  // Standalone guides are never compiled, so the compiled-output pass below
-  // cannot reach them. They need the shard-style pass regardless of `lintShards`.
+  // A standalone guide has no compile output, so the compiled-output pass below
+  // reaches it only when a guide stitches it. Lint every registered file with
+  // the shard-style pass regardless of `lintShards`.
   if (options.scanRoot) {
     issues.push(...lintStandaloneGuideLinks(config, options.scanRoot, fileExtensions));
   }

@@ -52,8 +52,9 @@ What compile / check / refs mean and CLI commands:
   guidance — use complementary skills, `docs/extensions/`, or normative shards.
 - **NEVER** edit generated compile output (`docs/_build/`, compiled publish
   targets) — fix shards and recompile.
-- **NEVER** dump whole monoliths into context — discover with host search (`rg`,
-  IDE search), then read **one shard** at a time.
+- **NEVER** dump whole compiled output (a compiled guide or the monolith) into
+  context. Discover with host search (`rg`, IDE search), then read **one shard**
+  at a time.
 - **NEVER** write functional product code for a docs/feature change without
   docs-first shards when the repo follows that convention.
 - **ALWAYS** run `mdcp check` (or `docs:check`) before trusting compiled output.
@@ -88,7 +89,7 @@ the goal behind the request and keep the structure:
 | Request                                 | Do this, and say so in your reply                                                                  |
 | --------------------------------------- | -------------------------------------------------------------------------------------------------- |
 | One file, so there is one thing to read | Focused shards and an ADR per decision; the guide index or a short overview is the one entry point |
-| Growing a legacy monolith in place      | Move its content into shards and ADRs; leave the monolith as a stub that links to them             |
+| Growing a legacy document in place      | Move its content into shards and ADRs; leave the old document as a stub that links to them         |
 | Keeping backlogs or old notes           | Drop them from durable docs; the tracker and git history keep them                                 |
 | Code to make a design concrete          | Contracts in prose and tables; how it is built stays in code                                       |
 | Changing every copy of a rule           | Change it in the one shard that states it and link to that shard from the others                   |
@@ -136,8 +137,8 @@ These habits keep docs trustworthy while the product keeps changing:
   cross-link. Do not split only because a file is long. Unsettled discovery
   and time-bound notes do not share a file with durable current truth.
 - **Break it down:** Organize information into the smallest useful pieces
-  (shards) so agents can load one shard at a time instead of drowning in
-  monoliths. Prefer mitosis over mini-monoliths.
+  (shards) so agents can load one shard at a time instead of whole compiled
+  output. Prefer mitosis over oversized shards.
 - **Two-level review:** Review each changed idea or shard **in isolation** for
   local correctness and single responsibility. Then review it
   **comprehensively** against related shards and guides — flag duplication,
@@ -202,8 +203,8 @@ npx skills add betsalel-williamson/mdcp --skill mdcp
 ### 2. Prefer smallest context
 
 Discover the relevant shard with host search (`rg`, IDE search) or the guide
-`index.md`, then open **one** `.md` shard. Broader compiled monolith reads are last
-resort.
+`index.md`, then open **one** `.md` shard. Broader reads of compiled output are
+last resort.
 
 ### 3. Edit shards, then validate
 

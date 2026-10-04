@@ -77,7 +77,7 @@ export interface PublishRelativeLinkRewriteOptions {
   guideDir: string;
   scopeRoot?: string;
   currentGuideName?: string;
-  /** Absolute path to the publish output being assembled. */
+  /** Absolute path to the guide's link base (see resolveGuideLinkBase). */
   currentOutputFile: string;
   linkIndex?: GuideLinkIndex;
   searchRoots?: string[];
@@ -121,7 +121,7 @@ function skipPublishRelativeRewrite(
   return entry?.guideName === options.currentGuideName;
 }
 
-/** Rewrite shard-relative file links to paths relative to a publish output file. */
+/** Rewrite shard-relative file links to paths relative to the guide's link base (its compile.outputFile, the monolith, or its default output). */
 export function rewritePublishRelativeLinks(
   markdown: string,
   options: PublishRelativeLinkRewriteOptions,
@@ -149,7 +149,7 @@ export interface IntraGuideLinkRewriteOptions {
   sourceFile?: string;
 }
 
-/** Rewrite same-guide shard links to in-document anchors for publish outputs (npm READMEs). */
+/** Rewrite same-guide shard links to in-document anchors in every compiled guide. */
 export function rewriteIntraGuideFileLinks(
   markdown: string,
   slugByPath: Map<string, string>,
@@ -200,7 +200,7 @@ export interface CrossGuideLinkRewriteOptions {
    * attributes the shard to another guide (multi-guide transitive co-inclusion).
    */
   slugByPath?: Map<string, string>;
-  /** Guide names whose shards keep source `.md` paths instead of monolith `#slug` targets. */
+  /** Target guide names: links from the compiling guide to shards of a listed guide keep source `.md` paths instead of `#slug` targets in the file that holds the target guide (the monolith when the target guide is part of it, otherwise its compiled guide). */
   ignoreGuides?: string[];
   searchRoots?: string[];
 }

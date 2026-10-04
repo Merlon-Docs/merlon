@@ -52,7 +52,7 @@ const GuideSchema = z.object({
       /** Cross-guide link rewrite options (assembly-time; not a compile hook). */
       crossGuideLinks: z
         .object({
-          /** Guide names whose shards keep source `.md` paths instead of monolith `#slug` targets. */
+          /** Target guide names: links from this guide to shards of a listed guide keep source `.md` paths instead of `#slug` targets in the file that holds the target guide (the monolith when the target guide is part of it, otherwise its compiled guide). */
           ignoreGuides: z.array(z.string()).optional(),
         })
         .optional(),
@@ -91,7 +91,7 @@ export const MdcpConfigSchema = z.object({
   sourceTags: z.boolean().default(true),
   guides: z.array(GuideSchema).optional(),
 
-  /** Files or globs (relative to scan root) registered as standalone guides — captured, never compiled. */
+  /** Files or globs (relative to scan root) registered as standalone guides: captured by the coverage scan, with no compile output of their own. */
   standaloneGuides: z.array(z.string()).default([]),
 
   /** Repository-wide markdown coverage scan options. */

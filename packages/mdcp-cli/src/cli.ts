@@ -229,7 +229,7 @@ cli
   .option('--backup-ext <ext>', 'Suffix for backup filenames')
   .option('--warn-broken-links', 'Report broken links but exit 0');
 
-cli.command('compile', 'Compile shards to monolith').action((opts: GlobalOpts) => {
+cli.command('compile', 'Stitch shards into compiled guides').action((opts: GlobalOpts) => {
   const config = getConfig(opts);
   const docsRoot = getDocsRoot(opts);
   const workspace = compileWorkspace(config, docsRoot, cliBackupFlags(opts));
@@ -350,7 +350,7 @@ cli.command('fix', 'Auto-fix with Prettier + markdownlint (peer)').action((opts:
   runPeer(mdlint, { cwd: getDocsRoot(opts), args: ['--fix'] });
 });
 
-cli.command('shard', 'Split monolith into shards (md-tree)').action((opts: GlobalOpts) => {
+cli.command('shard', 'Split a source document into shards (md-tree)').action((opts: GlobalOpts) => {
   const config = getConfig(opts);
   if (!config.source) {
     console.error('Config requires "source" for shard command');

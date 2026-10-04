@@ -22,7 +22,7 @@ metadata:
 
 # MDCP Archetype: Product Docs Site
 
-For products that publish human-facing docs via **MkDocs, Docusaurus, VitePress**, or similar while a sharded MDCP documentation system remains the authoring source of truth — so site navigation can grow without turning the authoring tree into a monolith.
+For products that publish human-facing docs via **MkDocs, Docusaurus, VitePress**, or similar while a sharded MDCP documentation system remains the authoring source of truth. Site navigation can then grow without turning the authoring tree into one large file.
 
 ## Layout
 

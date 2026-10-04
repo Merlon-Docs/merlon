@@ -4,7 +4,7 @@
     "mdcp": {
       "source": ".",
       "sourceType": "local",
-      "computedHash": "4efa745f36da9bc01c5affe3913cd1e5b3679082968591bb084a7ae1ccd5eb44"
+      "computedHash": "6ce6c65130ac2267fe11a04e4652f84b2e67b55391cbd9ce2abf535738eecf6d"
     },
     "mdcp-arch-gtm": {
       "source": ".",
@@ -19,7 +19,7 @@
     "mdcp-arch-product-docs-site": {
       "source": ".",
       "sourceType": "local",
-      "computedHash": "71ebff06b6bb1f4b30f9a2034d880d57f122cf46d4067a70919390f41f848375"
+      "computedHash": "7cd2b4f84600c9a4f9470325f5492af38ad4b990ba4912df88384aa8a9f062b5"
     },
     "mdcp-arch-research": {
       "source": ".",

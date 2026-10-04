@@ -231,7 +231,7 @@ describe('cross-guide link rewriting', () => {
     });
   });
 
-  it('compileGuideResults rewrites cross-monolith links in consumer layout', () => {
+  it('compileGuideResults rewrites cross-guide links between compiled guides in consumer layout', () => {
     withTmpDir('mdcp-consumer-compile-', (work) => {
       const opts = writeConsumerFixture(work);
       writeCompiledGuides(opts, join(work, 'guides.md'));

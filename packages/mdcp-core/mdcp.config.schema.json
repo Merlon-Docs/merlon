@@ -218,7 +218,7 @@
         "type": "string"
       },
       "default": [],
-      "description": "Files or globs (relative to scan root) registered as standalone guides \u2014 captured, never compiled."
+      "description": "Files or globs (relative to scan root) registered as standalone guides: captured by the coverage scan, with no compile output of their own."
     },
     "scan": {
       "type": "object",

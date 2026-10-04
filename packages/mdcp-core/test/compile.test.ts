@@ -251,8 +251,8 @@ describe('compileGuides', () => {
     });
   });
 
-  it('rewrites intra-guide .md links in monolith output without outputFile', () => {
-    withTmpDir('mdcp-monolith-links-', (work) => {
+  it('rewrites intra-guide .md links in compiled guide output', () => {
+    withTmpDir('mdcp-intra-guide-links-', (work) => {
       const guideDir = join(work, 'guide');
       mkdirSync(guideDir, { recursive: true });
 
