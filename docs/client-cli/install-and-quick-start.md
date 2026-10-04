@@ -25,7 +25,7 @@ npm install -g @bwilliamson/mdcp-cli
 
 ## Stability
 
-**Pre-1.0:** Until this package reaches **1.0.0**, there is **no API stability guarantee**. CLI commands, flags, `mdcp.config.json` schema, and compile output may change in any `0.x.y` release. Read the package changelog before upgrading.
+Before **1.0.0**, this package has **no API stability guarantee**. CLI commands, flags, `mdcp.config.json` schema, and compile output may change in any `0.x.y` release. Read the changelog and release notes of each MDCP package you use before upgrading. They hold the upgrade notes for earlier releases, which the feature catalog doesn't repeat.
 
 ### Get involved
 
@@ -47,19 +47,21 @@ For prose lint (`mdcp prose`, `mdcp check --require-vale`), install [Vale](https
 
 3. Run:
 
-```bash
-# When your shell is in the docs directory
-mdcp compile --config mdcp.config.json
-mdcp check --config mdcp.config.json
-```
+   ```bash
+   # When your shell is in the docs directory
+   mdcp compile --config mdcp.config.json
+   mdcp check --config mdcp.config.json
+   ```
 
-From the **repository root** (typical npm scripts), pass both `--config` and `--docs-root`:
+   From the **repository root** (typical npm scripts), pass both `--config` and `--docs-root`:
 
-```bash
-mdcp compile --config docs/mdcp.config.json --docs-root docs
-mdcp check --config docs/mdcp.config.json --docs-root docs
-```
+   ```bash
+   mdcp compile --config docs/mdcp.config.json --docs-root docs
+   mdcp check --config docs/mdcp.config.json --docs-root docs
+   ```
 
-`--config` is resolved from where you run the command; `--docs-root` sets the docs root. Details: [Config essentials](./config-essentials.md#--config-vs---docs-root).
+   `--config` resolves from the directory you run the command in, and `--docs-root` sets the docs root. [Config essentials](./config-essentials.md#--config-vs---docs-root) has the details, and [Global options](./commands-reference.md#global-options) lists the options that every command accepts.
 
-Every command also takes the [global options](./commands-reference.md#global-options).
+4. Add `docs:compile` and `docs:check` scripts to your repo-root `package.json`, as [Repo-root npm scripts](./config-essentials.md#repo-root-npm-scripts) shows. The check script runs `mdcp check --require-lint`. Add `--require-vale` to it when Vale is configured.
+
+5. Run the same compile and check scripts in CI. The [verification checklist](./consumer-migration.md#verification-checklist) lists what to confirm once they pass.

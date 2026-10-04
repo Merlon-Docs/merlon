@@ -51,7 +51,7 @@ npm install -g @bwilliamson/mdcp-cli
 
 ### Stability
 
-**Pre-1.0:** Until this package reaches **1.0.0**, there is **no API stability guarantee**. CLI commands, flags, `mdcp.config.json` schema, and compile output may change in any `0.x.y` release. Read the package changelog before upgrading.
+Before **1.0.0**, this package has **no API stability guarantee**. CLI commands, flags, `mdcp.config.json` schema, and compile output may change in any `0.x.y` release. Read the changelog and release notes of each MDCP package you use before upgrading. They hold the upgrade notes for earlier releases, which the feature catalog doesn't repeat.
 
 #### Get involved
 
@@ -73,22 +73,24 @@ For prose lint (`mdcp prose`, `mdcp check --require-vale`), install [Vale](https
 
 3. Run:
 
-```bash
-# When your shell is in the docs directory
-mdcp compile --config mdcp.config.json
-mdcp check --config mdcp.config.json
-```
+   ```bash
+   # When your shell is in the docs directory
+   mdcp compile --config mdcp.config.json
+   mdcp check --config mdcp.config.json
+   ```
 
-From the **repository root** (typical npm scripts), pass both `--config` and `--docs-root`:
+   From the **repository root** (typical npm scripts), pass both `--config` and `--docs-root`:
 
-```bash
-mdcp compile --config docs/mdcp.config.json --docs-root docs
-mdcp check --config docs/mdcp.config.json --docs-root docs
-```
+   ```bash
+   mdcp compile --config docs/mdcp.config.json --docs-root docs
+   mdcp check --config docs/mdcp.config.json --docs-root docs
+   ```
 
-`--config` is resolved from where you run the command; `--docs-root` sets the docs root. Details: [Config essentials](#--config-vs---docs-root).
+   `--config` resolves from the directory you run the command in, and `--docs-root` sets the docs root. [Config essentials](#--config-vs---docs-root) has the details, and [Global options](#global-options) lists the options that every command accepts.
 
-Every command also takes the [global options](#global-options).
+4. Add `docs:compile` and `docs:check` scripts to your repo-root `package.json`, as [Repo-root npm scripts](#repo-root-npm-scripts) shows. The check script runs `mdcp check --require-lint`. Add `--require-vale` to it when Vale is configured.
+
+5. Run the same compile and check scripts in CI. The [verification checklist](#verification-checklist) lists what to confirm once they pass.
 
 <!-- mdcp-shard: end ../../docs/client-cli/install-and-quick-start.md -->
 
@@ -315,6 +317,8 @@ Full schema and examples: [mdcp.config.json in sample-guides](../../examples/sam
 
 ## Consumer migration
 
+Use these steps to move an existing Markdown document into shards. For a new repo with no docs to migrate, the [Quick start](#quick-start) covers setup.
+
 Add `source` to your config pointing at your existing source document, then:
 
 ```bash
@@ -325,11 +329,7 @@ mdcp check
 
 ### Guide manifests and compile order
 
-Compile order comes from link order in each guide's `index.md` or `shards.md`. List shards in the manifest in the order you want them stitched.
-
-When a manifest has preamble prose with example inline links (not section shards), set `compile.sectionsHeading` — see [Manifest compile order](../../docs/features/manifest-compile-order.md).
-
-After changing a guide's `index.md`, run `mdcp compile` and `mdcp check` — there is no separate manifest sync step.
+There is no separate manifest sync step, so rerun `mdcp compile` and `mdcp check` after a manifest change. [Manifest compile order](../../docs/features/manifest-compile-order.md) says how link order in the manifest sets compile order and when to set `compile.sectionsHeading`.
 
 ### Compile hooks and multi-guide links
 
@@ -340,16 +340,6 @@ Built-in hooks run by default — omit `compile.hooks` for the common case. Spec
 - [Cross-guide links](../mdcp-core/README.md#cross-guide-link-rewriting)
 
 CLI config path rules remain in [Config essentials](#config-essentials).
-
-### Steps for a new consumer repo
-
-1. Add `mdcp.config.json` to your docs shard directory
-2. Add repo-root npm scripts, for example `mdcp compile --config docs/mdcp.config.json --docs-root docs` (see [Config essentials](#--config-vs---docs-root))
-3. Add `mdcp check --require-lint` (and `--require-vale` when Vale is configured)
-4. Discover shards with host search; validate cross-link slugs with `mdcp check` (optional `mdcp refs-list`; prefer GitHub auto-slugs over explicit heading ids)
-5. Update CI to build and invoke `@bwilliamson/mdcp-cli`
-
-Upgrade notes from earlier MDCP releases are in package **CHANGELOGs** (and GitHub Releases), not in the feature catalog.
 
 ### Verification checklist
 

@@ -26,4 +26,4 @@ npm install @bwilliamson/mdcp-core
 
 ## Stability
 
-**Pre-1.0:** there is **no API stability guarantee** before this package reaches **1.0.0**. Exported functions, types, `mdcp.config.json` schema, and compile output may change in any `0.x.y` release. Read the package changelog before upgrading.
+**Pre-1.0:** there is **no API stability guarantee** before this package reaches **1.0.0**. Exported functions, types, `mdcp.config.json` schema, and compile output may change in any `0.x.y` release. Read the changelog and release notes of each MDCP package you use before upgrading.
