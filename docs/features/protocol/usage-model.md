@@ -29,7 +29,7 @@ Multi-guide `compileOrder`, publish outputs (`compile.outputFile`).
 
 ### Agent-native
 
-Above plus three-tier shards (`features` / `client` / `developer`), the `mdcp` skill's workflows.
+Above plus the four-tier guide layout (`features` / `client` / `developer` / `glossary`), the `mdcp` skill's workflows.
 
 ## Coexistence
 

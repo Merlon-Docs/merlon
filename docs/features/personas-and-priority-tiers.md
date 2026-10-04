@@ -6,12 +6,12 @@ mdcp splits, compiles, and validates sharded Markdown for repos where **LLMs hel
 
 Four goals — not job titles. Interns and students map to **Learner**; technical writers and domain SMEs map to **Author**; foundation reviewers map to **Champion**. Do not enumerate roles on landing pages. Each archetype gets one [WIIFM](../glossary/wiifm.md) line (landing-safe):
 
-| Archetype    | Goal                                     | WIIFM (landing-safe)                                       | Typical path                |
-| ------------ | ---------------------------------------- | ---------------------------------------------------------- | --------------------------- |
-| **Builder**  | Integrate mdcp into repo scripts and CI  | One gate for humans, agents, and CI; smaller doc PRs       | Paste prompt or `mdcp init` |
-| **Learner**  | Try mdcp before mastering every CLI flag | Paste a prompt; agent runs setup                           | Getting started prompt      |
-| **Author**   | Own content, not the toolchain           | One topic per file; load the section that matches the task | Paste prompt + usage model  |
-| **Champion** | Evaluate or sponsor adoption             | Slash MTTR and accelerate onboarding with instant context  | Vision and claims shards    |
+| Archetype    | Goal                                     | WIIFM (landing-safe)                                       | Typical path                                |
+| ------------ | ---------------------------------------- | ---------------------------------------------------------- | ------------------------------------------- |
+| **Builder**  | Integrate mdcp into repo scripts and CI  | One gate for humans, agents, and CI; smaller doc PRs       | Paste prompt or `/mdcp help me get started` |
+| **Learner**  | Try mdcp before mastering every CLI flag | Paste a prompt; agent runs setup                           | Getting started prompt                      |
+| **Author**   | Own content, not the toolchain           | One topic per file; load the section that matches the task | Paste prompt + usage model                  |
+| **Champion** | Evaluate or sponsor adoption             | Slash MTTR and accelerate onboarding with instant context  | Vision and claims shards                    |
 
 Paths: [CLI README](../../packages/mdcp-cli/README.md), [getting-started workflow](../../skills/mdcp/references/workflows/getting-started.md), [usage model](./protocol/usage-model.md), [vision](./protocol/00-vision-and-roadmap.md), [claims policy](./protocol/benefit-claims-and-evidence.md).
 

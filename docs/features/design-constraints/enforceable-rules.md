@@ -23,18 +23,18 @@ This constraint is why MDCP invests in the [check gate](../feature-catalog.md#ch
 
 ## Current status of MDCP's own rules
 
-| Rule                                          | Status                               | Gate                                           |
-| --------------------------------------------- | ------------------------------------ | ---------------------------------------------- |
-| A shard in a guide directory is in a manifest | Gated                                | Orphan check                                   |
-| Internal links and anchors resolve            | Gated                                | Built-in link validation                       |
-| Compiled output matches the shards            | Gated                                | `mdcp check` compile diff in CI                |
-| The refs registry is current                  | Gated                                | `mdcp check` refs step                         |
-| Every markdown file is accounted for          | Gated when `scan.strict: true`       | Coverage scan                                  |
-| Markdown structure and en-US prose cues       | Gated when peer linters are required | Peer linters                                   |
-| Shards describe the product as it works now   | **Advisory**                         | None                                           |
-| One primary concern per shard                 | **Advisory**                         | None                                           |
-| No implementation detail in durable docs      | **Advisory**                         | None                                           |
-| No temporary information or backlogs in docs  | **Advisory**                         | Partial: pending changeset links fail the gate |
+| Rule                                          | Status                               | Gate                                                |
+| --------------------------------------------- | ------------------------------------ | --------------------------------------------------- |
+| A shard in a guide directory is in a manifest | Gated                                | Orphan check                                        |
+| Internal links and anchors resolve            | Gated                                | Built-in link validation                            |
+| Compiled output matches the shards            | Gated                                | CI runs `docs:compile`, then `git diff --exit-code` |
+| The refs registry is current                  | Gated                                | `mdcp check` refs step                              |
+| Every markdown file is accounted for          | Gated when `scan.strict: true`       | Coverage scan                                       |
+| Markdown structure and en-US prose cues       | Gated when peer linters are required | Peer linters                                        |
+| Shards describe the product as it works now   | **Advisory**                         | None                                                |
+| One primary concern per shard                 | **Advisory**                         | None                                                |
+| No implementation detail in durable docs      | **Advisory**                         | None                                                |
+| No temporary information or backlogs in docs  | **Advisory**                         | Partial: pending changeset links fail the gate      |
 
 Where the gated rows are specified: [orphan check](../feature-catalog.md#orphan-check-p13), [link validation](../link-validation.md), [documentation coverage scan](../coverage-scan.md), [peer linters](./peer-linters.md).
 

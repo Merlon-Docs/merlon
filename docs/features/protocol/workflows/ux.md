@@ -21,7 +21,7 @@ See [Atomic commit groups](../../../glossary/atomic-commit-groups.md) for the pl
 
 | Obligation                  | As-built expectation                                                                                             |
 | --------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Work-item intake            | Ask for `WORK_ITEM` and `WORK_ITEM_LOOKUP` before branching or editing                                           |
+| Work-item intake            | Resolve `WORK_ITEM` and `WORK_ITEM_LOOKUP` from the request; ask only for what is missing                        |
 | Atomic commit groups        | Include numbered Atomic commit groups in the plan before “go”; one commit per group after approval               |
 | One UX scope                | Branch from updated `main` for a single UX issue; do not mix unrelated UX work                                   |
 | User-centric value first    | State the end-user outcome and friction to remove before designing steps or UI                                   |

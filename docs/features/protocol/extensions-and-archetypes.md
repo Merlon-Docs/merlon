@@ -67,7 +67,7 @@ The default MDCP installation provides the **Code Repository Archetype** (`featu
 
 Because the underlying MDCP engine (`mdcp compile`, `mdcp check`) is domain-agnostic, teams can define alternative archetypes for other documentation systems — for example factory SOPs, equipment manuals, training curricula, Legal Operations, or HR Policies — that use completely different guide tiers.
 
-Current public archetypes:
+Archetype extensions in this repository (internal, `metadata.internal: true`, not yet published to skills.sh):
 
 | Archetype          | Extension id                  | When to use                            | Shard emphasis                                                 |
 | ------------------ | ----------------------------- | -------------------------------------- | -------------------------------------------------------------- |
@@ -77,8 +77,6 @@ Current public archetypes:
 | Research project   | `mdcp-arch-research`          | Studies, field reports, benchmarks     | `research/` tier of dated records beside `design-constraints/` |
 
 Archetype READMEs live under complementary skills — for example `mdcp-arch-oss-library/`, `mdcp-arch-product-docs-site/`, `mdcp-arch-gtm/`, and `mdcp-arch-research/`.
-
-Formatting packs use the `mdcp-format-*` prefix.
 
 Start from an archetype README, copy patterns into `docs/`, then customize under `docs/extensions/`.
 

@@ -33,7 +33,7 @@ The MDCP engine itself is agnostic. Other documentation systems (e.g., Legal Ope
 
 Skill workflows are part of the MDCP 1.0 authoring profile. The `mdcp` skill selects one per task (e.g. the feature-level workflow for a code change). See [Skill workflows](./skill-workflows.md).
 
-Work-item workflows **MUST** collect `WORK_ITEM` and `WORK_ITEM_LOOKUP` via interactive intake before editing. Feature work **SHOULD** use the [feature-level workflow](./workflows/feature-level.md).
+Work-item workflows **MUST** resolve `WORK_ITEM` and `WORK_ITEM_LOOKUP` before editing, as [Required intake](./skill-workflows.md#required-intake) defines. Feature work **SHOULD** use the [feature-level workflow](./workflows/feature-level.md).
 
 ## 4. Skills and immutability
 

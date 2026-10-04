@@ -17,8 +17,7 @@ Agent Skills give:
 **Upstream source** (this repository, publishable):
 
 - [`skills/mdcp/`](../../skills/mdcp/) — the documentation system skill and its workflows (the supported consumer install)
-- [`skills/mdcp-arch-oss-library/`](../../skills/mdcp-arch-oss-library/) — OSS library documentation architecture (**WIP**, not ready for consumer install)
-- [`skills/mdcp-arch-product-docs-site/`](../../skills/mdcp-arch-product-docs-site/) — product docs site architecture (**WIP**, not ready for consumer install)
+- `skills/mdcp-arch-*/` — archetype skills (**WIP**, not ready for consumer install); the list is in [Extensions and archetypes](./protocol/extensions-and-archetypes.md)
 
 **Consumer install target** after `npx skills add`: the **agent-specific** skills directory the [`skills` CLI](https://www.skills.sh/docs/cli) chooses (`--agent` or auto-detect) — vendored into your repo. Per-agent paths: [Supported Agents](https://github.com/vercel-labs/skills#supported-agents).
 

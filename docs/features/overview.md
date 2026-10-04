@@ -103,11 +103,9 @@ Understanding this sequence explains why most commands exist:
            ↓
   Edit shards + index.md
            ↓
-  mdcp compile                 Assemble monolith + publish outputs; rewrite links
+  mdcp compile                 Assemble outputs, rewrite links, write refs.json
            ↓
-  mdcp refs generate           Write refs.json from compiled headings
-           ↓
-  mdcp check                   Orphans → compile → refs → links → optional linters
+  mdcp check                   Orphans → compile → refs → links → linters → paths → coverage
 ```
 
 **Split** (`mdcp shard`) is the inverse path — used when bootstrapping shards from an existing monolith, not on every edit cycle.
@@ -128,12 +126,15 @@ Guides with `compile.outputFile` are **excluded from the monolith** so you can p
 
 `mdcp check` runs a fixed core pipeline, then optional peer tools:
 
-| Stage   | Module                  | Catches                                        |
-| ------- | ----------------------- | ---------------------------------------------- |
-| Orphans | `validate/orphans.ts`   | Shard/manifest mismatches                      |
-| Compile | `compile/`              | Assembly failures                              |
-| Refs    | `refs/registry.ts`      | Stale `refs.json`                              |
-| Linters | `peers/` + host install | markdownlint, Vale, link-check when configured |
+| Stage          | Module                   | Catches                                                      |
+| -------------- | ------------------------ | ------------------------------------------------------------ |
+| Orphans        | `validate/orphans.ts`    | Shard/manifest mismatches                                    |
+| Compile        | `compile/`               | Assembly failures                                            |
+| Refs           | `refs/registry.ts`       | Stale `refs.json`                                            |
+| Built-in links | `links/`                 | Broken links and fragments in shards and compiled output     |
+| Linters        | `peers/` + host install  | markdownlint, Vale, link-check when configured               |
+| Paths          | `validate/path-probe.ts` | Backtick paths in prose that don't resolve, when enabled     |
+| Coverage       | `validate/coverage.ts`   | Markdown files no guide captures (fatal under `scan.strict`) |
 
 Peer linters are **not bundled**. CI uses `--require-lint` / `--require-vale` to fail when tools are missing.
 

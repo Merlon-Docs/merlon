@@ -19,7 +19,7 @@ See [Atomic commit groups](../../../glossary/atomic-commit-groups.md) for the pl
 
 | Obligation             | As-built expectation                                                                                    |
 | ---------------------- | ------------------------------------------------------------------------------------------------------- |
-| Work-item intake       | Ask for `WORK_ITEM` and `WORK_ITEM_LOOKUP` before branching or editing                                  |
+| Work-item intake       | Resolve `WORK_ITEM` and `WORK_ITEM_LOOKUP` from the request; ask only for what is missing               |
 | Atomic commit groups   | Include numbered Atomic commit groups in the plan before “go”; one commit per group after approval      |
 | Docs-only branch       | One documentation scope per branch; revise `docs/features/`, `docs/client/`, and/or `docs/developer/`   |
 | Contracts not samples  | Put intent, contracts, and acceptance in shards — not implementation dumps or product source paths      |

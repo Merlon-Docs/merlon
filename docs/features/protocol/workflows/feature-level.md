@@ -19,7 +19,7 @@ See [Atomic commit groups](../../../glossary/atomic-commit-groups.md) for the pl
 
 | Obligation            | As-built expectation                                                                                        |
 | --------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Work-item intake      | Ask for `WORK_ITEM` and `WORK_ITEM_LOOKUP` before branching or editing                                      |
+| Work-item intake      | Resolve `WORK_ITEM` and `WORK_ITEM_LOOKUP` from the request; ask only for what is missing                   |
 | Atomic commit groups  | Include numbered Atomic commit groups in the plan before “go”; one commit per group after approval          |
 | One focused branch    | Branch from updated `main` for a single issue; do not mix unrelated features                                |
 | Place by audience     | User-facing work → `docs/features/` + `docs/client/`; maintainer-only → `docs/developer/` only              |

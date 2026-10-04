@@ -1,6 +1,6 @@
 # Skill workflows
 
-Normative profile for the **workflows** inside the MDCP Agent Skill that drive shard authoring across the three-tier guide layout. Parent spec: [MDCP 1.0 (draft)](./mdcp-1.0-spec.md).
+Normative profile for the **workflows** inside the MDCP Agent Skill that drive shard authoring across the four-tier guide layout. Parent spec: [MDCP 1.0 (draft)](./mdcp-1.0-spec.md).
 
 ## Purpose
 
@@ -21,6 +21,8 @@ Required fields for work-item workflows:
 
 The getting-started workflow **MUST** collect `FEATURE`, `PERSONA`, and `EXPERIENCE` (novice vs expert onboarding depth) instead of `WORK_ITEM`. `EXPERIENCE` defaults to expert when nobody can answer. After a successful bootstrap, it **MUST** offer an optional **first-feature tutorial** (`RUN_FIRST_FEATURE_TUTORIAL`, default yes for novice) and, when accepted, resolve **EXAMPLE_MODE** (recommended `hello-greeting` or bring-your-own) before walking design → feature → UX → doc-only. Detail: [Getting-started workflow](./workflows/getting-started.md).
 
+The doc-review workflow collects `SCOPE` and `WORK_ITEM_LOOKUP` instead of `WORK_ITEM`.
+
 Agents **MUST** load the issue (or equivalent) before editing shards or code. One `WORK_ITEM` per branch.
 
 ## Atomic commit groups (plan obligation)
@@ -29,7 +31,7 @@ Coding and multi-concern plans **MUST** include an **[Atomic commit groups](../.
 
 Why: reviewable diffs, one concern per commit, and it matches small batches (the skill's [QA Principles](../agent-skill.md#quality-assurance-qa-principles)).
 
-Day-to-day workflows that produce a plan (feature-level, doc-only, design-architecture, UX, doc-review) **MUST** require this section in Step 1. Bootstrap scaffold (getting-started steps 1–6) stays out of scope for commit grouping; when the optional first-feature tutorial runs, each phase follows the matching day-to-day workflow (including commit groups).
+Day-to-day workflows that produce a plan (feature-level, doc-only, design-architecture, UX, doc-review) **MUST** require this section before “go” (doc-review plans its groups in Step 4). Bootstrap scaffold (getting-started steps 1–6) stays out of scope for commit grouping; when the optional first-feature tutorial runs, each phase follows the matching day-to-day workflow (including commit groups).
 
 ## Standard workflows
 
