@@ -1129,12 +1129,16 @@ Model a part of the system when it runs as a sequence of states and a wrong orde
 
 Packages: `@bwilliamson/mdcp-core`, `@bwilliamson/mdcp-cli`, `@bwilliamson/mdcp-presets` (npm). Skill carriers: `@bwilliamson/skill-*` under `packages/skill-*` (GitHub Releases only; not npm).
 
+Consumers install the Agent Skill as [Get started](README.md#get-started) shows. The [CLI](./packages/mdcp-cli/README.md#install) and [core](./packages/mdcp-core/README.md#install) package READMEs give their own install commands.
+
 ### Prerequisites
 
 - npm account **`bwilliamson`** with access to publish `@bwilliamson/*`
 - **2FA enabled** on npm (auth-and-writes)
 - Repository secret **`RELEASE_GITHUB_TOKEN`**, set up as described below
 - `pnpm install` at repo root
+
+Security reporting and bad-release handling: [SECURITY.md](SECURITY.md) and [Security-incident triage](#security-incident-triage).
 
 ### First-time publish (chicken-and-egg)
 
@@ -1175,17 +1179,6 @@ Manual fallback:
 pnpm run check
 pnpm release:main
 ```
-
-### Install surfaces
-
-| Use case       | Command                                                    |
-| -------------- | ---------------------------------------------------------- |
-| Dev dependency | `npm i -D @bwilliamson/mdcp-cli @bwilliamson/mdcp-presets` |
-| Global CLI     | `npm i -g @bwilliamson/mdcp-cli`                           |
-| Programmatic   | `import { compileGuides } from '@bwilliamson/mdcp-core'`   |
-| Agent Skills   | `npx skills add betsalel-williamson/mdcp --skill mdcp`     |
-
-See [SECURITY.md](SECURITY.md) and [Security-incident triage](#security-incident-triage).
 
 <!-- mdcp-shard: end docs/developer/publishing.md -->
 
