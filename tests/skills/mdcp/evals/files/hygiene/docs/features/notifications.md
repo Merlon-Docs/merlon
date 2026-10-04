@@ -12,6 +12,14 @@ Users can enable email notifications for digest updates.
 
 When a digest is ready, the product may notify subscribed users by email.
 
+## Why email only
+
+<!-- Kept because the contributor guide says to explain every constraint. -->
+
+Digests used to go out through the webhook worker as well. After the worker
+sent every digest twice in the June 2026 incident, the team switched to email
+only, as of 2026-07-01.
+
 ## Implementation reference (do not keep)
 
 ```ts

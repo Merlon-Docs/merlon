@@ -66,9 +66,10 @@ Then write only the tiers that apply:
 
 1. Check implementation for edge cases, performance, and alignment with the design (skip when docs-only).
 2. Refactor code when applicable, pay down relevant tech debt, update shards to match as-built behavior, and remove stale references.
+3. When the change removes or renames a concept, such as a component, flag, command or term, follow **Removing or renaming a concept** in `SKILL.md` before you commit.
 
 ### Step 6: Validate and Wrap-up
 
 1. Run this repo's test and documentation validation commands until they pass (discover from developer docs or package scripts).
-2. Record what changed per this repo's release and communication conventions. If the repo uses Changesets, create a changeset file in `.changeset/`. DO NOT detail any old behavior that no longer works in our docs. That belongs in our changeset.
+2. Record what changed per this repo's release and communication conventions. If the repo uses Changesets, create a changeset file in `.changeset/`. Do not describe removed behavior in shards or standalone guides. Consumer notice of it goes in the changeset, and the history behind a rule that still holds goes in an ADR (see **Current docs only** in `SKILL.md`).
 3. Submit work for review and link `WORK_ITEM`.

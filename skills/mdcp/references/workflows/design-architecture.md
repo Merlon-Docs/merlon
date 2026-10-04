@@ -45,10 +45,11 @@ Collect these via intake (or from the conversation if already stated):
 
 ### Step 4: Refactor and Validate
 
-1. Retire superseded design shards or ADRs. Document the intended as-built architecture only — not deprecated constraints.
-2. Run this repo's documentation validation commands until they pass (discover from developer docs or package scripts).
+1. Retire a superseded design shard that the code does not follow, such as a plan the code never built. A shard that describes what the code does today retires only when the code changes (Step 4.2), and splitting it into focused shards is still fine. Mark a superseded ADR as superseded and link its replacement instead of deleting it, because a shard may link it for a rule's history. New design shards describe only the intended architecture, without deprecated constraints.
+2. Check the code for each component, flag or command that the design removes or renames. When the code still has it, leave the docs that describe it as they are, and say in the plan or your reply that the feature-level change that makes the removal follows **Removing or renaming a concept** in `SKILL.md`. When the code no longer has it, as for an ADR written after the removal, or when the design shards rename or drop a term of their own, follow that section before you commit.
+3. Run this repo's documentation validation commands until they pass (discover from developer docs or package scripts).
 
 ### Step 5: Wrap-up
 
-1. Record architectural changes per this repo's release and communication conventions. DO NOT detail any old behavior that no longer works in our docs. That belongs in our changeset.
+1. Record architectural changes per this repo's release and communication conventions. Do not describe removed behavior in shards or standalone guides. Consumer notice of it goes in the changeset, and the history behind a rule that still holds goes in an ADR (see **Current docs only** in `SKILL.md`).
 2. Submit work for review and link `WORK_ITEM`.

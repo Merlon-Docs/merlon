@@ -7,7 +7,7 @@ Interfaces and UI implementation are in scope when they serve those flows, not
 as the sole focus.
 
 Workflow file: [`skills/mdcp/references/workflows/ux.md`](../../../../skills/mdcp/references/workflows/ux.md).
-[Skill workflows](../skill-workflows.md) covers the shared workflow contract: intake, atomic commit groups, guide placement, and the glossary.
+[Skill workflows](../skill-workflows.md) covers the shared workflow contract: intake, atomic commit groups, guide placement, the glossary, and concept removal.
 
 ## End-user value
 

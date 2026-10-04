@@ -119,7 +119,7 @@
       "setup": {
         "docs_commit_weeks_ago": [0, 1, 2, 3]
       },
-      "expected_output": "Scopes the review to the client guide (mdcp review --guide client). Because docs changed in four of the last four weeks, recommends the weekly per-guide routine.",
+      "expected_output": "Scopes the review to the client guide (mdcp review --guide client). Because docs changed in four of the last four weeks, recommends the weekly per-guide routine, and says the contributor docs must name what starts each run and what evidence each run leaves that outlasts CI log retention.",
       "assertions": [
         {
           "name": "scopes_to_client_guide",
@@ -132,6 +132,10 @@
         {
           "name": "recommends_weekly_routine",
           "description": "Recommends a weekly review routine, once per guide"
+        },
+        {
+          "name": "names_trigger_and_evidence",
+          "description": "Says the contributor docs must state what starts each run (such as a CI cron workflow) and what evidence each run leaves that outlasts CI log retention (such as a comment on a standing tracker item), a run with no findings included"
         }
       ],
       "files": [
@@ -217,6 +221,43 @@
         "evals/doc-review/files/sprawl-fixture/docs/glossary/index.md",
         "evals/doc-review/files/sprawl-fixture/docs/mdcp.config.json",
         "evals/doc-review/files/sprawl-fixture/package.json"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Using /mdcp (doc-review workflow), review only the developer guide. WORK_ITEM_LOOKUP=docs/developer/agent-work-item-tracking.md.",
+      "setup": {
+        "docs_commit_weeks_ago": [0, 1, 2, 3]
+      },
+      "expected_output": "Scopes the review to the developer guide (mdcp review --guide developer). Finds that docs/developer/docs-hygiene.md promises a weekly hygiene pass but names nothing that starts a run and no evidence a run leaves, and that the repository has no scheduled workflow for it. Either removes the weekly pass from the shard, or labels it advisory and names the role that may run it and what a run leaves behind. Does not document a trigger that the repository does not have. mdcp check still passes.",
+      "assertions": [
+        {
+          "name": "scopes_to_developer_guide",
+          "description": "Runs `mdcp review --guide developer` or otherwise limits the review and edits to docs/developer/"
+        },
+        {
+          "name": "fixes_untriggered_cadence",
+          "description": "docs/developer/docs-hygiene.md no longer promises a weekly pass that nothing starts: the pass is removed, or labeled advisory with the role that may run it and what a run leaves behind"
+        },
+        {
+          "name": "no_invented_trigger",
+          "description": "Does not document a trigger that the repository lacks, such as a CI cron workflow or a scheduled task that does not exist, or a role newly assigned the run as a duty"
+        },
+        {
+          "name": "check_passes",
+          "description": "mdcp check (with --skip-vale allowed) passes after the edits"
+        }
+      ],
+      "files": [
+        "evals/doc-review/files/cadence-fixture/README.md",
+        "evals/doc-review/files/cadence-fixture/docs/developer/agent-work-item-tracking.md",
+        "evals/doc-review/files/cadence-fixture/docs/developer/docs-hygiene.md",
+        "evals/doc-review/files/cadence-fixture/docs/developer/index.md",
+        "evals/doc-review/files/cadence-fixture/docs/developer/local-setup.md",
+        "evals/doc-review/files/cadence-fixture/docs/features/index.md",
+        "evals/doc-review/files/cadence-fixture/docs/features/invoices.md",
+        "evals/doc-review/files/cadence-fixture/docs/mdcp.config.json",
+        "evals/doc-review/files/cadence-fixture/package.json"
       ]
     }
   ]

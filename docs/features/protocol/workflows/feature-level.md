@@ -5,7 +5,7 @@ documents shipped features using a **docs-first** then **TDD** loop so MDCP
 shards stay the contract before product code changes.
 
 Workflow file: [`skills/mdcp/references/workflows/feature-level.md`](../../../../skills/mdcp/references/workflows/feature-level.md).
-[Skill workflows](../skill-workflows.md) covers the shared workflow contract: intake, atomic commit groups, guide placement, and the glossary.
+[Skill workflows](../skill-workflows.md) covers the shared workflow contract: intake, atomic commit groups, guide placement, the glossary, and concept removal.
 
 ## End-user value
 

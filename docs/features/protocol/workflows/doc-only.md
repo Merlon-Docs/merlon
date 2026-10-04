@@ -5,7 +5,7 @@ MDCP shards as a technical-writer pass — durable guide content without changin
 functional product code.
 
 Workflow file: [`skills/mdcp/references/workflows/doc-only.md`](../../../../skills/mdcp/references/workflows/doc-only.md).
-[Skill workflows](../skill-workflows.md) covers the shared workflow contract: intake, atomic commit groups, guide placement, and the glossary.
+[Skill workflows](../skill-workflows.md) covers the shared workflow contract: intake, atomic commit groups, guide placement, the glossary, and concept removal.
 
 ## End-user value
 
@@ -18,7 +18,7 @@ durable docs so search stays trustworthy.
 | Obligation             | As-built expectation                                                                                    |
 | ---------------------- | ------------------------------------------------------------------------------------------------------- |
 | Work-item intake       | Resolve `WORK_ITEM` and `WORK_ITEM_LOOKUP` from the request; ask only for what is missing               |
-| Docs-only branch       | One documentation scope per branch; revise `docs/features/`, `docs/client/`, and/or `docs/developer/`   |
+| Docs-only branch       | One docs scope per branch, in `docs/features/`, `docs/client/`, `docs/developer/` and standalone guides |
 | Contracts not samples  | Put intent, contracts, and acceptance in shards — not implementation dumps or product source paths      |
 | Glossary hygiene       | Follow the shared glossary obligation; define non-universal jargon per the inclusion bar                |
 | Indexes and validation | Update guide `index.md` files; run `mdcp check` (do not hand-edit compile output or `refs.json`)        |
@@ -36,6 +36,8 @@ durable docs so search stays trustworthy.
   the [getting-started workflow](./getting-started.md).
 - **Keeping “old way” sections for archaeology** — Git history preserves prior
   wording; consumer notice of removed behavior belongs in the changeset pipeline.
+  Only the history behind a rule that still holds goes in an ADR that the shard
+  or standalone guide links.
 - **Leaving jargon or acronyms undefined against the inclusion bar** — if the
   project’s glossary bar says the term belongs, define it in `docs/glossary/`
   rather than unexplained shorthand in durable shards.

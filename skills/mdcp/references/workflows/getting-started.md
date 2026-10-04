@@ -100,8 +100,10 @@ this before the first check so a fresh scaffold passes as is:
   Tell the user prose linting is off until they add styles.
 
 If the project is under active development, with changes landing every week,
-recommend the weekly review routine from `SKILL.md`. For a one-off project, say
-it is not needed.
+recommend the weekly review routine from `SKILL.md`. Tell the user what it
+needs to start each run and what evidence a run leaves. Document the routine
+only with a trigger the repo has, or label it advisory. For a one-off project,
+say it is not needed.
 
 ### 7. First feature tutorial (optional)
 

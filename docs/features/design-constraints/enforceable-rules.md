@@ -35,6 +35,8 @@ This constraint is why MDCP invests in the [check gate](../feature-catalog.md#ch
 | One primary concern per shard                 | **Advisory**                         | None                                                |
 | No implementation detail in durable docs      | **Advisory**                         | None                                                |
 | No temporary information or backlogs in docs  | **Advisory**                         | Partial: pending changeset links, Vale              |
+| Current docs drop a removed or old name       | **Advisory**                         | Partial: `lint.paths`, link validation              |
+| A review routine states trigger and evidence  | **Advisory**                         | None                                                |
 
 Where the gated rows are specified: [orphan check](../feature-catalog.md#orphan-check-p13), [link validation](../link-validation.md), [documentation coverage scan](../coverage-scan.md), [peer linters](./peer-linters.md).
 

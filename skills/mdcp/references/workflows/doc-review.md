@@ -93,7 +93,8 @@ mdcp review
 ```
 
 A group is done when `mdcp check` passes and the findings you acted on are gone
-from `mdcp review`.
+from `mdcp review`. A group that removes or renames a concept also follows
+**Removing or renaming a concept** in `SKILL.md`.
 
 ### Step 5: Raise the floor
 
@@ -111,7 +112,9 @@ this workflow weekly, once per guide, with **SCOPE** set to that guide (see
 each run small enough to read every shard. Duplicates are the main target:
 pick the one shard that states each repeated rule and link to it from the others.
 Skip the routine for one-off projects and projects that change only now and
-then.
+then. When you recommend it, the repo's contributor docs say what starts each
+run and what evidence each run leaves, as **Weekly review routine** in
+`SKILL.md` requires.
 
 ## Never
 

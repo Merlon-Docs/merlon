@@ -67,10 +67,12 @@ current docs only, [shard single responsibility](../glossary/shard-single-respon
 [idea mitosis](../glossary/idea-mitosis.md), two-level review, no code or
 temporary information in durable docs, and recording where plans live.
 
-Because every install gets its own copy of `SKILL.md`, the file also states two rules that these docs own:
-the [atomic commit groups plan obligation](./protocol/skill-workflows.md#atomic-commit-groups-plan-obligation)
-and the [guide layout and placement test](./protocol/mdcp-1.0-spec.md#2-default-guide-layout-code-repository-archetype).
-The workflow files inside the skill repeat each one at the step where it applies.
+Because every install gets its own copy of `SKILL.md`, the file also states four rules that these docs own:
+the [plan obligation for atomic commit groups](./protocol/skill-workflows.md#atomic-commit-groups-plan-obligation),
+the [guide layout and placement test](./protocol/mdcp-1.0-spec.md#2-default-guide-layout-code-repository-archetype),
+the [concept removal obligation](./protocol/skill-workflows.md#concept-removal-obligation),
+and the [trigger and evidence of the weekly review routine](./protocol/workflows/doc-review.md#weekly-review-routine).
+The workflow files inside the skill repeat or point to each one at the step where it applies.
 
 Depth on single responsibility, mitosis, and two-level review:
 [Shard single responsibility and idea mitosis](./protocol/shard-srp-and-mitosis.md).

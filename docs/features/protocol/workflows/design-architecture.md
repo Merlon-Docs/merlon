@@ -5,7 +5,7 @@ architecture and design decisions as **MDCP shards** so agents and humans can
 load one concern at a time instead of growing one large architecture document.
 
 Workflow file: [`skills/mdcp/references/workflows/design-architecture.md`](../../../../skills/mdcp/references/workflows/design-architecture.md).
-[Skill workflows](../skill-workflows.md) covers the shared workflow contract: intake, atomic commit groups, guide placement, and the glossary.
+[Skill workflows](../skill-workflows.md) covers the shared workflow contract: intake, atomic commit groups, guide placement, the glossary, and concept removal.
 
 ## End-user value
 
@@ -22,7 +22,7 @@ instead of living only in chat or a thousand-line wiki page.
 | Capture architecture intent | Draft system diagrams, API/data contracts, and boundaries as shards under `docs/features/`              |
 | Land durable decisions      | Record accepted choices as ADRs under `docs/features/adr/` when the repo uses that layout               |
 | Keep docs sharded           | Prefer **one primary concern per shard**; update feature/ADR `index.md` so new shards are discoverable  |
-| Brownfield hygiene          | Split or retire legacy architecture docs; remove superseded planning from durable design shards         |
+| Brownfield hygiene          | Split or retire legacy architecture docs and superseded plans; keep a replaced ADR, marked superseded   |
 | Stay design-doc scoped      | No product/CLI/TypeScript implementation, no unit tests as delivery, no primary `docs/client/` work     |
 | Glossary hygiene            | Follow the shared glossary obligation; define non-universal design jargon per the inclusion bar         |
 | Skill QA                    | Current intended architecture only; no large implementation dumps; run repo `mdcp check` / docs scripts |

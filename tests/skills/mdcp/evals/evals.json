@@ -164,7 +164,7 @@
     {
       "id": 7,
       "prompt": "Clean up docs/features/notifications.md in the hygiene fixture. It still has a migration backlog and pasted implementation code. Make the shard durable and current per MDCP QA principles.",
-      "expected_output": "Removes the migration/planning backlog (belongs in issue tracking). Strips implementation code from the shard. Leaves present-tense current behavior / intent only. Does not link durable docs to pending .changeset files.",
+      "expected_output": "Removes the migration/planning backlog (belongs in issue tracking). Strips implementation code from the shard. Leaves present-tense current behavior / intent only. Replaces the 'Why email only' history (used to, the incident, as of 2026-07-01) with the current constraint in one present-tense sentence. Because the email-only constraint still holds, moves its history to an ADR that the shard links, and does not keep it inline because of the repo convention or send it to a changeset. Leaves the incident log to the tracker and links no incident log or ticket from the shard. Does not link durable docs to pending .changeset files.",
       "files": [
         "evals/files/hygiene/docs/features/notifications.md",
         "evals/files/hygiene/docs/features/index.md"
@@ -185,6 +185,14 @@
         {
           "name": "no_changeset_links",
           "description": "Does not link durable docs to pending .changeset files"
+        },
+        {
+          "name": "no_dated_or_old_way_narrative",
+          "description": "The cleaned shard has no dated claim (as of or until before a date) and no old-way narrative (used to, the incident story)"
+        },
+        {
+          "name": "moves_history_to_linked_adr",
+          "description": "The history behind the email-only constraint moves to an ADR that the shard links; it does not stay inline under the repo convention, and the shard links no incident ticket"
         }
       ]
     },
@@ -499,6 +507,111 @@
           "name": "retention_rule_stated_once",
           "description": "The 30-day retention paragraph remains in exactly one shard and the others link to it"
         }
+      ]
+    },
+    {
+      "id": 17,
+      "prompt": "We deleted the webhook worker from services/hooks/ today, so digests go out by email only now. Update the docs to match and commit the change.",
+      "expected_output": "From the repository root, runs a case-insensitive search of every Markdown file for each spelling of the worker, for example git grep --untracked -n -i -F -e 'webhook worker' -e 'webhook-worker' -e 'services/hooks' -e 'webhook' -- '*.md'. Leaving out -w lets the search find the plural webhook workers, and the distinctive word webhook finds the name that a line break splits in digests.md. The hits include the standalone guide AGENTS.md and its Webhook worker heading. Rewrites docs/features/digests.md for email-only delivery in the present tense, removes the worker from the AGENTS.md repository map, local-run steps and Webhook worker section without stopping to ask about scope, runs mdcp check through the docs:check script, and gives the search command and the files it hit in the commit message.",
+      "files": [
+        "evals/files/removal/AGENTS.md",
+        "evals/files/removal/docs/features/digests.md",
+        "evals/files/removal/docs/features/index.md",
+        "evals/files/removal/docs/.gitignore",
+        "evals/files/removal/docs/mdcp.config.json",
+        "evals/files/removal/package.json",
+        "evals/files/removal/services/email/package.json"
+      ],
+      "assertions": [
+        {
+          "name": "searches_standalone_guides",
+          "description": "Searches every Markdown file, AGENTS.md included, for the worker's names without case sensitivity and without -w, plus a distinctive word such as webhook, for example with git grep -i -F over the quoted pathspec '*.md' (checked from the transcript)"
+        },
+        {
+          "name": "agents_md_updated",
+          "description": "AGENTS.md no longer lists services/hooks/, has no Webhook worker section, does not mention the webhook workers and does not tell a session to start the worker"
+        },
+        {
+          "name": "digests_shard_current",
+          "description": "docs/features/digests.md describes email-only delivery in the present tense, with no removal narrative and no mention of the webhook worker, the one split across two lines included"
+        },
+        {
+          "name": "commit_gives_search_and_hits",
+          "description": "The commit message gives the search command and lists the files it hit, AGENTS.md included"
+        },
+        {
+          "name": "check_passes",
+          "description": "mdcp check passes after the change with Vale skipped, as the fixture's docs:check script runs it, and the change adds no Vale config"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "prompt": "Write an ADR to replace the webhook worker with a queue consumer. The implementation lands next sprint. Commit the change.",
+      "expected_output": "Follows the design-architecture workflow and records the decision as an ADR under docs/features/ that a guide index links. The webhook worker is still in services/hooks/, so AGENTS.md and docs/features/digests.md keep describing it: the repository map row, the npm run webhook-worker step, the Webhook worker section and the webhook delivery row all stay. The plan or the reply says that the feature-level change that removes the worker follows Removing or renaming a concept. mdcp check passes through the docs:check script.",
+      "assertions": [
+        {
+          "name": "records_adr",
+          "description": "Adds an ADR for the queue consumer decision under docs/features/ and links it from a guide index"
+        },
+        {
+          "name": "live_worker_docs_kept",
+          "description": "AGENTS.md still lists services/hooks/, keeps the npm run webhook-worker step and the Webhook worker section, and docs/features/digests.md still describes webhook delivery"
+        },
+        {
+          "name": "defers_removal_steps",
+          "description": "The plan or the reply says that the change that removes the worker runs the removal steps, such as the search for its old name, instead of running them in this change"
+        },
+        {
+          "name": "check_passes",
+          "description": "mdcp check passes after the change with Vale skipped, as the fixture's docs:check script runs it"
+        }
+      ],
+      "files": [
+        "evals/files/removal/AGENTS.md",
+        "evals/files/removal/docs/features/digests.md",
+        "evals/files/removal/docs/features/index.md",
+        "evals/files/removal/docs/.gitignore",
+        "evals/files/removal/docs/mdcp.config.json",
+        "evals/files/removal/package.json",
+        "evals/files/removal/services/email/package.json",
+        "evals/files/removal/services/hooks/package.json"
+      ]
+    },
+    {
+      "id": 19,
+      "prompt": "We need an ADR for dropping webhook delivery of digests. We deleted the webhook worker last sprint, so digests go out by email only. Commit the change.",
+      "expected_output": "Follows the design-architecture workflow and records the decision as an ADR under docs/features/ that a guide index links. services/hooks/ is no longer in the code, so the change runs Removing or renaming a concept instead of deferring it. From the repository root it searches every Markdown file for each spelling of the worker, for example git grep --untracked -n -i -F -e 'webhook worker' -e 'webhook-worker' -e 'services/hooks' -e 'webhook' -- '*.md'. The hits include the standalone guide AGENTS.md. The change removes the worker from the AGENTS.md repository map, local-run steps and Webhook worker section, and rewrites docs/features/digests.md for email-only delivery in the present tense. The new ADR keeps its mentions of the worker. mdcp check passes through the docs:check script, and the commit message gives the search command and the files it hit.",
+      "assertions": [
+        {
+          "name": "records_adr",
+          "description": "Adds an ADR for dropping webhook delivery under docs/features/ and links it from a guide index"
+        },
+        {
+          "name": "runs_removal_steps",
+          "description": "Runs the removal search in this change instead of deferring it: every Markdown file, AGENTS.md included, for the worker's names without case sensitivity and without -w, plus a distinctive word such as webhook (checked from the transcript)"
+        },
+        {
+          "name": "removed_worker_docs_fixed",
+          "description": "AGENTS.md no longer lists services/hooks/, has no Webhook worker section and does not tell a session to start the worker, and docs/features/digests.md describes email-only delivery in the present tense with no mention of the webhook worker"
+        },
+        {
+          "name": "commit_gives_search_and_hits",
+          "description": "The commit message gives the search command and lists the files it hit, AGENTS.md included"
+        },
+        {
+          "name": "check_passes",
+          "description": "mdcp check passes after the change with Vale skipped, as the fixture's docs:check script runs it"
+        }
+      ],
+      "files": [
+        "evals/files/removal/AGENTS.md",
+        "evals/files/removal/docs/features/digests.md",
+        "evals/files/removal/docs/features/index.md",
+        "evals/files/removal/docs/.gitignore",
+        "evals/files/removal/docs/mdcp.config.json",
+        "evals/files/removal/package.json",
+        "evals/files/removal/services/email/package.json"
       ]
     }
   ]

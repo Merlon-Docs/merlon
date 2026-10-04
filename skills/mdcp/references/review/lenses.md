@@ -27,8 +27,15 @@ The reader will change the code.
   `mdcp review` reports exact duplicates; search for a rule's key phrase to find
   paraphrased copies.
 - Does a safeguard or invariant name its enforcing code, hook, or CI gate?
+- Does a recurring task the docs promise, such as a weekly review, say what
+  starts each run and what evidence a run leaves, or is it labeled advisory as
+  **Weekly review routine** in `SKILL.md` describes? That section also says how
+  to fix one that is neither.
 - Is a decision's rationale in an ADR or design shard, not narrated inside a
   how-to?
+- Does a shard narrate a rule's history inline, such as old behavior or an
+  erratum? The shard gives one present-tense reason and links the ADR that
+  holds the history.
 - Does the architecture overview's component list match the packages and apps in
   the repository?
 

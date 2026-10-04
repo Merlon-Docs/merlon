@@ -9,7 +9,7 @@ Act as an expert Technical Writer to author or refactor documentation using MDCP
 
 You are an expert Technical Writer. Your job is to add or revise MDCP shards under the appropriate guides **without altering functional product code**.
 
-**Hard scope boundary:** This workflow owns durable docs only (`docs/**` shards and guide indexes). If the user also asks for bug fixes, implementation, or unit tests, refuse or defer that work to a separate `WORK_ITEM` under the [feature workflow](feature-level.md). Do not “just do both” even when it would be faster.
+**Hard scope boundary:** this workflow owns durable docs only. Those are the shards and guide indexes under `docs/**` and standalone guides such as a root `AGENTS.md` or `SECURITY.md`. If the user also asks for bug fixes, code changes, or unit tests, refuse or defer that work to a separate `WORK_ITEM` under the [feature workflow](feature-level.md). Do not “just do both” even when it would be faster.
 
 ## Intake
 
@@ -41,7 +41,7 @@ Collect these via intake (or from the conversation if already stated):
 
 ### Step 3: Revise and Write
 
-1. Add or revise MDCP shards under the appropriate guide (`docs/features/`, `docs/developer/`, `docs/client/`).
+1. Add or revise MDCP shards under the appropriate guide (`docs/features/`, `docs/developer/`, `docs/client/`), or a standalone guide such as a root `AGENTS.md`.
 2. Put intent, contracts, and acceptance criteria in shards — **not** implementation samples, function signatures, or file paths into product source (the codebase is the source of truth for how something is built).
 3. **Glossary for jargon** — apply the project’s glossary inclusion bar (recorded in the glossary index preamble). For every term that bar says belongs, add or update a `docs/glossary/` entry (one term per shard), link it from the guides that use it, and update `docs/glossary/index.md`. Do not leave unexplained shorthand that fails the bar.
 4. Update each guide's `index.md` for compile order.
@@ -51,11 +51,13 @@ Collect these via intake (or from the conversation if already stated):
 
 1. Check shards against the as-built software.
 2. Remove deprecated references. Document current product behavior only — not superseded workflows. Delete migration backlogs, temporary planning notes, and pending `.changeset/*.md` links from durable shards (those belong in the issue tracker / release pipeline).
+3. Move the history behind a rule or constraint that still holds, such as an erratum or how things worked before the rule, to an ADR and link it from the shard or standalone guide. The shard or standalone guide states today's reason in one present-tense sentence and does not link the incident log or ticket behind the change, which stays in the issue tracker. Delete text that only describes removed behavior, and record its consumer notice in Step 5.
+4. When the product no longer has a component, flag or command that the docs describe, or the docs change renames or drops a term, follow **Removing or renaming a concept** in `SKILL.md` before you commit.
 
 ### Step 5: Validate and Wrap-up
 
 1. Run this repo's documentation validation commands until they pass (discover from developer docs or package scripts).
-2. Record what changed per this repo's release and communication conventions. DO NOT detail any old behavior that no longer works in our docs. That belongs in our changeset.
+2. Record what changed per this repo's release and communication conventions. Do not describe removed behavior in shards or standalone guides. Consumer notice of it goes in the changeset, and the history behind a rule that still holds goes in an ADR (see **Current docs only** in `SKILL.md`).
 3. Submit work for review and link `WORK_ITEM`.
 
 ## Common Mistakes
@@ -64,6 +66,7 @@ Collect these via intake (or from the conversation if already stated):
 | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | “It’ll be faster if I fix the code too”               | Docs-only scope stays docs-only. Defer code/tests to the feature workflow.                              |
 | “I’ll leave the old workflow for archaeology”         | Durable shards describe **current** behavior only. Git history keeps the old text.                      |
+| “Our convention says to explain the constraint”       | Keep today's reason in one sentence. Move the history to an ADR that the doc links.                     |
 | “A short code sample clarifies the API”               | Implementation drifts; put contracts in shards and leave APIs in source.                                |
 | “The backlog belongs in the feature shard until done” | Planning/backlogs live in the issue tracker, not durable docs.                                          |
 | “Everyone knows what that acronym means”              | Apply the project inclusion bar; define terms that belong in `docs/glossary/` and link from the guides. |
@@ -72,6 +75,7 @@ Collect these via intake (or from the conversation if already stated):
 
 - Editing `src/`, adding unit tests, or implementing TODOs during a docs-only `WORK_ITEM`
 - Keeping “superseded workflow” / “do not use” sections in durable shards
+- Keeping an erratum or a “used to” paragraph inline because a repo convention asks docs to explain themselves
 - Linking durable docs to pending `.changeset/*.md` files
 - Hand-editing generated compile output instead of fixing shards and re-running `mdcp check`
 - Shipping durable shards that introduce jargon or acronyms without glossary entries
