@@ -91,7 +91,7 @@ Each term is its own shard under `docs/glossary/`. [Shared glossary](./packages/
 - Node.js **>= 18.0.0** (see `engines` in root [`package.json`](package.json); [`.nvmrc`](.nvmrc) pins major version `18` for `nvm use`)
 - [pnpm](https://pnpm.io/) 11.x (see `packageManager` in root [`package.json`](package.json))
 - [Vale](https://vale.sh/docs/vale-cli/installation/) on `PATH` for prose lint (`pnpm docs:check` uses `--require-vale`). macOS: `brew install vale`; Linux: `snap install vale` or a [GitHub release](https://github.com/vale-cli/vale/releases) tarball. CI pins **3.15.1**.
-- Java 17 or later on `PATH` for `pnpm formal:check`, which runs the [formal models](#formal-models). CI always runs it, and the land gate runs it when a branch changes anything under `formal/` or the formal-check scripts.
+- Java 17 or later on `PATH` for `pnpm formal:check`, which runs the [formal models](#formal-models).
 
 ### First-time bootstrap
 
@@ -985,16 +985,15 @@ Dependabot still opens PRs against `develop`, because its changes come from outs
 
 `main` stays the repository's default branch because skills.sh installs from it, so GitHub proposes `main` as the base of a new PR. The **Release source** check fails any PR into `main` whose head is not `develop` or `hotfix/*`, and blocks the merge where `main`'s branch rule requires it. It runs from its own [workflow](.github/workflows/release-source.yml) so that it also runs when a PR's base changes to `main`, which CI does not.
 
-Changesets accumulate on `develop` with the work they describe. Nothing is versioned or published until a release PR reaches `main`.
-
 ### Release schedule (release PR from `develop` to `main`)
 
 There is **no calendar cadence** and **no Version Packages PR**. A release is a PR from `develop` to `main`, followed by **one CI job**:
 
-1. Contributors add a changeset with each change landed on `develop` that affects a published package or skill.
-2. When `develop` is tested and ready, open a PR from `develop` to `main` and merge it with a **merge commit**. Squashing would give `main` history that `develop` lacks.
-3. The merge runs the [release workflow](.github/workflows/release.yml) (`pnpm release:main`). After the **Release plan** job posts pending changesets (and any **missing GitHub Releases**) to the run summary, approve the **`release` environment**. The version job **resets to the current `origin/main` tip** (so post-approval work includes all merged changesets), then **sequentially**: applies changesets → syncs skill `metadata.version` → builds (so husky can run) → commits `chore: release` → **pushes to `main`** → publishes public packages to npm → **pushes tags** → creates GitHub Releases (including skill carriers).
+1. Changesets reach `develop` with the landings they describe ([When to add a changeset](#when-to-add-a-changeset)). The release workflow versions and publishes only after a release PR reaches `main`.
+2. When `develop` is tested and ready, confirm that the pending `.changeset/*.md` files list only the packages and skills that should bump, and that each unreleased skill is still internal, as [Publishing the skill pack](#publishing-the-skill-pack) requires. Then open a PR from `develop` to `main` and merge it with a **merge commit**. Squashing would give `main` history that `develop` lacks.
+3. The merge runs the [release workflow](.github/workflows/release.yml) (`pnpm release:main`), which needs the `RELEASE_GITHUB_TOKEN` secret described in [Publishing](#publishing). The **Release plan** job posts the pending changesets (and any **missing GitHub Releases**) to the run summary. Read that summary on the latest run to review the bumps and release notes, then approve the **`release` environment** there. The version job **resets to the current `origin/main` tip** (so post-approval work includes all merged changesets), then **sequentially**: applies changesets → syncs skill `metadata.version` → builds (so husky can run) → commits `chore: release` → **pushes to `main`** → publishes public packages to npm → **pushes tags** → creates GitHub Releases (including skill carriers).
 4. Every push to `main` runs the [sync workflow](.github/workflows/sync-develop.yml), which merges `main` back into `develop` so the release commit and any hotfix reach the trunk. A clean merge is pushed with the workflow's own `GITHUB_TOKEN`. A conflict opens a PR from `main` to `develop` instead.
+5. Check that each bumped item, skill carriers included, has a GitHub Release and that npm shows the new version of each public package. Then confirm that the **Sync develop** run merged the release commit into `develop`.
 
 **Latest main wins:** concurrency does **not** cancel an in-flight publish (`cancel-in-progress: false`). The Release plan job **cancels** other Release runs on `main` that are still **waiting** (env approval) or **queued**. If `main` moves during the short version window, `pnpm release:main` aborts the push with a superseded message (no force-push).
 
@@ -1011,15 +1010,6 @@ Packages and skills are **pre-1.0** while on `0.x.y`. Until an item reaches **1.
 | **patch** | Bug fixes, internal refactors with no intended API change                  |
 | **minor** | New capabilities, or breaking-within-0.x until majors are opened           |
 | **build** | Republish without API change (`0.1.0-build.1`, …) via `pnpm release:build` |
-
-### Release checklist (maintainers)
-
-1. Confirm pending `.changeset/*.md` files name only the packages/skills that should bump.
-2. **Skills policy:** `mdcp` remains the only consumer skill; keep `skills/mdcp-arch-*` as `metadata.internal: true` until intentionally published (see [Agent Skill development](#skillsshjson-repo-page-layout)).
-3. Ensure secret **`RELEASE_GITHUB_TOKEN`** is set (maintainer PAT with Contents + metadata for releases/push) — see [Publishing](#publishing).
-4. Merge a release PR from `develop` to `main` with a merge commit. Approve the **`release` environment** deployment when prompted.
-5. Verify GitHub Releases for each bumped item (npm packages and `@bwilliamson/skill-*`) and npm for public packages.
-6. Confirm the **Sync develop** run merged the release commit into `develop`.
 
 ### Durable docs vs pending changesets
 
@@ -1146,7 +1136,7 @@ Packages: `@bwilliamson/mdcp-core`, `@bwilliamson/mdcp-cli`, `@bwilliamson/mdcp-
 
 - npm account **`bwilliamson`** with access to publish `@bwilliamson/*`
 - **2FA enabled** on npm (auth-and-writes)
-- Repository secret **`RELEASE_GITHUB_TOKEN`** — **fine-grained** maintainer PAT with **Contents: Read and write** on this repo only (create commits/tags/releases). Prefer fine-grained over classic `repo`. Required for the single-step release job; do not use a broad classic PAT if avoidable.
+- Repository secret **`RELEASE_GITHUB_TOKEN`**, set up as described below
 - `pnpm install` at repo root
 
 ### First-time publish (chicken-and-egg)
@@ -1166,28 +1156,21 @@ Also enable **Settings → Actions → General → Workflow permissions → Allo
 #### `RELEASE_GITHUB_TOKEN`
 
 1. Create a **fine-grained** PAT as the maintainer (avoid classic `repo` unless necessary).
-2. Repository access: this repo only. Permissions: **Contents** read/write (commits, tags, releases).
+2. Repository access: this repo only. Give it **Contents** read/write (commits, tags, releases). Every fine-grained token also includes read-only **Metadata** access.
 3. Store as repository secret **`RELEASE_GITHUB_TOKEN`**.
 4. Rotate when maintainers change or on a schedule.
 
 Without it, the Release job fails before versioning (hard requirement).
 
-Before approving the **`release` environment**, open the **Release plan** job summary on the same workflow run and review pending `.changeset` files (release notes / bump intent).
+### Dry run and manual fallback
 
-### Routine releases (one step)
-
-1. Merge a release PR from `develop` to `main` with a merge commit ([Branches](#branches)).
-2. Open the **latest** Release workflow run → read the **Release plan** job summary (pending changesets and/or missing GitHub Releases). Older runs still waiting for approval are cancelled when a newer plan starts.
-3. Approve the **`release` environment** deployment on that latest run.
-4. After approval, CI **resets to `origin/main` tip**, then runs **`pnpm release:main`**: with pending changesets — version → sync skill frontmatter → build → commit → **push to `main`** → `changeset publish` → **push tags** → GitHub Releases (npm packages **and** skill carriers). With no changesets but missing tags/Releases — create those git tags and Releases idempotently at each package’s version-bump commit (`--target`). If `main` moved during versioning, the push aborts as superseded (no force-push).
-
-There is no separate Version Packages PR.
-
-Preview locally (consumes changesets — use a throwaway branch):
+Routine releases run in CI, as [Release schedule](#release-schedule-release-pr-from-develop-to-main) describes. The dry run prints each release command without running it, so it doesn't change any file or push anything:
 
 ```bash
 pnpm release:main --dry-run
 ```
+
+With pending changesets, the dry run lists them and then exits 1 with "changeset version ran but no package versions changed", because it skipped the version step. So it can't preview a versioning release.
 
 Manual fallback:
 

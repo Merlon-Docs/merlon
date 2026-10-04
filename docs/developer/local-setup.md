@@ -5,7 +5,7 @@
 - Node.js **>= 18.0.0** (see `engines` in root [`package.json`](../../package.json); [`.nvmrc`](../../.nvmrc) pins major version `18` for `nvm use`)
 - [pnpm](https://pnpm.io/) 11.x (see `packageManager` in root [`package.json`](../../package.json))
 - [Vale](https://vale.sh/docs/vale-cli/installation/) on `PATH` for prose lint (`pnpm docs:check` uses `--require-vale`). macOS: `brew install vale`; Linux: `snap install vale` or a [GitHub release](https://github.com/vale-cli/vale/releases) tarball. CI pins **3.15.1**.
-- Java 17 or later on `PATH` for `pnpm formal:check`, which runs the [formal models](./formal-models.md). CI always runs it, and the land gate runs it when a branch changes anything under `formal/` or the formal-check scripts.
+- Java 17 or later on `PATH` for `pnpm formal:check`, which runs the [formal models](./formal-models.md).
 
 ## First-time bootstrap
 
