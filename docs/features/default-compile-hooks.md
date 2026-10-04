@@ -16,11 +16,13 @@ New hooks require doc churn and config edits across all guides. Most guides want
 
 When `guides[].compile.hooks` is omitted, mdcp runs these hooks **in order** on each shard (after heading demotion and preamble stripping):
 
-| Hook            | Purpose                                                                                                          |
-| --------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `stripAnchors`  | Remove explicit heading anchor markers per shard; post-stitch strip uses `compile.stripAnchors` (default `true`) |
-| `codeEvidence`  | Rewrite repo source links to `#L` line fragments                                                                 |
-| `inlineInserts` | Inline captioned insert-library shards on first link                                                             |
+| Hook            | Purpose                                                                                                 |
+| --------------- | ------------------------------------------------------------------------------------------------------- |
+| `stripAnchors`  | Remove `{#id}` anchor markers per shard; post-stitch strip uses `compile.stripAnchors` (default `true`) |
+| `codeEvidence`  | Rewrite repo source links to `#L` line fragments                                                        |
+| `inlineInserts` | Inline captioned insert-library shards on first link                                                    |
+
+[stripAnchors](../client-core/compile-hooks/strip-anchors.md) lists which `{#id}` examples in code the hook keeps, and why a heading line keeps none.
 
 Hooks are no-ops when shard content does not match (no evidence links, no insert links, etc.).
 

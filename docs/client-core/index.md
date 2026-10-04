@@ -17,6 +17,7 @@
 ## Compile hooks
 
 - [Compile hooks — overview](./compile-hooks/index.md)
+- [stripAnchors](./compile-hooks/strip-anchors.md)
 - [codeEvidence](./compile-hooks/code-evidence.md)
 - [inlineInserts](./compile-hooks/inline-inserts.md)
 - [Cross-guide link rewriting](./compile-hooks/cross-guide-links.md)

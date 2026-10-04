@@ -20,9 +20,11 @@ function runLength(line: string, start: number, char: string): number {
   return i - start;
 }
 
-/** Fence opener (``` or ~~~, three or more, any indent so list-nested fences count). */
-function fenceOpen(line: string): Fence | null {
-  const start = leadingWhitespace(line);
+/**
+ * Fence opener at `start` (``` or ~~~, three or more). By default `start` is the line's first
+ * non-blank character at any indent, so maskNonProse also masks fences in nested list items.
+ */
+function fenceOpen(line: string, start = leadingWhitespace(line)): Fence | null {
   const char = line[start];
   if (char !== '`' && char !== '~') return null;
   const len = runLength(line, start, char);
@@ -32,11 +34,94 @@ function fenceOpen(line: string): Fence | null {
   return { char, len };
 }
 
-function isFenceClose(line: string, fence: Fence): boolean {
-  const start = leadingWhitespace(line);
+function isFenceClose(line: string, fence: Fence, start = leadingWhitespace(line)): boolean {
   const len = runLength(line, start, fence.char);
   if (len < fence.len) return false;
   return line.slice(start + len).trim() === '';
+}
+
+/** Columns of indentation, past a fence's container, that make a line indented code. */
+const CODE_INDENT = 4;
+
+/** Column of index `to` in `line`. A tab advances to the next multiple of four. */
+function columnAt(line: string, to: number): number {
+  let column = 0;
+  for (let i = 0; i < to; i++) column = line[i] === '\t' ? column + 4 - (column % 4) : column + 1;
+  return column;
+}
+
+function isDigit(ch: string | undefined): boolean {
+  return ch !== undefined && ch >= '0' && ch <= '9';
+}
+
+/**
+ * Index of the text after a list item marker at `start`, or -1 when no marker starts there. A
+ * marker is `-`, `*`, `+`, or one to nine digits and `.` or `)`, followed by one to four columns
+ * of whitespace.
+ */
+function listItemContent(line: string, start: number): number {
+  let end = start;
+  const first = line[start];
+  if (first === '-' || first === '*' || first === '+') end++;
+  else {
+    while (end - start < 9 && isDigit(line[end])) end++;
+    if (end === start || (line[end] !== '.' && line[end] !== ')')) return -1;
+    end++;
+  }
+  const content = end + leadingWhitespace(line.slice(end));
+  if (content === end) return -1;
+  return columnAt(line, content) - columnAt(line, end) <= CODE_INDENT ? content : -1;
+}
+
+/**
+ * Track fenced code blocks through a document, one line at a time. Call the returned function
+ * with each line in order. It returns true for the opening fence, each content line and the
+ * closing fence, and false for every other line.
+ *
+ * A fence opens on a run of three or more backticks or tildes that starts the line's text at most
+ * three columns in, or that follows a list item marker which starts the line's text at most three
+ * columns in. A backtick fence's info string cannot contain a backtick. The fence's container is
+ * the list item's content column for a fence that opens on a marker line, and column 0 for any
+ * other fence. A run of the same character, at least as long as the opener and followed only by
+ * whitespace, closes the fence when it starts less than four columns past the container. A
+ * non-blank line that starts left of a list item container ends that item, and the fence ends
+ * with it. A fence with no closer runs to the end of the input unless its list item ends first.
+ * Tabs advance to the next multiple of four columns.
+ *
+ * The scanner tracks no other containers, and it does not read HTML. A line indented four or more
+ * columns opens no fence, so a fence in a nested list item goes unseen, and so does a fence behind
+ * a blockquote's `>` marker. A fence that opens on its own line inside a list item has column 0 as
+ * its container, so when the item leaves it unclosed it runs on past the item's end. A fence line
+ * inside an HTML comment or an HTML block counts like any other.
+ *
+ * Each call reads its line a fixed number of times, with no regex.
+ */
+export function createCodeFenceScanner(): (line: string) => boolean {
+  let fence: (Fence & { container: number }) | null = null;
+  return (line) => {
+    const start = leadingWhitespace(line);
+    const column = columnAt(line, start);
+    if (fence) {
+      if (column >= fence.container || line.slice(start).trim() === '') {
+        const close = column - fence.container < CODE_INDENT && isFenceClose(line, fence, start);
+        if (close) fence = null;
+        return true;
+      }
+      // The line ends the list item that holds the fence, so the fence ends too.
+      fence = null;
+    }
+    if (column >= CODE_INDENT) return false;
+    const opened = fenceOpen(line, start);
+    if (opened) {
+      fence = { ...opened, container: 0 };
+      return true;
+    }
+    const content = listItemContent(line, start);
+    const inItem = content === -1 ? null : fenceOpen(line, content);
+    if (!inItem) return false;
+    fence = { ...inItem, container: columnAt(line, content) };
+    return true;
+  };
 }
 
 /** Remove `<!-- … -->` spans from one line; `open` carries a comment across lines. */

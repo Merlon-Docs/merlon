@@ -1264,7 +1264,7 @@ Never unpublish a version that other packages or consumers legitimately depend o
 
 Maintainer guide for tracking **GitHub Actions security posture** in this public OSS monorepo. Vulnerability **reporting** stays in [SECURITY.md](SECURITY.md); dependency and release triage stays in [Security-incident triage](#security-incident-triage). This shard is the audit trail for CI workflow and repository settings against the [OWASP GitHub Actions Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/GitHub_Actions_Security_Cheat_Sheet.html).
 
-Work is tracked under epic [#173 — Repository security posture](https://github.com/betsalel-williamson/mdcp/issues/173). The durable checklist lives in [#168 — OWASP GitHub Actions security checklist docs](https://github.com/betsalel-williamson/mdcp/issues/168); see [GitHub Actions security checklist](#github-actions-security-checklist) for row-by-row status. CodeQL findings on library regexes (heading / `` [ReDoS](#redos)) are tracked separately in [Safe markdown parsing](#safe-markdown-parsing-heading-helpers).
+Work is tracked under epic [#173 — Repository security posture](https://github.com/betsalel-williamson/mdcp/issues/173). The durable checklist lives in [#168 — OWASP GitHub Actions security checklist docs](https://github.com/betsalel-williamson/mdcp/issues/168); see [GitHub Actions security checklist](#github-actions-security-checklist) for row-by-row status. CodeQL findings on library regexes (heading / `{#id}` [ReDoS](#redos)) are tracked separately in [Safe markdown parsing](#safe-markdown-parsing-heading-helpers).
 
 ### Status vocabulary
 

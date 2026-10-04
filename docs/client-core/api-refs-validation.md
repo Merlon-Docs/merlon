@@ -38,7 +38,7 @@ Prefer outputDir-relative values in config (for example `".caches/refs.json"` wh
 ```typescript
 import { githubSlugify, headingTextToPlain } from '@bwilliamson/mdcp-core';
 
-headingTextToPlain('**Authored** `GFM`');
+headingTextToPlain('**Authored GFM** `{#gfm}`');
 // → 'Authored GFM'
 
 githubSlugify('Preprocessor / templating (out of scope)');

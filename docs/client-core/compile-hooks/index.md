@@ -89,7 +89,7 @@ For manifest compile order and `compile.sectionsHeading`, see [Manifest compile 
 
 ## Built-in hooks
 
-- **`stripAnchors`**: per shard (also default post-stitch). Removes explicit anchor markers.
+- **`stripAnchors`**: per shard (also default post-stitch). [stripAnchors](./strip-anchors.md): removes `{#id}` markers outside code, and every marker on a heading line.
 - **`codeEvidence`**: per shard. [codeEvidence](./code-evidence.md): repo source links → `#L` fragments.
 - **`inlineInserts`**: per shard. [inlineInserts](./inline-inserts.md): inline captioned insert libraries.
 - **Cross-guide rewrite** _(assembly)_: per shard before stitch. [Cross-guide links](./cross-guide-links.md): automatic from `compileOrder`, with optional `crossGuideLinks.ignoreGuides`.

@@ -3,6 +3,7 @@ import { mkdirSync, writeFileSync, existsSync, readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
+import { slug as githubSlug } from 'github-slugger';
 import {
   compileGuides,
   compileGuideResults,
@@ -10,6 +11,8 @@ import {
   writeCompiledGuides,
   type CompileOptionsInput,
 } from '../src/compile/assemble.js';
+import { resolveCompileHooks } from '../src/config/resolve-compile-hooks.js';
+import { buildSlugRegistry } from '../src/refs/slugs.js';
 import { withTmpDir } from './helpers/tmp-dir.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -90,6 +93,136 @@ describe('compileGuides', () => {
         manifest: 'index.md',
       });
       expect(out).not.toMatch(/\{#[a-z0-9-]+\}/i);
+    });
+  });
+
+  it('keeps brace ids inside code when the default hooks strip anchors', () => {
+    withTmpDir('mdcp-compile-', (work) => {
+      writeFileSync(join(work, 'index.md'), '# Example\n\n- [Section](section.md)\n');
+      writeFileSync(
+        join(work, 'section.md'),
+        [
+          '## Term {#my-anchor}',
+          '',
+          'Write `## Heading {#custom-id}` or `{#custom-id}` after a heading.',
+          '',
+          '```markdown',
+          '::: {#note}',
+          '## Title {#gone}',
+          '```',
+          '',
+        ].join('\n'),
+      );
+
+      const out = assembleGuide(work, {
+        manifest: 'index.md',
+        hooks: resolveCompileHooks(undefined),
+        stripAnchors: true,
+      });
+      expect(out).not.toContain('{#my-anchor}');
+      expect(out).toContain('Write `## Heading {#custom-id}` or `{#custom-id}` after a heading.');
+      // A heading line loses its markers even inside a fence; the fence's other lines keep theirs.
+      expect(out).toContain('```markdown\n::: {#note}\n## Title\n```');
+    });
+  });
+
+  it('gives a heading that quotes {#id} in code the slug its links and refs use', () => {
+    withTmpDir('mdcp-compile-', (work) => {
+      const guideDir = join(work, 'guide');
+      mkdirSync(guideDir, { recursive: true });
+      writeFileSync(join(guideDir, 'index.md'), '# Guide\n\n- [One](one.md)\n- [Two](two.md)\n');
+      writeFileSync(join(guideDir, 'one.md'), '# One\n\nSee [the syntax](./two.md).\n');
+      writeFileSync(join(guideDir, 'two.md'), '# The `{#id}` syntax\n\nText.\n');
+
+      const out = compileGuides({ guidesRoot: work, compileOrder: ['guide'] });
+      const heading = out.split('\n').find((line) => line.startsWith('## The '));
+      expect(heading).toBeDefined();
+      // GitHub drops the code span's backticks from the anchor, and so does github-slugger.
+      const githubAnchor = githubSlug(heading!.replace(/^#+ /, ''));
+
+      const fragment = /\[the syntax\]\(#([^)]*)\)/.exec(out)?.[1];
+      expect(fragment).toBe(githubAnchor);
+      const refs = buildSlugRegistry(out);
+      expect(refs.headings.map((h) => h.slug)).toContain(githubAnchor);
+    });
+  });
+
+  it('strips the marker from a heading after a list item leaves its fence unclosed', () => {
+    withTmpDir('mdcp-compile-', (work) => {
+      const guideDir = join(work, 'guide');
+      mkdirSync(guideDir, { recursive: true });
+      writeFileSync(
+        join(guideDir, 'index.md'),
+        '# Guide\n\n- [Setup](setup.md)\n- [Usage](usage.md)\n',
+      );
+      writeFileSync(
+        join(guideDir, 'setup.md'),
+        '# Setup\n\n- Install the tool:\n\n  ```bash\n  npm i -g mdcp\n\n## Next step {#next}\n\nText.\n',
+      );
+      writeFileSync(
+        join(guideDir, 'usage.md'),
+        '# Usage\n\nSee [next step](./setup.md#next-step).\n',
+      );
+
+      const out = compileGuides({ guidesRoot: work, compileOrder: ['guide'] });
+      const heading = out.split('\n').find((line) => line.startsWith('### Next step'));
+      expect(heading).toBe('### Next step');
+      const githubAnchor = githubSlug(heading!.replace(/^#+ /, ''));
+      expect(/\[next step\]\(#([^)]*)\)/.exec(out)?.[1]).toBe(githubAnchor);
+      expect(buildSlugRegistry(out).headings.map((h) => h.slug)).toContain(githubAnchor);
+    });
+  });
+
+  it('strips heading markers after a nested fence example and after an indented fence line', () => {
+    withTmpDir('mdcp-compile-', (work) => {
+      const guideDir = join(work, 'guide');
+      mkdirSync(guideDir, { recursive: true });
+      writeFileSync(
+        join(guideDir, 'index.md'),
+        '# Guide\n\n- [Setup](setup.md)\n- [Usage](usage.md)\n',
+      );
+      writeFileSync(
+        join(guideDir, 'setup.md'),
+        [
+          '# Setup',
+          '',
+          '```markdown',
+          '1.  Install:',
+          '',
+          '    ```bash',
+          '    npm i -g mdcp {#keep}',
+          '    ```',
+          '```',
+          '',
+          '## Next step {#next}',
+          '',
+          'To open a fence, type:',
+          '',
+          '    ```bash',
+          '',
+          '## Last step {#last}',
+          '',
+        ].join('\n'),
+      );
+      writeFileSync(
+        join(guideDir, 'usage.md'),
+        '# Usage\n\nSee [next step](./setup.md#next-step) and [last step](./setup.md#last-step).\n',
+      );
+
+      const out = compileGuides({ guidesRoot: work, compileOrder: ['guide'] });
+      expect(out).toContain('    npm i -g mdcp {#keep}');
+      const slugs = buildSlugRegistry(out).headings.map((h) => h.slug);
+      for (const [text, title] of [
+        ['next step', 'Next step'],
+        ['last step', 'Last step'],
+      ]) {
+        expect(out.split('\n').find((line) => line.startsWith('### ' + title))).toBe(
+          '### ' + title,
+        );
+        const githubAnchor = githubSlug(title);
+        expect(new RegExp(`\\[${text}\\]\\(#([^)]*)\\)`).exec(out)?.[1]).toBe(githubAnchor);
+        expect(slugs).toContain(githubAnchor);
+      }
     });
   });
 

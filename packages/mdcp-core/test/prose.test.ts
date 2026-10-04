@@ -7,6 +7,7 @@ import {
   listMarkerLength,
   stripBlockMarkers,
   countWords,
+  createCodeFenceScanner,
 } from '../src/markdown/index.js';
 import { filterScanIgnored } from '../src/validate/coverage.js';
 import { manySpaces, timeMs } from './helpers/redos-pumps.js';
@@ -68,6 +69,115 @@ describe('maskNonProse', () => {
 
   it('ignores fence markers inside an open HTML comment', () => {
     expect(maskNonProse('<!--\n```\n-->\nprose')).toEqual(['', '', '', 'prose']);
+  });
+});
+
+/** Run a fresh scanner over `lines` and return its answer for each line. */
+function fenced(lines: string[]): boolean[] {
+  const inFence = createCodeFenceScanner();
+  return lines.map((line) => inFence(line));
+}
+
+describe('createCodeFenceScanner', () => {
+  it('marks the opener, the content and the closer of a fence', () => {
+    expect(fenced(['a', '```js', 'x', '```', 'b'])).toEqual([false, true, true, true, false]);
+  });
+
+  it('closes only on the same character, at least as long, with nothing after it', () => {
+    expect(fenced(['~~~~', '~~~', '```', '~~~~ x', '~~~~~', 'y'])).toEqual([
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+    ]);
+  });
+
+  it('does not open a backtick fence whose info string holds a backtick', () => {
+    expect(fenced(['``` a`b', 'x'])).toEqual([false, false]);
+    expect(fenced(['~~~ a`b', 'x', '~~~'])).toEqual([true, true, true]);
+  });
+
+  it('opens and closes on lines indented at most three columns', () => {
+    expect(fenced(['   ```', 'x', '   ```', '    ```', 'y'])).toEqual([
+      true,
+      true,
+      true,
+      false,
+      false,
+    ]);
+    // Inside a fence, a run four columns in is content.
+    expect(fenced(['```', '    ```', 'x', '```', 'y'])).toEqual([true, true, true, true, false]);
+    // A tab advances to column 4.
+    expect(fenced(['\t```', 'x', ' \t```'])).toEqual([false, false, false]);
+  });
+
+  it('opens a fence right after a list marker and measures its closer from the item', () => {
+    expect(fenced(['- ```bash', '  x', '  ```', '  y'])).toEqual([true, true, true, false]);
+    expect(fenced(['1. ```', '   x', '   ```', 'y'])).toEqual([true, true, true, false]);
+    expect(fenced(['10. ```', '    x', '    ```', 'y'])).toEqual([true, true, true, false]);
+    expect(fenced(['  - ```', '    x', '    ```', 'y'])).toEqual([true, true, true, false]);
+    // A thematic break or a marker without a fence after it opens nothing.
+    expect(fenced(['* * *', '- - -', '- text', '1.```'])).toEqual([false, false, false, false]);
+  });
+
+  it('ends a fence opened on a marker line where its list item ends', () => {
+    // Blank lines, CRLF ones included, keep the item open; a line left of its content ends it.
+    expect(fenced(['- ```', '  x', '', '\r', '  y', 'z', '  w'])).toEqual([
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+    ]);
+    // The line that ends the item can open the next fence.
+    expect(fenced(['- ```', '  x', '```', 'y', '```', 'z'])).toEqual([
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+    ]);
+  });
+
+  it('reads no other containers and no HTML', () => {
+    // A fence on its own line in a list item has column 0 as its container, so it outlives the
+    // item when the item leaves it unclosed.
+    expect(fenced(['- item', '', '  ```', '  x', '', 'Text', '  ```'])).toEqual([
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+    ]);
+    // A fence in a nested list item or behind a blockquote marker goes unseen.
+    expect(fenced(['- a', '  - b', '', '    ```', '    x', '    ```'])).toEqual([
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+    ]);
+    expect(fenced(['> ```', '> x', '> ```'])).toEqual([false, false, false]);
+    // A fence line inside an HTML comment counts like any other.
+    expect(fenced(['<!--', '```', '-->', 'x'])).toEqual([false, true, true, true]);
+    // Inside a fence, a marker line is content.
+    expect(fenced(['```', '- ```', 'x', '```', 'y'])).toEqual([true, true, true, true, false]);
+  });
+
+  it('stays linear on long indents and long fence runs', () => {
+    const lines = [manySpaces(40_000) + '```', '`'.repeat(40_000), '- ' + '`'.repeat(40_000)];
+    const ms = timeMs(() => {
+      for (let i = 0; i < 20; i++) fenced(lines);
+    });
+    expect(ms).toBeLessThan(100);
   });
 });
 
