@@ -2,7 +2,7 @@
 
 Authored docs use [GFM](../../glossary/gfm.md) ([spec](https://github.github.com/gfm/)). No Pandoc, LaTeX, or wikilinks as the authoring contract.
 
-MDCP’s compile, refs, and link checks implement a **subset** of GFM for headings today. Prefer ATX in authored shards (peer markdownlint `MD003: atx` matches that). Expanding heading recognition toward full GFM is tracked as follow-up work.
+MDCP’s compile, refs, and link checks implement a **subset** of GFM for headings today. Prefer ATX in authored shards (peer markdownlint `MD003: atx` matches that).
 
 ## Headings
 

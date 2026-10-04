@@ -643,7 +643,7 @@ _Note: GitHub and GitHub Flavored Markdown are trademarks of GitHub, Inc. This p
 
 Maintainer note for why `mdcp-core` centralizes heading parsing and related cleanup in shared **language-agnostic** helpers instead of ad-hoc regular expressions, and how remaining package regexes were audited for [ReDoS](#redos) risk.
 
-Work is tracked under [#200](https://github.com/betsalel-williamson/mdcp/issues/200) (Phase A, v0.7 release gate) and [#201](https://github.com/betsalel-williamson/mdcp/issues/201) (Phase B follow-up audit), as children of epic [#173 — Repository security posture](https://github.com/betsalel-williamson/mdcp/issues/173). CodeQL setup that surfaces these findings is [#174](https://github.com/betsalel-williamson/mdcp/issues/174). Prose chapter-cue lint moved to Vale in [#230](https://github.com/betsalel-williamson/mdcp/issues/230) / [Locale and language boundary](docs/features/design-constraints/locale-and-language.md).
+CodeQL surfaces these findings. Prose chapter-cue lint lives in Vale; see [Locale and language boundary](docs/features/design-constraints/locale-and-language.md).
 
 ### Why this is necessary
 
@@ -718,7 +718,6 @@ These dismissals are intentional: Phase B does **not** replace every regex with 
 - Prefer imperative scanners when adding line-range style matchers (optional whitespace next to digits or overlapping alternatives). Authored **word** cues for line ranges belong in the locale pack; keep `L` / `:` forms and `#L…` output language-neutral in the scanner.
 - Prefer GFM auto-slugs; do not author Pandoc IDs on headings (Vale warns in this repo). Compile stripping stays available for legacy content.
 - Unlinked chapter/section prose cues are Vale’s job — not a new `mdcp-core` lint path.
-- After merge to the default branch, confirm CodeQL alerts for the heading/anchor class stay closed on the next scan of `main`.
 
 <!-- mdcp-shard: end docs/developer/safe-markdown-parsing.md -->
 
@@ -1284,7 +1283,7 @@ After CODEOWNERS is on `main`, a repo admin enables review enforcement:
 
 1. Open **Settings → Branches → Branch protection rules → `main`** (or the active ruleset for `main`).
 2. Under **Require a pull request before merging**, enable **Require review from Code Owners**.
-3. Keep **Dismiss stale pull request approvals when new commits are pushed** enabled (already on as of 2026-07-27).
+3. Keep **Dismiss stale pull request approvals when new commits are pushed** enabled.
 
 A separate `required_approving_review_count` is not needed — only maintainers have merge access, so the maintainer merge itself serves as the approval gate. Re-verify after any branch-protection edits:
 
@@ -1424,7 +1423,7 @@ Do not confuse "skill" with human abilities or general AI capabilities. In this 
 
 ## MDCP
 
-**MarkDown Context Protocol** — a **documentation system** delivered as an [Agent Skill](#agent-skills) and lightweight toolchain. It helps teams who care about durable docs distill mind maps, architecture notes, specs, and product ideas into small Markdown **shards** so intent stays reviewable in git (the V1 transport), maintainable as ideas keep arriving, and readable one shard at a time by people and agents.
+**MarkDown Context Protocol** — a **documentation system** delivered as an [Agent Skill](#agent-skills) and lightweight toolchain. It helps teams who care about durable docs distill mind maps, architecture notes, specs, and product ideas into small Markdown **shards** so intent stays reviewable in git, maintainable as ideas keep arriving, and readable one shard at a time by people and agents.
 
 MDCP is not a magic bullet for documentation debt. It is a practice and skill that puts system context where it compounds — tracing why the system or process exists, how to use it, and what value it delivers — for a team of one or a full product, engineering, and marketing org.
 
@@ -1498,7 +1497,7 @@ Use it before you trust a merge. Command details: [CLI consumer guide](docs/clie
 
 **GitHub Flavored Markdown** ([spec](https://github.github.com/gfm/)) — CommonMark plus GitHub extensions (tables, task lists, fenced code). Not Pandoc, LaTeX, or wikilinks.
 
-MDCP’s authored format contract is GFM, but heading recognition is an **ATX subset** today (setext not yet). See [GFM scope](docs/features/design-constraints/gfm-scope.md#headings).
+MDCP’s authored format contract is GFM, but heading recognition is an **ATX subset**: setext headings are not recognized. See [GFM scope](docs/features/design-constraints/gfm-scope.md#headings).
 
 <!-- mdcp-shard: end docs/glossary/gfm.md -->
 
@@ -1618,7 +1617,7 @@ See [Documentation coverage scan](docs/features/coverage-scan.md).
 
 **ReDoS** (Regular expression Denial of Service) is when a regular expression takes far too long on certain inputs — often because overlapping or unbounded quantifiers force the engine to explore many matching paths. Attackers (or accidental pathological strings) can stall a process that runs the pattern on untrusted or library-controlled text.
 
-In this repository, CodeQL’s `js/polynomial-redos` rule flags that class of risk. Heading and Pandoc `{#…}` parsing in `mdcp-core` moved to shared linear helpers so those alerts close and the anti-pattern does not spread. A follow-up audit rewrote the polynomial-adjacent code-evidence line-range scanner, recorded keep/dismiss decisions for remaining core regexes, and left en-US chapter-cue prose lint in Vale ([#230](https://github.com/betsalel-williamson/mdcp/pull/230)). See [Safe markdown parsing](#safe-markdown-parsing-heading-helpers).
+In this repository, CodeQL’s `js/polynomial-redos` rule flags that class of risk. Heading and Pandoc heading-id parsing in `mdcp-core` uses shared linear helpers, so the pattern does not spread. See [Safe markdown parsing](#safe-markdown-parsing-heading-helpers).
 
 <!-- mdcp-shard: end docs/glossary/redos.md -->
 

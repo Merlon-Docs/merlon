@@ -1,6 +1,6 @@
 # MDCP 1.0 specification (draft)
 
-Normative specification for the MarkDown Context Protocol. Parent: [GitHub #48](https://github.com/betsalel-williamson/mdcp/issues/48).
+Normative specification for the MarkDown Context Protocol.
 
 > **Status:** Draft — reference implementation leads; prose reconciled against `mdcp-core` before calling the specification final. Protocol versioning is independent of package semver. Agent entrypoint is the parent **Agent Skill** (`/mdcp`).
 

@@ -2,7 +2,7 @@
 
 Maintainer note for why `mdcp-core` centralizes heading parsing and related cleanup in shared **language-agnostic** helpers instead of ad-hoc regular expressions, and how remaining package regexes were audited for [ReDoS](../glossary/redos.md) risk.
 
-Work is tracked under [#200](https://github.com/betsalel-williamson/mdcp/issues/200) (Phase A, v0.7 release gate) and [#201](https://github.com/betsalel-williamson/mdcp/issues/201) (Phase B follow-up audit), as children of epic [#173 — Repository security posture](https://github.com/betsalel-williamson/mdcp/issues/173). CodeQL setup that surfaces these findings is [#174](https://github.com/betsalel-williamson/mdcp/issues/174). Prose chapter-cue lint moved to Vale in [#230](https://github.com/betsalel-williamson/mdcp/issues/230) / [Locale and language boundary](../features/design-constraints/locale-and-language.md).
+CodeQL surfaces these findings. Prose chapter-cue lint lives in Vale; see [Locale and language boundary](../features/design-constraints/locale-and-language.md).
 
 ## Why this is necessary
 
@@ -77,4 +77,3 @@ These dismissals are intentional: Phase B does **not** replace every regex with 
 - Prefer imperative scanners when adding line-range style matchers (optional whitespace next to digits or overlapping alternatives). Authored **word** cues for line ranges belong in the locale pack; keep `L` / `:` forms and `#L…` output language-neutral in the scanner.
 - Prefer GFM auto-slugs; do not author Pandoc IDs on headings (Vale warns in this repo). Compile stripping stays available for legacy content.
 - Unlinked chapter/section prose cues are Vale’s job — not a new `mdcp-core` lint path.
-- After merge to the default branch, confirm CodeQL alerts for the heading/anchor class stay closed on the next scan of `main`.

@@ -1,6 +1,6 @@
 # Usage model
 
-Operational roles for Markdown as Context. Parent: [GitHub #45](https://github.com/betsalel-williamson/mdcp/issues/45).
+Operational roles for Markdown as Context.
 
 ## Agent entrypoint
 

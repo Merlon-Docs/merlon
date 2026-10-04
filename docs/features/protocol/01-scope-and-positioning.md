@@ -1,6 +1,6 @@
 # Scope and positioning
 
-Parent epic: [GitHub #44](https://github.com/betsalel-williamson/mdcp/issues/44). [Vision and roadmap](./00-vision-and-roadmap.md) covers the full phased delivery model.
+[Vision and roadmap](./00-vision-and-roadmap.md) covers the full phased delivery model.
 
 ## Protocol class
 

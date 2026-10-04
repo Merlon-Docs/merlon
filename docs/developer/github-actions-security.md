@@ -46,7 +46,7 @@ After CODEOWNERS is on `main`, a repo admin enables review enforcement:
 
 1. Open **Settings → Branches → Branch protection rules → `main`** (or the active ruleset for `main`).
 2. Under **Require a pull request before merging**, enable **Require review from Code Owners**.
-3. Keep **Dismiss stale pull request approvals when new commits are pushed** enabled (already on as of 2026-07-27).
+3. Keep **Dismiss stale pull request approvals when new commits are pushed** enabled.
 
 A separate `required_approving_review_count` is not needed — only maintainers have merge access, so the maintainer merge itself serves as the approval gate. Re-verify after any branch-protection edits:
 
