@@ -73,6 +73,8 @@ Packages and skills are **pre-1.0** while on `0.x.y`. Until an item reaches **1.
 
 Pending `.changeset/*.md` files are temporary. Point consumers at package CHANGELOGs under `packages/*/` or GitHub Releases — never at pending changesets. Skill CHANGELOGs live under `packages/skill-<id>/CHANGELOG.md`, not under `skills/`.
 
+A notice to consumers about removed or breaking behavior goes in the changeset. The release turns it into a package CHANGELOG entry.
+
 ## When to add a changeset
 
 Run `pnpm changeset` when a change touches:

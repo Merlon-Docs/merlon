@@ -329,11 +329,13 @@ All repo issues live on the public [MarkDown Context Protocol project board](htt
 
 #### Project fields
 
-| Field     | Values                                                          | When to set                                     |
-| --------- | --------------------------------------------------------------- | ----------------------------------------------- |
-| Status    | Todo · In Progress · Done                                       | Todo on intake; In Progress on branch start     |
-| Track     | 1.0 Formalization · Maintenance · Performance · Future (V2+)    | On intake ([Track selection](#track-selection)) |
-| Milestone | Current open delivery milestone when the issue is in that scope | When it belongs on the next ship slice          |
+| Field     | Values                                                          | When to set                                 |
+| --------- | --------------------------------------------------------------- | ------------------------------------------- |
+| Status    | Todo · In Progress · Done                                       | Todo on intake; In Progress on branch start |
+| Track     | 1.0 Formalization · Maintenance · Performance · Future (V2+)    | On intake                                   |
+| Milestone | Current open delivery milestone when the issue is in that scope | When it belongs in the next delivery cut    |
+
+Pick the Track value from [Track selection](#track-selection).
 
 #### Track selection
 
@@ -451,32 +453,25 @@ If none of the above apply, inspect enabled MCP tool descriptors or run `gh --he
 
 ### Git and delivery
 
+[Landing on `develop`](#landing-on-develop) owns how a pushed branch reaches `develop`, and [When to add a changeset](#when-to-add-a-changeset) owns release notes. Commit grouping belongs to [Atomic commit groups (plan obligation)](docs/features/protocol/skill-workflows.md#atomic-commit-groups-plan-obligation), and decisions to remove or reject a feature belong to the [architecture decision records](docs/features/adr/index.md). The conventions below tie a landing to its work item:
+
 ```text
-Integration branch=develop (pull before branching; see Versioning and releases → Landing on develop)
-Branch names=land/<issue>-<slug> (e.g. land/issue-29-default-compile-hooks); agent sessions use their claude/** branch. Only these two prefixes land
+Branch names=land/<issue>-<slug> (e.g. land/issue-29-default-compile-hooks); agent sessions use their claude/** branch
 One branch per WORK_ITEM=do not mix unrelated features, designs, or doc scopes in one landing
-Branch before work=create the feature branch before shards, tests, or code
-Commits=conventional; one concern per commit ([Atomic commit groups](../glossary/atomic-commit-groups.md))
-Atomic commit groups=coding and multi-concern plans MUST list numbered groups before “go” (id/name, one concern, exact files, conventional commit subject); after approval, `git commit` one group at a time — do not squash unrelated concerns
-Release notes=changeset in .changeset/ (see Versioning and releases → When to add a changeset)
-Docs=describe current behavior only; removed or breaking behavior belongs in changeset → package CHANGELOG, not feature/client shards
-ADRs=docs/features/adr/ (scope/removal decisions; link CHANGELOGs, never pending .changeset/*.md)
-Landing=push the branch; put evidence and "Closes #N" in the commit message
+Branch before work=branch from an up-to-date develop before shards, tests, or code; never commit on develop or main
+Commits=conventional commit subjects; one concern per commit
+Landing=push the branch; put "Closes #N" in the commit message
 ```
-
-How landing, the gate, and the release PR work is owned by [Landing on `develop`](#landing-on-develop).
-
-The skill's QA principles and its day-to-day workflows encode the same rule so plan-only agents inherit it: [Agent Skill](docs/features/agent-skill.md#quality-assurance-qa-principles), [Skill workflows](docs/features/protocol/skill-workflows.md).
 
 ### Workflow best practices
 
-1. **Load scope** — fetch WORK_ITEM (title, body, acceptance criteria) before planning or editing.
-2. **Branch first** — `git checkout develop`, pull, then `git checkout -b land/...` tied to the issue (agent sessions use their `claude/...` branch). Never commit on `develop` or `main` directly. Pushing the branch lands it on `develop` when the gate passes.
-3. **Stay focused** — one feature or design at a time. Treat acceptance criteria as the boundary unless WORK_ITEM explicitly expands scope.
-4. **Plan Atomic commit groups** — before waiting for human review / implementation, include numbered commit groups for multi-concern work (see [Git and delivery](#git-and-delivery)). After approval, land one group per commit.
-5. **Docs describe now** — update shards to match as-built behavior. Do not document superseded workflows in `docs/features/` or `docs/client/`; record consumer notice in the changeset (lands in package CHANGELOGs). Never link durable shards or ADRs to pending `.changeset/*.md` files.
-6. **Add a changeset** — see [When to add a changeset](#when-to-add-a-changeset).
-7. **Issue intake** — when opening or first touching an issue, complete [New issue intake](#new-issue-intake-required) (labels, board, Track, Status, milestone).
+1. **Load scope**: fetch WORK_ITEM (title, body, acceptance criteria) before planning or editing.
+2. **Branch first**: follow [Git and delivery](#git-and-delivery).
+3. **Stay focused**: one feature or design at a time. Treat acceptance criteria as the boundary unless WORK_ITEM explicitly expands scope.
+4. **Plan atomic commit groups**: list them in a coding or multi-concern plan before review, as [Atomic commit groups (plan obligation)](docs/features/protocol/skill-workflows.md#atomic-commit-groups-plan-obligation) requires. After approval, commit one group at a time.
+5. **Docs describe now**: update shards to match as-built behavior, and keep consumer notices out of durable shards ([Durable docs vs pending changesets](#durable-docs-vs-pending-changesets)).
+6. **Add a changeset**: see [When to add a changeset](#when-to-add-a-changeset).
+7. **Issue intake**: when opening or first touching an issue, complete [New issue intake](#new-issue-intake-required) (labels, board, Track, Status, milestone).
 8. **Weekly triage**: run the advisory [Weekly issue triage](#weekly-issue-triage). It asks humans to confirm before any stale or duplicate ticket is closed.
 
 ### Example intake answers
@@ -1029,6 +1024,8 @@ Packages and skills are **pre-1.0** while on `0.x.y`. Until an item reaches **1.
 ### Durable docs vs pending changesets
 
 Pending `.changeset/*.md` files are temporary. Point consumers at package CHANGELOGs under `packages/*/` or GitHub Releases — never at pending changesets. Skill CHANGELOGs live under `packages/skill-<id>/CHANGELOG.md`, not under `skills/`.
+
+A notice to consumers about removed or breaking behavior goes in the changeset. The release turns it into a package CHANGELOG entry.
 
 ### When to add a changeset
 
