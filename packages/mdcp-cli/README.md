@@ -422,13 +422,13 @@ Without `--strict`, `mdcp review` exits 0. Thresholds live under `review` in con
 
 ### Refs subcommands
 
-| Command           | Purpose                                                                                                               |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `mdcp refs-gen`   | Generate `refs.json` from compiled output                                                                             |
-| `mdcp refs-check` | Verify `refs.json` matches compiled output                                                                            |
-| `mdcp refs-list`  | List each compiled output's heading slugs and file (`--format json` or `table`; run `mdcp check` or `refs-gen` first) |
+| Command           | Purpose                                                                                                      |
+| ----------------- | ------------------------------------------------------------------------------------------------------------ |
+| `mdcp refs-gen`   | Generate `refs.json` from compiled output                                                                    |
+| `mdcp refs-check` | Verify `refs.json` matches compiled output                                                                   |
+| `mdcp refs-list`  | List each compiled output's heading slugs and file (`--format json` or `table`; run it after `mdcp compile`) |
 
-Validate fragment links with `mdcp check`. Use `mdcp refs-list` when you need to inspect registry slugs. [Refs](#refs) explains what refs are for.
+[Cross-links and refs](#cross-links-and-refs) shows where `mdcp refs-list` fits after compile and check, and [Refs](#refs) explains what refs are for.
 
 <!-- mdcp-shard: end ../../docs/client-cli/commands-reference.md -->
 
@@ -476,7 +476,7 @@ Do not list a compiled guide's output (a generated file such as `README.md` or `
 
 ## Compile and the refs registry
 
-`mdcp compile` writes the [refs registry](#refs-registry) to `refs.registryFile`, which resolves by the rule in [Path layout](#path-layout). A guide's `compile.outputFile` doesn't move the registry. `mdcp refs-list` reads it right after compile, with no `mdcp refs-gen` run first. [Refs registry path](../../docs/features/refs-registry-path.md#path-resolution) is the spec and has an example.
+`mdcp compile` writes the [refs registry](#refs-registry) to `refs.registryFile`, which resolves by the rule in [Path layout](#path-layout). A guide's `compile.outputFile` doesn't move the registry. `mdcp refs-list` reads it right after compile, with no `mdcp refs-gen` run first. [Refs registry path](../../docs/features/refs-registry-path.md#path-resolution) is the spec and has an example. [Cross-links and refs](#cross-links-and-refs) shows when to run each command while you write cross-links.
 
 ### Registry contents
 
@@ -495,16 +495,6 @@ The top-level `headings` and `slugs` hold the headings of one text. That text is
 
 `mdcp refs-list` prints the headings of every entry in `outputs`, each with its `file`. With `--format table`, it prints one tab-separated line for each heading, which starts with the file and ends with the heading's slug and title. A registry without `outputs`, such as one that `genRefsFromCompiled` writes from one text, has no files to give. `mdcp refs-list` then prints the top-level headings, and on stderr it gives the registry's path and says to run `mdcp refs-gen`.
 
-### Workflow
-
-```bash
-mdcp compile --config docs/mdcp.config.json --docs-root docs
-mdcp check --config docs/mdcp.config.json --docs-root docs
-mdcp refs-list --config docs/mdcp.config.json --docs-root docs
-```
-
-`mdcp check` validates cross-link fragments against compiled slugs. `mdcp refs-list` reads the registry file that `compile` just wrote. When `mdcp check` reports a dead anchor on a link into a compiled output, look up that file's slugs in `mdcp refs-list --format table`. [Cross-links and refs](#cross-links-and-refs) lists the other targets a `#fragment` may name.
-
 <!-- mdcp-shard: end ../../docs/client-cli/compile-refs-registry.md -->
 
 <!-- mdcp-shard: start ../../docs/client-cli/cross-links-and-refs.md -->
@@ -519,7 +509,7 @@ mdcp check --config docs/mdcp.config.json --docs-root docs
 mdcp refs-list --config docs/mdcp.config.json --docs-root docs
 ```
 
-`mdcp check` fails on dead `#` fragments and bad paths. `mdcp refs-list` lists the heading slugs of each compiled output, with the output's file, from the [refs registry](#refs-registry). A `#fragment` has to match a slug of the file the link points at. For a bare `#fragment` in a shard, that is each output that stitches the shard. Compile stitches a guide's shard into the guide's [compiled guide](#compiled-guide) and, for a guide in the [monolith](#monolith), into the monolith too, where the same heading can take another slug, such as `setup-1` for `setup`. A bare `#fragment` may also point at the id of a section in that output, such as a `FIND-*` finding id or a declared `{#id}`. `mdcp refs-list` doesn't print those ids. Compile doesn't write an output for a [standalone guide](#standalone-guide), so the registry doesn't hold its headings.
+`mdcp check` fails on dead `#` fragments and bad paths. `mdcp refs-list` lists the heading slugs of each compiled output, with the output's file, from the [refs registry](#refs-registry) that `mdcp compile` writes. When `mdcp check` reports a dead anchor on a link into a compiled output, look up that file's slugs with `mdcp refs-list --format table`. A `#fragment` has to match a slug of the file the link points at. For a bare `#fragment` in a shard, that is each output that stitches the shard. Compile stitches a guide's shard into the guide's [compiled guide](#compiled-guide) and, for a guide in the [monolith](#monolith), into the monolith too, where the same heading can take another slug, such as `setup-1` for `setup`. A bare `#fragment` may also point at the id of a section in that output, such as a `FIND-*` finding id or a declared `{#id}`. `mdcp refs-list` doesn't print those ids. Compile doesn't write an output for a [standalone guide](#standalone-guide), so the registry doesn't hold its headings.
 
 ### Heading slugs (GitHub rules)
 

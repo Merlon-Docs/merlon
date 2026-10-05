@@ -82,10 +82,10 @@ Without `--strict`, `mdcp review` exits 0. Thresholds live under `review` in con
 
 ## Refs subcommands
 
-| Command           | Purpose                                                                                                               |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `mdcp refs-gen`   | Generate `refs.json` from compiled output                                                                             |
-| `mdcp refs-check` | Verify `refs.json` matches compiled output                                                                            |
-| `mdcp refs-list`  | List each compiled output's heading slugs and file (`--format json` or `table`; run `mdcp check` or `refs-gen` first) |
+| Command           | Purpose                                                                                                      |
+| ----------------- | ------------------------------------------------------------------------------------------------------------ |
+| `mdcp refs-gen`   | Generate `refs.json` from compiled output                                                                    |
+| `mdcp refs-check` | Verify `refs.json` matches compiled output                                                                   |
+| `mdcp refs-list`  | List each compiled output's heading slugs and file (`--format json` or `table`; run it after `mdcp compile`) |
 
-Validate fragment links with `mdcp check`. Use `mdcp refs-list` when you need to inspect registry slugs. [Refs](../glossary/refs.md) explains what refs are for.
+[Cross-links and refs](./cross-links-and-refs.md) shows where `mdcp refs-list` fits after compile and check, and [Refs](../glossary/refs.md) explains what refs are for.
