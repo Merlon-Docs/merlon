@@ -1,6 +1,6 @@
 # Performance goals
 
-Latency targets for MDCP compile, validation, and agent query paths, and the shard count each target is defined at.
+Latency targets for MDCP compile and check, and the shard count each target is defined at.
 
 MDCP is designed for **full programs** (hundreds of shards across multiple guides with dense cross-links) while keeping interactive agent loops and CI gates fast. This page sets the targets. Measurements against them are [research records](./research/about-research-records.md), dated and kept as measured.
 
@@ -10,7 +10,7 @@ MDCP is designed for **full programs** (hundreds of shards across multiple guide
 | ------------------------ | ------------------------------- | -------------------------------------------------- |
 | LLM doc author           | edit shard → `check`            | Compile+check under a few seconds during authoring |
 | CI                       | `mdcp check --require-lint`     | PR gate completes before reviewer context switches |
-| Agent (context consumer) | Host search → single-shard read | No full-repo compile on every query                |
+| Agent (context consumer) | Host search → single-shard read | No mdcp target, because this path doesn't run mdcp |
 
 The [usage model](./usage-model.md) prefers granular context (one shard at a time). Performance work keeps that model viable as repos grow.
 
@@ -20,10 +20,9 @@ Normative targets below. Each target is defined at a shard count. A smaller corp
 
 ### Tier 1: Interactive (agent authoring loop)
 
-| Operation                | Target                    | Rationale                                    |
-| ------------------------ | ------------------------- | -------------------------------------------- |
-| `compile` (single guide) | **< 500 ms** @ 200 shards | Fast feedback while editing one feature area |
-| `compile` (full repo)    | **< 2 s** @ 200 shards    | Pre-push sanity check                        |
+| Operation             | Target                 | Rationale                            |
+| --------------------- | ---------------------- | ------------------------------------ |
+| `compile` (full repo) | **< 2 s** @ 200 shards | An author recompiles after each edit |
 
 ### Tier 2: CI gate (core mdcp only, no peers)
 
@@ -43,20 +42,20 @@ The core stages are orphans, compile, refs, built-in links and coverage, the [Ch
 
 ### Tier 4: Regression metrics
 
-`pnpm bench:dogfood` runs the benchmark, as [Benchmarks](../../developer/benchmarks.md) describes. The benchmark measures the lint time and writes the ms/link row. It records the compile time, not a time per shard. The ms/shard row is the compile time divided by the shard count. Both timings are compared from one run to the next. CI doesn't run the benchmark, so a regression in them shows up only when someone runs it by hand.
+`pnpm bench:dogfood` runs the benchmark, as [Benchmarks](../../developer/benchmarks.md) describes. Its ms/link row is the link lint time divided by a fixed 357, the compiled link count of the 64-shard corpus in the [June 2026 benchmark record](./research/benchmark-dogfood-2026-06-19.md). So the row follows total lint time, and it rises as the docs gain links. Its status column compares the row with the 8 ms/link baseline from before single-pass compile. The benchmark records the compile time but not the corpus's shard count. Its `slo_shards` column is the count each target is defined at. Work out ms/shard by hand from the compile time and a shard count, and apply the 20% rule to two such figures. CI doesn't run the benchmark. A regression shows up only when someone runs it by hand.
 
-| Metric                          | Target                                      |
-| ------------------------------- | ------------------------------------------- |
-| ms / shard (compile)            | Trend down; a regression over 20% is a miss |
-| ms / link (lint)                | Trend down                                  |
-| File reads / shard              | → 1                                         |
-| Compile invocations per `check` | → 1                                         |
+| Metric                          | Target                                          |
+| ------------------------------- | ----------------------------------------------- |
+| ms/shard (compile)              | Trend down; a regression over 20% is a miss     |
+| ms/link row (lint time ÷ 357)   | Trend down between runs at a similar link count |
+| File reads / shard              | → 1                                             |
+| Compile invocations per `check` | → 1                                             |
 
 For the last two rows the benchmark writes a fixed 1, so only unit tests can catch a regression there. [`shard-cache.test.ts`](../../../packages/mdcp-core/test/shard-cache.test.ts) fails when a compile reads a shard file more than once, and [`compile-workspace.test.ts`](../../../packages/mdcp-cli/test/compile-workspace.test.ts) fails when one command compiles more than once.
 
-A guide in the [monolith](../../glossary/monolith.md) is assembled once for its compiled guide and once for the monolith, because paths and section slugs differ between the two files. Shard reads stay at one per shard. The second assembly can push ms per shard past the 20% limit in the table above, and the double assembly is an accepted exception to that limit.
+A guide in the [monolith](../../glossary/monolith.md) is assembled once for its compiled guide and once for the monolith, because paths and section slugs differ between the two files. Shard reads stay at one per shard. The second assembly can push ms/shard past the 20% limit in the table above, and the double assembly is an accepted exception to that limit.
 
-Link lint reads the monolith as a document of its own, so it checks each link of a guide in the monolith in both files. That second check adds work for each link. Link lint builds the set of heading slugs of each output once, and on mdcp's own docs that saves more time than the second check costs. Where the second check raises ms per link, the rise is accepted.
+Link lint reads the monolith as a document of its own, so it checks each link of a guide in the monolith in both files. That second check adds work for each link. Link lint builds the set of heading slugs of each output once, and on mdcp's own docs that saves more time than the second check costs. Where the second check raises the ms/link row, the rise is accepted.
 
 ## Related
 
