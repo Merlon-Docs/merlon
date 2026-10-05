@@ -418,9 +418,10 @@ describe('inlineInserts — config', () => {
   it('resolves short paths via hooksConfig.inlineInserts.searchRoots', () => {
     const guideDir = join(work.path, 'review', 'technical');
     mkdirSync(guideDir, { recursive: true });
-    mkdirSync(join(work.path, 'diagrams'), { recursive: true });
+    // The root holds the diagrams/ library, and the link's whole path resolves against it.
+    mkdirSync(join(work.path, 'shared', 'diagrams'), { recursive: true });
     writeFileSync(
-      join(work.path, 'diagrams', 'shared-flow.md'),
+      join(work.path, 'shared', 'diagrams', 'shared-flow.md'),
       '| Shared | Table |\n|---|---|\n| x | y |\n',
     );
     withCwd(work.path, () => {
@@ -433,7 +434,7 @@ describe('inlineInserts — config', () => {
             guides: [
               {
                 name: 'review',
-                compile: { hooksConfig: { inlineInserts: { searchRoots: ['diagrams'] } } },
+                compile: { hooksConfig: { inlineInserts: { searchRoots: ['shared'] } } },
               },
             ],
           } as never,
