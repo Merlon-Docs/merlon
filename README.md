@@ -48,12 +48,12 @@ The bootstrap session starts by asking for the feature, the reader persona and y
 
 ## Why use MDCP?
 
-- **Built for documentation-system thinkers:** Puts durable intent (specs, design notes, glossaries) in the repo where it compounds — not only in chat history or slide decks.
-- **Lower maintenance as ideas keep coming:** One topic per shard means new features extend the docs tree instead of bloating a single file you no longer trust.
-- **Docs-as-code for agents:** agents update shards before they change code, so “what we meant” stays reviewable in git alongside the change.
-- **Smaller, safer context loads:** People and LLMs read the section that matches the task — not the whole guide every turn.
-- **Validation gate:** `mdcp check` keeps cross-links and refs trustworthy in CI when the docs system grows.
-- **Portable skill:** works in any host that supports [Agent Skills](https://agentskills.io).
+Find the line that matches what you want from MDCP:
+
+- **Integrate mdcp into repo scripts and CI:** `mdcp check` is one gate for everyone who edits the docs and for CI, and it fails on orphan shards and broken internal links.
+- **Try mdcp before mastering every CLI flag:** paste the bootstrap prompt from [Get started](#get-started), and the agent walks you through setup.
+- **Own content, not the toolchain:** each topic is its own shard. When you or an agent reads only the shard for a task, the context contains one topic in place of the whole guide.
+- **Evaluate or sponsor adoption:** judge fit from the vision and the benefit claims policy before anyone installs anything. [Evaluate before you adopt](#evaluate-before-you-adopt) links both pages.
 
 <!-- mdcp-shard: end docs/repo-readme/about.md -->
 
