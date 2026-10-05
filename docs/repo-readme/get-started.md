@@ -8,7 +8,7 @@ If you are deciding whether a team should adopt MDCP, read two pages before anyo
 
 ## Quick Start
 
-Install the core documentation-system Agent Skill into your repository:
+Install the mdcp Agent Skill into your repository:
 
 ```bash
 npx skills add betsalel-williamson/mdcp --skill mdcp

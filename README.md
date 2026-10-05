@@ -8,7 +8,7 @@
 
 [![skills.sh](https://skills.sh/b/betsalel-williamson/mdcp)](https://skills.sh/betsalel-williamson/mdcp)
 
-**mdcp** (MarkDown Context Protocol) is a **documentation system** delivered as an [Agent Skill](https://agentskills.io) plus a small compile/check toolchain. It is for people who know that good docs compound and that unvalidated single-file READMEs get expensive as product ideas keep arriving. If you are evaluating it for a team, [Vision and roadmap](docs/features/protocol/00-vision-and-roadmap.md) explains the problem it solves and the principles behind it.
+**MarkDown Context Protocol (MDCP)** is a **documentation system** delivered as an [Agent Skill](https://agentskills.io) plus a small compile/check toolchain. It is for people whose docs grow as product ideas keep arriving and who want each topic in a small file that a check validates. If you are evaluating it for a team, [Vision and roadmap](docs/features/protocol/00-vision-and-roadmap.md) explains the problem it solves and the principles behind it.
 
 Instead of dumping every mind map, architecture note, and spec into one file that overwhelms both humans and LLM context windows, MDCP keeps that intent in small, validated Markdown **shards** — for example `docs/features/my-feature.md`, `docs/procedures/line-changeover.md`, `docs/equipment/press-manual.md`, or `docs/training/onboarding-module.md`. Agents learn to read **one shard at a time**, update shards before changing the system (software, procedures, or training), and run checks in CI — so documentation stays findable and trustworthy as the system grows. Discover and install via [skills.sh](https://skills.sh/betsalel-williamson/mdcp). <!-- mdcp-paths: illustrative -->
 
@@ -26,7 +26,7 @@ If you are deciding whether a team should adopt MDCP, read two pages before anyo
 
 ### Quick Start
 
-Install the core documentation-system Agent Skill into your repository:
+Install the mdcp Agent Skill into your repository:
 
 ```bash
 npx skills add betsalel-williamson/mdcp --skill mdcp
@@ -50,7 +50,7 @@ The agent asks for `FEATURE` and `PERSONA`, then helps wire config, guide layout
 
 - **Built for documentation-system thinkers:** Puts durable intent (specs, design notes, glossaries) in the repo where it compounds — not only in chat history or slide decks.
 - **Lower maintenance as ideas keep coming:** One topic per shard means new features extend the docs tree instead of bloating a single file you no longer trust.
-- **Docs-as-code for agents:** Agents update shards before implementing, so “what we meant” stays reviewable in git (the V1 transport) alongside the change.
+- **Docs-as-code for agents:** agents update shards before they change code, so “what we meant” stays reviewable in git alongside the change.
 - **Smaller, safer context loads:** People and LLMs read the section that matches the task — not the whole guide every turn.
 - **Validation gate:** `mdcp check` keeps cross-links and refs trustworthy in CI when the docs system grows.
 - **Portable skill:** Works in Cursor, GitHub Copilot, Claude Code, and other hosts that support [Agent Skills](https://agentskills.io).
