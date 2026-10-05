@@ -10,3 +10,51 @@
   --sl-color-accent: #0b7a71;
   --sl-color-accent-high: #0a3a36;
 }
+
+/* Front page: status strip under the hero. */
+.mdcp-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 1.25rem;
+  padding: 0;
+  list-style: none;
+}
+
+.mdcp-status li {
+  margin: 0;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 999px;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-2);
+}
+
+.mdcp-status strong {
+  margin-right: 0.35rem;
+  color: var(--sl-color-white);
+}
+
+/* Front page: FAQ. */
+.sl-markdown-content details {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.5rem;
+}
+
+.sl-markdown-content details + details {
+  margin-top: 0.5rem;
+}
+
+.sl-markdown-content summary {
+  font-weight: 600;
+  color: var(--sl-color-white);
+  cursor: pointer;
+}
+
+/* Front page: three-card row. */
+@media (min-width: 50rem) {
+  .mdcp-three .card-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

@@ -1,93 +1,175 @@
 ---
-title: Accurate docs while agents write the code
-description: Keep repository docs accurate while agents write the code. mdcp (MarkDown Context Protocol) compiles small Markdown shards into the READMEs people read and fails CI when they drift.
+title: MarkDown Context Protocol
+description: The MarkDown Context Protocol (MDCP) is a keystone agent skill and open protocol for recording what a project needs to last. Durable docs live in small Markdown shards that guides assemble for each reader.
 template: splash
 editUrl: false
 hero:
-  tagline: mdcp (MarkDown Context Protocol) keeps your repository docs in small Markdown shards and compiles them into the READMEs people read. Its check fails the build when a cross-link breaks or a compiled file goes stale.
+  title: MarkDown Context Protocol (MDCP)
+  tagline: A keystone agent skill for the knowledge a project needs to last. It records how to build and operate the software in small Markdown shards, then assembles them into guides for each reader.
   actions:
     - text: Get started
       link: ./guide/install-and-quick-start/
       icon: right-arrow
-    - text: View on GitHub
-      link: https://github.com/betsalel-williamson/mdcp
-      icon: external
-      variant: minimal
+    - text: Read the specification
+      link: ./concepts/protocol/mdcp-10-spec/
+      icon: open-book
+      variant: secondary
 ---
 
 import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
 
-## Why repository docs rot
-
-Docs get out of date as a project grows. Every merge can change behavior, and the README changes only when someone remembers to update it. When coding agents write most of the code, merges arrive faster than anyone rereads the docs they affect.
-
-## How mdcp keeps them accurate
-
-<CardGrid>
-  <Card title="Small shards" icon="document">
-    Each topic is its own Markdown file under `docs/`. People and agents open the one shard a task
-    needs, which keeps doc changes small and easy to review.
-  </Card>
-  <Card title="Compiled READMEs" icon="open-book">
-    `mdcp compile` stitches shards into the README and guide files that readers open on GitHub and
-    npm. Those files are compiler output. Every edit starts from a shard.
-  </Card>
-  <Card title="A check that fails CI" icon="approve-check">
-    `mdcp check` fails the build when a cross-link points at a missing heading or a compiled file is
-    out of date. The pull request that caused the drift is the one that goes red.
-  </Card>
-  <Card title="One agent skill" icon="puzzle">
-    The mdcp skill tells your agent when to update the docs and how. It runs in any host that
-    supports Agent Skills, including Claude Code and Cursor.
-  </Card>
-</CardGrid>
-
-## One skill picks the workflow
-
-Install the skill into your repository. It is one skill with nothing else to configure first:
+<ul class="mdcp-status" aria-label="Project status">
+  <li>
+    <strong>Specification</strong> 1.0 draft
+  </li>
+  <li>
+    <strong>License</strong> MIT
+  </li>
+  <li>
+    <strong>Runs in</strong> any host that supports Agent Skills
+  </li>
+  <li>
+    <strong>This site</strong> compiled and checked with MDCP
+  </li>
+</ul>
 
 ```bash
 npx skills add betsalel-williamson/mdcp --skill mdcp
 ```
 
-Then ask your agent for what you need, such as `/mdcp help me get started`. The skill reads the request and chooses the workflow itself:
+## A keystone among your helper skills
 
-- **Bootstrap** sets up the config and guide layout in a new or existing repository, then adds the check to CI.
-- **Docs-only** writes or refactors shards without touching product code.
-- **Design** records architecture decisions as shards, one concern per file.
-- **Feature** documents a feature first, then builds it test-first.
-- **UX** documents user workflows in the client guides.
-- **Doc review** reads the whole doc set to find sprawl and duplication, and says when a shard should split or two shards should merge.
+Agents pick up helper skills for each task, such as planning, test-driven development or code review. Those skills help finish the task in front of them. MDCP looks after what outlasts the task, from the intent behind a feature to how the system is built and operated. It is the guardrail that has a project write that down while the work happens, so it belongs in every repository whichever helpers you add.
 
-Commit the installed skill so every teammate and agent works from the same instructions.
+Keeping docs accurate takes three parties, and MDCP gives each one a job:
 
-## Works alongside Superpowers
+<div class="mdcp-three">
+  <CardGrid>
+    <Card title="The agent writes" icon="puzzle">
+      The `mdcp` skill tells the agent which shards a change touches and to update them as it works,
+      in the same change as the code.
+    </Card>
+    <Card title="A person confirms intent" icon="approve-check">
+      Shards are small and change in the same pull request, so a reviewer can check that the docs
+      say what the team meant.
+    </Card>
+    <Card title="The CLI checks structure" icon="document">
+      `mdcp check` fails CI on broken links and anchors, links to files that no longer exist,
+      unindexed shards and stale compiled files. It doesn't judge whether the prose is true.
+    </Card>
+  </CardGrid>
+</div>
 
-[Superpowers](https://github.com/obra/superpowers) is a library of 15 workflow skills for coding agents, covering brainstorming, planning, plan execution, test-driven development, debugging, code review, and git worktrees. Its brainstorming and planning skills save dated design and plan files under `docs/superpowers/specs/` and `docs/superpowers/plans/`. Those files guide the work while it is in progress, but no Superpowers skill maintains the product documentation a project keeps afterward. That is the gap mdcp fills.
+## Organize docs once, write for every reader
 
-mdcp covers what comes after: the product documentation that has to remain accurate once the work is released. Use Superpowers to plan and build a change, and mdcp to keep the docs true after it merges. This repository uses both, with Superpowers plans in a gitignored `docs/superpowers/` folder and the durable docs in mdcp shards.
+Docs live in a `docs/` folder as small Markdown files called shards, one topic per file. Guides list which shards they include and in what order, and `mdcp compile` assembles each guide into the README or handbook its reader opens.
 
-## Explore the docs
+```text
+docs/
+├── mdcp.config.json
+├── features/    what the product does and why
+├── client/      install and usage for the people who use it
+├── developer/   setup and workflow for contributors
+└── glossary/    one term per file
+```
+
+Because the primary docs are already split by topic, a new perspective is a new guide over existing shards. Drafting a customer guide from the same shards, or reviewing the whole set, takes a language model little time. It starts from organized source instead of scattered notes.
+
+<CardGrid>
+  <Card title="Focused feature work" icon="rocket">
+    An agent building a feature reads only the few shards that describe it. Its context holds the
+    task and little else.
+  </Card>
+  <Card title="Ready for retrieval" icon="magnifier">
+    Small, single-topic files are a natural first step toward retrieval-augmented generation. Each
+    one is already a chunk with a clear subject.
+  </Card>
+  <Card title="Plain Markdown" icon="document">
+    Shards are GitHub Flavored Markdown with no custom syntax. If you stop using MDCP, you keep
+    ordinary docs.
+  </Card>
+  <Card title="Open" icon="open-book">
+    MIT licensed. The specification and the reference CLI are developed in one public repository.
+  </Card>
+</CardGrid>
+
+## Beyond engineering docs
+
+The default layout is built for software, but the same shards and guides work for any team that writes its knowledge down as text. Product development, marketing, sales, user experience and design notes all fit, as long as the source isn't a canvas.
+
+Teams that design in a canvas tool such as Figma still have reasoning that reads better as text, such as the decision behind a layout or the steps a user follows through a flow. Kept as shards, that text becomes the raw material for a help center or user documentation site.
+
+## Where MDCP stands
+
+MDCP is useful today and still being refined. The specification is a draft, and the process and skill keep improving from what real use shows.
+
+On a [repository where agents wrote every commit](./concepts/protocol/research/field-report-automated-repository/), the structural checks held: every shard was indexed and no broken internal link reached trunk. The agents produced useful documentation, but it sprawled, with seven shards past 300 lines and one guide still describing a component that had been removed. A person used the skill's doc-review workflow to reorganize it. That gap between structure and meaning is what current work on the protocol and the skill targets.
+
+You can verify the rest:
+
+- **A versioned specification.** [MDCP 1.0](./concepts/protocol/mdcp-10-spec/) is a draft written with RFC 2119 keywords. The protocol version moves separately from package releases.
+- **Public decisions.** Design choices are recorded as [architecture decision records](./concepts/adr/), including the ideas that were turned down.
+- **An evidence policy.** Public copy follows a [claims policy](./concepts/protocol/benefit-claims-and-evidence/) that bans unmeasured outcomes, and [research records](./concepts/protocol/research/about-research-records/) keep what was measured.
+- **Built with itself.** This site and the repository's READMEs compile from MDCP shards, and `mdcp check` runs in this repository's CI.
+
+## Questions
+
+<details>
+  <summary>Does MDCP keep docs in sync with the code automatically?</summary>
+
+Not by itself. The CLI checks that docs refer to each other and to files correctly. Whether the prose still matches the code depends on an agent following the skill and a person reviewing the change.
+
+</details>
+
+<details>
+  <summary>Does MDCP replace my other skills?</summary>
+
+No. Helper skills plan, write and review code. MDCP records what the project needs to remember about that code. Install both.
+
+</details>
+
+<details>
+  <summary>Do I need the agent skill to use it?</summary>
+
+No. The `mdcp` CLI compiles and checks docs on its own, in CI or locally. The skill adds the instructions an agent follows to update shards as it works.
+
+</details>
+
+<details>
+  <summary>Which agents does it work with?</summary>
+
+Any host that supports [Agent Skills](https://agentskills.io), including Claude Code, Cursor and GitHub Copilot.
+
+</details>
+
+<details>
+  <summary>Is MDCP an MCP server?</summary>
+
+No. The Model Context Protocol connects agents to live tools and data. MDCP works on files in your repository and runs in CI. See [scope and positioning](./concepts/protocol/01-scope-and-positioning/).
+
+</details>
+
+## Start here
 
 <CardGrid>
   <LinkCard
     title="Install and quick start"
     href="./guide/install-and-quick-start/"
-    description="Add the mdcp CLI to a repository and run your first compile."
+    description="Add the CLI to a repository and run your first compile."
   />
   <LinkCard
-    title="How mdcp fits together"
-    href="./concepts/overview/"
-    description="The mental model behind shards and the compile pipeline."
-  />
-  <LinkCard
-    title="Why mdcp for coding agents"
+    title="Why MDCP for coding agents"
     href="./guide/why-mdcp-for-agents/"
-    description="Common docs failures when agents edit a repository, and the command that addresses each."
+    description="How docs fail when agents edit a repository, and what MDCP does about each failure."
   />
   <LinkCard
-    title="Library API"
-    href="./api/about/"
-    description="Compile and validate docs from your own code with @bwilliamson/mdcp-core."
+    title="Read the specification"
+    href="./concepts/protocol/mdcp-10-spec/"
+    description="The MDCP 1.0 draft: guide layout, skill workflows and agent context."
+  />
+  <LinkCard
+    title="Contribute"
+    href="./contributing/"
+    description="Set up the monorepo, run the checks and land a change."
   />
 </CardGrid>
