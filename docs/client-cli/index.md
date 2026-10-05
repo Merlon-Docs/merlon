@@ -5,6 +5,7 @@
 
 ## Get started
 
+- [Why mdcp for coding agents](./why-mdcp-for-agents.md)
 - [Install and quick start](./install-and-quick-start.md)
 - [Project layout](./project-layout.md)
 - [Config essentials](./config-essentials.md)
@@ -17,10 +18,6 @@
 - [Compile and the refs registry](./compile-refs-registry.md)
 - [Cross-links and refs](./cross-links-and-refs.md)
 - [Optional linters](./optional-linters.md)
-
-## Working with agents
-
-- [Why mdcp for coding agents](./why-mdcp-for-agents.md)
 
 ## See also
 

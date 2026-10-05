@@ -14,6 +14,19 @@ Instead of dumping every mind map, architecture note, and spec into one file tha
 
 <!-- mdcp-shard: end docs/repo-readme/what-this-tool-is.md -->
 
+<!-- mdcp-shard: start docs/repo-readme/about.md -->
+
+## Why use MDCP?
+
+Find the line that matches what you want from MDCP:
+
+- **Integrate mdcp into repo scripts and CI:** `mdcp check` is one gate for everyone who edits the docs and for CI, and it fails on orphan shards and broken internal links.
+- **Try mdcp before mastering every CLI flag:** paste the bootstrap prompt from [Get started](#get-started), and the agent walks you through setup.
+- **Own content, not the toolchain:** each topic is its own shard. When you or an agent reads only the shard for a task, the context contains one topic in place of the whole guide.
+- **Evaluate or sponsor adoption:** judge fit from the vision and the benefit claims policy before anyone installs anything. [Evaluate before you adopt](#evaluate-before-you-adopt) links both pages.
+
+<!-- mdcp-shard: end docs/repo-readme/about.md -->
+
 <!-- mdcp-shard: start docs/repo-readme/get-started.md -->
 
 ## Get started
@@ -52,19 +65,6 @@ The bootstrap session starts by asking for the feature, the reader persona and y
 Install [`@bwilliamson/mdcp-cli`](packages/mdcp-cli/README.md) as a dev dependency and follow its [Quick start](packages/mdcp-cli/README.md#quick-start), which starts from a config for two guides and ends with the `docs:compile` and `docs:check` scripts that CI runs.
 
 <!-- mdcp-shard: end docs/repo-readme/get-started.md -->
-
-<!-- mdcp-shard: start docs/repo-readme/about.md -->
-
-## Why use MDCP?
-
-Find the line that matches what you want from MDCP:
-
-- **Integrate mdcp into repo scripts and CI:** `mdcp check` is one gate for everyone who edits the docs and for CI, and it fails on orphan shards and broken internal links.
-- **Try mdcp before mastering every CLI flag:** paste the bootstrap prompt from [Get started](#get-started), and the agent walks you through setup.
-- **Own content, not the toolchain:** each topic is its own shard. When you or an agent reads only the shard for a task, the context contains one topic in place of the whole guide.
-- **Evaluate or sponsor adoption:** judge fit from the vision and the benefit claims policy before anyone installs anything. [Evaluate before you adopt](#evaluate-before-you-adopt) links both pages.
-
-<!-- mdcp-shard: end docs/repo-readme/about.md -->
 
 <!-- mdcp-shard: start docs/repo-readme/mdcp-101.md -->
 

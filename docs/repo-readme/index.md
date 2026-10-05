@@ -2,8 +2,8 @@
 
 - [MDCP — documentation system Agent Skill](#table-of-contents)
   - [What this tool is](./what-this-tool-is.md)
-  - [Get started](./get-started.md)
   - [Why use MDCP?](./about.md)
+  - [Get started](./get-started.md)
   - [MDCP 101](./mdcp-101.md)
   - [The Toolchain](./the-toolchain.md)
   - [Project status](./project-status.md)
