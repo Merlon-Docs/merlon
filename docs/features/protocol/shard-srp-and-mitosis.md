@@ -4,9 +4,11 @@ MDCP treats documentation as library science for software product intent: settle
 
 The focal rule is **[shard single responsibility](../../glossary/shard-single-responsibility.md) for a documentation shard**. How shards assemble into guides is secondary. Frameworks that informed this thinking are listed in [Acknowledgments](./acknowledgments.md) — they are provenance, not the instruction set.
 
+The `mdcp` skill states these rules for agents, in the QA principles of `SKILL.md` and in [`skills/mdcp/references/shard-responsibility.md`](../../../skills/mdcp/references/shard-responsibility.md), because every install gets a copy of those files. [Agent Skill](../agent-skill.md#quality-assurance-qa-principles) names the skill as their owner. This page explains the rules in more depth. No check compares the three copies with each other or with the glossary entry [shard single responsibility](../../glossary/shard-single-responsibility.md), so keeping the four in step is advisory ([Enforceable rules](../design-constraints/enforceable-rules.md)): whoever changes a rule changes all four, and the change's review is the evidence.
+
 ## Single responsibility rule
 
-A documentation shard has **one primary concern**, for **one [guide tier](../../glossary/guide-tier.md)**, serving **one job**:
+A documentation shard has **one primary concern**, for **one audience**, serving **one job**. In the Code Repository Archetype, one audience means one [guide tier](../../glossary/guide-tier.md).
 
 | Axis     | Question                                              | Failure mode                                        |
 | -------- | ----------------------------------------------------- | --------------------------------------------------- |
