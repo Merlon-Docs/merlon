@@ -13,7 +13,6 @@ Agents should load the parent **Agent Skill** (`/mdcp`, installed in your agent'
 | Author (human/agent)     | shards, Agent Skill                   | shards, manifest | `check` before PR                            |
 | CI                       | config                                | —                | `check --require-lint` when peers configured |
 | Agent (context consumer) | Agent Skill, single shards (`rg`/IDE) | —                | —                                            |
-| Maintainer               | skill pack + conformance              | protocol shards  | `docs:check:repo`                            |
 
 Authors can also run `mdcp prose` locally to see Vale findings before CI does.
 
