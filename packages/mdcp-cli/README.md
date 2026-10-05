@@ -49,6 +49,8 @@ npx @bwilliamson/mdcp-cli check --config mdcp.config.json
 npm install -g @bwilliamson/mdcp-cli
 ```
 
+Several commands run peer tools that you install in your repository, such as markdownlint-cli2 for `mdcp lint` and Vale for `mdcp prose`. [Optional linters](#optional-linters) lists the peer tools each command runs and how to install them.
+
 ### Stability
 
 Before **1.0.0**, this package has **no API stability guarantee**. CLI commands, flags, `mdcp.config.json` schema, and compile output may change in any `0.x.y` release. Read the changelog and release notes of each MDCP package you use before upgrading. They hold the upgrade notes for earlier releases, which the feature catalog doesn't repeat.
@@ -56,14 +58,6 @@ Before **1.0.0**, this package has **no API stability guarantee**. CLI commands,
 #### Get involved
 
 Visit [github.com/betsalel-williamson/mdcp](https://github.com/betsalel-williamson/mdcp), **star** the repo to follow progress, **share** it if it helps your team, and **open or comment on [GitHub Issues](https://github.com/betsalel-williamson/mdcp/issues)** with feedback, adoption stories, or reviews. Explore [DORA AI Capabilities](https://dora.dev/ai/) and join the community at [dora.community/join](https://dora.community/join) for SDLC best practices.
-
-Optional lint tooling (install in your repo when you want `mdcp lint`, `mdcp prose`, or `mdcp check --require-lint`):
-
-```bash
-npm install -D markdownlint-cli2 @bwilliamson/mdcp-presets
-```
-
-For prose lint (`mdcp prose`, `mdcp check --require-vale`), install [Vale](https://vale.sh/docs/vale-cli/installation/) separately so `vale` is on your `PATH`.
 
 ### Quick start
 
@@ -566,12 +560,13 @@ Slug algorithm, examples, and programmatic APIs: [Core — heading slugs](../mdc
 
 These commands use tools installed in **your** repo (not bundled with mdcp):
 
-| Command      | Peer tool                       | Purpose                                                                   |
-| ------------ | ------------------------------- | ------------------------------------------------------------------------- |
-| `mdcp lint`  | `markdownlint-cli2`             | Lint shards and compiled output (GFM / Markdown structure)                |
-| `mdcp prose` | `vale` (install separately)     | Prose style lint (Vale style packages; Microsoft = US English)            |
-| `mdcp links` | `markdown-link-check`           | Optional HTTP URL checks (peer; not built-in internal link validation)    |
-| `mdcp fix`   | `prettier`, `markdownlint-cli2` | Run `prettier --write .` then `markdownlint-cli2 --fix` (no config paths) |
+| Command      | Peer tool                                          | Purpose                                                                                         |
+| ------------ | -------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `mdcp lint`  | `markdownlint-cli2`                                | Lint shards and compiled output (GFM / Markdown structure)                                      |
+| `mdcp prose` | `vale` (install separately)                        | Prose style lint (Vale style packages; Microsoft = US English)                                  |
+| `mdcp links` | `markdown-link-check`                              | Optional HTTP URL checks (peer; not built-in internal link validation)                          |
+| `mdcp fix`   | `prettier`, `markdownlint-cli2`                    | Run `prettier --write .` then `markdownlint-cli2 --fix` (no config paths)                       |
+| `mdcp check` | `markdownlint-cli2`, `vale`, `markdown-link-check` | The check gate's lint, prose and URL stages, each run when its peer is installed and configured |
 
 `mdcp fix` does not bundle formatters. Install **Prettier** and **markdownlint-cli2** in your repo first (`node_modules/.bin` or PATH). Each step is skipped with an info message if the peer is missing.
 
