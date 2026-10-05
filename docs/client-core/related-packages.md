@@ -5,7 +5,7 @@
 
 ## Further reading
 
-- [CLI package docs](https://www.npmjs.com/package/@bwilliamson/mdcp-cli)
+- [CLI commands reference](../client-cli/commands-reference.md)
 - [Project README](../../README.md): the Agent Skill landing page
 - [Design constraints](../features/design-constraints/index.md)
 

@@ -713,7 +713,7 @@ Catalog link `` `[Walkthrough](../media/walkthrough.md)` `` compiles to `#### Me
 
 ### Further reading
 
-- [CLI package docs](https://www.npmjs.com/package/@bwilliamson/mdcp-cli)
+- [CLI commands reference](../mdcp-cli/README.md#commands-reference)
 - [Project README](../../README.md): the Agent Skill landing page
 - [Design constraints](../../docs/features/design-constraints/index.md)
 
