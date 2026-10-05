@@ -34,7 +34,7 @@ To install the Agent Skill instead, see [Not the Agent Skill](#not-the-agent-ski
 
 ### Requirements
 
-- Node.js **>= 18.0.0**
+- Node.js **20.19.0** or later.
 
 ### Install
 

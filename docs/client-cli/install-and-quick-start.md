@@ -8,7 +8,7 @@ To install the Agent Skill instead, see [Not the Agent Skill](./about.md#not-the
 
 ## Requirements
 
-- Node.js **>= 18.0.0**
+- Node.js **20.19.0** or later.
 
 ## Install
 
