@@ -13,6 +13,7 @@ const ANCHOR_N = 25_000;
 const SLASH_N = 20_000;
 const BACKTICK_RUNS = 600;
 const MARKED_HEADINGS = 2_000;
+const LINE_MARKERS = 20_000;
 
 describe('ReDoS budget demos (CodeQL js/polynomial-redos)', () => {
   it('stripExplicitAnchorMarkers stays under budget on long leading spaces + incomplete {#', () => {
@@ -48,6 +49,16 @@ describe('ReDoS budget demos (CodeQL js/polynomial-redos)', () => {
   // markers times length; line by line it stays linear.
   it('stripExplicitAnchorMarkers stays under budget on many marked headings', () => {
     const input = ('Prose. '.repeat(25) + '\n\n## Heading {#id}\n\n').repeat(MARKED_HEADINGS);
+    const ms = timeMs(() => {
+      stripExplicitAnchorMarkers(input);
+    });
+    expect(ms).toBeLessThan(BUDGET_MS);
+  });
+
+  // Each removed marker trims the whitespace before it. A strip that reads the end of the output
+  // built so far copies that whole output once per marker on a long line.
+  it('stripExplicitAnchorMarkers stays under budget on a line of many markers between words', () => {
+    const input = 'text ' + 'a{#x}'.repeat(LINE_MARKERS) + ' b {#y}'.repeat(LINE_MARKERS);
     const ms = timeMs(() => {
       stripExplicitAnchorMarkers(input);
     });
