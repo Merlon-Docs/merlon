@@ -95,27 +95,24 @@ Within one guide:
 
 ## inlineInserts path resolution
 
-Lookup order for insert shard paths:
-
-1. Relative to the current shard directory
-2. Relative to the shard parent directory
-3. `process.cwd()` and its parent
-4. Optional `hooksConfig.inlineInserts.searchRoots`
+The hook finds each insert shard in the order [Path lookup order](./index.md#path-lookup-order) gives for `inlineInserts`.
 
 ## inlineInserts config
 
-Runs by default. Optional search roots:
+Runs by default. Optional search roots, each the parent of an insert library directory such as `diagrams/`:
 
 ```json
 {
   "name": "architecture-review",
   "compile": {
     "hooksConfig": {
-      "inlineInserts": { "searchRoots": ["diagrams"] }
+      "inlineInserts": { "searchRoots": ["shared"] }
     }
   }
 }
 ```
+
+A link to `diagrams/flow.md` that no earlier root in the [lookup order](./index.md#path-lookup-order) resolves then finds `shared/diagrams/flow.md`.
 
 Opt out: `"hooks": { "inlineInserts": false }`. See [Default compile hooks](../../features/default-compile-hooks.md).
 

@@ -13,7 +13,7 @@ Architecture and technical review shards cite **repo source files** as evidence.
 3. Appends GitHub-style **`#L` fragments** (`#L6`, `#L6-L8`) to the link target
 4. Rewrites the target path to be relative to the guide's [link base](./publish-relative-links.md#when-it-runs)
 
-Publish-relative assembly rebases every guide's remaining `../` file links against the same link base. In `DEVELOPERS.md`, `../../package.json` becomes `package.json`. See [Publish-relative link rewriting](./publish-relative-links.md).
+Publish-relative assembly rebases the other `../` file links in every guide against the same link base, except the ones [Publish-relative exclusions](./publish-relative-links.md#publish-relative-exclusions) lists. In `DEVELOPERS.md`, `../../package.json` becomes `package.json`. See [Publish-relative link rewriting](./publish-relative-links.md).
 
 ## codeEvidence link matching
 
@@ -25,7 +25,7 @@ A link is rewritten when **all** of the following hold:
 
 Markdown (`.md`) links, external URLs, and same-guide shard links are left unchanged.
 
-**Code and data differ in what the hook adds.** A code file can be cited by line, so it gets an `#L` fragment. A data file — configuration, records, a serialized document — is resolved and rebased for the output path but gets no fragment, because an identifier found in inert content is an occurrence rather than a declaration. The two lists are the ones link validation uses, so a repository that does want lines cited in a format shipped as data lists that extension in `lint.codeExtensions`. See [Built-in link validation](../../features/link-validation.md).
+**Code and data differ in what the hook adds.** A code file can be cited by line, so symbol lookup can give it an `#L` fragment. A data file, such as configuration or records, is resolved and rebased for the output path. It gets an `#L` fragment only from a line range the shard writes in the label, the path or the fragment, and never from symbol lookup, because an identifier found in inert content is an occurrence rather than a declaration. Link validation uses the same code and data extension lists. To look symbols up in a data format, list its extension in `lint.codeExtensions`. See [Built-in link validation](../../features/link-validation.md).
 
 ## codeEvidence line ranges
 
@@ -53,16 +53,13 @@ When no line range is found:
 
 Symbol lookup scans for identifier matches and common declaration forms (`function`, `class`, `const`, `export`, call sites). It runs for code files only; a data file skips both steps.
 
+When neither step finds a line, the hook drops the `#fragment`, and the link points at the whole file.
+
 ## codeEvidence path resolution
 
-Source file lookup order:
+The hook finds the source file in the order [Path lookup order](./index.md#path-lookup-order) gives for `codeEvidence`. When a source file is resolved, the hook rewrites the link target to a POSIX path **relative to the rendered output document**, preserving any `#L…` fragment added by the hook. You don't configure the hook for this. It resolves a shard-relative path as written, then rebases it for the location of the compiled file.
 
-1. Relative to the current shard directory
-2. Relative to the shard parent directory
-3. `process.cwd()` and its parent
-4. `compile.scopeRoot` (when set on the guide — same field used for manifest scoping)
-
-When a source file is resolved, the hook rewrites the link target to a POSIX path **relative to the rendered output document**, preserving any `#L…` fragment added by the hook. No hook-specific config is required: shard-relative paths in source are resolved as written, then rebased for where the compiled file lands.
+When no directory has the file, the path stays as written, and the [line range](#codeevidence-line-ranges) rules still set the fragment. The hook keeps an existing `#L` fragment, and otherwise adds one from a line range in the label or path. Symbol lookup has no file to scan, so without a line range the hook drops any other `#fragment`.
 
 ## codeEvidence exclusions
 
@@ -70,8 +67,8 @@ The hook **does not** transform:
 
 - Markdown shard links (`.md`)
 - External URLs
-- Source links when the file cannot be resolved and no line range appears in label or path
-- `#L` fragments on data files, unless the extension is listed in `lint.codeExtensions` or the shard wrote the fragment itself
+- The path of a source link whose file can't be resolved (see [codeEvidence path resolution](#codeevidence-path-resolution) for its fragment)
+- A symbol in a data-file link into an `#L` fragment, unless the extension is listed in `lint.codeExtensions`
 - Body text when `codeEvidence` is disabled via `compile.hooks: { "codeEvidence": false }` or an explicit hook override that omits it
 
 ## codeEvidence config

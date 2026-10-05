@@ -18,7 +18,7 @@ That works while readers open shards under `docs/`. It breaks when the same cont
 
 **Solution:** resolve and rebase **per shard**, before stitch:
 
-1. Resolve the link from `dirname(sourceFile)` to an **absolute** target path
+1. Resolve the link to an **absolute** target path, in the order [Path lookup order](./index.md#path-lookup-order) gives for this pass
 2. Emit `relative(dirname(publishOutputFile), absoluteTarget)` in the compiled body
 
 Rebasing doesn't need path-prefix config. The geometry comes from `sourceFile` and the guide's [link base](#when-it-runs), resolved against the filesystem.
@@ -34,21 +34,9 @@ A guide's **link base** is the file being assembled, and the guide's paths rebas
 
 So a guide in the monolith is assembled twice. Its own [compiled guide](../../glossary/compiled-guide.md) rebases each path relative to the compiled guide, and its copy in the monolith rebases each path relative to the monolith. Both copies resolve, whichever directory the monolith is in. Source tags and code evidence links follow the same rule. [Cross-guide resolution](./cross-guide-links.md#cross-guide-resolution) says where each copy's links to other guides point.
 
-The pass runs per shard for every guide, after cross-guide rewrite. It is named for [publish outputs](../../glossary/publish-output.md), but it rebases links in every compiled guide and in the monolith.
+The pass runs per shard for every guide, after the other per-shard [link passes](./index.md#link-passes). It is named for [publish outputs](../../glossary/publish-output.md), but it rebases links in every compiled guide and in the monolith.
 
 Code: `rewritePublishRelativeLinks` in `packages/mdcp-core/src/compile/publish-links.ts`, invoked from `assembleGuide` with the guide's link base as `publishOutputFile`.
-
-## Division of labor (three link passes)
-
-Assembly applies specialized passes instead of one generic rewriter:
-
-| Pass                 | Scope                                     | Input links                                | Output                                               |
-| -------------------- | ----------------------------------------- | ------------------------------------------ | ---------------------------------------------------- |
-| **Cross-guide**      | Indexed `.md` in another guide            | `../other-guide/shard.md`                  | `{outputFile}#slug` or unchanged when `ignoreGuides` |
-| **Publish-relative** | Remaining `../` file links in every guide | `../features/foo.md`, `../../package.json` | Path relative to the guide's link base               |
-| **Intra-guide**      | Same-guide section shards                 | `./section.md`                             | `#anchor` in assembled body                          |
-
-Cross-guide runs first and uses the **guide link index**. Publish-relative handles everything else that still starts with `../` — config files, `package.json`, and shard paths left unchanged by `ignoreGuides`.
 
 ## Publish-relative matching
 
@@ -57,21 +45,15 @@ A link is rewritten when **all** of the following hold:
 - Standard markdown link syntax: `[label](path)`
 - Target starts with one or more `../` segments (not `./` — see exclusions)
 - Target is not `http://`, `https://`, `mailto:`, or `#…`
-- Target resolves to an existing file or directory from the shard directory (then guide directory, then `compile.scopeRoot`)
-- Resolved path is **not** a same-guide indexed shard (intra-guide pass owns those)
-- Resolved path is **not** another guide's `compile.outputFile` (cross-guide already rebased)
+- Target resolves to an existing file or directory, in the order [Path lookup order](./index.md#path-lookup-order) gives for this pass
+- Resolved path is **not** a same-guide indexed shard (the cross-guide pass rewrites those)
+- Resolved path is **not** the `outputFile` of an entry in the [guide link index](./cross-guide-links.md#cross-guide-purpose)
 
 A target made only of `../` segments, such as `../` or `../../`, points at a directory and rebases in every compiled guide. From `docs/developer/` into `DEVELOPERS.md`, the target `../` compiles to `docs`. The target `../../` resolves to the directory that contains `DEVELOPERS.md`, so it compiles to `./`. The rebased path drops any trailing slash, so `../../skills/` compiles to `skills`.
 
 ## Publish-relative resolution
 
-Path lookup order (same as cross-guide shard resolution):
-
-1. `resolve(dirname(sourceFile), filePart)`
-2. `resolve(guideDir, filePart)`
-3. `compile.scopeRoot` when set
-
-Then:
+The pass finds the target in the order [Path lookup order](./index.md#path-lookup-order) gives for the publish-relative rewrite, then emits:
 
 ```text
 relative(dirname(publishOutputFile), resolvedAbsolute) + optional #fragment
@@ -88,8 +70,13 @@ The pass **does not** transform:
 - External URLs
 - Same-document `#fragment` links
 - `./section.md` and other `./` paths (cross-guide or intra-guide handle `.md`; publish-relative only matches `../`)
-- Links that the cross-guide pass already rewrote to another compiled guide's `#slug`
+- A link that the cross-guide pass rewrote to another output's path plus `#slug`, when this pass's lookup finds an output at that path or doesn't find a file
+- A link the shard writes to an output named in the guide link index, such as `../../README.md`
 - Unresolvable paths (left unchanged)
+
+The pass looks up a target that the cross-guide pass wrote as if the shard had written it, though that target is relative to the link base. When the lookup finds some other file at that path, the pass rewrites the link to point at it.
+
+In the guide link index, each entry's `outputFile` is the owner's publish output when the owner sets `compile.outputFile`. Otherwise it is the monolith when the config has one, and the owner's compiled guide when it doesn't. A link the shard writes to one of these outputs keeps its shard-relative path, because neither pass rebases it. That path resolves in a compiled guide only when it also leads from the link base to the output. The compiled guide of a guide in the monolith isn't one of them, and the pass rebases a link to it like any other file.
 
 ## Repo dogfood examples
 
