@@ -39,4 +39,4 @@ Token counts in that record, and in any figure like it, are rough estimates for 
 
 ## Adoption anecdotes
 
-Qualitative outcomes belong in [GitHub adoption stories](https://github.com/betsalel-williamson/mdcp/issues/new?template=adoption-story.yml) — not unverified bullets on the README.
+Qualitative outcomes belong in adoption stories, not in unverified bullets on the README. The [repository README](../../repo-readme/this-repository.md) says where to send one.

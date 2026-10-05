@@ -18,10 +18,10 @@ The live eval runs behind the headless behavior are in the research record [Skil
 
 Required fields for work-item workflows:
 
-| Field              | Meaning                                                                                   | Example intake question                                                                   |
-| ------------------ | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `WORK_ITEM`        | Enough to resolve the task — tracker id, URL, or short issue name/description             | What issue, ticket URL, or task should this session cover?                                |
-| `WORK_ITEM_LOOKUP` | Where to load scope and delivery conventions — shard path or plain location (e.g. GitHub) | Where should you load scope and delivery conventions? (Prefer a `docs/developer/` shard.) |
+| Field              | Meaning                                                                                                   | Example intake question                                                                   |
+| ------------------ | --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `WORK_ITEM`        | Enough to resolve the task: tracker id, URL, or short issue name/description                              | What issue, ticket URL, or task should this session cover?                                |
+| `WORK_ITEM_LOOKUP` | Where to load scope and delivery conventions: a shard path or a plain location, such as the issue tracker | Where should you load scope and delivery conventions? (Prefer a `docs/developer/` shard.) |
 
 The getting-started workflow **MUST** collect `FEATURE`, `PERSONA`, and `EXPERIENCE` (novice vs expert onboarding depth) instead of `WORK_ITEM`. `EXPERIENCE` defaults to expert when nobody can answer. After a successful bootstrap, it **MUST** offer an optional **first-feature tutorial** (`RUN_FIRST_FEATURE_TUTORIAL`, default yes for novice) and, when accepted, resolve **EXAMPLE_MODE** (recommended `hello-greeting` or bring-your-own) before walking design → feature → UX → doc-only. Detail: [Getting-started workflow](./workflows/getting-started.md).
 
