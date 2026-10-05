@@ -47,7 +47,7 @@ When a continuing stage of `mdcp check` fails, the run ends with a stderr **fail
 | `mdcp lint`      | markdownlint-cli2 on shards and compiled output (peer, if installed)                                                                                                         |
 | `mdcp prose`     | Vale prose lint (peer, if installed)                                                                                                                                         |
 | `mdcp links`     | markdown-link-check on compiled output (peer, if installed)                                                                                                                  |
-| `mdcp fix`       | Prettier + markdownlint `--fix` (install peers in host repo first)                                                                                                           |
+| `mdcp fix`       | Prettier + markdownlint `--fix`; needs a markdownlint-cli2 config with `globs` and always exits 0 ([Optional linters](./optional-linters.md))                                |
 
 ## Sprawl review
 

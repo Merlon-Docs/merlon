@@ -10,7 +10,7 @@ These commands use tools installed in **your** repo (not bundled with mdcp):
 | `mdcp fix`   | `prettier`, `markdownlint-cli2`                    | Run `prettier --write .` then `markdownlint-cli2 --fix` (no config paths)                       |
 | `mdcp check` | `markdownlint-cli2`, `vale`, `markdown-link-check` | The check gate's lint, prose and URL stages, each run when its peer is installed and configured |
 
-`mdcp fix` does not bundle formatters. Install **Prettier** and **markdownlint-cli2** in your repo first (`node_modules/.bin` or PATH). Each step is skipped with an info message if the peer is missing.
+`mdcp fix` does not bundle formatters. Install **Prettier** and **markdownlint-cli2** in your repo first (`node_modules/.bin` or PATH). Each step is skipped with an info message if the peer is missing. mdcp passes markdownlint-cli2 no file paths. Its fix step needs a `.markdownlint-cli2.jsonc` (or another markdownlint-cli2 config file) in the docs root that lists `globs`. Without one, markdownlint-cli2 prints its usage text and fixes nothing. `mdcp fix` exits 0 whatever either tool returns, so read its output to see whether both steps ran.
 
 ```bash
 mdcp lint --require-lint          # fail if markdownlint-cli2 is missing
