@@ -93,13 +93,17 @@ export {
   headingTextToPlain,
   buildSlugRegistry,
   type HeadingEntry,
+  type RefsOutput,
   type RefsRegistry,
 } from './refs/slugs.js';
 export {
+  buildRefsRegistry,
   writeRefsRegistry,
   readRefsRegistry,
   checkRefsRegistry,
   genRefsFromCompiled,
+  refsOutputTexts,
+  type RefsOutputText,
 } from './refs/registry.js';
 export {
   lintLinks,

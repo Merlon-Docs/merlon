@@ -157,7 +157,7 @@ Global option (all commands that run link validation):
 
 ## Diagnostic shape
 
-Each issue starts with the file and line where link lint found it. The reason and target follow, then the guide the issue belongs to, when it has one. A compiled output's line is a line of the written file. On a line with a BROKEN LINK marker, the reason is `dead anchor` and the target is the whole line. Link lint reports that line once and doesn't check the other links on it.
+Each issue starts with the file and line where link lint found it. The reason and target follow, then the guide the issue belongs to, when it has one. In the monolith, that guide is the one whose copy contains the line. A compiled output's line is a line of the written file. On a line with a BROKEN LINK marker, the reason is `dead anchor` and the target is the whole line. Link lint reports that line once and doesn't check the other links on it.
 
 `mdcp check` prints these lines for a docs root at `/repo/docs` where guide a's `intro.md` has `First see [x](../b/topic.md#nope).` on line 3 and `Then see [x](#nope).` on line 5, and the standalone guide `AGENTS.md` links `./gone.md`:
 
@@ -165,7 +165,7 @@ Each issue starts with the file and line where link lint found it. The reason an
 link: /repo/docs/AGENTS.md:3: missing file "./gone.md"
 link: /repo/docs/_build/a.md:11: dead anchor "Then see **BROKEN LINK:** "x" (`#nope`) → `#nope` (dead anchor in compiled guide)." (compiled guide "a")
 link: /repo/docs/_build/a.md:9: dead anchor "b.md#nope" (compiled guide "a")
-link: /repo/docs/_build/guides.md:9: dead anchor "First see **BROKEN LINK:** "x" (`../b/topic.md#nope`) → `#nope` (dead anchor in compiled guide)." (compiled guide "a")
+link: /repo/docs/_build/guides.md:9: dead anchor "First see **BROKEN LINK:** "x" (`../b/topic.md#nope`) → `#nope` (dead anchor in compiled guide)." (guide "a" in the monolith)
 ```
 
 `formatLinkIssue` adds a second line for an issue that records the shard it came from, with that shard's line and the target as written. The issues `markBrokenLinks` returns to an API caller record it, and their line is a line of the markdown it marked. Link lint reports a marked link by its marker line, as above, and that issue doesn't record a shard. This example comes from `markBrokenLinks` on a short string, not from the fixture above.

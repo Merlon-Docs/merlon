@@ -572,6 +572,25 @@ describe('formatLinkIssue', () => {
     expect(msg).toMatch(/^link-warn: a\.md:1:/);
   });
 
+  // The monolith isn't guide a's compiled guide, so an issue there names the guide's copy.
+  it('names the guide whose copy in the monolith holds an issue there', () => {
+    const issue = {
+      kind: 'dead anchor' as const,
+      file: '/repo/docs/_build/guides.md',
+      line: 9,
+      label: 'x',
+      originalTarget: '#nope',
+      brokenTarget: '#nope',
+      guideName: 'a',
+    };
+    expect(formatLinkIssue({ ...issue, inMonolith: true })).toBe(
+      'link: /repo/docs/_build/guides.md:9: dead anchor "#nope" (guide "a" in the monolith)',
+    );
+    expect(formatLinkIssue({ ...issue, file: '/repo/docs/_build/a.md' })).toBe(
+      'link: /repo/docs/_build/a.md:9: dead anchor "#nope" (compiled guide "a")',
+    );
+  });
+
   // The issues markBrokenLinks returns record their shard. Link lint reports a marked link by its
   // marker line instead, which records none.
   it('names the guide, and the shard of an issue that markBrokenLinks returns', () => {
@@ -1432,6 +1451,24 @@ describe('lintLinks over each written file', () => {
   });
 
   const unmarkedA = { name: 'a', compile: { links: { markBroken: false } } };
+
+  // A marker only the monolith holds, and a link the compiled guide doesn't report, are both
+  // monolith issues. Only those carry `inMonolith`.
+  it.each([
+    ['a BROKEN LINK marker', {}],
+    ['a link', { guides: [unmarkedA] }],
+  ])('marks %s that only the monolith reports as an issue in the monolith', (_case, extra) => {
+    withTmpDir('mdcp-lint-in-monolith-', (work) => {
+      const { docsRoot, issues } = lintWritten(work, monolithPair('See [x](../b/topic.md#nope).'), {
+        outputFile: 'guides.md',
+        compileOrder: ['a', 'b'],
+        ...extra,
+      });
+      expect(
+        issues.map((i) => `${relative(docsRoot, i.file)} ${i.guideName} ${i.inMonolith}`),
+      ).toEqual(['_build/a.md a undefined', '_build/guides.md a true']);
+    });
+  });
 
   it("checks a compiled guide's #fragment against that file, not another guide's", () => {
     withTmpDir('mdcp-lint-own-slugs-', (work) => {

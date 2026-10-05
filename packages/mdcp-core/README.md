@@ -43,8 +43,10 @@ npm install @bwilliamson/mdcp-core
 ```typescript
 import {
   loadConfig,
-  compileGuides,
+  compileGuideResults,
+  compileGuidesFromResults,
   resolveDocsRoot,
+  refsOutputTexts,
   genRefsFromCompiled,
   resolveRefsPath,
   checkRefsRegistry,
@@ -53,21 +55,24 @@ import {
 const docsRoot = '/path/to/docs';
 const config = loadConfig('mdcp.config.json', docsRoot);
 
-const compiled = compileGuides({
+const options = {
   guidesRoot: resolveDocsRoot(config, docsRoot),
   compileOrder: config.compileOrder,
   banner: config.banner,
   guides: config.guides,
   docsRoot,
   config,
-});
+};
+const results = compileGuideResults(options);
+const compiled = compileGuidesFromResults(results, options);
+const outputs = refsOutputTexts(results, options);
 
 const refsPath = resolveRefsPath(docsRoot, config.outputDir, config.refs.registryFile);
-genRefsFromCompiled(compiled, refsPath);
-checkRefsRegistry(compiled, refsPath);
+genRefsFromCompiled(compiled, refsPath, outputs);
+checkRefsRegistry(compiled, refsPath, outputs);
 ```
 
-Use `writeCompiledGuides` to write each compiled guide to disk. It also writes the monolith when you pass its path and at least one guide has no `compile.outputFile`.
+Use `writeCompiledGuidesFromResults(results, options, monolithPath)` to write each compiled guide to disk. It also writes the monolith when you pass its path and at least one guide has no `compile.outputFile`. `resolveOutputPath(config, docsRoot)` gives that path.
 
 <!-- mdcp-shard: end ../../docs/client-core/quick-example.md -->
 
@@ -169,7 +174,7 @@ See [Cross-guide link rewriting](#cross-guide-link-rewriting) and [ignoreGuides]
 
 A result's `knownSlugs` lists the slugs a `#fragment` in `text` may name besides its headings: the slug of each section `text` stitches, such as a `FIND-*` finding id or a declared `{#id}`. Broken-link marking took that set, and `lintLinks` checks a fragment in `text` against it. A shard in the guide's directory that the guide doesn't stitch adds none. `monolithKnownSlugs` does the same for `monolithText`, with the section slugs of every copy in the monolith. Each copy there takes that one set. A fragment on a link from another output has to match a heading, so neither set counts there.
 
-`compiledOutputDocuments(results, options)` returns each file that compile writes from the same results and options: every compiled guide in `compileOrder`, then the monolith when the config sets top-level `outputFile` and at least one guide is stitched into it. The monolith's path is the config's `outputFile` under `outputDir`, the path that `resolveOutputPath` gives and the CLI passes to `writeCompiledGuidesFromResults`. Each entry has the absolute `path` and the `text` written there, banner included, so a line number in the text is a line of the file. A compiled guide's entry names its result in `guide`. The monolith's entry lists each guide's copy in `copies`, with the line the copy starts on. `lintLinks` reads the outputs through it.
+`compiledOutputDocuments(results, options)` returns each file that compile writes from the same results and options: every compiled guide in `compileOrder`, then the monolith when the config sets top-level `outputFile` and at least one guide is stitched into it. The monolith's path is the config's `outputFile` under `outputDir`, the path that `resolveOutputPath` gives and the CLI passes to `writeCompiledGuidesFromResults`. Each entry has the absolute `path` and the `text` written there, banner included, so a line number in the text is a line of the file. A compiled guide's entry names its result in `guide`. The monolith's entry lists each guide's copy in `copies`, with the line the copy starts on. `lintLinks` reads the outputs through it, and so does `refsOutputTexts`, which gives the refs registry each output's text.
 
 When top-level `outputFile` is set, `compileGuides` returns the monolith text, which leaves out guides with `compile.outputFile`. Otherwise it returns every compiled guide joined in the order of `compileOrder`. `compileGuidesFromResults` does the same from results, and it stitches the monolith from each result's `monolithText`. `writeCompiledGuides` writes each compiled guide to its output path. It also writes the monolith when you pass its path and at least one guide has no `compile.outputFile`.
 
@@ -187,11 +192,18 @@ Full spec: [Compile output backup](../../docs/features/compile-output-backup.md)
 
 ### Refs (cross-links)
 
-| Export                                                         | Purpose                                 |
-| -------------------------------------------------------------- | --------------------------------------- |
-| `headingTextToPlain`, `githubSlugify`, `buildSlugRegistry`     | GitHub heading slugs via github-slugger |
-| `genRefsFromCompiled`, `readRefsRegistry`, `checkRefsRegistry` | `refs.json` lifecycle                   |
-| `resolveRefsPath`, `writeRefsRegistry`                         | Path and I/O helpers                    |
+| Export                                                         | Purpose                                                                 |
+| -------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `headingTextToPlain`, `githubSlugify`, `buildSlugRegistry`     | GitHub heading slugs via github-slugger                                 |
+| `genRefsFromCompiled`, `readRefsRegistry`, `checkRefsRegistry` | `refs.json` lifecycle                                                   |
+| `refsOutputTexts`, `buildRefsRegistry`                         | Each compiled output for the registry, and the registry built in memory |
+| `resolveRefsPath`, `writeRefsRegistry`                         | Path and I/O helpers                                                    |
+
+#### `refsOutputTexts(results, options)`
+
+Returns each file compile writes from `results`, in the order `compiledOutputDocuments` gives them. Each entry has `file`, the path relative to `options.docsRoot` with `/` separators, and `text`, what compile writes there, banner included. A compiled guide's entry also names its guide in `guideName`. Pass the list as the last argument of `genRefsFromCompiled(compiledText, registryPath, outputs)` and `checkRefsRegistry(compiledText, registryPath, outputs)`. The registry then has an `outputs` entry for each file, with that file's headings slugged on their own and each `line` counted in that file. `buildRefsRegistry(compiledText, outputs)` returns the same registry without writing it.
+
+The registry's top-level `headings` and `slugs` come from `compiledText` alone, the text `compileGuidesFromResults` returns. Without `outputs`, the registry has no `outputs` field. `checkRefsRegistry` compares the file with the registry its own arguments give, so a registry written with `outputs` is stale to a check without them, and the reverse. [Registry contents](../mdcp-cli/README.md#registry-contents) lists the fields.
 
 #### `resolveRefsPath(docsRoot, outputDir, registryFile)`
 

@@ -291,8 +291,8 @@ function copyLineAt(copies: MonolithCopy[], line: number): { copy: number; textL
  * hold a marker that no compiled guide holds. Each marker in a copy is matched, one for one, to a
  * marker of the same text in that guide's compiled guide, at the same line of the guide's text
  * first. A monolith line is reported when a marker on it has no match, and the issue names the
- * guide whose copy holds the line. The rest of the line doesn't count, because each file rebases
- * paths and cross-guide links relative to itself.
+ * guide whose copy holds the line and sets `inMonolith`. The rest of the line doesn't count,
+ * because each file rebases paths and cross-guide links relative to itself.
  */
 function lintMonolithOnlyMarkers(monolith: CompiledOutputDocument): LinkIssue[] {
   const copies = monolith.copies ?? [];
@@ -318,7 +318,11 @@ function lintMonolithOnlyMarkers(monolith: CompiledOutputDocument): LinkIssue[] 
   const reported = new Set(found.filter((_, i) => !matched[i]).map((m) => m.lineIndex));
   return lines
     .filter((_, lineIndex) => reported.has(lineIndex))
-    .map((issue) => ({ ...issue, guideName: copies[copyIndexAt(copies, issue.line)]?.guide.name }));
+    .map((issue) => ({
+      ...issue,
+      guideName: copies[copyIndexAt(copies, issue.line)]?.guide.name,
+      inMonolith: true,
+    }));
 }
 
 /** The file a compiled link points at, resolved from the file that holds it. */
@@ -339,7 +343,7 @@ function linkTargetPath(issue: LinkIssue): string {
  * relative to itself. Each issue there covers one monolith issue, and an issue at the same line of
  * the guide's text is matched first. An issue on another line is matched only when no monolith
  * issue with its label is at its own line. An issue that stays names the guide whose copy holds
- * the line.
+ * the line and sets `inMonolith`.
  */
 function lintMonolithLinks(
   monolith: CompiledOutputDocument,
@@ -392,7 +396,8 @@ function lintMonolithLinks(
 
   const issues: LinkIssue[] = [];
   found.forEach((issue, i) => {
-    if (!matched[i]) issues.push({ ...issue, guideName: copies[copyLines[i].copy]?.guide.name });
+    if (matched[i]) return;
+    issues.push({ ...issue, guideName: copies[copyLines[i].copy]?.guide.name, inMonolith: true });
   });
   return issues;
 }

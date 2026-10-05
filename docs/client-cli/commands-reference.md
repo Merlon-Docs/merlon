@@ -43,7 +43,7 @@ When `mdcp check` fails after continuing through peer linters, it prints a stder
 | `mdcp check`     | Full gate: orphans → compile → refs → links; optional peer linters; non-fatal coverage report      |
 | `mdcp review`    | Report documentation sprawl signals across guide shards (report-only; `--strict` to fail)          |
 | `mdcp shard`     | Split a source document into shards (requires `config.source`)                                     |
-| `mdcp refs-list` | List heading slugs from `refs.json` as JSON                                                        |
+| `mdcp refs-list` | List each compiled output's heading slugs and file from `refs.json` as JSON                        |
 | `mdcp lint`      | markdownlint-cli2 on shards and compiled output (peer, if installed)                               |
 | `mdcp prose`     | Vale prose lint (peer, if installed)                                                               |
 | `mdcp links`     | markdown-link-check on compiled output (peer, if installed)                                        |
@@ -82,10 +82,10 @@ Without `--strict`, `mdcp review` exits 0. Thresholds live under `review` in con
 
 ## Refs subcommands
 
-| Command           | Purpose                                                                                                |
-| ----------------- | ------------------------------------------------------------------------------------------------------ |
-| `mdcp refs-gen`   | Generate `refs.json` from compiled output                                                              |
-| `mdcp refs-check` | Verify `refs.json` matches compiled output                                                             |
-| `mdcp refs-list`  | List heading slugs from `refs.json` (`--format json` or `table`; run `mdcp check` or `refs-gen` first) |
+| Command           | Purpose                                                                                                               |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `mdcp refs-gen`   | Generate `refs.json` from compiled output                                                                             |
+| `mdcp refs-check` | Verify `refs.json` matches compiled output                                                                            |
+| `mdcp refs-list`  | List each compiled output's heading slugs and file (`--format json` or `table`; run `mdcp check` or `refs-gen` first) |
 
 Validate fragment links with `mdcp check`. Use `mdcp refs-list` when you need to inspect registry slugs. [Refs](../glossary/refs.md) explains what refs are for.
