@@ -22,7 +22,9 @@ import type { GuideConfig, GuideConfigInput, MdcpConfigInput } from '../config/s
 import { resolveUnderOutputDir, effectiveGuideOutputFile } from '../config/load.js';
 import { resolveCompileHooks } from '../config/resolve-compile-hooks.js';
 import { writeOutputFile, type WriteOutputBackupOptions } from './write-output.js';
+import { realignTables } from './align-tables.js';
 import { markBrokenLinks } from '../links/mark-broken.js';
+import { getLocalePack } from '../locale/index.js';
 import { buildSlugRegistry } from '../refs/slugs.js';
 import type { LinkProvenance } from '../links/mark-broken.js';
 
@@ -98,8 +100,9 @@ interface AssembledGuide {
 }
 
 /**
- * Mark broken links in an assembled guide. `documentSlugs` adds the slugs of the whole document
- * the guide is stitched into: in the monolith, every heading and the section slugs of every copy.
+ * Mark broken links in an assembled guide, then re-align the tables whose links changed width.
+ * `documentSlugs` adds the slugs of the whole document the guide is stitched into: in the
+ * monolith, every heading and the section slugs of every copy.
  */
 function markAssembledGuide(
   guide: AssembledGuide,
@@ -109,14 +112,19 @@ function markAssembledGuide(
 ): string {
   const knownSlugs = new Set(guide.sectionSlugs);
   for (const slug of documentSlugs ?? []) knownSlugs.add(slug);
-  return markBrokenLinks(guide.markdown, {
+  // Table re-alignment finds the markers by the wording of the locale that wrote them.
+  const locale = getLocalePack();
+  const marked = markBrokenLinks(guide.markdown, {
     outputFile: options.outputFile,
     provenance: guide.provenance,
     enabled: options.markBroken !== false,
     guideName,
     compiledOutputPath: options.outputFile,
     knownSlugs,
+    locale,
   }).markdown;
+  // The last compile step: every link rewrite and broken-link marker is in place.
+  return realignTables(marked, { locale });
 }
 
 export function assembleGuide(guideDir: string, options: AssembleGuideOptions = {}): string {

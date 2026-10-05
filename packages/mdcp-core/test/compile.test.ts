@@ -637,6 +637,15 @@ describe('cli e2e', () => {
     expect(output).toContain('![MDCP logo](./logo.svg)');
     expect(output).toContain('<audio src="./chime.mp3" controls></audio>');
     expect(output).toContain('[Request flow](#diagram-1-request-flow)');
+    // The catalog gives each first reference a paragraph of its own, so its table compiles whole,
+    // with its back-links re-aligned.
+    expect(output).toContain(
+      [
+        '| Insert                                     | Summary                         |',
+        '| ------------------------------------------ | ------------------------------- |',
+        '| [Request flow](#diagram-1-request-flow)    | Client to server path (table)   |',
+      ].join('\n'),
+    );
     expect(output).toContain('[Status codes](#table-1-status-codes)');
     expect(output).toContain('#### Media 1. Walkthrough');
     expect(output).toContain('[Walkthrough](#media-1-walkthrough)');

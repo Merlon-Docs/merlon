@@ -65,7 +65,9 @@ The first reference to an insert file (document order across all shards in the g
 - **caption** — link label, or a humanized basename when the label is empty
 - **Anchor slug** — GitHub-style slug of the full heading (for example `Table 1. Status codes` → `#table-1-status-codes`)
 
-Output uses GFM headings and back-links for captions. Inlined shard bodies pass through as written (markdown tables, `![images](…)`, or HTML `<video>` / `<audio>` when your renderer supports them).
+Output uses GFM headings and back-links for captions. The hook inlines each shard body as written. The assembly passes after the hooks then treat that body as part of the shard, from link rewriting to [table re-alignment](./index.md#tables-after-link-rewriting). A body can contain markdown tables and `![images](…)`, and HTML `<video>` / `<audio>` when your renderer supports them.
+
+The heading and body replace the link, so a first reference in a table cell breaks the table, as the [compile example](#inlineinserts-compile-example) shows. Give the first reference a paragraph of its own, ahead of any table cell that links to the insert.
 
 ## inlineInserts numbered captions
 
@@ -128,12 +130,11 @@ Shard input:
 See [Request flow](../diagrams/request-flow.md) again in prose.
 ```
 
-Compiled fragment (first guide mention):
+Compiled fragment (first guide mention), with trailing spaces trimmed. The header and delimiter rows keep the shard's widths, and the insert splits the row with the link:
 
-```markdown
-| Insert | Summary |
-| ------ | ------- |
-
+```text
+| Insert                                      | Summary     |
+| ------------------------------------------- | ----------- |
 |
 
 #### Diagram 1. Request flow
@@ -142,12 +143,12 @@ Compiled fragment (first guide mention):
 | ---- | ------ |
 | 1    | Client |
 
-| Client path |
+ | Client path |
 
 See [Request flow](#diagram-1-request-flow) again in prose.
 ```
 
-Example fixture: [`examples/sample-guides/inserts-demo/`](../../../examples/sample-guides/inserts-demo/). See [GitHub media reference](../../../examples/sample-guides/inserts-demo/github-media-help.md) for a format matrix (PNG, JPEG, GIF, SVG, MP4, MP3/WAV, Mermaid, tables, lists) and minimal generated sample assets under `figures/` and `media/`.
+Example fixture: [`examples/sample-guides/inserts-demo/`](../../../examples/sample-guides/inserts-demo/). Its catalog gives each insert's first reference a paragraph of its own, and its table links to each insert again. Compile turns those table links into back-links and re-aligns the table. See [GitHub media reference](../../../examples/sample-guides/inserts-demo/github-media-help.md) for a format matrix (PNG, JPEG, GIF, SVG, MP4, MP3/WAV, Mermaid, tables, lists) and minimal generated sample assets under `figures/` and `media/`.
 
 **Figure with embedded image** — shard `figures/component-map.md`:
 
