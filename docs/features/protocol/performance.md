@@ -43,7 +43,7 @@ The core stages are orphans, compile, refs, built-in links and coverage, the [Ch
 
 ### Tier 4: Regression metrics
 
-The benchmark measures the lint time and writes the ms/link row. It records the compile time, not a time per shard. The ms/shard row is the compile time divided by the shard count. Both timings are compared from one run to the next. CI doesn't run the benchmark, so a regression in them shows up only when someone runs it by hand.
+`pnpm bench:dogfood` runs the benchmark, as [Benchmarks](../../developer/benchmarks.md) describes. The benchmark measures the lint time and writes the ms/link row. It records the compile time, not a time per shard. The ms/shard row is the compile time divided by the shard count. Both timings are compared from one run to the next. CI doesn't run the benchmark, so a regression in them shows up only when someone runs it by hand.
 
 | Metric                          | Target                                      |
 | ------------------------------- | ------------------------------------------- |

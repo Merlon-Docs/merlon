@@ -21,6 +21,7 @@
 ## Docs and skills
 
 - [Docs dogfooding](./docs-dogfooding.md)
+- [Benchmarks](./benchmarks.md)
 - [Markdown formatting](./markdown-formatting.md)
 - [Agent Skill development](./agent-skill.md)
 - [Live skill evals](./live-skill-evals.md)

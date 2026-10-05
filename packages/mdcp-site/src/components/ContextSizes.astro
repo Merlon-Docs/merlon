@@ -82,6 +82,7 @@ const recordedAt = metrics.get('tokenizer')?.recordedAt;
       recordedAt && <> on {recordedAt}</>
     }. Every model and system tokenizes differently, so read these as rough, relative sizes,
     not costs. The dated record <a href={`${BASE}/${RECORD_PATH}`}>{RECORD_TITLE}</a> gives the
-    method and the caveats. Switch tokenizers or plug in your own with <code>pnpm bench:context-size</code>.
+    method and the caveats. <a href={`${BASE}/contributing/benchmarks/`}>Benchmarks</a> says how to
+    re-measure with <code>pnpm bench:context-size</code> and another tokenizer or a counter of your own.
   </figcaption>
 </figure>

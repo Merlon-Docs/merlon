@@ -20,25 +20,7 @@ Policy for public copy — README, npm package openings, and adoption material. 
 
 When agents follow the [usage model](./usage-model.md) and read one shard instead of the whole [monolith](../../glossary/monolith.md), per-turn context can be smaller. That is the Tier B form of the claim. The figures for mdcp's own docs are in a dated record, [Context sizes: this repository's guides against one shard](./research/context-size-dogfood-2026-10-05.md). The Agent Skill tells an agent to find one shard with host search and open it, and to read compiled output only as a last resort. It can't stop an agent from reading a whole compiled guide or the monolith, and no record has measured how often agents stay at one shard.
 
-Regenerate after compile:
-
-```bash
-pnpm build && pnpm docs:compile:repo && pnpm bench:context-size
-```
-
-### Tokens are a rough estimate
-
-The CSV reports every size in characters and in tokens. Token counts come from an open-source tokenizer, [gpt-tokenizer](https://github.com/niieani/gpt-tokenizer) with the `o200k_base` encoding by default. Every model family tokenizes differently, so treat a token count as a rough estimate and use it to compare sizes, never as a bill for one model.
-
-Switch the tokenizer to match your own stack:
-
-```bash
-pnpm bench:context-size -- --tokenizer cl100k_base         # another gpt-tokenizer encoding
-pnpm bench:context-size -- --tokenizer chars4              # characters ÷ 4, no tokenizer
-pnpm bench:context-size -- --tokenizer-module ./count.mjs  # your counter: export countTokens(text)
-```
-
-`MDCP_TOKENIZER` and `MDCP_TOKENIZER_MODULE` set the same choices from the environment, and `--no-write` prints the table without touching the CSV.
+Token counts in that record, and in any figure like it, are rough estimates for comparing sizes, because every model family tokenizes differently. [Benchmarks](../../developer/benchmarks.md) says how mdcp's contributors measure them.
 
 ## Evidence elsewhere
 

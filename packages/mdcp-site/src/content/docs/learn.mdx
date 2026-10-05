@@ -106,14 +106,10 @@ sizes with each other, not with a bill.
 
 <ContextSizes />
 
-Measure your own repository with `pnpm bench:context-size`, and switch the tokenizer to match your stack:
-
-- `--tokenizer o200k_base` is the default. `cl100k_base`, `p50k_base` and the other gpt-tokenizer encodings work the same way.
-- `--tokenizer chars4` skips the tokenizer and divides characters by four.
-- `--tokenizer-module ./count.mjs` loads your own counter, a module that exports `countTokens(text)`.
+After `pnpm build && pnpm docs:compile:repo`, this command counts this repository's docs with `cl100k_base`. With `--no-write`, it prints the table and doesn't write a CSV:
 
 ```bash wrap
-pnpm bench:context-size -- --tokenizer cl100k_base
+pnpm bench:context-size --tokenizer cl100k_base --no-write
 ```
 
 <nav class="mdcp-links" aria-label="Measure it">
