@@ -1,6 +1,6 @@
 # MDCP 1.0 specification (draft)
 
-Normative specification for the MarkDown Context Protocol.
+Normative specification for the MarkDown Context Protocol (MDCP).
 
 > **Status:** Draft — reference implementation leads; prose reconciled against `mdcp-core` before calling the specification final. Protocol versioning is independent of package semver. Agent entrypoint is the parent **Agent Skill** (`/mdcp`).
 
@@ -49,7 +49,7 @@ Work-item workflows **MUST** resolve `WORK_ITEM` and `WORK_ITEM_LOOKUP` before e
 
 ## 5. Skills and immutability
 
-The Agent Skills pack in a consumer docs root **MUST NOT** be hand-edited by agents for repo-specific content. The rule is advisory ([Enforceable rules](../design-constraints/enforceable-rules.md)), because `mdcp check` reads the docs root and never an installed skill. Whoever changes the repository applies it, and the change's review is the evidence. Project overlays belong in `docs/extensions/` or normative shards. Extension packs and archetypes: [Extensions and archetypes](./extensions-and-archetypes.md).
+The mdcp Agent Skill installed in an agent's skills directory **MUST NOT** be hand-edited for repo-specific content. The rule is advisory ([Enforceable rules](../design-constraints/enforceable-rules.md)), because `mdcp check` reads the docs root and never an installed skill. Whoever changes the repository applies it, and the change's review is the evidence. Project overlays belong in `docs/extensions/` or repo shards. [Extensions and archetypes](./extensions-and-archetypes.md) covers extension packs and archetypes.
 
 ## 6. Agent context delivery
 

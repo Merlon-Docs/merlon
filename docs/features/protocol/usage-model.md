@@ -1,6 +1,6 @@
 # Usage model
 
-Operational roles for Markdown as Context.
+Operational roles in the MarkDown Context Protocol (MDCP).
 
 ## Agent entrypoint
 
