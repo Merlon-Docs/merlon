@@ -37,8 +37,20 @@ export function isRepoFilePath(path: string, extensions?: Set<string>): boolean 
   return hasFileExtension(base, extensions) || !base.includes('.');
 }
 
+/**
+ * `label` without the backticks at either end. A loop, since ``/`+$/`` rescans a backtick run from
+ * each backtick.
+ */
+function trimBackticks(label: string): string {
+  let start = 0;
+  let end = label.length;
+  while (start < end && label[start] === '`') start++;
+  while (end > start && label[end - 1] === '`') end--;
+  return label.slice(start, end);
+}
+
 export function symbolFromLabel(label: string): string | null {
-  const stripped = label.replace(/^`+|`+$/g, '').trim();
+  const stripped = trimBackticks(label).trim();
   if (!stripped || lineRangeFromText(stripped)) return null;
   if (!IDENT_RE.test(stripped)) return null;
   return stripped;
@@ -91,7 +103,7 @@ function rewriteEvidenceLink(
 
   const existingLine = fragment?.match(/^L\d+(?:-L\d+)?$/i);
   if (existingLine) {
-    const normalized = fragment.replace(/^l/i, 'L');
+    const normalized = fragment.toUpperCase();
     const resolved = resolveRelativeFile(pathPart, guideDir, searchRoots);
     const outPath = outputPathForLink(pathPart, resolved, outputFile);
     return `[${label}](${outPath}#${normalized})`;

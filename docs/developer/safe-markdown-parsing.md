@@ -23,7 +23,7 @@ Link validation finds broken-link markers with `findTemplateMatches`, a scanner 
 
 The manifest walk and the `inlineInserts` hook find links in a whole manifest or shard body with the scanners in `compile/link-scan.ts`. The walk reads `.md` links and `](#slug)` links with them, and the hook reads links into an insert library. Each scanner returns the matches of a link regex, such as `\[[^\]]*\]\(([^)]+\.md)(?:#[^)]*)?\)` for `.md` links, in time that grows linearly with the text. The regex itself reads a target with `[^)]`, which crosses line breaks, so on a crafted text its time can grow with the cube of the text's length.
 
-`codeEvidence` reads line ranges such as `L6-L8` or `lines 12–15` with `lineRangeFromText`, an imperative scanner in `compile/hooks/line-range.ts`. It takes its words from the locale pack. Public package APIs keep their names, and call sites delegate to the helpers. Duration-budget tests in `packages/mdcp-core/test/redos-budget.test.ts` run the helpers and scanners on pump inputs, so a regex that brings the class back fails CI.
+`codeEvidence` reads line ranges such as `L6-L8` or `lines 12–15` with `lineRangeFromText`, an imperative scanner in `compile/hooks/line-range.ts`. It takes its words from the locale pack. The hook trims the backticks around a link label with a loop, and `shardLintPaths` uses one too, for the slashes at the end of a `shardsGlobs` entry that starts with `../`. Public package APIs keep their names, and call sites delegate to the helpers. Duration-budget tests in `packages/mdcp-core/test/redos-budget.test.ts` run the helpers and scanners on pump inputs, so a regex that brings the class back fails CI.
 
 ## Regex sites that remain
 
@@ -33,8 +33,6 @@ A regex in `packages/mdcp-core/src/` falls under this rule:
 - **Rewrite** a pattern next to the CodeQL class, such as `\s*` or overlapping optional groups next to digits, as a scanner with a duration-budget test.
 - **Keep** the Markdown link idioms that [Link idioms](#link-idioms) lists as regexes, and fix any `js/polynomial-redos` alert on one with a scanner.
 - Leave prose and language opinion out of core, because it belongs in Vale.
-
-[Not linear on crafted input](#not-linear-on-crafted-input) lists the sites in the rewrite case that are still regexes.
 
 ### Kept (linear)
 
@@ -53,15 +51,6 @@ A regex in `packages/mdcp-core/src/` falls under this rule:
 | Path and glob helpers                                      | `./`, `../` and `.` prefixes, a leading `!`, `#` or `:`, and one trailing `/`                                                             | Anchored                                                                              |
 | Adornment, escape and split helpers                        | `**` and emphasis markers, backslashes, regex and glob escaping, letter and number classes, whitespace and separator splits               | Literal or one character class                                                        |
 
-### Not linear on crafted input
-
-| Location                                           | Pattern role                                                                                                                       |
-| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `config/load.ts` `shardsGlobPath`                  | Trims trailing slashes with `/\/+$/` from a `shardsGlobs` entry whose path starts with `../`, with or without a leading `!` or `#` |
-| `compile/hooks/code-evidence.ts` `symbolFromLabel` | Trims backticks from both ends of a link label with ``^`+`` and `` `+$ ``                                                          |
-
-On a crafted input, each of these takes time that grows faster than the input does, which puts it in the rule's rewrite case. Each trim takes time that grows with the square of the length of the text it reads. They stay regexes until someone rewrites them. Each reads text that the repository being compiled supplies, so a slow input has to be committed there first. A rewrite replaces the regex with a scanner and adds a duration-budget test.
-
 ### Link idioms
 
 | Location                                      | Pattern role                                              | Input                                      |
@@ -70,7 +59,7 @@ On a crafted input, each of these takes time that grows faster than the input do
 | `compile/publish-links.ts`                    | Cross-guide, intra-guide and publish-relative link shapes | One line at a time, with code spans masked |
 | `compile/hooks/code-evidence.ts` `MD_LINK_RE` | `[label](target)` for evidence links                      | The whole shard body                       |
 
-Each of these matches the `[label](target)` form with negated character classes. They aren't linear either. On a crafted input the time grows at least with the square of the input's length. The Input column says which length counts. A negated class such as `[^)]` crosses line breaks, so short lines don't limit a regex that reads the whole text. Phase B kept these idioms as regexes, as [ADR 0005](../features/adr/0005-keep-ts-scanners-over-rg-peggy-rust.md) records, and the maintainers decided to keep them. If CodeQL opens `js/polynomial-redos` on one of these sites, fix it with a linear scanner and a duration-budget test. A fix can start from `scanInlineLinks` in `compile/link-scan.ts`, which walks the `[label](target)` shape these regexes match in linear time and lets a callback accept or turn down each target. Its callback doesn't get the index of the `[`, and the scan turns down each link that shares a label end it turned down before, so a caller that skips image links has to extend it first.
+Each of these matches the `[label](target)` form with negated character classes. They aren't linear. On a crafted input the time grows at least with the square of the input's length. The Input column says which length counts. A negated class such as `[^)]` crosses line breaks, so short lines don't limit a regex that reads the whole text. Phase B kept these idioms as regexes, as [ADR 0005](../features/adr/0005-keep-ts-scanners-over-rg-peggy-rust.md) records, and the maintainers decided to keep them. If CodeQL opens `js/polynomial-redos` on one of these sites, fix it with a linear scanner and a duration-budget test. A fix can start from `scanInlineLinks` in `compile/link-scan.ts`, which walks the `[label](target)` shape these regexes match in linear time and lets a callback accept or turn down each target. Its callback doesn't get the index of the `[`, and the scan turns down each link that shares a label end it turned down before, so a caller that skips image links has to extend it first.
 
 ## Authoring implications
 

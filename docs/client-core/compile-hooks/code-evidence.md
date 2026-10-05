@@ -42,7 +42,7 @@ Line ranges are parsed from the **link label** first, then from the path (before
 
 **Locale word forms** come from the active [locale pack](../../glossary/locale-pack.md) (`lineRangeWords`). Default **en-US** recognizes `line` / `lines` (case-insensitive), for example `line 42` → `#L42` and `lines 12–15` → `#L12-L15`. Other locales may supply different authored words; they are not MDCP protocol vocabulary. See [Locale and language boundary](../../features/design-constraints/locale-and-language.md).
 
-If the URL already has a normalized `#L…` fragment, the hook preserves it (normalizing case to `#L`).
+If the URL already has a line fragment such as `#L6` or `#L6-L8`, the hook keeps it and writes each `l` in it as `L`, so `#l6-l8` becomes `#L6-L8`.
 
 ## codeEvidence symbols
 

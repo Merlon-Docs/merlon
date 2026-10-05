@@ -6,6 +6,8 @@ import { headingTextToPlain } from '../src/refs/slugs.js';
 import { demoteExceptFirstH1, demoteHeadings } from '../src/compile/headings.js';
 import { lineRangeFromText } from '../src/compile/hooks/line-range.js';
 import { isPathClaim, probePathClaims } from '../src/validate/path-probe.js';
+import { shardLintPaths } from '../src/config/load.js';
+import { symbolFromLabel } from '../src/compile/hooks/code-evidence.js';
 import { enUS } from '../src/locale/index.js';
 import { lintCompiledLinks } from '../src/links/validate-compiled.js';
 import { linkedSectionFiles, sectionFiles } from '../src/compile/section-manifest.js';
@@ -26,6 +28,7 @@ const MARKER_PARTS = 80;
 const MARKER_STARTS = 5_000;
 const MARKER_LINE_LINKS = 2_000;
 const CRLF_FENCE_RUN = 15_000;
+const LABEL_BACKTICKS = 20_000;
 const OPEN_FILE_LINKS = 400;
 const OPEN_SLUG_LINKS = 10_000;
 const SHARED_CLOSE_LINKS = 4_000;
@@ -152,6 +155,28 @@ describe('ReDoS budget demos (CodeQL js/polynomial-redos)', () => {
         generated: [trailingSlashRun(SLASH_N)],
         vocabulary: [trailingSlashRun(SLASH_N)],
       });
+    });
+    expect(ms).toBeLessThan(BUDGET_MS);
+  });
+
+  // A `shardsGlobs` entry is config text, and an entry that starts with `../` had its trailing
+  // slashes trimmed with `/\/+$/`, which rescans the run from each slash when a letter follows.
+  it('shardLintPaths stays under budget on a ../ entry with a long slash run inside', () => {
+    const config = {
+      lint: { markdownlint: { shardsGlobs: ['../x' + trailingSlashRun(SLASH_N)] } },
+    } as never;
+    const ms = timeMs(() => {
+      shardLintPaths(config, '/docs');
+    });
+    expect(ms).toBeLessThan(BUDGET_MS);
+  });
+
+  // A link label is documentation text. Trimming its backticks with ``/^`+|`+$/g`` rescans a
+  // backtick run from each of its backticks when a letter follows the run.
+  it('symbolFromLabel stays under budget on a label with a long backtick run inside', () => {
+    const input = 'a' + '`'.repeat(LABEL_BACKTICKS) + 'a';
+    const ms = timeMs(() => {
+      symbolFromLabel(input);
     });
     expect(ms).toBeLessThan(BUDGET_MS);
   });
