@@ -86,7 +86,7 @@ Visit [github.com/betsalel-williamson/mdcp](https://github.com/betsalel-williams
 
    This path works when the docs root is a direct child of the directory that holds `node_modules`, and Optional linters says how mdcp resolves it. When markdownlint-cli2 is missing, `mdcp check` skips the shard pass with an info line unless you pass `--require-lint`. When the preset file is missing, the pass fails. Optional linters also covers the compiled-output preset and Vale.
 
-2. Lay out shards under guide directories (each with `index.md` and chapter files). The [sample guides](../../examples/sample-guides) in the mdcp repository show a layout, and you can [copy single keys from their config](#schema-only-fields).
+2. Lay out shards under guide directories (each with `index.md` and chapter files). The [sample guides](../../examples/sample-guides) in the mdcp repository show a layout, and you can [copy single keys from their config](#full-schema-and-sample-config).
 
 3. Run:
 
@@ -130,12 +130,12 @@ After you set up a repository, confirm each item:
 
 Each folder directly under the docs root (`--docs-root`) is a [guide](#guide) when its name appears in `compileOrder`. The guide **`name`** in config matches the **directory name**.
 
-| Piece                                           | Role                                                             |
-| ----------------------------------------------- | ---------------------------------------------------------------- |
-| Guide directory (`features/`, `client-cli/`, …) | One logical guide — human-edited shards only                     |
-| `index.md` (or `shards.md`)                     | Human table of contents — **compile order** from link order here |
-| `chapter-*.md` (typical)                        | One topic or chapter per file                                    |
-| `about-this-guide.md`                           | Optional preamble shard                                          |
+| Piece                                           | Role                                                                                                                                                   |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Guide directory (`features/`, `client-cli/`, …) | One logical guide, made of human-edited shards                                                                                                         |
+| `index.md` (or `shards.md`)                     | Human table of contents. Its link order sets the **compile order**                                                                                     |
+| `chapter-*.md` (typical)                        | One topic or chapter per file                                                                                                                          |
+| `about-this-guide.md`                           | Optional preamble shard: compile drops its `# About this guide` heading and keeps the text. `compile.preambleSection` names another file for this role |
 
 Support directories such as `styles/` for Vale are **not** guides unless listed in `compileOrder`. Compile doesn't write output for them. Shard markdownlint and Vale skip them too unless your config names them, as [In-scope guide fileset](#in-scope-guide-fileset) explains. A guide whose `compile.scopeRoot` points into one still stitches the shards it links, as the [shared glossary](#shared-glossary) does.
 
@@ -261,7 +261,7 @@ Set top-level `outputFile` (such as `"guides.md"`) to also stitch guides **witho
 
 ### Feature settings
 
-Each feature's spec defines its config keys and what they do. This table gives their defaults, and the paragraphs below it link to the specs.
+Each feature's spec defines its config keys and what they do. This table gives their defaults, and [Config key map](#config-key-map) links each spec.
 
 | Key                        | Default           |
 | -------------------------- | ----------------- |
@@ -269,6 +269,7 @@ Each feature's spec defines its config keys and what they do. This table gives t
 | `lint.links.enabled`       | `true`            |
 | `lint.links.severity`      | `"error"`         |
 | `lint.links.config`        | none              |
+| `lint.links.target`        | none              |
 | `lint.codeExtensions`      | `[]`              |
 | `lint.dataExtensions`      | `[]`              |
 | `lint.paths.severity`      | `"off"`           |
@@ -279,9 +280,30 @@ Each feature's spec defines its config keys and what they do. This table gives t
 | `backup.dir`               | `.caches/backups` |
 | `backup.ext`               | `""`              |
 
-[Built-in link validation](../../docs/features/link-validation.md) covers the `compile.links.*` and `lint.links.*` keys and the extension lists. [Path resolution in prose](../../docs/features/path-resolution.md) covers `lint.paths.*`, and [Compile output backup](../../docs/features/compile-output-backup.md) covers `backup.*` and the `--backup` flags.
+### Config key map
 
-Other feature keys are documented with their features. `compile.sectionsHeading` is in [Manifest compile order](../../docs/features/manifest-compile-order.md), `compile.hooks` and `compile.hooksConfig` are in [Default compile hooks](../../docs/features/default-compile-hooks.md), and `compile.crossGuideLinks` is in [Cross-guide link rewriting](../mdcp-core/README.md#cross-guide-link-rewriting). [Coverage in check](#coverage-in-check) covers `scan.*` and `standaloneGuides`.
+This table links the page that documents each key:
+
+| Key                                                                                                                    | Documented in                                                                                                                                                         |
+| ---------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `compileOrder`, `guides[].name`, `guides[].path`, `outputDir`, `outputFile`, `refs.registryFile`, `compile.outputFile` | [Minimal config](#minimal-config) and [Path layout](#path-layout) on this page                                                                                        |
+| `compile.scopeRoot`                                                                                                    | [Shared glossary](#shared-glossary) on this page                                                                                                                      |
+| `review.*`                                                                                                             | [Review thresholds](#review-thresholds) on this page                                                                                                                  |
+| `protocolVersion`, `refs.slugAlgorithm`                                                                                | [Schema-only fields](#schema-only-fields) on this page                                                                                                                |
+| `source`, `guides[].source`, `guides[].splitLevel`                                                                     | [Consumer migration](#map-the-document-to-guides)                                                                                                                     |
+| `compile.preambleSection`                                                                                              | [Project layout](#project-layout)                                                                                                                                     |
+| `banner`, `sourceTags`, `compile.includeBanner`, `compile.sourceTags`                                                  | [Source tags and banner](../../docs/features/source-tags-and-banner.md)                                                                                               |
+| `compile.manifest`, `compile.sectionsHeading`                                                                          | [Manifest compile order](../../docs/features/manifest-compile-order.md)                                                                                               |
+| `compile.title`                                                                                                        | [Compile API](../mdcp-core/README.md#api--compile)                                                                                                                    |
+| `compile.hooks`, `compile.hooksConfig`                                                                                 | [Default compile hooks](../../docs/features/default-compile-hooks.md), and the core [Compile hooks](../mdcp-core/README.md#compile-hooks) index for the hook pipeline |
+| `compile.stripAnchors`                                                                                                 | [stripAnchors](../mdcp-core/README.md#stripanchors)                                                                                                                   |
+| `compile.crossGuideLinks`                                                                                              | [Cross-guide link rewriting](../mdcp-core/README.md#cross-guide-link-rewriting)                                                                                       |
+| `compile.links.*`, `lint.links.enabled`, `lint.links.severity`, `lint.codeExtensions`, `lint.dataExtensions`           | [Built-in link validation](../../docs/features/link-validation.md)                                                                                                    |
+| `lint.paths.*`                                                                                                         | [Path resolution in prose](../../docs/features/path-resolution.md)                                                                                                    |
+| `lint.links.config`, `lint.links.target`, `lint.markdownlint.*`, `vale.*`                                              | [Optional linters](#optional-linters)                                                                                                                                 |
+| `scan.*`                                                                                                               | [Documentation coverage scan](../../docs/features/coverage-scan.md#config)                                                                                            |
+| `standaloneGuides`                                                                                                     | [Coverage in check](#coverage-in-check)                                                                                                                               |
+| `backup.*` and the `--backup` flags                                                                                    | [Compile output backup](../../docs/features/compile-output-backup.md)                                                                                                 |
 
 ### Shared glossary
 
@@ -327,8 +349,11 @@ To publish the glossary as its own file, add `glossary` to `compileOrder` and se
 | Field                | Notes                                             |
 | -------------------- | ------------------------------------------------- |
 | `refs.slugAlgorithm` | Informational only — only `github` is implemented |
+| `protocolVersion`    | Defaults to `0.5.0.0`, and no command reads it    |
 
-The [sample guides' config](../../examples/sample-guides/mdcp.config.json) is a longer example. Its paths resolve only from the mdcp repository root, so copy single keys from it.
+### Full schema and sample config
+
+[`mdcp.config.schema.json`](../mdcp-core/mdcp.config.schema.json), a file in the mdcp repository that the npm packages leave out, is the JSON Schema for every key. The [sample guides' config](../../examples/sample-guides/mdcp.config.json) is a longer example. Its paths resolve only from the mdcp repository root, so copy single keys from it.
 
 <!-- mdcp-shard: end ../../docs/client-cli/config-essentials.md -->
 
@@ -593,7 +618,7 @@ mdcp check --require-lint --require-vale   # CI gate with markdownlint + Vale
 mdcp check --skip-vale            # structural checks only
 ```
 
-`mdcp check` runs **built-in** internal link validation by default (`lint.links.enabled`). Peer `markdown-link-check` runs only when **`lint.links.config`** is set and the peer is installed. `mdcp links` checks the file that `lint.links.target` names, or else the monolith that top-level `outputFile` names, and exits 1 when the config sets neither. When the peer is missing, it prints an info line and exits 0.
+`mdcp check` runs **built-in** internal link validation by default (`lint.links.enabled`). Peer `markdown-link-check` runs only when **`lint.links.config`** is set and the peer is installed. `mdcp links` checks the file that `lint.links.target` names, or else the monolith that top-level `outputFile` names, and exits 1 when the config sets neither. A relative `lint.links.target` is read from the docs root, not from `outputDir`, so to check a monolith under the default `outputDir`, write `_build/guides.md`. When the peer is missing, it prints an info line and exits 0.
 
 Install npm peers with:
 
@@ -601,9 +626,9 @@ Install npm peers with:
 npm install -D prettier markdownlint-cli2 @bwilliamson/mdcp-presets
 ```
 
-Install **Vale** separately so `vale` is on your `PATH` — see [Vale installation](https://vale.sh/docs/vale-cli/installation/) (Homebrew, Chocolatey, Snap, or GitHub release). After adding a `.vale.ini`, run `vale sync` in that directory. mdcp looks for `vale` in `node_modules/.bin`, from the docs root up, before it looks on `PATH`.
+Install **Vale** separately so `vale` is on your `PATH`, using one of the methods in [Vale installation](https://vale.sh/docs/vale-cli/installation/). After adding a `.vale.ini`, run `vale sync` in that directory. mdcp looks for `vale` in `node_modules/.bin`, from the docs root up, before it looks on `PATH`. `mdcp prose` and `mdcp check` run Vale in the docs root and pass it the config file that `vale.config` names, `.vale.ini` by default.
 
-Wire preset paths in `mdcp.config.json` under `lint.markdownlint`. See `@bwilliamson/mdcp-presets` on npm.
+`lint.markdownlint.shardsConfig` names the markdownlint-cli2 config file for the shard pass, and `lint.markdownlint.compiledConfig` names the one for the compiled pass. `mdcp lint` and `mdcp check` run each pass only when its key is set, and [Check gate stages](../../docs/features/check-gate.md#check-gate-stages) lists both passes in the check. A relative path is read from the docs root, so a `docs/` root next to `node_modules` uses `../node_modules/@bwilliamson/mdcp-presets/...`, as step 1 of [Quick start](#quick-start) shows.
 
 A [locale pack](#locale-pack) is MDCP compile-time wording, not a Vale style. The **`MDCP` Vale style** in `@bwilliamson/mdcp-presets` (`vale/MDCP/`) holds the en-US prose cues. Its rules flag a numbered heading mention with no link, and `MDCP.DatedClaim` flags `as of` or `until` before an ISO date. See [Locale and language boundary](../../docs/features/design-constraints/locale-and-language.md).
 

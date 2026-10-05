@@ -60,7 +60,7 @@ Visit [github.com/betsalel-williamson/mdcp](https://github.com/betsalel-williams
 
    This path works when the docs root is a direct child of the directory that holds `node_modules`, and Optional linters says how mdcp resolves it. When markdownlint-cli2 is missing, `mdcp check` skips the shard pass with an info line unless you pass `--require-lint`. When the preset file is missing, the pass fails. Optional linters also covers the compiled-output preset and Vale.
 
-2. Lay out shards under guide directories (each with `index.md` and chapter files). The [sample guides](../../examples/sample-guides/) in the mdcp repository show a layout, and you can [copy single keys from their config](./config-essentials.md#schema-only-fields).
+2. Lay out shards under guide directories (each with `index.md` and chapter files). The [sample guides](../../examples/sample-guides/) in the mdcp repository show a layout, and you can [copy single keys from their config](./config-essentials.md#full-schema-and-sample-config).
 
 3. Run:
 

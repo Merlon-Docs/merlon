@@ -19,7 +19,7 @@ mdcp check --require-lint --require-vale   # CI gate with markdownlint + Vale
 mdcp check --skip-vale            # structural checks only
 ```
 
-`mdcp check` runs **built-in** internal link validation by default (`lint.links.enabled`). Peer `markdown-link-check` runs only when **`lint.links.config`** is set and the peer is installed. `mdcp links` checks the file that `lint.links.target` names, or else the monolith that top-level `outputFile` names, and exits 1 when the config sets neither. When the peer is missing, it prints an info line and exits 0.
+`mdcp check` runs **built-in** internal link validation by default (`lint.links.enabled`). Peer `markdown-link-check` runs only when **`lint.links.config`** is set and the peer is installed. `mdcp links` checks the file that `lint.links.target` names, or else the monolith that top-level `outputFile` names, and exits 1 when the config sets neither. A relative `lint.links.target` is read from the docs root, not from `outputDir`, so to check a monolith under the default `outputDir`, write `_build/guides.md`. When the peer is missing, it prints an info line and exits 0.
 
 Install npm peers with:
 
@@ -27,9 +27,9 @@ Install npm peers with:
 npm install -D prettier markdownlint-cli2 @bwilliamson/mdcp-presets
 ```
 
-Install **Vale** separately so `vale` is on your `PATH` — see [Vale installation](https://vale.sh/docs/vale-cli/installation/) (Homebrew, Chocolatey, Snap, or GitHub release). After adding a `.vale.ini`, run `vale sync` in that directory. mdcp looks for `vale` in `node_modules/.bin`, from the docs root up, before it looks on `PATH`.
+Install **Vale** separately so `vale` is on your `PATH`, using one of the methods in [Vale installation](https://vale.sh/docs/vale-cli/installation/). After adding a `.vale.ini`, run `vale sync` in that directory. mdcp looks for `vale` in `node_modules/.bin`, from the docs root up, before it looks on `PATH`. `mdcp prose` and `mdcp check` run Vale in the docs root and pass it the config file that `vale.config` names, `.vale.ini` by default.
 
-Wire preset paths in `mdcp.config.json` under `lint.markdownlint`. See `@bwilliamson/mdcp-presets` on npm.
+`lint.markdownlint.shardsConfig` names the markdownlint-cli2 config file for the shard pass, and `lint.markdownlint.compiledConfig` names the one for the compiled pass. `mdcp lint` and `mdcp check` run each pass only when its key is set, and [Check gate stages](../features/check-gate.md#check-gate-stages) lists both passes in the check. A relative path is read from the docs root, so a `docs/` root next to `node_modules` uses `../node_modules/@bwilliamson/mdcp-presets/...`, as step 1 of [Quick start](./install-and-quick-start.md#quick-start) shows.
 
 A [locale pack](../glossary/locale-pack.md) is MDCP compile-time wording, not a Vale style. The **`MDCP` Vale style** in `@bwilliamson/mdcp-presets` (`vale/MDCP/`) holds the en-US prose cues. Its rules flag a numbered heading mention with no link, and `MDCP.DatedClaim` flags `as of` or `until` before an ISO date. See [Locale and language boundary](../features/design-constraints/locale-and-language.md).
 
