@@ -225,7 +225,7 @@ Prefer outputDir-relative values in config (for example `".caches/refs.json"` wh
 | `githubSlugify`      | Single-heading slug via github-slugger               |
 | `buildSlugRegistry`  | Document-wide slugs; duplicates get numeric suffixes |
 
-`buildSlugRegistry` reads only headings outside fenced code blocks, with the fence scan that [stripAnchors](#stripanchors-code) describes. A `# comment` in a shell example doesn't get a slug, and it doesn't change the guide that later headings belong to. Compile numbers [section slugs](#cross-guide-section-slugs) through the same reader, so a rewritten section link and the registry agree, apart from the limits that section lists.
+`buildSlugRegistry` reads only headings outside fenced code blocks, with the fence scan that [stripAnchors](#stripanchors-code) describes. A `# comment` in a shell example doesn't get a slug, and it doesn't change the guide that later headings belong to. Compile numbers [section slugs](#cross-guide-section-slugs) through the same reader, so a rewritten section link and the registry agree, apart from the limits that section lists. Heading demotion, in compile and in `demoteHeadings`, leaves each line that the same fence scan reads as code as written. It starts a new scan on each text it demotes, such as one shard, while `buildSlugRegistry` reads its whole text with one scan, so a shard that ends inside an open fence can make the two disagree about the shard after it.
 
 ```typescript
 import { githubSlugify, headingTextToPlain } from '@bwilliamson/mdcp-core';

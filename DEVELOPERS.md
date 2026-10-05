@@ -668,7 +668,7 @@ The helpers in `packages/mdcp-core/src/markdown/` run in linear time. They cover
 - producing plain heading text for language-agnostic [heading slug](#heading-slug) generation
 - tracking fenced code blocks line by line, masking non-prose regions and counting words for prose checks
 
-Heading demotion in `compile/headings.ts` runs `parseHeading` and `formatHeadingAsAtx` on each line outside fenced blocks, but it finds those blocks with `FENCE_RE`, which [Not linear on crafted input](#not-linear-on-crafted-input) lists.
+Heading demotion in `compile/headings.ts` runs `parseHeading` and `formatHeadingAsAtx` on each line outside fenced blocks. It finds those blocks with `createCodeFenceScanner`, the same scan that the slug registry's heading reader runs, and that scan reads a CRLF line too. Demotion starts a new scan on each text it demotes, such as one shard, while the registry reads a whole guide with one scan. A shard that ends inside an open fence can make the two disagree about the shard after it.
 
 Link validation finds broken-link markers with `findTemplateMatches`, a scanner in `locale/create-locale-pack.ts`. It splits the locale's `markerTemplate` at each variable but `markerLabel` and finds the parts in order, with no line terminator between two of them. It returns the markers that a pattern with a lazy `.*?` for each variable matches, and its time grows linearly with the length of the line. Compiled link lint asks about a line a fixed number of times, however many links it holds.
 
@@ -706,13 +706,12 @@ A regex in `packages/mdcp-core/src/` falls under this rule:
 
 #### Not linear on crafted input
 
-| Location                                           | Pattern role                                                                                                                                                                                                                                                                                                                                                           |
-| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `compile/headings.ts` `FENCE_RE`                   | Finds fence open and close markers on each line that heading demotion reads. The regex has no `m` flag, so on a line that ends in a carriage return `$` fails after `.*`, and the engine gives the backtick or tilde run back one character at a time. For the same reason it doesn't match a fence line in a CRLF shard, so demotion reads that fenced block as prose |
-| `config/load.ts` `shardsGlobPath`                  | Trims trailing slashes with `/\/+$/` from a `shardsGlobs` entry whose path starts with `../`, with or without a leading `!` or `#`                                                                                                                                                                                                                                     |
-| `compile/hooks/code-evidence.ts` `symbolFromLabel` | Trims backticks from both ends of a link label with ``^`+`` and `` `+$ ``                                                                                                                                                                                                                                                                                              |
+| Location                                           | Pattern role                                                                                                                       |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `config/load.ts` `shardsGlobPath`                  | Trims trailing slashes with `/\/+$/` from a `shardsGlobs` entry whose path starts with `../`, with or without a leading `!` or `#` |
+| `compile/hooks/code-evidence.ts` `symbolFromLabel` | Trims backticks from both ends of a link label with ``^`+`` and `` `+$ ``                                                          |
 
-On a crafted input, each of these takes time that grows faster than the input does, which puts it in the rule's rewrite case. `FENCE_RE` and the two trims grow with the square of the length of the text they read. They stay regexes until someone rewrites them. Each reads text that the repository being compiled supplies, so a slow input has to be committed there first. A rewrite replaces the regex with a scanner and adds a duration-budget test.
+On a crafted input, each of these takes time that grows faster than the input does, which puts it in the rule's rewrite case. Each trim takes time that grows with the square of the length of the text it reads. They stay regexes until someone rewrites them. Each reads text that the repository being compiled supplies, so a slow input has to be committed there first. A rewrite replaces the regex with a scanner and adds a duration-budget test.
 
 #### Link idioms
 

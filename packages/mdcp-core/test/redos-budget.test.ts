@@ -3,7 +3,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { stripExplicitAnchorMarkers } from '../src/compile/anchors.js';
 import { headingTextToPlain } from '../src/refs/slugs.js';
-import { demoteHeadings } from '../src/compile/headings.js';
+import { demoteExceptFirstH1, demoteHeadings } from '../src/compile/headings.js';
 import { lineRangeFromText } from '../src/compile/hooks/line-range.js';
 import { isPathClaim, probePathClaims } from '../src/validate/path-probe.js';
 import { enUS } from '../src/locale/index.js';
@@ -25,6 +25,7 @@ const LINE_MARKERS = 20_000;
 const MARKER_PARTS = 80;
 const MARKER_STARTS = 5_000;
 const MARKER_LINE_LINKS = 2_000;
+const CRLF_FENCE_RUN = 15_000;
 const OPEN_FILE_LINKS = 400;
 const OPEN_SLUG_LINKS = 10_000;
 const SHARED_CLOSE_LINKS = 4_000;
@@ -96,6 +97,24 @@ describe('ReDoS budget demos (CodeQL js/polynomial-redos)', () => {
     const input = '#' + manySpaces(SPACE_N) + 'Title';
     const ms = timeMs(() => {
       demoteHeadings(input);
+    });
+    expect(ms).toBeLessThan(BUDGET_MS);
+  });
+
+  // A fence regex that ends in `(.*)$` without the `m` flag fails at the carriage return of a CRLF
+  // line and gives the backtick run back one character at a time, rescanning the rest each time.
+  it('demoteHeadings stays under budget on a CRLF line of backticks', () => {
+    const input = '`'.repeat(CRLF_FENCE_RUN) + '\r\n# Title\r\n';
+    const ms = timeMs(() => {
+      demoteHeadings(input);
+    });
+    expect(ms).toBeLessThan(BUDGET_MS);
+  });
+
+  it('demoteExceptFirstH1 stays under budget on a CRLF line of backticks', () => {
+    const input = '`'.repeat(CRLF_FENCE_RUN) + '\r\n# Title\r\n';
+    const ms = timeMs(() => {
+      demoteExceptFirstH1(input);
     });
     expect(ms).toBeLessThan(BUDGET_MS);
   });
