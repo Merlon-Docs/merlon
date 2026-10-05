@@ -22,7 +22,8 @@ MDCP is an **offline document context protocol** — not a wire protocol like [M
 ```text
   [Authoring]  MDCP: shards → compile → check
        ↓
-  [Delivery]   Agent Skills pack, MCP server, file read, stdout
+  [Delivery]   V1: Agent Skill + one-shard reads (host search)
+               V2: MCP adapter (optional)
        ↓
   [Consumers]  agent host, CI, human reviewers
 ```
