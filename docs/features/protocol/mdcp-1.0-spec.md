@@ -53,7 +53,7 @@ The mdcp Agent Skill installed in an agent's skills directory **MUST NOT** be ha
 
 ## 6. Agent context delivery
 
-Agent context comes from the parent **Agent Skill** and one-shard reads. There is no token-strip export profile — see [ADR 0001](../adr/0001-remove-export-profiles.md).
+Agent context comes from the parent **Agent Skill** and one-shard reads ([ADR 0001](../adr/0001-remove-export-profiles.md)).
 
 ## Appendix A (informative)
 

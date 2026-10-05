@@ -14,9 +14,9 @@ The tiers are advisory, as [Enforceable rules](../design-constraints/enforceable
 
 ## Common corrections
 
-- **Scoped context** — Comes from **workflow** ([usage model](./usage-model.md): read one shard), not from a token-strip export profile.
-- **Retrieval / lookup verb as WIIFM** — Forbidden. Doc discovery is host search; do not claim MDCP retrieves context by slug — see [ADR 0002](../adr/0002-remove-refs-lookup.md).
-- **Ship faster with agents** — Tier C; use adoption stories or measured outcomes.
+- **Scoped context**: comes from the **workflow** ([usage model](./usage-model.md): read one shard), not from a feature of the tool.
+- **Retrieval / lookup verb as WIIFM**: forbidden. Doc discovery is host search, so don't claim MDCP retrieves context by slug ([ADR 0002](../adr/0002-remove-refs-lookup.md)).
+- **Faster delivery with agents**: a Tier C claim. Use adoption stories or measured outcomes.
 
 ## Figures from records and studies
 
