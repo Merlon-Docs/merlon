@@ -19,12 +19,10 @@ product development stays anchored on what the end user must accomplish.
 
 | Obligation                  | As-built expectation                                                                                             |
 | --------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Work-item intake            | Resolve `WORK_ITEM` and `WORK_ITEM_LOOKUP` from the request; ask only for what is missing                        |
 | One UX scope                | Branch from updated `main` for a single UX issue; do not mix unrelated UX work                                   |
 | User-centric value first    | State the end-user outcome and friction to remove before designing steps or UI                                   |
 | Map processes and workflows | Document the ideal journey under `docs/client/` — steps to accomplish X, decision points, failure/recovery paths |
 | Interface when it serves UX | Implement or revise UI only as needed to support the documented workflow, using this repo’s existing patterns    |
-| Glossary hygiene            | Follow the shared glossary obligation; define non-universal jargon per the inclusion bar                         |
 | Align as-built docs         | Update client-guide shards to match the shipped experience; remove superseded journey or UI references           |
 | Validate and wrap-up        | Run repo tests + docs validation; release notes per repo conventions; link `WORK_ITEM`                           |
 
@@ -55,11 +53,10 @@ A successful UX session typically:
 
 1. Creates or updates focused shards under `docs/client/` that describe the
    end-user outcome and step-by-step workflow
-2. Applies glossary hygiene for any non-universal language introduced (per inclusion bar)
-3. Implements or adjusts UI only when needed to support those flows (repo patterns)
-4. Leaves client docs describing the as-built experience only
-5. Passes repo tests and docs validation
-6. Links `WORK_ITEM` in review
+2. Builds or adjusts UI only when needed to support those flows (repo patterns)
+3. Leaves client docs describing the as-built experience only
+4. Passes repo tests and docs validation
+5. Links `WORK_ITEM` in review
 
 Live evals (optional, not a CI gate):
 [ux workflow live evals](../../../../tests/skills/mdcp/evals/ux/README.md).

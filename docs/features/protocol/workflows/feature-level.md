@@ -17,11 +17,9 @@ of drifting in chat-only designs.
 
 | Obligation            | As-built expectation                                                                                        |
 | --------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Work-item intake      | Resolve `WORK_ITEM` and `WORK_ITEM_LOOKUP` from the request; ask only for what is missing                   |
 | One focused branch    | Branch from updated `main` for a single issue; do not mix unrelated features                                |
 | Place by audience     | User-facing work → `docs/features/` + `docs/client/`; maintainer-only → `docs/developer/` only              |
-| Docs first            | Update guide shards and indexes before product code; put contracts in shards, not implementation dumps      |
-| Glossary hygiene      | Follow the shared glossary obligation; define non-universal jargon per the inclusion bar                    |
+| Docs first            | Update guide shards and indexes before product code; put contracts in shards, not code dumps                |
 | TDD when code changes | Write failing tests first where the repo uses tests, then implement, then refactor; skip TDD when docs-only |
 | Current docs only     | Align shards to as-built behavior; no superseded-workflow archaeology in durable docs                       |
 | Validate and wrap-up  | Run repo tests + `mdcp check`; changeset/release notes per repo conventions; link `WORK_ITEM`               |
@@ -46,11 +44,10 @@ defer or narrow to the matching workflow rather than inventing end-to-end delive
 A successful feature-level session typically:
 
 1. Updates the correct guide tiers for the audience (features+client or developer)
-2. Applies glossary hygiene for any non-universal language introduced (per inclusion bar)
-3. Implements against documented acceptance when product code changes (TDD where applicable)
-4. Leaves durable shards describing current behavior only
-5. Passes repo tests and docs validation
-6. Links `WORK_ITEM` in review; adds a changeset when published package behavior changes
+2. Writes any product code against the documented acceptance (TDD where applicable)
+3. Leaves durable shards describing current behavior only
+4. Passes repo tests and docs validation
+5. Links `WORK_ITEM` in review; adds a changeset when published package behavior changes
 
 Optional local with/without-skill grading for this workflow:
 [feature-level workflow live evals](../../../../tests/skills/mdcp/evals/feature-level/README.md)

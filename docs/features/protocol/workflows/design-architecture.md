@@ -17,15 +17,13 @@ instead of living only in chat or a thousand-line wiki page.
 
 | Obligation                  | As-built expectation                                                                                    |
 | --------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Work-item intake            | Resolve `WORK_ITEM` and `WORK_ITEM_LOOKUP` from the request; ask only for what is missing               |
 | One design scope            | Create a branch for one `WORK_ITEM` before drafting design shards; do not mix unrelated designs         |
 | Capture architecture intent | Draft system diagrams, API/data contracts, and boundaries as shards under `docs/features/`              |
 | Land durable decisions      | Record accepted choices as ADRs under `docs/features/adr/` when the repo uses that layout               |
 | Keep docs sharded           | Prefer **one primary concern per shard**; update feature/ADR `index.md` so new shards are discoverable  |
 | Brownfield hygiene          | Split or retire legacy architecture docs and superseded plans; keep a replaced ADR, marked superseded   |
 | Stay design-doc scoped      | No product/CLI/TypeScript implementation, no unit tests as delivery, no primary `docs/client/` work     |
-| Glossary hygiene            | Follow the shared glossary obligation; define non-universal design jargon per the inclusion bar         |
-| Skill QA                    | Current intended architecture only; no large implementation dumps; run repo `mdcp check` / docs scripts |
+| Skill QA                    | Current intended architecture only; no large code dumps in shards; run repo `mdcp check` / docs scripts |
 
 ## What this workflow is not
 
@@ -52,11 +50,10 @@ A successful design-architecture session typically:
 
 1. Creates or updates focused Markdown under `docs/features/` and/or `docs/features/adr/`
 2. Updates the relevant guide indexes so shards link together
-3. Applies glossary hygiene for any non-universal language introduced (per inclusion bar)
-4. Leaves `packages/` / product `src/` unchanged
-5. Avoids multi-function implementation dumps in durable shards
-6. When deep design critique is requested, advises pairing and still lands the agreed intent as shards
-7. Links `WORK_ITEM` in review
+3. Leaves `packages/` / product `src/` unchanged
+4. Avoids multi-function code dumps in durable shards
+5. When deep design critique is requested, advises pairing and still records the agreed intent as shards
+6. Links `WORK_ITEM` in review
 
 Optional local with/without-skill grading for this workflow:
 [design-architecture workflow live evals](../../../../tests/skills/mdcp/evals/design-architecture/README.md)

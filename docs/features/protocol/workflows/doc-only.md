@@ -17,10 +17,8 @@ durable docs so search stays trustworthy.
 
 | Obligation             | As-built expectation                                                                                    |
 | ---------------------- | ------------------------------------------------------------------------------------------------------- |
-| Work-item intake       | Resolve `WORK_ITEM` and `WORK_ITEM_LOOKUP` from the request; ask only for what is missing               |
 | Docs-only branch       | One docs scope per branch, in `docs/features/`, `docs/client/`, `docs/developer/` and standalone guides |
 | Contracts not samples  | Put intent, contracts, and acceptance in shards — not implementation dumps or product source paths      |
-| Glossary hygiene       | Follow the shared glossary obligation; define non-universal jargon per the inclusion bar                |
 | Indexes and validation | Update guide `index.md` files; run `mdcp check` (do not hand-edit compile output or `refs.json`)        |
 | Current docs only      | Remove superseded workflows, planning backlogs, and pending `.changeset/*.md` links from durable shards |
 | Hard scope boundary    | No `src/` edits, unit tests, or “just fix the code too” — defer code work to feature-level              |
@@ -38,9 +36,6 @@ durable docs so search stays trustworthy.
   wording; consumer notice of removed behavior belongs in the changeset pipeline.
   Only the history behind a rule that still holds goes in an ADR that the shard
   or standalone guide links.
-- **Leaving jargon or acronyms undefined against the inclusion bar** — if the
-  project’s glossary bar says the term belongs, define it in `docs/glossary/`
-  rather than unexplained shorthand in durable shards.
 
 When the user also asks for bug fixes or implementation in the same session,
 this workflow **MUST** refuse or defer that work to a separate `WORK_ITEM` under
@@ -51,11 +46,10 @@ feature-level.
 A successful doc-only session typically:
 
 1. Creates or updates focused Markdown under the appropriate guides
-2. Applies glossary hygiene for jargon and acronyms introduced or left undefined (per inclusion bar)
-3. Updates guide indexes so shards are discoverable
-4. Leaves `packages/` / product `src/` unchanged
-5. Describes current product behavior only
-6. Passes repo docs validation (`mdcp check` / docs scripts)
+2. Updates guide indexes so shards are discoverable
+3. Leaves `packages/` / product `src/` unchanged
+4. Describes current product behavior only
+5. Passes repo docs validation (`mdcp check` / docs scripts)
 
 Optional local with/without-skill grading for this workflow:
 [doc-only workflow live evals](../../../../tests/skills/mdcp/evals/doc-only/README.md)
