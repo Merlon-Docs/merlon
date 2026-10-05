@@ -12,14 +12,14 @@
 }
 
 /* ---------- Landing page ---------- */
-/* Editorial spec direction: serif display type, monospace section marks, hairline
+/* Research-site direction: system sans display type (SF Pro on Apple), monospace section marks, hairline
    rules instead of boxes. Colors come from Starlight tokens so both themes work. */
 
 /* Landing and Learn page tokens, on the root so pages without a hero share them. */
 :root {
-  --mdcp-serif:
-    ui-serif, 'New York', 'Iowan Old Style', Charter, 'Bitstream Charter', Georgia,
-    'Times New Roman', serif;
+  --mdcp-display:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI Variable Display', 'Segoe UI',
+    Roboto, 'Helvetica Neue', Arial, sans-serif;
   --mdcp-mono: var(--__sl-font-mono, var(--sl-font-system-mono, ui-monospace, monospace));
   --mdcp-rule: var(--sl-color-hairline);
   --mdcp-ink: var(--sl-color-white);
@@ -52,13 +52,29 @@
 
 .mdcp-hero h1 {
   margin: 0;
-  font-family: var(--mdcp-serif);
-  font-size: clamp(2.5rem, 6vw, 4.5rem);
-  font-weight: 500;
-  line-height: 1.04;
-  letter-spacing: -0.02em;
+  font-family: var(--mdcp-display);
+  font-size: clamp(2.25rem, 4.8vw, 3.5rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
   color: var(--mdcp-ink);
   text-wrap: balance;
+}
+
+.mdcp-hero h1 > span {
+  display: block;
+}
+
+/* The protocol's name leads; the two parts it ships follow in a quieter tone. */
+.mdcp-hero h1 > span + span {
+  font-size: 0.72em;
+  line-height: 1.18;
+  letter-spacing: -0.015em;
+  color: var(--sl-color-gray-2);
+}
+
+.mdcp-hero h1 > span:first-child {
+  margin-bottom: 0.15em;
 }
 
 .mdcp-hero__tagline {
@@ -78,7 +94,7 @@
 
 .mdcp-hero__actions .sl-link-button {
   margin: 0;
-  border-radius: 0.25rem;
+  border-radius: 999px;
   font-weight: 500;
 }
 
@@ -103,18 +119,39 @@
   border-color: var(--mdcp-ink);
 }
 
-.mdcp-hero__install {
-  display: flex;
-  align-items: baseline;
-  gap: 1rem;
-  margin-top: 1.25rem;
+.mdcp-hero__installs {
+  margin-top: 1.5rem;
   max-width: 34rem;
+  border-top: 1px solid var(--mdcp-rule);
+}
+
+.mdcp-hero__install {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 0.3rem 1rem;
   padding: 0.75rem 0;
-  border-block: 1px solid var(--mdcp-rule);
+  border-bottom: 1px solid var(--mdcp-rule);
+}
+
+.mdcp-hero__install-label {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-family: var(--mdcp-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mdcp-ink);
+}
+
+.mdcp-hero__install-label span {
+  margin-left: 0.4rem;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--mdcp-muted);
 }
 
 .mdcp-hero__install code {
-  flex: 1;
   min-width: 0;
   overflow-x: auto;
   white-space: nowrap;
@@ -152,41 +189,58 @@
   text-decoration: underline;
 }
 
-/* Hero figure: real `mdcp check` output. The one framed element on the page. */
-.mdcp-hero__term {
+/* Hero panes: the skill in an agent, then the CLI in CI. The only framed elements. */
+.mdcp-hero__panes {
+  display: grid;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.mdcp-pane {
   margin: 0;
   min-width: 0;
 }
 
-.mdcp-term__bar {
+.mdcp-pane__bar {
   display: flex;
-  align-items: center;
-  gap: 0.4rem;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.6rem;
   padding: 0.6rem 0.9rem;
   border: 1px solid var(--mdcp-rule);
   border-bottom: 0;
   border-radius: 0.5rem 0.5rem 0 0;
   background: var(--sl-color-gray-6);
-}
-
-.mdcp-term__bar > span:not(.mdcp-term__title) {
-  width: 0.55rem;
-  height: 0.55rem;
-  border-radius: 50%;
-  background: var(--sl-color-gray-4);
-}
-
-.mdcp-term__title {
-  margin-left: 0.5rem;
   font-family: var(--mdcp-mono);
   font-size: 0.6875rem;
+}
+
+.mdcp-pane__step {
+  display: inline-grid;
+  place-items: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 50%;
+  font-size: 0.625rem;
+  color: var(--sl-color-black);
+  background: var(--mdcp-ink);
+}
+
+.mdcp-pane__name {
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mdcp-ink);
+}
+
+.mdcp-pane__where {
   color: var(--sl-color-gray-2);
 }
 
-.sl-markdown-content .mdcp-term__body,
-.mdcp-term__body {
+.sl-markdown-content .mdcp-pane__body,
+.mdcp-pane__body {
   margin: 0;
-  padding: 1.1rem 1.1rem 1.25rem;
+  padding: 1rem 1.1rem 1.1rem;
   border: 1px solid var(--mdcp-rule);
   border-radius: 0 0 0.5rem 0.5rem;
   background: var(--sl-color-gray-7, var(--sl-color-black));
@@ -198,31 +252,34 @@
   overflow-wrap: anywhere;
 }
 
-.mdcp-term__cmd {
+.mdcp-pane__ask,
+.mdcp-pane__cmd {
   color: var(--mdcp-ink);
 }
 
-.mdcp-term__cmd > [aria-hidden] {
+.mdcp-pane__ask > [aria-hidden],
+.mdcp-pane__cmd > [aria-hidden] {
   color: var(--mdcp-muted);
 }
 
-.mdcp-term__err {
-  color: var(--sl-color-red-high, #c62828);
+.mdcp-pane__agent {
+  color: var(--sl-color-text-accent);
 }
 
-.mdcp-term__ok {
+.mdcp-pane__done,
+.mdcp-pane__ok {
   color: var(--sl-color-green-high, #2e7d32);
 }
 
-.mdcp-hero__term figcaption {
-  margin-top: 0.75rem;
+.mdcp-pane__err {
+  color: var(--sl-color-red-high, #c62828);
+}
+
+.mdcp-pane figcaption {
+  margin-top: 0.5rem;
   font-size: 0.8125rem;
   line-height: 1.5;
   color: var(--mdcp-muted);
-}
-
-.mdcp-hero__term figcaption code {
-  font-size: 0.75rem;
 }
 
 /* Evidence band: sourced or measured figures in a row of large numbers. */
@@ -240,11 +297,11 @@
 }
 
 .sl-markdown-content .mdcp-evidence dt {
-  font-family: var(--mdcp-serif);
+  font-family: var(--mdcp-display);
   font-size: clamp(2.25rem, 4vw, 3rem);
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
   color: var(--mdcp-ink);
 }
 
@@ -280,6 +337,12 @@
 .sl-markdown-content .mdcp-split--text {
   align-items: start;
   margin-top: 2rem;
+}
+
+/* Columns in a split sit side by side, so none takes Starlight's stacked-block margin. */
+.sl-markdown-content .mdcp-split > *,
+.sl-markdown-content .mdcp-split > * > :first-child {
+  margin-top: 0;
 }
 
 .sl-markdown-content .mdcp-split--text > div {
@@ -374,11 +437,11 @@
 .sl-markdown-content .mdcp-home h2 {
   margin-top: 0.75rem;
   max-width: 38rem;
-  font-family: var(--mdcp-serif);
+  font-family: var(--mdcp-display);
   font-size: clamp(2rem, 4vw, 2.875rem);
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.1;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.025em;
   text-wrap: balance;
 }
 
@@ -415,10 +478,46 @@
   margin: 0;
 }
 
-.sl-markdown-content .mdcp-home li p {
+.sl-markdown-content .mdcp-home li p,
+.sl-markdown-content .mdcp-home li > div {
   margin-top: 0.5rem;
   font-size: 0.9375rem;
   line-height: 1.6;
+}
+
+.sl-markdown-content .mdcp-home li > h3 + div {
+  margin-top: 0.5rem;
+  color: var(--sl-color-gray-2);
+}
+
+/* A sub-heading inside a section, such as "Make it policy". */
+.sl-markdown-content .mdcp-home > section > .sl-heading-wrapper.level-h3 {
+  margin-top: 3.5rem;
+}
+
+.sl-markdown-content .mdcp-home > section > .sl-heading-wrapper.level-h3 h3 {
+  font-family: var(--mdcp-display);
+  font-size: 1.625rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.sl-markdown-content .mdcp-home > section > .sl-heading-wrapper + .mdcp-steps {
+  margin-top: 1.5rem;
+}
+
+/* A closing note for a secondary audience. */
+.sl-markdown-content .mdcp-aside {
+  margin-top: 3rem;
+  padding-top: 1.25rem;
+  max-width: 46rem;
+  border-top: 1px solid var(--mdcp-rule);
+}
+
+.sl-markdown-content .mdcp-home .mdcp-aside p {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--sl-color-gray-2);
 }
 
 /* Numbered steps */
@@ -440,10 +539,11 @@
   content: '0' counter(step) / '';
   display: block;
   margin-bottom: 1rem;
-  font-family: var(--mdcp-serif);
+  font-family: var(--mdcp-display);
   font-size: 2rem;
   line-height: 1;
   color: var(--mdcp-muted);
+  letter-spacing: -0.02em;
 }
 
 /* Split text + tree */
@@ -593,9 +693,10 @@
   flex-wrap: wrap;
   gap: 0.25rem 0;
   margin-block: 1.75rem;
-  font-family: var(--mdcp-serif);
+  font-family: var(--mdcp-display);
   font-size: 1.375rem;
   color: var(--mdcp-ink);
+  letter-spacing: -0.02em;
 }
 
 .sl-markdown-content .mdcp-chips li:not(:last-child)::after {
@@ -751,7 +852,7 @@
     gap: 3rem;
   }
 
-  .mdcp-hero__term {
+  .mdcp-hero__panes {
     max-width: 40rem;
   }
 
@@ -801,8 +902,8 @@
     line-height: 1.6;
   }
 
-  /* The check output follows the install command, below the first screen. */
-  .mdcp-term__body {
+  /* The panes follow the install commands, below the first screen. */
+  .mdcp-pane__body {
     font-size: 0.6875rem;
   }
 

@@ -1,11 +1,11 @@
 ---
 title: MarkDown Context Protocol
-description: The MarkDown Context Protocol (MDCP) is a keystone AI skill that assists humans and AI in solving the documentation and reliability crises in software development. Durable docs live in small Markdown shards that guides assemble for each reader.
+description: The MarkDown Context Protocol (MDCP) is a keystone AI skill for docs and a CLI tool to compile guides and validate links, to assist humans and AI in solving the documentation and reliability crises in software development.
 template: splash
 editUrl: false
 hero:
-  title: The keystone AI skill for docs that last
-  tagline: MDCP assists humans and AI in solving the documentation and reliability crises in software development. It records how to build and operate your software in small Markdown shards, then assembles them into guides for each reader.
+  title: <span>MarkDown Context Protocol.</span> <span>A keystone AI skill for docs.</span> <span>And a CLI tool to compile guides and validate links.</span>
+  tagline: MDCP assists humans and AI in solving the documentation and reliability crises in software development. Add the skill to your coding agent and the check to your CI.
   actions:
     - text: Get started
       link: ./guide/install-and-quick-start/
@@ -71,6 +71,79 @@ Sources: [CISQ 2022](https://www.it-cisq.org/wp-content/uploads/sites/6/2022/11/
     one cause. It gives the knowledge a place to live that people and agents both read, and it
     checks the links, indexes and compiled files.
   </div>
+</div>
+
+</section>
+
+<section class="mdcp-section">
+
+<p class="mdcp-kicker">Who it's for</p>
+
+## For the people who answer for reliability
+
+<div class="mdcp-lead">
+  If you're responsible for the platform, the team's delivery, quality or the skills your agents
+  load, MDCP gives you a documentation practice you can set as policy instead of hoping for it.
+</div>
+
+<ul class="mdcp-features">
+  <li>
+    <h3>Platform and DevOps leads</h3>
+    <div>
+      Add one check to the pipeline you already run. Broken links, unindexed pages and stale
+      compiled docs fail the build.
+    </div>
+  </li>
+  <li>
+    <h3>Engineering and technical managers</h3>
+    <div>
+      When intent is written down and reviewed with each change, you can learn what the system does
+      without asking the one person who remembers.
+    </div>
+  </li>
+  <li>
+    <h3>QA and reliability engineers</h3>
+    <div>
+      Acceptance criteria and known constraints live in shards next to the code, where a test or a
+      review can point at them.
+    </div>
+  </li>
+  <li>
+    <h3>Owners of the AI skill stack</h3>
+    <div>
+      One skill, beside your planning and review skills, that tells every agent to update the docs
+      it touches.
+    </div>
+  </li>
+</ul>
+
+### Make it policy
+
+<ol class="mdcp-steps">
+  <li>
+    <h3>Install the skill</h3>
+    <div>
+      Add <code>npx skills add betsalel-williamson/mdcp --skill mdcp</code> to each repository's
+      agent setup.
+    </div>
+  </li>
+  <li>
+    <h3>Require the check</h3>
+    <div>
+      Make <code>mdcp check</code> a required CI job, so broken docs block a merge like a failing
+      test.
+    </div>
+  </li>
+  <li>
+    <h3>Review docs with code</h3>
+    <div>Ask reviewers to read the shard diff beside the code diff in each pull request.</div>
+  </li>
+</ol>
+
+<div class="mdcp-aside">
+
+Already the person who writes things down? MDCP gives your notes a structure that agents and the next reader can use, and a check that keeps the links working. The same shards suit product, design and support teams that keep their knowledge as text.
+
 </div>
 
 </section>
@@ -254,34 +327,6 @@ Sources: [CISQ 2022](https://www.it-cisq.org/wp-content/uploads/sites/6/2022/11/
 </div>
 
 <ContextSizes />
-
-</section>
-
-<section class="mdcp-section">
-
-<p class="mdcp-kicker">Who it's for</p>
-
-## Beyond engineering docs
-
-<div class="mdcp-lead">
-  The default layout is built for software, but the same shards and guides work for any team that
-  writes its knowledge down as text, as long as the source isn't a canvas.
-</div>
-
-<ul class="mdcp-chips" aria-label="Teams">
-  <li>Engineering</li>
-  <li>Product</li>
-  <li>Design and UX</li>
-  <li>Marketing</li>
-  <li>Sales</li>
-  <li>Support</li>
-</ul>
-
-<div>
-  Teams that design in a canvas tool such as Figma still have reasoning that reads better as text,
-  such as the decision behind a layout or the steps a user follows through a flow. Kept as shards,
-  that text becomes the raw material for a help center or user documentation site.
-</div>
 
 </section>
 
