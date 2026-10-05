@@ -38,16 +38,7 @@ The core library takes the same two bases, and [API Config](../client-core/api-c
 
 ## Minimal config
 
-A minimal `mdcp.config.json` for two guides:
-
-```json
-{
-  "compileOrder": ["overview", "admin-guide"],
-  "guides": [{ "name": "overview" }, { "name": "admin-guide" }]
-}
-```
-
-The fields it leaves out take their defaults, so this config writes `overview.md` and `admin-guide.md` to `_build/` under the docs root and builds no monolith. [Path layout](#path-layout) gives each default and says how each path resolves.
+Step 1 of [Quick start](./install-and-quick-start.md#quick-start) shows a minimal `mdcp.config.json` for two guides, `overview` and `admin-guide`. The fields it leaves out take their defaults, so that config writes `overview.md` and `admin-guide.md` to `_build/` under the docs root and builds no monolith. [Path layout](#path-layout) gives each default and says how each path resolves.
 
 | Field                | Purpose                                                             |
 | -------------------- | ------------------------------------------------------------------- |
@@ -188,4 +179,4 @@ To publish the glossary as its own file, add `glossary` to `compileOrder` and se
 | -------------------- | ------------------------------------------------- |
 | `refs.slugAlgorithm` | Informational only — only `github` is implemented |
 
-Full schema and examples: [mdcp.config.json in sample-guides](../../examples/sample-guides/mdcp.config.json).
+The [sample guides' config](../../examples/sample-guides/mdcp.config.json) is a longer example. Its paths resolve only from the mdcp repository root, so copy single keys from it.

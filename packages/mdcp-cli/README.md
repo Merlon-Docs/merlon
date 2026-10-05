@@ -61,28 +61,53 @@ Visit [github.com/betsalel-williamson/mdcp](https://github.com/betsalel-williams
 
 ### Quick start
 
-1. Copy a starter config from [examples/sample-guides/mdcp.config.json](../../examples/sample-guides/mdcp.config.json) into your docs directory as `mdcp.config.json`.
+1. Create `mdcp.config.json` in your docs root. Start with this minimal config for two guides, `overview` and `admin-guide`. [Minimal config](#minimal-config) says what each field does:
 
-2. Lay out shards under guide directories (each with `index.md` and chapter files). See [examples/sample-guides](../../examples/sample-guides).
+   ```json
+   {
+     "compileOrder": ["overview", "admin-guide"],
+     "guides": [{ "name": "overview" }, { "name": "admin-guide" }]
+   }
+   ```
+
+   Once you install markdownlint-cli2 and `@bwilliamson/mdcp-presets` with the npm command in [Optional linters](#optional-linters), add a `lint` key that lints the shards with the shard preset. The whole file then reads:
+
+   ```json
+   {
+     "compileOrder": ["overview", "admin-guide"],
+     "guides": [{ "name": "overview" }, { "name": "admin-guide" }],
+     "lint": {
+       "markdownlint": {
+         "shardsConfig": "../node_modules/@bwilliamson/mdcp-presets/markdownlint-shards.markdownlint-cli2.jsonc"
+       }
+     }
+   }
+   ```
+
+   This path works when the docs root is a direct child of the directory that holds `node_modules`, and Optional linters says how mdcp resolves it. When markdownlint-cli2 is missing, `mdcp check` skips the shard pass with an info line unless you pass `--require-lint`. When the preset file is missing, the pass fails. Optional linters also covers the compiled-output preset and Vale.
+
+2. Lay out shards under guide directories (each with `index.md` and chapter files). The [sample guides](../../examples/sample-guides) in the mdcp repository show a layout, and you can [copy single keys from their config](#schema-only-fields).
 
 3. Run:
 
    ```bash
-   # When your shell is in the docs directory
+   # When your shell is in the docs root
    mdcp compile --config mdcp.config.json
-   mdcp check --config mdcp.config.json
+   mdcp check --config mdcp.config.json --skip-vale
    ```
 
    From the **repository root** (typical npm scripts), pass both `--config` and `--docs-root`:
 
    ```bash
    mdcp compile --config docs/mdcp.config.json --docs-root docs
-   mdcp check --config docs/mdcp.config.json --docs-root docs
+   mdcp check --config docs/mdcp.config.json --docs-root docs --skip-vale
    ```
 
    `--config` resolves from the directory you run the command in, and `--docs-root` sets the docs root. [Config essentials](#--config-vs---docs-root) has the details, and [Global options](#global-options) lists the options that every command accepts.
 
-4. Add `docs:compile` and `docs:check` scripts to your repo-root `package.json`, as [Repo-root npm scripts](#repo-root-npm-scripts) shows. The check script runs `mdcp check --require-lint`. Add `--require-vale` to it when Vale is configured.
+   `--skip-vale` leaves Vale out of the check. Without it, `mdcp check` runs Vale whenever it finds `vale`, and Vale stops with a runtime error when it can't find a config. Drop the flag once you set up Vale as [Optional linters](#optional-linters) describes.
+
+4. Add `docs:compile` and `docs:check` scripts to your repo-root `package.json`, as [Repo-root npm scripts](#repo-root-npm-scripts) shows. The check script runs `mdcp check --require-lint`. Add `--skip-vale` to it until Vale is set up, then replace that flag with `--require-vale`.
 
 5. Run the same compile and check scripts in CI. The [verification checklist](#verification-checklist) lists what to confirm once they pass.
 
@@ -162,16 +187,7 @@ The core library takes the same two bases, and [API Config](../mdcp-core/README.
 
 ### Minimal config
 
-A minimal `mdcp.config.json` for two guides:
-
-```json
-{
-  "compileOrder": ["overview", "admin-guide"],
-  "guides": [{ "name": "overview" }, { "name": "admin-guide" }]
-}
-```
-
-The fields it leaves out take their defaults, so this config writes `overview.md` and `admin-guide.md` to `_build/` under the docs root and builds no monolith. [Path layout](#path-layout) gives each default and says how each path resolves.
+Step 1 of [Quick start](#quick-start) shows a minimal `mdcp.config.json` for two guides, `overview` and `admin-guide`. The fields it leaves out take their defaults, so that config writes `overview.md` and `admin-guide.md` to `_build/` under the docs root and builds no monolith. [Path layout](#path-layout) gives each default and says how each path resolves.
 
 | Field                | Purpose                                                             |
 | -------------------- | ------------------------------------------------------------------- |
@@ -312,7 +328,7 @@ To publish the glossary as its own file, add `glossary` to `compileOrder` and se
 | -------------------- | ------------------------------------------------- |
 | `refs.slugAlgorithm` | Informational only — only `github` is implemented |
 
-Full schema and examples: [mdcp.config.json in sample-guides](../../examples/sample-guides/mdcp.config.json).
+The [sample guides' config](../../examples/sample-guides/mdcp.config.json) is a longer example. Its paths resolve only from the mdcp repository root, so copy single keys from it.
 
 <!-- mdcp-shard: end ../../docs/client-cli/config-essentials.md -->
 
@@ -550,7 +566,7 @@ Install npm peers with:
 npm install -D prettier markdownlint-cli2 @bwilliamson/mdcp-presets
 ```
 
-Install **Vale** separately so `vale` is on your `PATH` — see [Vale installation](https://vale.sh/docs/vale-cli/installation/) (Homebrew, Chocolatey, Snap, or GitHub release). After adding a `.vale.ini`, run `vale sync` in that directory.
+Install **Vale** separately so `vale` is on your `PATH` — see [Vale installation](https://vale.sh/docs/vale-cli/installation/) (Homebrew, Chocolatey, Snap, or GitHub release). After adding a `.vale.ini`, run `vale sync` in that directory. mdcp looks for `vale` in `node_modules/.bin`, from the docs root up, before it looks on `PATH`.
 
 Wire preset paths in `mdcp.config.json` under `lint.markdownlint`. See `@bwilliamson/mdcp-presets` on npm.
 
