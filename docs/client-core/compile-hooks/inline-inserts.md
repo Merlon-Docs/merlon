@@ -35,10 +35,10 @@ Shards link with normal markdown — no `<!-- directives -->`.
 
 A link is an insert reference when **all** of the following hold:
 
-- Standard markdown link syntax: `[label](path)`
-- Target path contains `diagram`, `diagrams`, `table`, `tables`, `figure`, `figures`, `media`, `insert`, or `inserts`
-- Target ends in `.md` (optional `#fragment` suffix is ignored for file lookup)
-- Target is not `http://` or `https://`
+- Standard markdown link syntax: `[label](path)`.
+- Target starts with an insert library directory and a `/`, after an optional `./` or run of `../`. The directories are `diagram`, `diagrams`, `table`, `tables`, `figure`, `figures`, `media`, `insert` and `inserts`, in any case. No `http://` or `https://` URL starts that way.
+- The path after the directory doesn't start with `#` or whitespace. It ends in `.md` in any case, with at least one character before the `.md`.
+- An optional `#fragment` after the `.md` can't be empty, and file lookup ignores it.
 
 ## inlineInserts exclusions
 

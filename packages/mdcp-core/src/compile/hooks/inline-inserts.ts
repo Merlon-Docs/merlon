@@ -4,21 +4,20 @@ import { getLocalePack, type LocalePack } from '../../locale/index.js';
 import { githubSlugify } from '../../refs/slugs.js';
 import type { CompileHook, CompileHookState, InlineInsertsHookState } from '../hooks.js';
 import { hookSearchRoots, resolveRelativeFile } from './path-resolve.js';
+import { createMdSuffixReader, scanInlineLinks } from '../link-scan.js';
 
-/** Paths under shared insert libraries: diagrams/, tables/, figures/, media/, inserts/, etc. */
-const INSERT_LIBRARY_DIR = '(?:diagrams?|tables?|figures?|media|inserts?)';
+/**
+ * Insert library directories: `diagrams/`, `tables/`, `figures/`, `media/` and `inserts/`, and
+ * each but `media/` without its `s`.
+ */
+const INSERT_LIBRARY_DIRS = ['diagram', 'table', 'figure', 'media', 'insert'];
 
-const INSERT_LINK_RE = new RegExp(
-  `\\[([^\\]]*)\\]\\((?!https?:)((?:(?:\\.\\./)+|\\./)?${INSERT_LIBRARY_DIR}/[^)#\\s][^)]*\\.md(?:#[^)]+)?)\\)`,
-  'gi',
-);
-
-const INSERT_KINDS = new Set(['diagram', 'table', 'figure', 'media', 'insert']);
+const INSERT_KINDS = new Set(INSERT_LIBRARY_DIRS);
 
 /** Heading level for first inlined insert (GFM anchor target for back-links). */
 const INSERT_HEADING_PREFIX = '####';
 
-type InsertLinkRef = { start: number; end: number; label: string; relPath: string };
+export type InsertLinkRef = { start: number; end: number; label: string; relPath: string };
 
 function createInlineInsertsState(): InlineInsertsHookState {
   return { firstAnchorByPath: new Map(), nextNumberByKind: new Map() };
@@ -36,10 +35,7 @@ function ensureInlineInsertsState(hookState?: CompileHookState): InlineInsertsHo
 
 export function isInsertLibraryPath(relPath: string): boolean {
   if (/^https?:\/\//i.test(relPath) || !/\.md$/i.test(relPath)) return false;
-  INSERT_LINK_RE.lastIndex = 0;
-  const matches = INSERT_LINK_RE.test(`[x](${relPath})`);
-  INSERT_LINK_RE.lastIndex = 0;
-  return matches;
+  return findInsertLinks(`[x](${relPath})`).length > 0;
 }
 
 function humanizeBasename(resolvedPath: string, locale: LocalePack): string {
@@ -148,21 +144,54 @@ function resolveInsert(
   return { resolvedPath, content };
 }
 
-function findInsertLinks(body: string): InsertLinkRef[] {
-  INSERT_LINK_RE.lastIndex = 0;
-  const refs: InsertLinkRef[] = [];
-  for (const match of body.matchAll(INSERT_LINK_RE)) {
-    const raw = match[0];
-    const index = match.index;
-    if (raw === undefined || index === undefined) continue;
-    refs.push({
-      start: index,
-      end: index + raw.length,
-      label: match[1],
-      relPath: match[2],
-    });
+/** True when `text` holds the lower-case ASCII `word` at `i`, in any case. */
+function hasWordAnyCase(text: string, i: number, word: string): boolean {
+  for (let k = 0; k < word.length; k++) {
+    const code = text.charCodeAt(i + k);
+    if ((code >= 0x41 && code <= 0x5a ? code + 0x20 : code) !== word.charCodeAt(k)) return false;
   }
-  return refs;
+  return true;
+}
+
+/**
+ * The index after the `/` of the insert library directory that starts the target at `start`, or
+ * -1. The directory can follow `./` or a run of `../`, and its name can take any case. No URL
+ * starts with a directory name, so an `http:` or `https:` target never matches.
+ */
+function insertLibraryPathStart(text: string, start: number): number {
+  let i = start;
+  if (text.startsWith('../', i)) {
+    while (text.startsWith('../', i)) i += 3;
+  } else if (text.startsWith('./', i)) {
+    i += 2;
+  }
+  const dir = INSERT_LIBRARY_DIRS.find((name) => hasWordAnyCase(text, i, name));
+  if (!dir) return -1;
+  i += dir.length;
+  if (dir !== 'media' && (text[i] === 's' || text[i] === 'S') && text[i + 1] === '/') i++;
+  return text[i] === '/' ? i + 1 : -1;
+}
+
+/**
+ * Each link in `body` into an insert library: a target that starts with a library directory, then
+ * a path whose first character is not `#` or whitespace, ending in `.md` in any case, with an
+ * optional `#fragment` that is not empty.
+ */
+export function findInsertLinks(body: string): InsertLinkRef[] {
+  const mdSuffix = createMdSuffixReader(body, { ignoreCase: true, minFragment: 1 });
+  const links = scanInlineLinks(body, (targetStart, close) => {
+    const pathStart = insertLibraryPathStart(body, targetStart);
+    if (pathStart === -1) return undefined;
+    const first = body[pathStart];
+    if (first === undefined || first === ')' || first === '#' || /\s/.test(first)) return undefined;
+    return mdSuffix(close) > pathStart ? true : undefined;
+  });
+  return links.map(({ start, labelEnd, close }) => ({
+    start,
+    end: close + 1,
+    label: body.slice(start + 1, labelEnd),
+    relPath: body.slice(labelEnd + 2, close),
+  }));
 }
 
 function replacementForLink(

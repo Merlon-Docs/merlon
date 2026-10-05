@@ -9,6 +9,7 @@ import { compileGuideResults } from '../src/compile/assemble.js';
 import { applyCompileHooks, createCompileHookState } from '../src/compile/hooks.js';
 import '../src/compile/hooks/builtin.js';
 import {
+  findInsertLinks,
   insertAnchorSlug,
   numberedInsertHeading,
   isInsertLibraryPath,
@@ -38,6 +39,37 @@ describe('inlineInserts — link matching', () => {
     expect(isInsertLibraryPath('../glossary/term.md')).toBe(false);
     expect(isInsertLibraryPath('../diagrams/flow.png')).toBe(false);
     expect(isInsertLibraryPath('https://example.com/diagrams/flow.md')).toBe(false);
+  });
+
+  it('reads the library directory and .md in any case, and needs a path after the directory', () => {
+    expect(isInsertLibraryPath('../../Diagrams/Flow.MD')).toBe(true);
+    expect(isInsertLibraryPath('./diagram/flow.md')).toBe(true);
+    expect(isInsertLibraryPath('TABLES/codes.Md')).toBe(true);
+    expect(isInsertLibraryPath('diagrams/flow.md#part.md')).toBe(true);
+    expect(isInsertLibraryPath('medias/clip.md')).toBe(false);
+    expect(isInsertLibraryPath('./../diagrams/flow.md')).toBe(false);
+    expect(isInsertLibraryPath('docs/diagrams/flow.md')).toBe(false);
+    expect(isInsertLibraryPath('diagrams/ flow.md')).toBe(false);
+    expect(isInsertLibraryPath('diagrams/#flow.md')).toBe(false);
+  });
+
+  it('gives the span, label and target of each insert link in a body', () => {
+    const body = [
+      'See [Flow](../../diagrams/flow.md#top).\r',
+      'And [](./Tables/codes.MD) or [x](docs/diagrams/a.md).\r',
+      '[Media\r\nclip](media/clip.md)[y](figures/b.md#)',
+    ].join('\n');
+    const links = findInsertLinks(body);
+    expect(links).toEqual([
+      { start: 4, end: 38, label: 'Flow', relPath: '../../diagrams/flow.md#top' },
+      { start: 45, end: 66, label: '', relPath: './Tables/codes.MD' },
+      { start: 96, end: 124, label: 'Media\r\nclip', relPath: 'media/clip.md' },
+    ]);
+    expect(links.map(({ start, end }) => body.slice(start, end))).toEqual([
+      '[Flow](../../diagrams/flow.md#top)',
+      '[](./Tables/codes.MD)',
+      '[Media\r\nclip](media/clip.md)',
+    ]);
   });
 });
 
@@ -198,6 +230,24 @@ describe('inlineInserts — first inline', () => {
     const out = runInlineInserts(table, join(guideDir, 'catalog.md'));
     expect(out).toContain('| Step | Actor |');
     expect(out).not.toContain('](./diagrams/request-flow.md)');
+  });
+
+  it('inlines links on CRLF lines and in upper case, but not one with an empty #fragment', () => {
+    const guideDir = join(work.path, 'review');
+    mkdirSync(join(work.path, 'diagrams'), { recursive: true });
+    mkdirSync(join(work.path, 'Tables'), { recursive: true });
+    writeFileSync(join(work.path, 'diagrams', 'flow.md'), '| Step | Actor |\n');
+    writeFileSync(join(work.path, 'Tables', 'codes.MD'), '| Code | Meaning |\n');
+    const body = [
+      'See [Flow](../diagrams/flow.md#top).\r',
+      'See [Codes](../Tables/codes.MD).\r',
+      'Again [Flow](../diagrams/flow.md#).\r',
+      '',
+    ].join('\n');
+    const out = runInlineInserts(body, join(guideDir, 'claim.md'));
+    expect(out).toContain('#### Diagram 1. Flow');
+    expect(out).toContain('#### Table 1. Codes');
+    expect(out).toContain('Again [Flow](../diagrams/flow.md#).\r');
   });
 
   it('ignores #fragment for file lookup', () => {

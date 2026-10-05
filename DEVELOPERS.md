@@ -672,6 +672,8 @@ Heading demotion in `compile/headings.ts` runs `parseHeading` and `formatHeading
 
 Link validation finds broken-link markers with `findTemplateMatches`, a scanner in `locale/create-locale-pack.ts`. It splits the locale's `markerTemplate` at each variable but `markerLabel` and finds the parts in order, with no line terminator between two of them. It returns the markers that a pattern with a lazy `.*?` for each variable matches, and its time grows linearly with the length of the line. Compiled link lint asks about a line a fixed number of times, however many links it holds.
 
+The manifest walk and the `inlineInserts` hook find links in a whole manifest or shard body with the scanners in `compile/link-scan.ts`. The walk reads `.md` links and `](#slug)` links with them, and the hook reads links into an insert library. Each scanner returns the matches of a link regex, such as `\[[^\]]*\]\(([^)]+\.md)(?:#[^)]*)?\)` for `.md` links, in time that grows linearly with the text. The regex itself reads a target with `[^)]`, which crosses line breaks, so on a crafted text its time can grow with the cube of the text's length.
+
 `codeEvidence` reads line ranges such as `L6-L8` or `lines 12–15` with `lineRangeFromText`, an imperative scanner in `compile/hooks/line-range.ts`. It takes its words from the locale pack. Public package APIs keep their names, and call sites delegate to the helpers. Duration-budget tests in `packages/mdcp-core/test/redos-budget.test.ts` run the helpers and scanners on pump inputs, so a regex that brings the class back fails CI.
 
 ### Regex sites that remain
@@ -680,7 +682,7 @@ A regex in `packages/mdcp-core/src/` falls under this rule:
 
 - **Keep** a pattern that is clearly linear.
 - **Rewrite** a pattern next to the CodeQL class, such as `\s*` or overlapping optional groups next to digits, as a scanner with a duration-budget test.
-- **Keep** the Markdown link idioms as regexes, and fix any `js/polynomial-redos` alert on one with a scanner.
+- **Keep** the Markdown link idioms that [Link idioms](#link-idioms) lists as regexes, and fix any `js/polynomial-redos` alert on one with a scanner.
 - Leave prose and language opinion out of core, because it belongs in Vale.
 
 [Not linear on crafted input](#not-linear-on-crafted-input) lists the sites in the rewrite case that are still regexes.
@@ -714,16 +716,13 @@ On a crafted input, each of these takes time that grows faster than the input do
 
 #### Link idioms
 
-| Location                                           | Pattern role                                              | Input                                                                                               |
-| -------------------------------------------------- | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `links/extract.ts` `MD_LINK_RE`                    | Non-image `[label](target)`                               | One line at a time, with code spans masked                                                          |
-| `compile/publish-links.ts`                         | Cross-guide, intra-guide and publish-relative link shapes | One line at a time, with code spans masked                                                          |
-| `compile/hooks/code-evidence.ts` `MD_LINK_RE`      | `[label](target)` for evidence links                      | The whole shard body                                                                                |
-| `compile/hooks/inline-inserts.ts` `INSERT_LINK_RE` | Links into an insert library directory                    | The whole shard body, or one path through `isInsertLibraryPath`                                     |
-| `compile/section-manifest.ts` `FILE_LINK_RE`       | `.md` links                                               | The manifest, from the `compile.sectionsHeading` heading on when set, and each shard the walk reads |
-| `compile/section-manifest.ts` `SLUG_LINK_RE`       | `](#slug)` links                                          | The manifest only, from the `compile.sectionsHeading` heading on when set                           |
+| Location                                      | Pattern role                                              | Input                                      |
+| --------------------------------------------- | --------------------------------------------------------- | ------------------------------------------ |
+| `links/extract.ts` `MD_LINK_RE`               | Non-image `[label](target)`                               | One line at a time, with code spans masked |
+| `compile/publish-links.ts`                    | Cross-guide, intra-guide and publish-relative link shapes | One line at a time, with code spans masked |
+| `compile/hooks/code-evidence.ts` `MD_LINK_RE` | `[label](target)` for evidence links                      | The whole shard body                       |
 
-Each of these matches the `[label](target)` form, or its `](#slug)` tail, with negated character classes. They aren't linear either. On a crafted input the time grows at least with the square of the input's length. `FILE_LINK_RE` and `INSERT_LINK_RE` grow with its cube: the `[^)]` run before `.md` can end at each `.md` in the target, and after each `.md#` the optional fragment reads on to the next `)`. The Input column says which length counts. A negated class such as `[^)]` crosses line breaks, so short lines don't limit a regex that reads the whole text. The package has no Markdown link parser to replace them with, so link extract and rewrite keep these regexes. If CodeQL opens `js/polynomial-redos` on one of these sites, fix it with a linear scanner and a duration-budget test.
+Each of these matches the `[label](target)` form with negated character classes. They aren't linear either. On a crafted input the time grows at least with the square of the input's length. The Input column says which length counts. A negated class such as `[^)]` crosses line breaks, so short lines don't limit a regex that reads the whole text. Phase B kept these idioms as regexes, as [ADR 0005](docs/features/adr/0005-keep-ts-scanners-over-rg-peggy-rust.md) records, and the maintainers decided to keep them. If CodeQL opens `js/polynomial-redos` on one of these sites, fix it with a linear scanner and a duration-budget test. A fix can start from `scanInlineLinks` in `compile/link-scan.ts`, which walks the `[label](target)` shape these regexes match in linear time and lets a callback accept or turn down each target. Its callback doesn't get the index of the `[`, and the scan turns down each link that shares a label end it turned down before, so a caller that skips image links has to extend it first.
 
 ### Authoring implications
 
