@@ -24,7 +24,7 @@ Link validation reads each inline link written as `[label](target)` on one line,
 
 After the [link passes](../client-core/compile-hooks/index.md#link-passes), compile runs **`markBrokenLinks`** on each assembled guide body. A `#fragment` there passes when it matches a heading of the body or a slug that assembly gave one of its sections, such as a `FIND-*` finding id or a declared `{#id}`. A shard in the guide's directory that the guide doesn't stitch has no section there. Its slug fails, even when another guide stitches the shard. Each compile result keeps that slug set, and link lint checks against the same set.
 
-A guide's copy in the [monolith](../glossary/monolith.md) is marked after every copy is assembled, against the headings of the whole monolith, so a `#fragment` there can point at a heading of any guide the monolith stitches. The copy also accepts the section slug of every copy there, whichever guide is the shard's owner.
+Compile marks a guide's copy in the [monolith](../glossary/monolith.md) against the headings and section slugs that [Links in a guide's copy](./monolith-link-lint.md#links-in-a-guides-copy) describes.
 
 Compile marks a link only when its target after the link passes is a `#fragment` in the same document. A link to a missing file stays a link in the compiled guide, and link lint reports it as `missing file` or `missing publish path`. A marker replaces the link with visible prose that a reader can't click:
 
