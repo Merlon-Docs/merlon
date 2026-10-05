@@ -87,7 +87,7 @@ flowchart LR
 
 **In a chat-only tool** (ChatGPT, Gemini web, no repo agent): do **not** install the toolchain yet. Keep notes in your project folder if you have one, or wait until you use an agent that can [edit a git repo](https://github.com/git-guides). Read [Overview](docs/features/overview.md) and [Vision and roadmap](docs/features/protocol/00-vision-and-roadmap.md) first.
 
-**Automation / CI:** the [Agent Skill](docs/features/agent-skill.md) tells agents _when_ to touch docs; the [CLI](docs/client-cli/index.md) runs `compile` / `check` in scripts and pipelines ([The Toolchain](#the-toolchain)).
+**Automation / CI:** the [Agent Skill](docs/features/agent-skill.md) tells agents _when_ to touch docs, and the [CLI](packages/mdcp-cli/README.md) runs `compile` and `check` in scripts and pipelines. [The Toolchain](#the-toolchain) covers both.
 
 ### Are you ready?
 
@@ -125,8 +125,8 @@ flowchart TB
 MDCP has **three separate surfaces**. Each has its own docs — do not treat them as one install or one README.
 
 - **Agent Skill**: how agents maintain shards (`/mdcp` and its workflows). This README is its documentation, and [Get started](#get-started) shows how to install it.
-- **CLI**: shell commands only. Install and usage: [`@bwilliamson/mdcp-cli`](./packages/mdcp-cli/README.md).
-- **Core**: programmatic API only. Install and usage: [`@bwilliamson/mdcp-core`](./packages/mdcp-core/README.md).
+- **CLI**: shell commands only. Install and usage: [`@bwilliamson/mdcp-cli`](packages/mdcp-cli/README.md).
+- **Core**: programmatic API only. Install and usage: [`@bwilliamson/mdcp-core`](packages/mdcp-core/README.md).
 
 The skill tells agents _when_ and _how_ to use documentation; the CLI and core **execute** compile and validation. Agents still need `@bwilliamson/mdcp-cli` (or equivalent scripts) in the repo for those commands to run.
 
@@ -152,8 +152,8 @@ Open a [GitHub issue](https://github.com/betsalel-williamson/mdcp/issues) for fe
 - [skills.sh — MDCP skills](https://skills.sh/betsalel-williamson/mdcp)
 - [Vision and roadmap](docs/features/protocol/00-vision-and-roadmap.md)
 - [Agent Skill](docs/features/agent-skill.md)
-- [CLI consumer guide](docs/client-cli/index.md) — `@bwilliamson/mdcp-cli` (not the skill)
-- [Core API guide](docs/client-core/index.md) — `@bwilliamson/mdcp-core`
+- [CLI consumer guide](packages/mdcp-cli/README.md) for `@bwilliamson/mdcp-cli`, which is separate from the skill
+- [Core API guide](packages/mdcp-core/README.md) for `@bwilliamson/mdcp-core`
 
 <!-- mdcp-shard: end docs/repo-readme/learn-more.md -->
 

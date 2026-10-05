@@ -26,7 +26,7 @@ flowchart LR
 
 **In a chat-only tool** (ChatGPT, Gemini web, no repo agent): do **not** install the toolchain yet. Keep notes in your project folder if you have one, or wait until you use an agent that can [edit a git repo](https://github.com/git-guides). Read [Overview](../features/overview.md) and [Vision and roadmap](../features/protocol/00-vision-and-roadmap.md) first.
 
-**Automation / CI:** the [Agent Skill](../features/agent-skill.md) tells agents _when_ to touch docs; the [CLI](../client-cli/index.md) runs `compile` / `check` in scripts and pipelines ([The Toolchain](./the-toolchain.md)).
+**Automation / CI:** the [Agent Skill](../features/agent-skill.md) tells agents _when_ to touch docs, and the [CLI](../../packages/mdcp-cli/README.md) runs `compile` and `check` in scripts and pipelines. [The Toolchain](./the-toolchain.md) covers both.
 
 ## Are you ready?
 
