@@ -17,6 +17,12 @@ describe('bench-context-size', () => {
     assert.throws(() => parseArgs(['--bogus']), /Unknown argument/);
   });
 
+  it('skips the bare -- that pnpm passes through', () => {
+    const opts = parseArgs(['--', '--tokenizer', 'chars4', '--no-write']);
+    assert.equal(opts.tokenizer, 'chars4');
+    assert.equal(opts.write, false);
+  });
+
   it('counts with a gpt-tokenizer encoding', async () => {
     const t = await loadTokenizer({ tokenizer: 'o200k_base' });
     assert.equal(t.name, 'o200k_base');

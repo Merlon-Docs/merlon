@@ -68,7 +68,8 @@ export function parseArgs(argv, env = {}) {
   };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
-    if (arg === '--tokenizer') opts.tokenizer = argv[++i];
+    if (arg === '--') continue;
+    else if (arg === '--tokenizer') opts.tokenizer = argv[++i];
     else if (arg === '--tokenizer-module') opts.tokenizerModule = argv[++i];
     else if (arg === '--out') opts.out = resolve(argv[++i]);
     else if (arg === '--no-write') opts.write = false;
