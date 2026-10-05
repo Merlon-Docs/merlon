@@ -6,5 +6,6 @@
   - [Why use MDCP?](./about.md)
   - [MDCP 101](./mdcp-101.md)
   - [The Toolchain](./the-toolchain.md)
+  - [Project status](./project-status.md)
   - [Learn more](./learn-more.md)
   - [This repository](./this-repository.md)

@@ -132,6 +132,18 @@ The skill tells agents _when_ and _how_ to use documentation; the CLI and core *
 
 <!-- mdcp-shard: end docs/repo-readme/the-toolchain.md -->
 
+<!-- mdcp-shard: start docs/repo-readme/project-status.md -->
+
+## Project status
+
+Packages and skills version independently. Until a package or skill reaches **1.0.0**, that item has **no API stability guarantee**.
+
+### Get involved
+
+Open a [GitHub issue](https://github.com/betsalel-williamson/mdcp/issues) for feedback and bugs. To share how your team uses MDCP, open an issue from the [adoption-story template](https://github.com/betsalel-williamson/mdcp/issues/new?template=adoption-story.yml).
+
+<!-- mdcp-shard: end docs/repo-readme/project-status.md -->
+
 <!-- mdcp-shard: start docs/repo-readme/learn-more.md -->
 
 ## Learn More
@@ -140,7 +152,6 @@ The skill tells agents _when_ and _how_ to use documentation; the CLI and core *
 - [skills.sh — MDCP skills](https://skills.sh/betsalel-williamson/mdcp)
 - [Vision and roadmap](docs/features/protocol/00-vision-and-roadmap.md)
 - [Agent Skill](docs/features/agent-skill.md)
-- [Agent Skill development](docs/developer/agent-skill.md)
 - [CLI consumer guide](docs/client-cli/index.md) — `@bwilliamson/mdcp-cli` (not the skill)
 - [Core API guide](docs/client-core/index.md) — `@bwilliamson/mdcp-core`
 
@@ -156,11 +167,7 @@ Set up a checkout with [Local setup](docs/developer/local-setup.md). [DEVELOPERS
 
 This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md).
 
-### Status
-
-**Pre-1.0:** Packages and skills version independently. Until a package or skill reaches **1.0.0**, that item has **no API stability guarantee**.
-
-**Get involved:** [GitHub Issues](https://github.com/betsalel-williamson/mdcp/issues) for feedback and bugs; [adoption stories](https://github.com/betsalel-williamson/mdcp/issues/new?template=adoption-story.yml) for real-world use.
+To work on the Agent Skill itself, start with [Agent Skill development](docs/developer/agent-skill.md).
 
 ### Acknowledgments
 
