@@ -49,7 +49,7 @@ Omit `compile.hooks`. Optional per-hook config lives under `hooksConfig` (`inlin
 
 ### Cross-guide exceptions (optional)
 
-Cross-guide link rewrite runs at assembly by default. To keep shard `.md` paths for specific target guides, set `compile.crossGuideLinks.ignoreGuides` on the compiling guide — see [Cross-guide link rewriting](../client-core/compile-hooks/cross-guide-links.md):
+Cross-guide link rewrite runs at assembly by default. To keep shard `.md` paths in links to specific target guides, set `compile.crossGuideLinks.ignoreGuides` on the compiling guide. [Its config section](../client-core/compile-hooks/cross-guide-links.md#compilecrossguidelinksignoreguides) points to the cases where a link to one of those guides still takes an in-document anchor:
 
 ```json
 {

@@ -60,6 +60,6 @@ Optional per-hook settings: `compile.hooksConfig` (`inlineInserts.searchRoots`).
 
 Assembly-time cross-guide link options on the **compiling** guide (not a compile hook):
 
-- **`ignoreGuides`**: `string[]` of guide names. Links from the compiling guide to shards of a listed guide keep source `.md` paths instead of rewriting to `#slug` targets in the target guide's compiled guide or in the monolith
+- **`ignoreGuides`**: `string[]` of guide names. Links from the compiling guide to shards of a listed guide keep source `.md` paths instead of rewriting to `#slug` targets, except in the cases that [its config section](./compile-hooks/cross-guide-links.md#compilecrossguidelinksignoreguides) points to
 
 See [Cross-guide link rewriting](./compile-hooks/cross-guide-links.md) and [ignoreGuides](../glossary/ignore-guides.md).

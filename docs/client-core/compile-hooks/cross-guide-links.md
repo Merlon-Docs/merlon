@@ -20,7 +20,7 @@ A link is rewritten when **all** of the following hold:
 - Target path ends in `.md` (optional `#fragment`)
 - Target is not `http://`, `https://`, or `#…`
 - Target resolves to a shard registered in the guide link index
-- Target shard's guide is **not** listed in `compile.crossGuideLinks.ignoreGuides` on the compiling guide
+- Target shard's guide is **not** listed in `compile.crossGuideLinks.ignoreGuides` on the compiling guide, unless [same compiled output preference](#same-compiled-output-preference) keeps the link in the document
 
 Cross-guide rewrite matches only links whose path starts with `./` or `../`, including links to shards of the same guide. The intra-guide pass handles bare paths, such as `topic/section.md`.
 
@@ -64,6 +64,8 @@ When a `./` or `../` link resolves to a path present in the **assembling guide's
 
 Canonical ownership (manifest or path under `guideDir`) still wins for cross-output targets. Example: a glossary hub that transitively reaches a finding under `review/` keeps `architecture-review.md#find-004` even if the finding body was also pulled into the glossary compile graph. Multi-guide repos that only co-include a shared shard outside every `guideDir` keep in-document `#anchor` targets in each assembling output.
 
+Same-output preference comes before `ignoreGuides`. A link to a shard that the assembling guide stitches takes the in-document anchor when the shard's owner is non-canonical, even when the assembling guide lists that owner in `ignoreGuides`. Such an owner is only the first guide in `compileOrder` whose walk reached the shard, so letting `ignoreGuides` win would make the link depend on that order. MDCP's own publish guides rely on it. Each lists `features` in `ignoreGuides`, and `features` is the owner of the glossary term shards only through its walk. A publish guide still links a term to the section it stitches. [`ignoreGuides` interaction](./publish-relative-links.md#ignoreguides-interaction) says how a link to a stitched shard whose canonical owner is listed compiles.
+
 When the resolved absolute path is in the guide link index (and same-output preference does not already apply):
 
 | Case                                                            | Rewritten target                                                                                                                  |
@@ -92,7 +94,7 @@ The pass **does not** transform:
 - Same-document `#fragment` links
 - Markdown links that do not resolve to an indexed shard
 - Non-markdown paths (handled by `codeEvidence` or left unchanged)
-- Links to shards in guides listed in `compile.crossGuideLinks.ignoreGuides` (publish-relative may still rebase the unchanged shard path; see [`ignoreGuides` interaction](./publish-relative-links.md#ignoreguides-interaction))
+- Links to shards in guides listed in `compile.crossGuideLinks.ignoreGuides`, other than a stitched shard that [same compiled output preference](#same-compiled-output-preference) keeps in the document (publish-relative may still rebase the unchanged shard path; see [`ignoreGuides` interaction](./publish-relative-links.md#ignoreguides-interaction))
 
 ## Cross-guide config
 
@@ -134,7 +136,7 @@ Minimal multi-output setup — index and rewrite run automatically from `compile
 
 ### `compile.crossGuideLinks.ignoreGuides`
 
-Set on the **guide being compiled**. Links from that guide to shards of a listed guide keep source `.md` paths instead of rewriting to a `#slug` in the target guide's compiled guide or in the monolith ([ignoreGuides](../../glossary/ignore-guides.md)). Use when one compiled guide should link to live shard files for specific guides (such as technical reference docs that are not folded into a review bundle).
+Set on the **guide being compiled**. Links from that guide to shards of a listed guide keep source `.md` paths instead of rewriting to a `#slug` in the target guide's compiled guide or in the monolith ([ignoreGuides](../../glossary/ignore-guides.md)). [Same compiled output preference](#same-compiled-output-preference) says when a link to a shard that the guide stitches takes an in-document anchor instead. [`ignoreGuides` interaction](./publish-relative-links.md#ignoreguides-interaction) says how compile rebases a kept path, and when a `./` or bare link to a stitched shard takes `#slug`. Use when one compiled guide should link to live shard files for specific guides (such as technical reference docs that are not folded into a review bundle).
 
 ```json
 {

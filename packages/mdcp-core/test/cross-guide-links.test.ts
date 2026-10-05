@@ -1386,3 +1386,50 @@ describe('later link passes leave a cross-guide link alone', () => {
     });
   });
 });
+
+describe('ignoreGuides and same compiled output preference', () => {
+  // Guide b comes first in compileOrder, so it owns shared/x.md through its walk alone. Guide a
+  // stitches that shard too, and ignores guide b. b/topic.md and b/other.md are b's by its
+  // manifest, and a also stitches them through its scope root. The ../ link to b/topic.md keeps
+  // its path, and the intra-guide pass links the ./ link to b/other.md in the document.
+  it('links a co-compiled shard that the ignored guide owns only through its walk in the document', () => {
+    withTmpDir('mdcp-ignore-guides-same-output-', (work) => {
+      writeTree(work, {
+        'b/index.md': '# Guide B\n\n- [Topic](./topic.md)\n- [Other](./other.md)\n',
+        'b/topic.md': '# Topic\n\nSee [shared](../shared/x.md) and [other](./other.md).\n',
+        'b/other.md': '# Other\n\nBody.\n',
+        'a/index.md': '# Guide A\n\n- [Intro](./intro.md)\n',
+        'a/intro.md': '# Intro\n\nSee [shared](../shared/x.md) and [topic](../b/topic.md).\n',
+        'shared/x.md': '# Shared term\n\nBody.\n',
+      });
+      const opts = monolithOptions(
+        work,
+        ['b', 'a'],
+        [
+          { name: 'b', compile: { scopeRoot: '.', outputFile: 'b.md' } },
+          {
+            name: 'a',
+            compile: {
+              scopeRoot: '.',
+              outputFile: 'a.md',
+              crossGuideLinks: { ignoreGuides: ['b'] },
+            },
+          },
+        ],
+      );
+      const { index } = buildGuideLinkIndex(opts, work);
+      expect(index.get(join(work, 'shared', 'x.md'))).toMatchObject({
+        guideName: 'b',
+        canonical: false,
+      });
+      expect(index.get(join(work, 'b', 'topic.md'))).toMatchObject({
+        guideName: 'b',
+        canonical: true,
+      });
+
+      const a = compileGuideResults(opts).find((r) => r.name === 'a')!.text;
+      expect(a).toContain('See [shared](#shared-term) and [topic](../b/topic.md).');
+      expect(a).toContain('See [shared](#shared-term) and [other](#other).');
+    });
+  });
+});

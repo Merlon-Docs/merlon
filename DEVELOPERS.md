@@ -1629,7 +1629,7 @@ The registry is **generated state**, not authored shards. `mdcp compile` and `md
 
 ## ignoreGuides
 
-**`ignoreGuides`** is a list of guide names on the **compiling** guide, under `compile.crossGuideLinks.ignoreGuides`. Cross-guide links to a listed guide keep pointing at the source shard instead of rewriting to a `#slug` target. [Publish-relative rewrite](./packages/mdcp-core/README.md#ignoreguides-interaction) still rebases the kept path. The listed guide stays in `compileOrder` and in the link index.
+**`ignoreGuides`** is a list of guide names on the **compiling** guide, under `compile.crossGuideLinks.ignoreGuides`. Cross-guide links to a listed guide keep pointing at the source shard instead of rewriting to a `#slug` target, except in the cases that [its config section](./packages/mdcp-core/README.md#compilecrossguidelinksignoreguides) points to. [`ignoreGuides` interaction](./packages/mdcp-core/README.md#ignoreguides-interaction) says how compile rebases a kept path, and when a `./` or bare link to a stitched shard takes `#slug`. The listed guide stays in `compileOrder` and in the link index.
 
 Read [Cross-guide link rewriting](./packages/mdcp-core/README.md#cross-guide-link-rewriting) for how other links rewrite, and the [publish-only link policy](docs/features/link-validation.md#publish-only-link-policy) for how link validation treats kept shard paths.
 

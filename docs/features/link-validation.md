@@ -50,7 +50,7 @@ Guides with `compile.outputFile` are **publish-only** outputs (npm READMEs, `DEV
 
 See [publish-relative rewrite](../client-core/compile-hooks/publish-relative-links.md) for how shard paths are rebased before this policy runs.
 
-Example: `client-cli` with `ignoreGuides: ["features"]` compiles `../features/feature-catalog.md` to `../../docs/features/feature-catalog.md` in `packages/mdcp-cli/README.md`. Cross-guide rewrite is skipped for `features`; publish-relative rebase fixes geometry; lint accepts the shard path because `features` is in `ignoreGuides`.
+Example: `client-cli` with `ignoreGuides: ["features"]` compiles `../features/feature-catalog.md` to `../../docs/features/feature-catalog.md` in `packages/mdcp-cli/README.md`. The cross-guide pass keeps the shard path, and the publish-relative pass rebases it. Lint accepts it because `features` is in `ignoreGuides`.
 
 Publish-relative rewrite and publish-only lint are complementary: rewrite fixes geometry from absolute resolution; lint enforces which target classes are allowed in publish output.
 

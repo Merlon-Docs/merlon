@@ -72,7 +72,12 @@ export interface AssembleGuideOptions {
   monolithFile?: string;
   config?: MdcpConfigInput;
   linkIndex?: GuideLinkIndex;
-  /** Guide names whose cross-guide shard links keep source `.md` paths. */
+  /**
+   * Guide names whose cross-guide shard links keep source `.md` paths, except where a link to a
+   * shard the guide stitches takes its in-document anchor: through same compiled output preference,
+   * or through the intra-guide pass for a `./` or bare link. The
+   * `compile.crossGuideLinks.ignoreGuides` section of the core README links both rules.
+   */
   ignoreGuides?: string[];
   markBroken?: boolean;
   guideName?: string;

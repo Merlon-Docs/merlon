@@ -232,7 +232,12 @@ export interface CrossGuideLinkRewriteOptions {
    * attributes the shard to another guide (multi-guide transitive co-inclusion).
    */
   slugByPath?: Map<string, string>;
-  /** Target guide names: links from the compiling guide to shards of a listed guide keep source `.md` paths instead of `#slug` targets in the target guide's compiled guide or in the monolith. */
+  /**
+   * Target guide names: links from the compiling guide to shards of a listed guide keep source
+   * `.md` paths instead of `#slug` targets in the target guide's compiled guide or in the monolith.
+   * Same compiled output preference comes first: a link to a shard in `slugByPath` whose owner in
+   * `linkIndex` is non-canonical still takes its in-document anchor.
+   */
   ignoreGuides?: string[];
   searchRoots?: string[];
 }
