@@ -11,3 +11,5 @@ Delivery backlog and roadmap tracks stay in GitHub issues / the project board �
 - [ADR 0003 — Do not adopt OKF](./0003-do-not-adopt-okf.md)
 - [ADR 0004 — Decline a hard-gated branch-before-edit skill rule](./0004-decline-branch-before-edit-hard-gate.md)
 - [ADR 0005 — Keep linear TypeScript scanners over rg, Peggy, or Rust](./0005-keep-ts-scanners-over-rg-peggy-rust.md)
+- [ADR 0006 — Publish one skill that routes to workflows](./0006-one-skill-with-workflows.md)
+- [ADR 0007 — Review the docs as a set in their own workflow](./0007-doc-review-workflow.md)
