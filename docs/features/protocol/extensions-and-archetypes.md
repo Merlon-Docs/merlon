@@ -24,9 +24,11 @@ Design constraints for the protocol and its ecosystem — analogous to SOLID in 
 | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **S**ingle responsibility | Agent Skill = entrypoint and workflow; shards = intent; code = behavior; extensions = vertical overlays                                                     |
 | **O**pen/closed           | Core protocol versioned; extend through complementary skills without forking the base skill                                                                 |
-| **L**iskov substitution   | Optional extensions **MUST NOT** break core `mdcp check` when disabled; archetypes compose on top of conforming layouts                                     |
+| **L**iskov substitution   | Optional extensions **SHOULD NOT** break core `mdcp check` when disabled; archetypes compose on top of conforming layouts                                   |
 | **I**nterface segregation | Built-in [compile hooks](../default-compile-hooks.md) run by default, and a guide switches each one off in `compile.hooks`; complementary skills are opt-in |
 | **D**ependency inversion  | Agents and CI depend on **compiled contracts** and `mdcp check`, not ad-hoc README prose or host-specific rules                                             |
+
+These principles are advisory ([Enforceable rules](../design-constraints/enforceable-rules.md)): `mdcp check` doesn't test them, so whoever designs a change to the protocol or an extension applies them, and the change's review is the evidence.
 
 ## Extensions directory
 

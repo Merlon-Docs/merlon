@@ -30,6 +30,8 @@ A record that no longer holds is superseded by a new record rather than edited, 
 - **Separate observation from recommendation.** A record ends by naming which durable position it feeds and links to it. It does not itself become the rule.
 - **Date it and leave it.** A superseding record is a new file. The one change a record takes is repointing a link whose target moved, which leaves the observation as written.
 
+These rules are advisory ([Enforceable rules](../../design-constraints/enforceable-rules.md)): whoever changes a record applies them, and the change's review is the evidence. `mdcp check` gates one part of them. It fails on a link in a record that doesn't resolve, such as a link to a missing data file.
+
 ## Records
 
 - [Context sizes: this repository's guides against one shard](./context-size-dogfood-2026-10-05.md)

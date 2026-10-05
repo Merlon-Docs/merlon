@@ -8,6 +8,8 @@ Workflows are part of the MDCP **authoring protocol** — not host-specific rule
 
 Workflow files live in the skill under `skills/mdcp/references/workflows/` (e.g., `feature-level.md`). The canonical catalog is summarized below. **Do not edit** an installed copy of the skill if you want changes to persist — propose upstream or add extensions.
 
+The obligations on this page are advisory, as [Enforceable rules](../design-constraints/enforceable-rules.md) uses the word, and that page lists the partial gates some of them have. The agent following the skill applies them. Its plan and the branch's commits are the evidence a session leaves, and the optional [live skill evals](../../developer/live-skill-evals.md) measure the skill against them outside CI.
+
 ## Required intake
 
 Every work-item workflow **MUST** open with an **Intake** section listing the fields below. The agent takes each value from the request and the repository first, and asks only for what is still missing when someone can answer. When nobody can answer, as in a headless or scheduled run, it states a default in one line and continues. `WORK_ITEM` is then the request itself. It stops to wait only when the user asked for a plan first, or before a destructive or irreversible step, a real change of scope, or input only the user can give. The skill's **When nobody can answer** section in `SKILL.md` holds these defaults.

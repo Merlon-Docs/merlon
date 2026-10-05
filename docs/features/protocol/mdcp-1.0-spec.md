@@ -25,7 +25,7 @@ The tiers keep a growing docs set coherent. Contributor workflow stays out of co
 
 **Placement test:** if consumers of the product need the shard, it belongs in `features/` or `client/`. If only contributors to the repository need it, it belongs in `developer/`. Split a shard that mixes consumer material with contributor-only material ([idea mitosis](./shard-srp-and-mitosis.md#split-when)).
 
-Each guide **MUST** have a manifest (`index.md` or `shards.md`) defining compile order.
+Each guide **MUST** have a manifest (`index.md` or `shards.md`) defining compile order. The Orphans stage of `mdcp check` fails a guide without a readable manifest, as the [Check gate](../check-gate.md#check-gate-stages) specifies.
 
 Glossary terms **SHOULD** be one shard per entry. [Shared glossary](../../client-cli/config-essentials.md#shared-glossary) says how guides stitch the terms through `compile.scopeRoot` and when a large glossary groups them into sub-index files.
 
@@ -45,11 +45,11 @@ The normative clauses for compile and validation are these feature specification
 
 Skill workflows are part of the MDCP 1.0 authoring profile. The `mdcp` skill selects one per task (e.g. the feature-level workflow for a code change). See [Skill workflows](./skill-workflows.md).
 
-Work-item workflows **MUST** resolve `WORK_ITEM` and `WORK_ITEM_LOOKUP` before editing, as [Required intake](./skill-workflows.md#required-intake) defines. Feature work **SHOULD** use the [feature-level workflow](./workflows/feature-level.md).
+Work-item workflows **MUST** resolve `WORK_ITEM` and `WORK_ITEM_LOOKUP` before editing, as [Required intake](./skill-workflows.md#required-intake) defines. Feature work **SHOULD** use the [feature-level workflow](./workflows/feature-level.md). Both rules are advisory, like the other obligations on [Skill workflows](./skill-workflows.md), which says who applies them and what evidence a session leaves.
 
 ## 5. Skills and immutability
 
-The Agent Skills pack in a consumer docs root **MUST NOT** be hand-edited by agents for repo-specific content. Project overlays belong in `docs/extensions/` or normative shards. Extension packs and archetypes: [Extensions and archetypes](./extensions-and-archetypes.md).
+The Agent Skills pack in a consumer docs root **MUST NOT** be hand-edited by agents for repo-specific content. The rule is advisory ([Enforceable rules](../design-constraints/enforceable-rules.md)), because `mdcp check` reads the docs root and never an installed skill. Whoever changes the repository applies it, and the change's review is the evidence. Project overlays belong in `docs/extensions/` or normative shards. Extension packs and archetypes: [Extensions and archetypes](./extensions-and-archetypes.md).
 
 ## 6. Agent context delivery
 

@@ -20,6 +20,8 @@ A documentation shard has **one primary concern**, for **one audience**, serving
 
 **Complete for that job:** the shard is finished when a reader can use it for its job without the rest of the compiled guide _and_ without being misled. Completeness is not a line-count budget. Glossary leaves may be three lines; a single contract may need a longer section and still be one responsibility.
 
+These rules are advisory: `mdcp check` passes a shard with two responsibilities. [`mdcp review`](../../client-cli/commands-reference.md#sprawl-review) flags candidates with three of its signals: `long-shard`, `similar-titles` and `duplicate-paragraph`, and with `--strict` it exits 1 on any finding. The [doc-review workflow](./workflows/doc-review.md) decides each candidate, and its commits are the evidence.
+
 ## Splitting a shard (idea mitosis)
 
 When pressure builds along more than one axis, **split** the shard instead of letting it grow. Splitting a shard this way is [idea mitosis](../../glossary/idea-mitosis.md).
