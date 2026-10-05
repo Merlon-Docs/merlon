@@ -229,7 +229,7 @@ Prefer outputDir-relative values in config (for example `".caches/refs.json"` wh
 
 #### Heading slugs (github-slugger)
 
-`githubSlugify`, `headingTextToPlain`, and `buildSlugRegistry` derive `#fragment` targets from compiled headings using [`github-slugger`](https://www.npmjs.com/package/github-slugger), which matches the anchors GitHub renders for headings. GFM does not define auto-generated heading IDs; treat github-slugger parity as the contract.
+`githubSlugify`, `headingTextToPlain`, and `buildSlugRegistry` derive `#fragment` targets from compiled headings using [`github-slugger`](https://www.npmjs.com/package/github-slugger), which matches the anchors GitHub renders for headings. GFM does not define auto-generated heading IDs. Treat github-slugger parity as the contract.
 
 | Export               | Purpose                                              |
 | -------------------- | ---------------------------------------------------- |
@@ -394,7 +394,7 @@ On any other line, a `{#id}` inside a fenced code block or an inline code span s
 
 ### stripAnchors limits
 
-The strip reads an indented code block as prose, as the fence scan does, so a marker there goes unless it's inside a code span on its line. The hook runs the scan without the blockquote text, so a fence behind `>` is prose to it too, and a marker there goes unless a code span on its line holds it. Where the [fence scan limits](../../docs/features/compile-pipeline/fence-scan.md#fence-scan-limits) misread a fence or shift the pairing of code spans, the strip can drop a quoted marker or keep a prose one.
+The strip reads an indented code block as prose, as the fence scan does. It removes a marker there unless the marker is inside a code span on its line. The hook runs the scan without the blockquote text, so a fence behind `>` is prose to it too, and a marker there goes unless a code span on its line holds it. Where the [fence scan limits](../../docs/features/compile-pipeline/fence-scan.md#fence-scan-limits) misread a fence or shift the pairing of code spans, the strip can drop a quoted marker or keep a prose one.
 
 <!-- mdcp-shard: end ../../docs/client-core/compile-hooks/strip-anchors.md -->
 
@@ -479,7 +479,7 @@ The hook **does not** transform:
 
 ### codeEvidence config
 
-Runs by default — no hook list required. Path rewriting uses the monolith or per-guide output path automatically:
+Runs by default, so no hook list is required. Path rewriting uses the monolith or per-guide output path automatically:
 
 ```json
 {

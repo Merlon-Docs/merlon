@@ -20,4 +20,4 @@ On any other line, a `{#id}` inside a fenced code block or an inline code span s
 
 ## stripAnchors limits
 
-The strip reads an indented code block as prose, as the fence scan does, so a marker there goes unless it's inside a code span on its line. The hook runs the scan without the blockquote text, so a fence behind `>` is prose to it too, and a marker there goes unless a code span on its line holds it. Where the [fence scan limits](../../features/compile-pipeline/fence-scan.md#fence-scan-limits) misread a fence or shift the pairing of code spans, the strip can drop a quoted marker or keep a prose one.
+The strip reads an indented code block as prose, as the fence scan does. It removes a marker there unless the marker is inside a code span on its line. The hook runs the scan without the blockquote text, so a fence behind `>` is prose to it too, and a marker there goes unless a code span on its line holds it. Where the [fence scan limits](../../features/compile-pipeline/fence-scan.md#fence-scan-limits) misread a fence or shift the pairing of code spans, the strip can drop a quoted marker or keep a prose one.

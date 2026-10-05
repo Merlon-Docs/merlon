@@ -12,7 +12,7 @@ Code spans are paired within each line. A run of backticks opens a span that the
 
 ## Fence scan limits
 
-The scan doesn't read blockquotes or HTML. Run on its own, it misses a fence behind `>`, which the readers that also scan blockquote text find. It doesn't let a line continue a quoted paragraph, so an unindented line right after a quote in a list item ends the item. A fence line inside an HTML comment or HTML block opens or closes a fence like any other. Indented code blocks aren't fences either, so the scan reads their lines as prose.
+The scan doesn't read blockquotes or HTML. Run on its own, it misses a fence behind `>`, which the readers that also scan blockquote text find. It doesn't let a line continue a quoted paragraph, so an unindented line right after a quote in a list item ends the item. A fence line inside an HTML comment or HTML block opens or closes a fence like any other. Indented code blocks aren't fences either, and the scan reads their lines as prose.
 
 The scan doesn't open an item for a list marker followed by five or more columns of whitespace. CommonMark opens one there whose first line is indented code, so a fence in that item can run past the line where CommonMark ends it.
 

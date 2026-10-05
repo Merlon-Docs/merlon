@@ -77,7 +77,7 @@ The hook **does not** transform:
 
 ## codeEvidence config
 
-Runs by default — no hook list required. Path rewriting uses the monolith or per-guide output path automatically:
+Runs by default, so no hook list is required. Path rewriting uses the monolith or per-guide output path automatically:
 
 ```json
 {
