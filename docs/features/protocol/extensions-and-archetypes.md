@@ -58,18 +58,16 @@ The default MDCP installation provides the **Code Repository Archetype** (`featu
 
 Because the underlying MDCP engine (`mdcp compile`, `mdcp check`) is domain-agnostic, teams can define alternative archetypes for other documentation systems — for example factory SOPs, equipment manuals, training curricula, Legal Operations, or HR Policies — that use completely different guide tiers.
 
-Archetype extensions in this repository (internal, `metadata.internal: true`, not yet published to skills.sh):
+The archetype extensions in this repository are internal (`metadata.internal: true`) and not released, as [Publishing the skill pack](../../developer/agent-skill.md#publishing-the-skill-pack) says:
 
-| Archetype          | Extension id                  | When to use                            | Shard emphasis                                                 |
-| ------------------ | ----------------------------- | -------------------------------------- | -------------------------------------------------------------- |
-| OSS library        | `mdcp-arch-oss-library`       | npm/crates publishable API             | Pointer shards to `src/`; minimal duplication of signatures    |
-| Product docs site  | `mdcp-arch-product-docs-site` | MkDocs, Docusaurus, VitePress          | `format-*` extension + client guide tier                       |
-| Go-to-market / GTM | `mdcp-arch-gtm`               | Marketing, sales, awareness, messaging | `awareness/`, `messaging/`, `audience/` guide tiers            |
-| Research project   | `mdcp-arch-research`          | Studies, field reports, benchmarks     | `research/` tier of dated records beside `design-constraints/` |
+| Archetype          | Extension id                  | When to use                            | Shard emphasis                                                                         |
+| ------------------ | ----------------------------- | -------------------------------------- | -------------------------------------------------------------------------------------- |
+| OSS library        | `mdcp-arch-oss-library`       | npm/crates publishable API             | Pointer shards to `src/`; minimal duplication of signatures                            |
+| Product docs site  | `mdcp-arch-product-docs-site` | MkDocs, Docusaurus, VitePress          | A `format-*` formatting pack (a naming slot; no such skill exists) + client guide tier |
+| Go-to-market / GTM | `mdcp-arch-gtm`               | Marketing, sales, awareness, messaging | `awareness/`, `messaging/`, `audience/` guide tiers                                    |
+| Research project   | `mdcp-arch-research`          | Studies, field reports, benchmarks     | `research/` tier of dated records beside `design-constraints/`                         |
 
-Archetype READMEs live under complementary skills — for example `mdcp-arch-oss-library/`, `mdcp-arch-product-docs-site/`, `mdcp-arch-gtm/`, and `mdcp-arch-research/`.
-
-Start from an archetype README, copy patterns into `docs/`, then customize under `docs/extensions/`.
+Each archetype is a `SKILL.md` under `skills/mdcp-arch-*`. Start from an archetype's `SKILL.md`, copy its patterns into `docs/`, then customize under `docs/extensions/`.
 
 ## Related
 
