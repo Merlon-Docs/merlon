@@ -40,7 +40,7 @@ Filter for new capabilities: [Direct value bar](../design-constraints/direct-val
   V3 delivery      HTTPS API + API keys (optional)
 ```
 
-**V1 phase ≠ semver 1.0.** Roadmap phase names describe delivery surfaces. Each package or skill’s stability promise begins at that item’s **1.0.0** — packages and skills version independently and currently publish as `0.x`.
+**V1 phase ≠ semver 1.0.** Roadmap phase names describe delivery surfaces. Package and skill versions follow the [pre-1.0 policy](../../developer/versioning-and-releases.md#pre-10-policy-0xy).
 
 Later phases (MCP, hosted API) are alternate **delivery** surfaces; they do not redefine the documentation domain.
 

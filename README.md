@@ -136,7 +136,7 @@ The skill tells agents _when_ and _how_ to use documentation; the CLI and core *
 
 ## Project status
 
-Packages and skills version independently. Until a package or skill reaches **1.0.0**, that item has **no API stability guarantee**.
+Packages and skills version independently, and the [pre-1.0 policy](docs/developer/versioning-and-releases.md#pre-10-policy-0xy) says what can change before each one reaches 1.0.0.
 
 ### Get involved
 

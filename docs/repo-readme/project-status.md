@@ -1,6 +1,6 @@
 # Project status
 
-Packages and skills version independently. Until a package or skill reaches **1.0.0**, that item has **no API stability guarantee**.
+Packages and skills version independently, and the [pre-1.0 policy](../developer/versioning-and-releases.md#pre-10-policy-0xy) says what can change before each one reaches 1.0.0.
 
 ## Get involved
 
