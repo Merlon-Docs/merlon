@@ -36,12 +36,14 @@ These rules are advisory ([Enforceable rules](../../design-constraints/enforceab
 
 ## Records
 
-- [Context sizes: this repository's guides against one shard](./context-size-dogfood-2026-10-05.md)
-- [Field report: a fully automated repository](./field-report-automated-repository.md)
-- [Field report: the edge of the validated surface](./field-report-validated-surface.md)
-- [Skill eval round: measured changes to the mdcp skill](./skill-eval-round-2026-10-03.md)
-- [Benchmark: this repository's docs before and after single-pass compile](./benchmark-dogfood-2026-06-19.md)
-- [Field report: a first external evaluator](./field-report-first-evaluator.md)
+Newest first, with the date each record gives:
+
+- [Context sizes: this repository's guides against one shard](./context-size-dogfood-2026-10-05.md) (2026-10-05)
+- [Skill eval round: measured changes to the mdcp skill](./skill-eval-round-2026-10-03.md) (2026-10-03)
+- [Field report: a fully automated repository](./field-report-automated-repository.md) (2026-09)
+- [Field report: the edge of the validated surface](./field-report-validated-surface.md) (2026-09)
+- [Benchmark: this repository's docs before and after single-pass compile](./benchmark-dogfood-2026-06-19.md) (2026-06-18 and 2026-06-19)
+- [Field report: a first external evaluator](./field-report-first-evaluator.md) (2026-06)
 
 ## Related
 

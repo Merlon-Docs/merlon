@@ -8,6 +8,8 @@ Large documentation dumps (single-file README, site-wide `llms.txt`, crawled cor
 
 MDCP does not magically erase documentation debt. It helps head it off by putting durable context in the right place: **small shards** are the source of truth; agents and humans pull **one section at a time** (host search is enough to find it). That scale works for a team of one or a full product, engineering, and marketing org.
 
+[Documentation and software reliability](./documentation-and-reliability.md) sets out what the sources say about documentation quality and the cost of unreliable software. The measurements and field reports behind MDCP's own claims are [research records](./research/about-research-records.md).
+
 ## Principles
 
 | Principle                      | Implication                                                                                                      |
