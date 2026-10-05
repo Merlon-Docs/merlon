@@ -4,6 +4,7 @@ import type { CompileHook, CompileHookState } from '../hooks.js';
 import { markLinkTarget } from '../publish-links.js';
 import { maskInlineCode } from '../../links/extract.js';
 import { createQuotedFenceScanner } from '../../markdown/index.js';
+import { scanInlineLinks } from '../link-scan.js';
 import {
   codeExtensionSet,
   defaultSearchRoots,
@@ -15,8 +16,6 @@ import {
 import { formatLineFragment, lineRangeFromText } from './line-range.js';
 
 export { formatLineFragment, lineRangeFromText } from './line-range.js';
-
-const MD_LINK_RE = /\[([^\]]*)\]\(([^)]+)\)/g;
 
 const IDENT_RE = /^[\w$]+$/;
 
@@ -156,17 +155,17 @@ type ReplaceEvidenceLink = (match: string, label: string, target: string) => str
 
 /** `text`, which holds no fenced code, with each link outside a code span replaced. */
 function replaceProseLinks(text: string, replace: ReplaceEvidenceLink): string {
-  // Masking keeps each index, so a match in `masked` is at the same place in `text`.
+  // Masking keeps each index, so a link in `masked` is at the same place in `text`.
   const masked = text.split('\n').map(maskInlineCode).join('\n');
+  // Any link with a target of at least one character, an image too.
+  const links = scanInlineLinks(masked, (targetStart, close) => close > targetStart || undefined);
   let out = '';
   let last = 0;
-  for (const m of masked.matchAll(MD_LINK_RE)) {
-    const start = m.index;
-    const end = start + m[0].length;
-    const label = text.slice(start + 1, start + 1 + m[1].length);
-    const target = text.slice(end - 1 - m[2].length, end - 1);
-    out += text.slice(last, start) + replace(text.slice(start, end), label, target);
-    last = end;
+  for (const { start, labelEnd, close } of links) {
+    const label = text.slice(start + 1, labelEnd);
+    const target = text.slice(labelEnd + 2, close);
+    out += text.slice(last, start) + replace(text.slice(start, close + 1), label, target);
+    last = close + 1;
   }
   return out + text.slice(last);
 }

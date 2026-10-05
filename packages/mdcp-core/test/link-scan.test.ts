@@ -5,6 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   createMdSuffixReader,
+  createNextIndexReader,
   mdLinkPaths,
   scanInlineLinks,
   slugLinkTargets,
@@ -55,6 +56,24 @@ describe('scanInlineLinks', () => {
 
   it('turns down an empty target only when the callback does', () => {
     expect(targets('[a]() [b](c)', (t) => t.length > 0).map((l) => l.value)).toEqual(['c']);
+  });
+
+  // `/(?<!!)\[[^\]]*\]\(([^)]+)\)/g` finds the same links in each text.
+  it('starts no link at a [ right after a ! with skipImages, and still asks about its label end', () => {
+    const scan = (text: string) =>
+      scanInlineLinks(text, (targetStart, close) => text.slice(targetStart, close), {
+        skipImages: true,
+      }).map(({ start, value }) => [start, value]);
+    expect(scan('![a](x) [b](y)')).toEqual([[8, 'y']]);
+    expect(scan('![[a](x)')).toEqual([[2, 'x']]);
+    expect(scan('[![a](x)](y)')).toEqual([[0, 'x']]);
+  });
+});
+
+describe('createNextIndexReader', () => {
+  it('finds the first index of the character at or after an index, in any order of calls', () => {
+    const next = createNextIndexReader('a#b#c', '#');
+    expect([0, 1, 2, 3, 4, 0, 4].map(next)).toEqual([1, 1, 3, 3, -1, 1, -1]);
   });
 });
 

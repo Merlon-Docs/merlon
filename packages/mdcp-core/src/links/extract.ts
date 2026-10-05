@@ -1,7 +1,5 @@
+import { scanInlineLinks } from '../compile/link-scan.js';
 import { createQuotedFenceScanner } from '../markdown/index.js';
-
-/** Match markdown links but not images `![alt](url)`. */
-export const MD_LINK_RE = /(?<!!)\[([^\]]*)\]\(([^)]+)\)/g;
 
 export interface ExtractedLink {
   label: string;
@@ -58,15 +56,23 @@ export function extractLinks(markdown: string): ExtractedLink[] {
     if (inFence(line)) continue;
 
     const masked = maskInlineCode(line);
-    for (const m of masked.matchAll(MD_LINK_RE)) {
-      const target = m[2].trim();
+    // A link that isn't an image, with a target of at least one character.
+    const found = scanInlineLinks(
+      masked,
+      (targetStart, close) => close > targetStart || undefined,
+      {
+        skipImages: true,
+      },
+    );
+    for (const { start, labelEnd, close } of found) {
+      const target = masked.slice(labelEnd + 2, close).trim();
       if (target.startsWith('mailto:')) continue;
       links.push({
-        label: m[1],
+        label: masked.slice(start + 1, labelEnd),
         target,
         line: i + 1,
-        match: m[0],
-        offset: lineOffset + m.index,
+        match: masked.slice(start, close + 1),
+        offset: lineOffset + start,
       });
     }
   }

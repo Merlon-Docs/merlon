@@ -370,7 +370,7 @@ The link passes, `codeEvidence`, broken-link marking and link lint find fenced c
 
 Link validation finds broken-link markers with `findTemplateMatches`, a scanner in `locale/create-locale-pack.ts`. It splits the locale's `markerTemplate` at each variable but `markerLabel` and finds the parts in order, with no line terminator between two of them. It returns the markers that a pattern with a lazy `.*?` for each variable matches, and its time grows linearly with the length of the line. Compiled link lint asks about a line a fixed number of times, however many links it holds.
 
-The manifest walk and the `inlineInserts` hook find links in a whole manifest or shard body with the scanners in `compile/link-scan.ts`. The walk reads `.md` links and `](#slug)` links with them, and the hook reads links into an insert library. Each scanner returns the matches of a link regex, such as `\[[^\]]*\]\(([^)]+\.md)(?:#[^)]*)?\)` for `.md` links, in time that grows linearly with the text. The regex itself reads a target with `[^)]`, which crosses line breaks, so on a crafted text its time can grow with the cube of the text's length.
+The manifest walk and the `inlineInserts` hook find links in a whole manifest or shard body with the scanners in `compile/link-scan.ts`. The walk reads `.md` links and `](#slug)` links with them, and the hook reads links into an insert library. The readers that [Link idioms](#link-idioms) lists use the same scanners. Each scanner returns the matches of a link regex, such as `\[[^\]]*\]\(([^)]+\.md)(?:#[^)]*)?\)` for `.md` links, in time that grows linearly with the text. The regex itself reads a target with `[^)]`, which crosses line breaks, so on a crafted text its time can grow with the cube of the text's length.
 
 `codeEvidence` reads line ranges such as `L6-L8` or `lines 12–15` with `lineRangeFromText`, an imperative scanner in `compile/hooks/line-range.ts`. It takes its words from the locale pack. The hook trims the backticks around a link label with a loop, and `shardLintPaths` uses one too, for the slashes at the end of a `shardsGlobs` entry that starts with `../`. Public package APIs keep their names, and call sites delegate to the helpers. Duration-budget tests in `packages/mdcp-core/test/redos-budget.test.ts` run the helpers and scanners on pump inputs, so a regex that brings the class back fails CI.
 
@@ -380,7 +380,6 @@ A regex in `packages/mdcp-core/src/` falls under this rule:
 
 - **Keep** a pattern that is clearly linear.
 - **Rewrite** a pattern next to the CodeQL class, such as `\s*` or overlapping optional groups next to digits, as a scanner with a duration-budget test.
-- **Keep** the Markdown link idioms that [Link idioms](#link-idioms) lists as regexes, and fix any `js/polynomial-redos` alert on one with a scanner.
 - Leave prose and language opinion out of core, because it belongs in Vale.
 
 #### Kept (linear)
@@ -402,15 +401,19 @@ A regex in `packages/mdcp-core/src/` falls under this rule:
 | Path and glob helpers                                      | `./`, `../` and `.` prefixes, a leading `!`, `#` or `:`, and one trailing `/`                                                             | Anchored                                                                              |
 | Adornment, escape and split helpers                        | `**` and emphasis markers, backslashes, regex and glob escaping, letter and number classes, whitespace and separator splits               | Literal or one character class                                                        |
 
-#### Link idioms
+### Link idioms
 
-| Location                                      | Pattern role                                              | Input                                                         |
-| --------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------- |
-| `links/extract.ts` `MD_LINK_RE`               | Non-image `[label](target)`                               | One line at a time, with code spans masked                    |
-| `compile/publish-links.ts`                    | Cross-guide, intra-guide and publish-relative link shapes | One line at a time, with code spans masked                    |
-| `compile/hooks/code-evidence.ts` `MD_LINK_RE` | `[label](target)` for evidence links                      | Each run of lines between fenced code, with code spans masked |
+| Location                         | Links it reads                                                               | Input                                                         |
+| -------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `links/extract.ts`               | `[label](target)` with a target of one character or more, but not an image   | One line at a time, with code spans masked                    |
+| `compile/publish-links.ts`       | The targets of the cross-guide, intra-guide and publish-relative passes      | One line at a time, with code spans masked                    |
+| `compile/hooks/code-evidence.ts` | `[label](target)` with a target of one character or more, an image's src too | Each run of lines between fenced code, with code spans masked |
 
-Each of these matches the `[label](target)` form with negated character classes. They aren't linear. On a crafted input the time grows at least with the square of the input's length. The Input column says which length counts. A negated class such as `[^)]` crosses line breaks, so short lines don't limit a regex that reads the whole text. [ADR 0005](docs/features/adr/0005-keep-ts-scanners-over-rg-peggy-rust.md) leaves these link regexes outside its decision. If CodeQL opens `js/polynomial-redos` on one of these sites, fix it with a linear scanner and a duration-budget test. A fix can start from `scanInlineLinks` in `compile/link-scan.ts`, which walks the `[label](target)` shape these regexes match in linear time and lets a callback accept or turn down each target. Its callback doesn't get the index of the `[`, and the scan turns down each link that shares a label end it turned down before, so a caller that skips image links has to extend it first.
+Each of these reads links with `scanInlineLinks` and finds the links its regex found, in time that grows linearly with the input. Those regexes matched the `[label](target)` form with negated character classes, so on a crafted input their time grew at least with the square of the input's length. A target reader for each link pass checks what the pass's regex matched after the `(`, and reads each index of the line a fixed number of times. `extractLinks` passes `skipImages`, so a link can't start at a `[` right after a `!`, as with the `(?<!!)` at the start of its regex. Duration-budget tests run each reader on a line that repeats an unfinished link.
+
+[ADR 0005](docs/features/adr/0005-keep-ts-scanners-over-rg-peggy-rust.md) keeps hand-written TypeScript scanners for the core micro-parsers, and these readers follow it. None of them is a regex now.
+
+The readers mask code spans with `maskInlineCode` before they scan. It searches the rest of the line for the closer of each backtick run, and on a line of unmatched backtick runs whose lengths fall, its time grows faster than the line's length.
 
 ### Authoring implications
 

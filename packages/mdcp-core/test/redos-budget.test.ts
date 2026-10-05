@@ -13,6 +13,13 @@ import { lintCompiledLinks } from '../src/links/validate-compiled.js';
 import { linkedSectionFiles, sectionFiles } from '../src/compile/section-manifest.js';
 import { applyCompileHooks } from '../src/compile/hooks.js';
 import '../src/compile/hooks/builtin.js';
+import { extractLinks } from '../src/links/extract.js';
+import {
+  rewriteCrossGuideFileLinks,
+  rewriteIntraGuideFileLinks,
+  rewritePublishRelativeLinks,
+} from '../src/compile/publish-links.js';
+import { compileGuideResults } from '../src/compile/assemble.js';
 import { manySpaces, nestedOpenAnchors, timeMs, trailingSlashRun } from './helpers/redos-pumps.js';
 import { useTmpDir } from './helpers/tmp-dir.js';
 
@@ -36,6 +43,8 @@ const SHARED_CLOSE_LINKS = 4_000;
 const DOTDOT_LABELS = 8_000;
 const SHARED_LABEL_END = 40_000;
 const SHARED_TARGET_END = 8_000;
+const LINE_LINKS = 8_000;
+const SHARD_LINE_LINKS = 4_000;
 
 describe('ReDoS budget demos (CodeQL js/polynomial-redos)', () => {
   it('stripExplicitAnchorMarkers stays under budget on long leading spaces + incomplete {#', () => {
@@ -342,6 +351,86 @@ describe('ReDoS budget for the link scans of compile', () => {
     const body = labels + targets;
     const ms = timeMs(() => {
       applyCompileHooks(body, ctx, ['inlineInserts']);
+    });
+    expect(ms).toBeLessThan(BUDGET_MS);
+  });
+});
+
+// The link readers of compile and link lint read one line at a time, or each run of lines between
+// fenced code. Each crafted line below repeats one unfinished link, so a regex that reads a label
+// and then a target to the first `)` tries again from each `[`. A target that one `)` closes for
+// every link fails a regex that wants `.md` before it, and a line with no `)` fails any of them.
+describe('ReDoS budget for the link readers', () => {
+  const work = useTmpDir('mdcp-redos-links-');
+  const pump = (target: string, close: string, n = LINE_LINKS) => `[a](${target}`.repeat(n) + close;
+
+  const shardAt = () => {
+    const guideDir = join(work.path, 'g');
+    mkdirSync(guideDir, { recursive: true });
+    const sourceFile = join(guideDir, 'shard.md');
+    writeFileSync(sourceFile, '# Shard\n');
+    return { guideDir, sourceFile };
+  };
+
+  it('compileGuideResults stays under budget on a shard line of links that share one closing parenthesis', () => {
+    const { guideDir, sourceFile } = shardAt();
+    writeFileSync(join(guideDir, 'index.md'), '# Guide\n\n- [Shard](./shard.md)\n');
+    // Compile runs every link reader on the line, so the line is shorter than the others here.
+    writeFileSync(sourceFile, '# Shard\n\n' + pump('b', ')', SHARD_LINE_LINKS) + '\n');
+    const options = { guidesRoot: work.path, compileOrder: ['g'], docsRoot: work.path };
+    const ms = timeMs(() => {
+      compileGuideResults(options);
+    });
+    expect(ms).toBeLessThan(BUDGET_MS);
+  });
+
+  it('rewriteIntraGuideFileLinks stays under budget on a line of links that share one closing parenthesis', () => {
+    const { guideDir } = shardAt();
+    const markdown = pump('b', ')');
+    const ms = timeMs(() => {
+      rewriteIntraGuideFileLinks(markdown, new Map(), guideDir);
+    });
+    expect(ms).toBeLessThan(BUDGET_MS);
+  });
+
+  it('rewriteCrossGuideFileLinks stays under budget on a line of ./ links that share one closing parenthesis', () => {
+    const { guideDir, sourceFile } = shardAt();
+    const markdown = pump('./b', ')');
+    const ms = timeMs(() => {
+      rewriteCrossGuideFileLinks(markdown, { sourceFile, guideDir, linkIndex: new Map() });
+    });
+    expect(ms).toBeLessThan(BUDGET_MS);
+  });
+
+  it('rewritePublishRelativeLinks stays under budget on a line of ../ links with no closing parenthesis', () => {
+    const { guideDir, sourceFile } = shardAt();
+    const markdown = pump('../b', '');
+    const currentOutputFile = join(work.path, 'out.md');
+    const ms = timeMs(() => {
+      rewritePublishRelativeLinks(markdown, { sourceFile, guideDir, currentOutputFile });
+    });
+    expect(ms).toBeLessThan(BUDGET_MS);
+  });
+
+  it('extractLinks stays under budget on a line of links with no closing parenthesis', () => {
+    const markdown = pump('b', '');
+    const ms = timeMs(() => {
+      extractLinks(markdown);
+    });
+    expect(ms).toBeLessThan(BUDGET_MS);
+  });
+
+  it('the codeEvidence hook stays under budget on a line of links with no closing parenthesis', () => {
+    const { sourceFile } = shardAt();
+    const ctx = {
+      guideName: 'g',
+      filename: 'shard.md',
+      sourceFile,
+      config: { guides: [{ name: 'g' }] } as never,
+    };
+    const body = pump('b', '');
+    const ms = timeMs(() => {
+      applyCompileHooks(body, ctx, ['codeEvidence']);
     });
     expect(ms).toBeLessThan(BUDGET_MS);
   });

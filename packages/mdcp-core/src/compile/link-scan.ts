@@ -1,9 +1,10 @@
 /**
- * Linear scans for the links that the manifest walk and the `inlineInserts` hook read from a whole
- * manifest or shard body. Each finds what the regex it replaced found, in the same order. Those
- * regexes read a target with `[^)]`, which crosses line breaks, so on a crafted text they could
- * rescan the rest of the text from each `[`, and again after each `.md` in a target. These scans
- * read each index a fixed number of times.
+ * Linear scans for inline links. The manifest walk and the `inlineInserts` hook read a whole
+ * manifest or shard body with them. Link lint, broken-link marking and the link passes read one
+ * line at a time, and `codeEvidence` reads each run of lines between fenced code. Each scan finds
+ * what the regex it replaced found, in the same order. Those regexes read a target with `[^)]`, so
+ * on a crafted text they could rescan the rest of the text from each `[`, and again after each
+ * `.md` in a target. These scans read each index a fixed number of times.
  */
 
 /** A `[label](target)` link and the value its target gave. */
@@ -15,6 +16,11 @@ export interface InlineLink<T> {
   /** Index of the `)` that closes the target. */
   close: number;
   value: T;
+}
+
+export interface InlineLinkScanOptions {
+  /** Start no link at a `[` right after a `!`, which opens an image. */
+  skipImages?: boolean;
 }
 
 /**
@@ -29,16 +35,24 @@ export interface InlineLink<T> {
  * Links that share a label end share a target, so `read` runs once for each label end. The
  * indexes of the next `]` and `)` only move forward, so the scan reads each index of the text a
  * fixed number of times besides what `read` reads.
+ *
+ * With `skipImages`, a `[` right after a `!` starts no link, as in a regex that starts with
+ * `(?<!!)`. The search goes on from the next `[`, and `read` is not asked about that label end.
  */
 export function scanInlineLinks<T>(
   text: string,
   read: (targetStart: number, close: number) => T | undefined,
+  options: InlineLinkScanOptions = {},
 ): InlineLink<T>[] {
   const links: InlineLink<T>[] = [];
   let labelEnd = -1;
   let close = -1;
   let refused = -1;
   for (let start = text.indexOf('['); start !== -1;) {
+    if (options.skipImages && text[start - 1] === '!') {
+      start = text.indexOf('[', start + 1);
+      continue;
+    }
     if (labelEnd <= start) labelEnd = text.indexOf(']', start + 1);
     if (labelEnd === -1) break;
     if (labelEnd !== refused && text[labelEnd + 1] === '(') {
@@ -56,6 +70,21 @@ export function scanInlineLinks<T>(
     start = text.indexOf('[', start + 1);
   }
   return links;
+}
+
+/**
+ * A reader for the first index of `char` in `text` at or after an index. Calls whose index never
+ * moves back read each index of the text once, since the reader keeps its last answer.
+ */
+export function createNextIndexReader(text: string, char: string): (from: number) => number {
+  let searchedFrom = Infinity;
+  let next = -1;
+  return (from) => {
+    if (from >= searchedFrom && (next === -1 || next >= from)) return next;
+    searchedFrom = from;
+    next = text.indexOf(char, from);
+    return next;
+  };
 }
 
 export interface MdSuffixOptions {
