@@ -10,14 +10,14 @@
 
 ## Path resolution: `configBase` vs docs root
 
-| Concern                    | Base                          | Example                                                                          |
-| -------------------------- | ----------------------------- | -------------------------------------------------------------------------------- |
-| Finding `mdcp.config.json` | `configBase` (invocation dir) | `--config docs/mdcp.config.json` → `<repo>/docs/mdcp.config.json`                |
-| Guide shards (default)     | Docs root (`--docs-root`)     | `resolveGuideDir('features', config, docsRoot)` → absolute `<docsRoot>/features` |
-| `outputDir`                | Docs root                     | `_build` → `<docsRoot>/_build`                                                   |
-| All generated paths        | `outputDir`                   | `features.md` → `<docsRoot>/_build/features.md`; `.caches/refs.json` for refs    |
+| Concern                                | Base                          | Example                                                                               |
+| -------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------- |
+| Finding `mdcp.config.json`             | `configBase` (invocation dir) | `--config docs/mdcp.config.json` → `<repo>/docs/mdcp.config.json`                     |
+| Guide shards (default)                 | Docs root (`--docs-root`)     | `resolveGuideDir('features', config, docsRoot)` → absolute `<docsRoot>/features`      |
+| `outputDir`                            | Docs root                     | `_build` → `<docsRoot>/_build`                                                        |
+| Compiled outputs and the refs registry | `outputDir`                   | `features.md` → `<docsRoot>/_build/features.md`; `.caches/refs.json` for the registry |
 
-All generated paths use `resolveUnderOutputDir(docsRoot, outputDir, file)` — relative to `outputDir` unless `file` is absolute. Details: [API — Refs](./api-refs-validation.md).
+Compiled outputs, the monolith included, and `refs.registryFile` resolve through `resolveUnderOutputDir(docsRoot, outputDir, file)`, which applies the rule in [Path layout](../client-cli/config-essentials.md#path-layout). Backup paths don't use this helper, and Path layout says how they resolve.
 
 ```typescript
 import { loadConfig, resolveGuideDir } from '@bwilliamson/mdcp-core';

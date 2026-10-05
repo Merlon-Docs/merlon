@@ -1675,7 +1675,7 @@ See [Default per-guide outputs](./packages/mdcp-cli/README.md#default-per-guide-
 
 ## publish output
 
-A **publish output** is the file a [guide](#guide) compiles to when it sets its own `compile.outputFile`, such as a package README or the repository-root `DEVELOPERS.md`. The path is relative to `outputDir` unless it is absolute.
+A **publish output** is the file a [guide](#guide) compiles to when it sets its own `compile.outputFile`, such as a package README or the repository-root `DEVELOPERS.md`. [Path layout](./packages/mdcp-cli/README.md#path-layout) says how compile resolves the path.
 
 Publish outputs stay out of the optional [monolith](#monolith), and link validation applies the [publish-only link policy](docs/features/link-validation.md#publish-only-link-policy) to them.
 

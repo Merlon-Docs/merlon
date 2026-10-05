@@ -10,7 +10,7 @@ Every command accepts:
 | `--docs-root <path>`  | current directory  | Docs root — one subdirectory per guide shard tree                                |
 | `--warn-broken-links` | off                | Report broken internal links but exit 0 (overrides `lint.links.severity`)        |
 | `--backup`            | off                | Move existing output files to the cache before overwriting them                  |
-| `--backup-dir <path>` | from config        | Backup directory, relative to `outputDir`                                        |
+| `--backup-dir <path>` | from config        | Backup directory, relative to `outputDir` or absolute                            |
 | `--backup-ext <ext>`  | from config        | Suffix for backup file names                                                     |
 
 **Repo-root npm scripts** typically use both flags:

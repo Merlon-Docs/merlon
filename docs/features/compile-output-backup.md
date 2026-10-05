@@ -29,11 +29,11 @@ When the target does not exist, write directly — no backup directory created.
 
 ### Backup path layout
 
-| Piece           | Default                          | Resolved from                                             |
-| --------------- | -------------------------------- | --------------------------------------------------------- |
-| Backup root     | `.caches/backups`                | `outputDir` (same convention as `refs.registryFile`)      |
-| Backup file key | docsRoot-relative path to target | e.g. `_build/guides.md`, `../packages/mdcp-cli/README.md` |
-| Extension       | `''`                             | `backup.ext` or `--backup-ext`                            |
+| Piece           | Default                          | Resolved from                                                               |
+| --------------- | -------------------------------- | --------------------------------------------------------------------------- |
+| Backup root     | `.caches/backups`                | `outputDir` ([Path layout](../client-cli/config-essentials.md#path-layout)) |
+| Backup file key | docsRoot-relative path to target | e.g. `_build/guides.md`, `../packages/mdcp-cli/README.md`                   |
+| Extension       | `''`                             | `backup.ext` or `--backup-ext`                                              |
 
 With `--docs-root docs`, the default `outputDir` and two compile targets, `_build/guides.md` and the publish output `../packages/mdcp-cli/README.md`:
 

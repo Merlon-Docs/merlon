@@ -20,7 +20,7 @@ The registry's top-level `headings` and `slugs` come from `compiledText` alone, 
 Resolves the on-disk path for the refs registry. Implemented via the same `outputDir`-relative helper as `resolveOutputPath`. Pass the docs root (the CLI `--docs-root` value).
 
 - `outputDir` is relative to `docsRoot`.
-- `registryFile` is relative to `outputDir` (default `.caches/refs.json`).
+- `registryFile` resolves by the rule in [Path layout](../client-cli/config-essentials.md#path-layout) (default `.caches/refs.json`).
 
 ```typescript
 resolveRefsPath('/docs', '_build', '.caches/refs.json');

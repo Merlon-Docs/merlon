@@ -90,14 +90,14 @@ Use `writeCompiledGuidesFromResults(results, options, monolithPath)` to write ea
 
 ### Path resolution: `configBase` vs docs root
 
-| Concern                    | Base                          | Example                                                                          |
-| -------------------------- | ----------------------------- | -------------------------------------------------------------------------------- |
-| Finding `mdcp.config.json` | `configBase` (invocation dir) | `--config docs/mdcp.config.json` → `<repo>/docs/mdcp.config.json`                |
-| Guide shards (default)     | Docs root (`--docs-root`)     | `resolveGuideDir('features', config, docsRoot)` → absolute `<docsRoot>/features` |
-| `outputDir`                | Docs root                     | `_build` → `<docsRoot>/_build`                                                   |
-| All generated paths        | `outputDir`                   | `features.md` → `<docsRoot>/_build/features.md`; `.caches/refs.json` for refs    |
+| Concern                                | Base                          | Example                                                                               |
+| -------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------- |
+| Finding `mdcp.config.json`             | `configBase` (invocation dir) | `--config docs/mdcp.config.json` → `<repo>/docs/mdcp.config.json`                     |
+| Guide shards (default)                 | Docs root (`--docs-root`)     | `resolveGuideDir('features', config, docsRoot)` → absolute `<docsRoot>/features`      |
+| `outputDir`                            | Docs root                     | `_build` → `<docsRoot>/_build`                                                        |
+| Compiled outputs and the refs registry | `outputDir`                   | `features.md` → `<docsRoot>/_build/features.md`; `.caches/refs.json` for the registry |
 
-All generated paths use `resolveUnderOutputDir(docsRoot, outputDir, file)` — relative to `outputDir` unless `file` is absolute. Details: [API — Refs](#api--refs-and-validation).
+Compiled outputs, the monolith included, and `refs.registryFile` resolve through `resolveUnderOutputDir(docsRoot, outputDir, file)`, which applies the rule in [Path layout](../mdcp-cli/README.md#path-layout). Backup paths don't use this helper, and Path layout says how they resolve.
 
 ```typescript
 import { loadConfig, resolveGuideDir } from '@bwilliamson/mdcp-core';
@@ -203,7 +203,7 @@ The registry's top-level `headings` and `slugs` come from `compiledText` alone, 
 Resolves the on-disk path for the refs registry. Implemented via the same `outputDir`-relative helper as `resolveOutputPath`. Pass the docs root (the CLI `--docs-root` value).
 
 - `outputDir` is relative to `docsRoot`.
-- `registryFile` is relative to `outputDir` (default `.caches/refs.json`).
+- `registryFile` resolves by the rule in [Path layout](../mdcp-cli/README.md#path-layout) (default `.caches/refs.json`).
 
 ```typescript
 resolveRefsPath('/docs', '_build', '.caches/refs.json');
@@ -1214,7 +1214,7 @@ See [Default per-guide outputs](../mdcp-cli/README.md#default-per-guide-outputs)
 
 ## publish output
 
-A **publish output** is the file a [guide](#guide) compiles to when it sets its own `compile.outputFile`, such as a package README or the repository-root `DEVELOPERS.md`. The path is relative to `outputDir` unless it is absolute.
+A **publish output** is the file a [guide](#guide) compiles to when it sets its own `compile.outputFile`, such as a package README or the repository-root `DEVELOPERS.md`. [Path layout](../mdcp-cli/README.md#path-layout) says how compile resolves the path.
 
 Publish outputs stay out of the optional [monolith](#monolith), and link validation applies the [publish-only link policy](../../docs/features/link-validation.md#publish-only-link-policy) to them.
 

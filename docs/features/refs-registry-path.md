@@ -8,7 +8,7 @@ The refs registry is derived state under `outputDir`, not co-located with per-gu
 
 ## Path resolution
 
-`refs.registryFile` resolves relative to **`outputDir`** only — the same rule as `resolveRefsPath` in `@bwilliamson/mdcp-core`. Per-guide `compile.outputFile` values (including subdirectory prefixes such as `compiled/guide-a.md`) do not change the registry base. <!-- mdcp-paths: illustrative -->
+`refs.registryFile` resolves by the rule in [Path layout](../client-cli/config-essentials.md#path-layout), which `resolveRefsPath` in `@bwilliamson/mdcp-core` applies. Per-guide `compile.outputFile` values (including subdirectory prefixes such as `compiled/guide-a.md`) do not change the registry base. <!-- mdcp-paths: illustrative -->
 
 | Config                                                                   | Resolved path (`--docs-root docs`)                |
 | ------------------------------------------------------------------------ | ------------------------------------------------- |
@@ -25,7 +25,7 @@ The refs registry is derived state under `outputDir`, not co-located with per-gu
 
 ## Acceptance criteria
 
-1. After `mdcp compile` with nested `compile.outputFile` paths, `refs.json` exists at `{docsRoot}/{outputDir}/{registryFile}`.
+1. After `mdcp compile` with nested `compile.outputFile` paths, `refs.json` exists where [Path layout](../client-cli/config-essentials.md#path-layout) resolves `refs.registryFile`.
 2. The registry is **not** written beside per-guide outputs (for example `docs/_build/compiled/refs.json`).
 3. `mdcp refs-list` succeeds immediately after `mdcp compile` without `mdcp refs gen`.
 4. With top-level `outputFile` set, `refs.json` lists the headings of every compiled guide, publish outputs included, and of the monolith. Each output's slugs are numbered without the others.

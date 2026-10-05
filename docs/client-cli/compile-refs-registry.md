@@ -6,7 +6,7 @@ When you organize compiled outputs in subdirectories (`compile.outputFile: "comp
 
 ## Registry location
 
-`refs.registryFile` is always relative to `outputDir`, not to each guide's `compile.outputFile`. See [Config essentials — path layout](./config-essentials.md#path-layout).
+`refs.registryFile` resolves by the rule in [Path layout](./config-essentials.md#path-layout), and each guide's `compile.outputFile` doesn't change it.
 
 Example:
 

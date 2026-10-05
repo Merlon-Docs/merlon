@@ -171,20 +171,20 @@ A minimal `mdcp.config.json` for two guides:
 }
 ```
 
-The fields it leaves out take their defaults, so this config writes `overview.md` and `admin-guide.md` to `_build/` under the docs root and builds no monolith. [Path layout](#path-layout) gives each default.
+The fields it leaves out take their defaults, so this config writes `overview.md` and `admin-guide.md` to `_build/` under the docs root and builds no monolith. [Path layout](#path-layout) gives each default and says how each path resolves.
 
-| Field                | Purpose                                                              |
-| -------------------- | -------------------------------------------------------------------- |
-| `compileOrder`       | Guide directories to compile, in stitch order for optional monolith  |
-| `guides`             | Per-guide options (hooks, manifests, publish paths)                  |
-| `outputDir`          | Generated output root (relative to `--docs-root`)                    |
-| `outputFile`         | Optional stitched monolith (relative to `outputDir`)                 |
-| `refs.registryFile`  | Refs registry file (default `.caches/refs.json`)                     |
-| `sourceTags`         | Wrap shards in HTML comments with relative paths (default `true`)    |
-| `banner`             | Global banner prepended to outputs (has default warning text)        |
-| `compile.outputFile` | Override per-guide output path (relative to `outputDir` or absolute) |
-| `compile.scopeRoot`  | Shared tree (relative to the docs root) that guide links pull from   |
-| `compile.sourceTags` | Per-guide override of the global `sourceTags` setting                |
+| Field                | Purpose                                                             |
+| -------------------- | ------------------------------------------------------------------- |
+| `compileOrder`       | Guide directories to compile, in stitch order for optional monolith |
+| `guides`             | Per-guide options (hooks, manifests, publish paths)                 |
+| `outputDir`          | Generated output root (relative to `--docs-root`)                   |
+| `outputFile`         | Optional stitched monolith                                          |
+| `refs.registryFile`  | Refs registry file (default `.caches/refs.json`)                    |
+| `sourceTags`         | Wrap shards in HTML comments with relative paths (default `true`)   |
+| `banner`             | Global banner prepended to outputs (has default warning text)       |
+| `compile.outputFile` | Override per-guide output path                                      |
+| `compile.scopeRoot`  | Shared tree (relative to the docs root) that guide links pull from  |
+| `compile.sourceTags` | Per-guide override of the global `sourceTags` setting               |
 
 ### Path layout
 
@@ -195,7 +195,7 @@ Two roots (NPM-style):
 | **Docs root**   | `--docs-root`                  | Human shard trees — one subdirectory = one guide |
 | **Output root** | `outputDir` (default `_build`) | Generated markdown and cache — safe to delete    |
 
-**One rule for all generated paths:** values are **relative to `outputDir`**, unless **absolute**.
+**One rule for generated paths:** `compile.outputFile`, top-level `outputFile` and `refs.registryFile` are relative to `outputDir` unless they are absolute. The exception is a relative value that, read from the docs root, already lands inside `outputDir`: compile then uses that docs-root path. With `outputDir: "_build"`, `refs.registryFile: "_build/refs.json"` names `docs/_build/refs.json`, the same file as `"refs.json"`, and not `docs/_build/_build/refs.json`. A relative `backup.dir` or `--backup-dir` is read from `outputDir` with no docs-root exception, and an absolute one is used as is.
 
 ```text
 docs/                          ← --docs-root
@@ -350,7 +350,7 @@ Every command accepts:
 | `--docs-root <path>`  | current directory  | Docs root — one subdirectory per guide shard tree                                |
 | `--warn-broken-links` | off                | Report broken internal links but exit 0 (overrides `lint.links.severity`)        |
 | `--backup`            | off                | Move existing output files to the cache before overwriting them                  |
-| `--backup-dir <path>` | from config        | Backup directory, relative to `outputDir`                                        |
+| `--backup-dir <path>` | from config        | Backup directory, relative to `outputDir` or absolute                            |
 | `--backup-ext <ext>`  | from config        | Suffix for backup file names                                                     |
 
 **Repo-root npm scripts** typically use both flags:
@@ -482,7 +482,7 @@ When you organize compiled outputs in subdirectories (`compile.outputFile: "comp
 
 ### Registry location
 
-`refs.registryFile` is always relative to `outputDir`, not to each guide's `compile.outputFile`. See [Config essentials — path layout](#path-layout).
+`refs.registryFile` resolves by the rule in [Path layout](#path-layout), and each guide's `compile.outputFile` doesn't change it.
 
 Example:
 
@@ -754,7 +754,7 @@ The registry is **generated state**, not authored shards. `mdcp compile`, `mdcp 
 
 ## publish output
 
-A **publish output** is the file a [guide](#guide) compiles to when it sets its own `compile.outputFile`, such as a package README or the repository-root `DEVELOPERS.md`. The path is relative to `outputDir` unless it is absolute.
+A **publish output** is the file a [guide](#guide) compiles to when it sets its own `compile.outputFile`, such as a package README or the repository-root `DEVELOPERS.md`. [Path layout](#path-layout) says how compile resolves the path.
 
 Publish outputs stay out of the optional [monolith](#monolith), and link validation applies the [publish-only link policy](../../docs/features/link-validation.md#publish-only-link-policy) to them.
 
