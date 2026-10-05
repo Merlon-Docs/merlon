@@ -1,0 +1,71 @@
+---
+// Whole guides versus single shards, in estimated tokens, read at build time from the
+// CSV that `pnpm bench:context-size` writes. Regenerate the CSV and rebuild to update.
+import csv from '../../../../docs/features/protocol/context-size-dogfood.csv?raw';
+
+const metrics = new Map(
+  csv
+    .trim()
+    .split('\n')
+    .slice(1)
+    .map((line) => {
+      const [metric, value, , , recordedAt] = line.split(',');
+      return [metric, { value, recordedAt }];
+    }),
+);
+const num = (metric: string) => Number(metrics.get(metric)?.value ?? 0);
+
+const rows = [
+  { label: 'Whole docs set', note: 'docs/_build/guides.md', tokens: num('guide_monolith_tokens') },
+  { label: 'Developer guide', note: 'DEVELOPERS.md', tokens: num('guide_developer_tokens') },
+  { label: 'CLI guide', note: 'packages/mdcp-cli/README.md', tokens: num('guide_client_cli_tokens') },
+  { label: 'Largest shard', note: 'one file', tokens: num('shard_max_tokens'), shard: true },
+  { label: '90th percentile shard', note: 'one file', tokens: num('shard_p90_tokens'), shard: true },
+  { label: 'Average shard', note: 'one file', tokens: num('shard_mean_tokens'), shard: true },
+  { label: 'Median shard', note: 'one file', tokens: num('shard_median_tokens'), shard: true },
+].filter((row) => row.tokens > 0);
+
+const max = Math.max(...rows.map((row) => row.tokens));
+const tokenizer = metrics.get('tokenizer')?.value ?? 'unknown';
+const recordedAt = metrics.get('tokenizer')?.recordedAt;
+const shardCount = num('shard_count');
+const fmt = new Intl.NumberFormat('en-US');
+---
+
+<figure class="mdcp-sizes">
+  <table>
+    <caption>
+      Estimated tokens an agent loads: a whole compiled guide against one shard, measured on
+      this repository's {fmt.format(shardCount)} shards.
+    </caption>
+    <thead>
+      <tr>
+        <th scope="col">What the agent reads</th>
+        <th scope="col"><span class="sr-only">Relative size</span></th>
+        <th scope="col">Tokens (estimate)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        rows.map((row) => (
+          <tr class:list={[{ 'is-shard': row.shard }]}>
+            <th scope="row">
+              {row.label}
+              <span>{row.note}</span>
+            </th>
+            <td class="mdcp-sizes__bar" aria-hidden="true">
+              <span style={`--w: ${Math.max(0.6, (row.tokens / max) * 100).toFixed(2)}%`} />
+            </td>
+            <td class="mdcp-sizes__value">{fmt.format(row.tokens)}</td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+  <figcaption>
+    Counted with <code>{tokenizer}</code> from the open-source gpt-tokenizer{
+      recordedAt && <> on {recordedAt}</>
+    }. Every model and system tokenizes differently, so read these as rough, relative sizes,
+    not costs. Switch tokenizers or plug in your own with <code>pnpm bench:context-size</code>.
+  </figcaption>
+</figure>

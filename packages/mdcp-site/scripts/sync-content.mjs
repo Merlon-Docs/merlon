@@ -46,7 +46,7 @@ export class SyncError extends Error {
 }
 
 /** Hand-authored entries under src/content/docs that the sync never deletes. */
-export const HAND_AUTHORED = new Set(['index.mdx']);
+export const HAND_AUTHORED = new Set(['index.mdx', 'learn.mdx']);
 
 const toPosix = (p) => p.split(sep).join('/');
 

@@ -48,6 +48,7 @@ Product documentation for **what mdcp is designed to do**: the problems it solve
 
 ## Evidence and research
 
+- [Documentation and software reliability](./protocol/documentation-and-reliability.md)
 - [Benefit claims and evidence](./protocol/benefit-claims-and-evidence.md)
 - [Performance goals](./protocol/performance.md)
 - [Research records](./protocol/research/about-research-records.md)

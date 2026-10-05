@@ -1,0 +1,97 @@
+---
+// Landing-page hero. Replaces Starlight's default so the splash page can carry a
+// product eyebrow, the install command and real `mdcp check` output.
+// Only the splash page sets `hero`, so no other page renders this.
+import { LinkButton } from '@astrojs/starlight/components';
+
+// Starlight's skip link targets this id (PAGE_TITLE_ID, not exported).
+const PAGE_TITLE_ID = '_top';
+
+const { data } = Astro.locals.starlightRoute.entry;
+const { title = data.title, tagline, actions = [] } = data.hero || {};
+const install = 'npx skills add betsalel-williamson/mdcp --skill mdcp';
+---
+
+<div class="mdcp-hero">
+  <div class="mdcp-hero__copy">
+    <p class="mdcp-hero__eyebrow">MarkDown Context Protocol (MDCP) · Spec 1.0 draft · MIT</p>
+    <h1 id={PAGE_TITLE_ID} data-page-title set:html={title} />
+    {tagline && <p class="mdcp-hero__tagline" set:html={tagline} />}
+    {
+      actions.length > 0 && (
+        <div class="mdcp-hero__actions">
+          {actions.map(({ attrs: { class: className, ...attrs } = {}, icon, link: href, text, variant }) => (
+            <LinkButton {href} {variant} icon={icon?.name} class:list={[className]} {...attrs}>
+              {text}
+              {icon?.html && <Fragment set:html={icon.html} />}
+            </LinkButton>
+          ))}
+        </div>
+      )
+    }
+    <div class="mdcp-hero__install">
+      <code
+        ><span aria-hidden="true">$ </span>{
+          install.split(' ').map((word, i) => (
+            <Fragment>
+              {i > 0 && ' '}
+              <span class="mdcp-hero__word">{word}</span>
+            </Fragment>
+          ))
+        }</code
+      >
+      <button type="button" data-copy={install}>
+        <span data-label>Copy</span><span class="sr-only"> install command</span>
+      </button>
+      <span class="sr-only" role="status" data-status></span>
+    </div>
+  </div>
+
+  <figure class="mdcp-hero__term">
+    <div class="mdcp-term__bar" aria-hidden="true">
+      <span></span><span></span><span></span>
+      <span class="mdcp-term__title">sample-guides</span>
+    </div>
+    <pre
+      class="mdcp-term__body"><span class="mdcp-term__cmd"><span aria-hidden="true">$ </span>mdcp check</span>
+<span class="mdcp-term__err">orphan:</span> Orphaned shard not in sections manifest: developer-guide/release.md
+<span class="mdcp-term__err">mdcp check failed:</span> 1 orphan shard(s). Add them to a guide index or remove unused files.
+
+<span class="mdcp-term__cmd"><span aria-hidden="true">$ </span>mdcp check</span>
+<span class="mdcp-term__err">link:</span> _build/developer-guide.md:13: dead anchor "admin-guide.md#install-steps"
+<span class="mdcp-term__err">link:</span> _build/guides.md:62: dead anchor "#install-steps"
+<span class="mdcp-term__err">mdcp check failed:</span> built-in links: 2 issue(s)
+  → dead anchor: update the #fragment to a slug from compiled output (`mdcp refs list`).
+
+<span class="mdcp-term__cmd"><span aria-hidden="true">$ </span>mdcp check</span>
+<span class="mdcp-term__ok">mdcp check passed</span></pre>
+    <figcaption>
+      Output from <code>mdcp check</code> on the sample guides with an unindexed shard and a dead
+      anchor planted, then after both were fixed. Paths are shortened.
+    </figcaption>
+  </figure>
+</div>
+
+<script>
+  // The visible label changes for sighted users; the status region announces the
+  // result to screen readers, since a changed button label is not announced.
+  for (const install of document.querySelectorAll<HTMLElement>('.mdcp-hero__install')) {
+    const button = install.querySelector('button')!;
+    const label = button.querySelector<HTMLElement>('[data-label]')!;
+    const status = install.querySelector<HTMLElement>('[data-status]')!;
+    button.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(button.dataset.copy ?? '');
+        label.textContent = 'Copied';
+        status.textContent = 'Install command copied to the clipboard';
+        setTimeout(() => {
+          label.textContent = 'Copy';
+          status.textContent = '';
+        }, 1500);
+      } catch {
+        label.textContent = 'Select and copy';
+        status.textContent = 'Copy failed. Select the command and copy it.';
+      }
+    });
+  }
+</script>

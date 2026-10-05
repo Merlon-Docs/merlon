@@ -1,118 +1,379 @@
 ---
 title: MarkDown Context Protocol
-description: The MarkDown Context Protocol (MDCP) is a keystone agent skill and open protocol for recording what a project needs to last. Durable docs live in small Markdown shards that guides assemble for each reader.
+description: The MarkDown Context Protocol (MDCP) is a keystone AI skill that assists humans and AI in solving the documentation and reliability crises in software development. Durable docs live in small Markdown shards that guides assemble for each reader.
 template: splash
 editUrl: false
 hero:
-  title: MarkDown Context Protocol (MDCP)
-  tagline: A keystone agent skill for the knowledge a project needs to last. It records how to build and operate the software in small Markdown shards, then assembles them into guides for each reader.
+  title: The keystone AI skill for docs that last
+  tagline: MDCP assists humans and AI in solving the documentation and reliability crises in software development. It records how to build and operate your software in small Markdown shards, then assembles them into guides for each reader.
   actions:
     - text: Get started
       link: ./guide/install-and-quick-start/
       icon: right-arrow
     - text: Read the specification
       link: ./concepts/protocol/mdcp-10-spec/
-      icon: open-book
       variant: secondary
 ---
 
-import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+import ContextSizes from '../../components/ContextSizes.astro';
 
-<ul class="mdcp-status" aria-label="Project status">
+<div class="mdcp-home">
+
+<dl class="mdcp-evidence mdcp-evidence--three" aria-label="The cost of unreliable software">
+  <div>
+    <dt>$2.41T</dt>
+    <dd>
+      estimated cost of poor software quality in the US in 2022, about $1.8T of it from operational
+      failures
+    </dd>
+  </div>
+  <div>
+    <dt>$400B</dt>
+    <dd>estimated yearly cost of downtime across the Forbes Global 2000</dd>
+  </div>
+  <div>
+    <dt>1.2× to 12.8×</dt>
+    <dd>
+      more impact on organizational performance from the same practices when documentation quality
+      is high
+    </dd>
+  </div>
+</dl>
+
+<div class="mdcp-evidence-note">
+
+Sources: [CISQ 2022](https://www.it-cisq.org/wp-content/uploads/sites/6/2022/11/CPSQ-Report-Nov-22-2.pdf), [Splunk and Oxford Economics 2024](https://www.oxfordeconomics.com/resource/the-hidden-costs-of-downtime-the-400b-problem-facing-the-global-2000/) and [DORA 2023](https://dora.dev/research/2023/dora-report/2023-accelerate-state-of-devops-report.pdf). The first two are sponsored industry estimates, so read them as orders of magnitude. [How these figures connect to documentation](./concepts/protocol/documentation-and-reliability/).
+
+</div>
+
+<section class="mdcp-section">
+
+<p class="mdcp-kicker">Why it matters</p>
+
+## Unreliable software is expensive, and missing docs are part of why
+
+<div class="mdcp-lead">
+  Software failures cost hundreds of billions to trillions of dollars a year. Documentation isn't
+  the only cause. Vulnerabilities, supply chains and technical debt all play a part. But it's the
+  cause a team can act on in its next pull request.
+</div>
+
+<div class="mdcp-split mdcp-split--text">
+  <div>
+    There's no substitute for knowing the system. When a project leaves its intent, features and
+    operating knowledge unwritten, from the technical parts to the non-technical ones, the software
+    is released with gaps: a decision nobody recorded, a workflow only one person knows, a guide
+    that still describes a component someone removed.
+  </div>
+  <div>
+    DORA's research doesn't say documentation caused these costs. It finds that documentation
+    quality amplifies the other practices a team invests in. MDCP is a keystone AI skill for that
+    one cause. It gives the knowledge a place to live that people and agents both read, and it
+    checks the links, indexes and compiled files.
+  </div>
+</div>
+
+</section>
+
+<section class="mdcp-section">
+
+<p class="mdcp-kicker">The problem</p>
+
+## Where docs break when agents edit a repository
+
+<div class="mdcp-lead">
+  Code shows what a system does, but not why the team built it that way, and people outside
+  engineering can't read it. When agents write much of the change, documentation fails in a few
+  familiar ways. Most of them are structural, so a check can catch them.
+</div>
+
+<ul class="mdcp-problems">
   <li>
-    <strong>Specification</strong> 1.0 draft
+    <h3>One long docs file</h3>
+    <div>
+      Every change edits the same file, so branches conflict and the table of contents goes stale.
+    </div>
+    <div class="mdcp-fix">
+      Each topic is its own shard. <code>mdcp compile</code> assembles the README or handbook,
+      contents included.
+    </div>
   </li>
   <li>
-    <strong>License</strong> MIT
+    <h3>Guessed links</h3>
+    <div>
+      Agents write <code>#anchor</code> slugs from memory, and the links break without anyone
+      noticing.
+    </div>
+    <div class="mdcp-fix">
+      <code>mdcp check</code> fails CI on a broken link or anchor and names the file and line.
+    </div>
   </li>
   <li>
-    <strong>Runs in</strong> any host that supports Agent Skills
+    <h3>Pages nobody indexed</h3>
+    <p>A new file is merged, but no guide lists it, so no reader finds it.</p>
+    <div class="mdcp-fix">
+      Every shard must appear in a guide index or the check fails, which makes adding a page a
+      deliberate act.
+    </div>
   </li>
   <li>
-    <strong>This site</strong> compiled and checked with MDCP
+    <h3>Stale compiled output</h3>
+    <div>
+      Someone edits the README by hand or forgets to rebuild it, and it stops matching its source.
+    </div>
+    <div class="mdcp-fix">
+      The check fails when a compiled file differs from what its shards produce.
+    </div>
+  </li>
+  <li>
+    <h3>The whole handbook in every prompt</h3>
+    <p>Pasting every page into each turn spends context on pages the task doesn't need.</p>
+    <div class="mdcp-fix">
+      An agent following the skill reads only the shards for its task. MDCP doesn't stop it from
+      reading more.
+    </div>
+  </li>
+  <li>
+    <h3>Intent that never gets written down</h3>
+    <p>A decision is made in a pull request or a ticket and is never written into the docs.</p>
+    <div class="mdcp-fix">
+      The skill tells the agent to update shards in the same change, and a reviewer checks that the
+      words match what the team meant.
+    </div>
   </li>
 </ul>
 
-```bash
-npx skills add betsalel-williamson/mdcp --skill mdcp
-```
+<div>
+  <code>mdcp check</code> covers the structural failures. It doesn't judge whether the prose is
+  true. That part rests on the agent following the skill and on human review.
+</div>
+
+</section>
+
+<section class="mdcp-section">
+
+<p class="mdcp-kicker">Why every repository needs one</p>
 
 ## A keystone among your helper skills
 
-Agents pick up helper skills for each task, such as planning, test-driven development or code review. Those skills help finish the task in front of them. MDCP looks after what outlasts the task, from the intent behind a feature to how the system is built and operated. It is the guardrail that has a project write that down while the work happens, so it belongs in every repository whichever helpers you add.
+<div class="mdcp-lead">
+  Agents pick up helper skills for each task, such as planning, test-driven development or code
+  review. Those skills help finish the task in front of them. MDCP looks after what outlasts the
+  task, from the intent behind a feature to how the system is built and operated.
+</div>
 
-Keeping docs accurate takes three parties, and MDCP gives each one a job:
-
-<div class="mdcp-three">
-  <CardGrid>
-    <Card title="The agent writes" icon="puzzle">
-      The `mdcp` skill tells the agent which shards a change touches and to update them as it works,
+<ol class="mdcp-steps">
+  <li>
+    <h3>The agent writes</h3>
+    <div>
+      The <code>mdcp</code> skill tells the agent which shards a change touches and to update them
       in the same change as the code.
-    </Card>
-    <Card title="A person confirms intent" icon="approve-check">
+    </div>
+  </li>
+  <li>
+    <h3>A person confirms intent</h3>
+    <div>
       Shards are small and change in the same pull request, so a reviewer can check that the docs
       say what the team meant.
-    </Card>
-    <Card title="The CLI checks structure" icon="document">
-      `mdcp check` fails CI on broken links and anchors, links to files that no longer exist,
-      unindexed shards and stale compiled files. It doesn't judge whether the prose is true.
-    </Card>
-  </CardGrid>
-</div>
+    </div>
+  </li>
+  <li>
+    <h3>The CLI checks structure</h3>
+    <div>
+      <code>mdcp check</code> fails CI on broken links and anchors, missing files, unindexed shards
+      and stale compiled files. It doesn't judge whether the prose is true.
+    </div>
+  </li>
+</ol>
+
+</section>
+
+<section class="mdcp-section">
+
+<p class="mdcp-kicker">How it works</p>
 
 ## Organize docs once, write for every reader
 
-Docs live in a `docs/` folder as small Markdown files called shards, one topic per file. Guides list which shards they include and in what order, and `mdcp compile` assembles each guide into the README or handbook its reader opens.
-
-```text
-docs/
+<div class="mdcp-split">
+  <div>
+    <div class="mdcp-lead">
+      Docs live in a <code>docs/</code> folder as small Markdown files called shards, one topic per
+      file. Guides list which shards they include, and <code>mdcp compile</code> assembles each
+      guide into the README or handbook its reader opens.
+    </div>
+    <div>
+      A new perspective is a new guide over existing shards. Drafting a customer guide from the same
+      shards, or reviewing the whole set, takes a language model little time.
+    </div>
+  </div>
+  <pre class="mdcp-tree" role="region" aria-label="Example docs folder" tabindex="0">
+    <code>
+      {`docs/
 ├── mdcp.config.json
 ├── features/    what the product does and why
-├── client/      install and usage for the people who use it
-├── developer/   setup and workflow for contributors
-└── glossary/    one term per file
-```
+├── client/      install and usage
+├── developer/   setup and workflow
+└── glossary/    one term per file`}
+    </code>
+  </pre>
+</div>
 
-Because the primary docs are already split by topic, a new perspective is a new guide over existing shards. Drafting a customer guide from the same shards, or reviewing the whole set, takes a language model little time. It starts from organized source instead of scattered notes.
+<ul class="mdcp-features">
+  <li>
+    <h3>Focused feature work</h3>
+    <p>An agent building a feature reads only the few shards that describe it.</p>
+  </li>
+  <li>
+    <h3>Ready for retrieval</h3>
+    <p>Small, single-topic files are a natural first step toward retrieval-augmented generation.</p>
+  </li>
+  <li>
+    <h3>Plain Markdown</h3>
+    <div>
+      GitHub Flavored Markdown with no custom syntax. Stop using MDCP and you keep ordinary docs.
+    </div>
+  </li>
+  <li>
+    <h3>Open</h3>
+    <p>MIT licensed. The specification and the reference CLI share one public repository.</p>
+  </li>
+</ul>
 
-<CardGrid>
-  <Card title="Focused feature work" icon="rocket">
-    An agent building a feature reads only the few shards that describe it. Its context holds the
-    task and little else.
-  </Card>
-  <Card title="Ready for retrieval" icon="magnifier">
-    Small, single-topic files are a natural first step toward retrieval-augmented generation. Each
-    one is already a chunk with a clear subject.
-  </Card>
-  <Card title="Plain Markdown" icon="document">
-    Shards are GitHub Flavored Markdown with no custom syntax. If you stop using MDCP, you keep
-    ordinary docs.
-  </Card>
-  <Card title="Open" icon="open-book">
-    MIT licensed. The specification and the reference CLI are developed in one public repository.
-  </Card>
-</CardGrid>
+</section>
+
+<section class="mdcp-section">
+
+<p class="mdcp-kicker">Context size</p>
+
+## How much an agent reads
+
+<div class="mdcp-lead">
+  An agent that loads a whole guide, or a large docs excerpt from a service such as Context7, spends
+  context on pages the task doesn't need. An agent following the skill reads the shards for its
+  task. The sizes below compare the two on this repository.
+</div>
+
+<ContextSizes />
+
+</section>
+
+<section class="mdcp-section">
+
+<p class="mdcp-kicker">Who it's for</p>
 
 ## Beyond engineering docs
 
-The default layout is built for software, but the same shards and guides work for any team that writes its knowledge down as text. Product development, marketing, sales, user experience and design notes all fit, as long as the source isn't a canvas.
+<div class="mdcp-lead">
+  The default layout is built for software, but the same shards and guides work for any team that
+  writes its knowledge down as text, as long as the source isn't a canvas.
+</div>
 
-Teams that design in a canvas tool such as Figma still have reasoning that reads better as text, such as the decision behind a layout or the steps a user follows through a flow. Kept as shards, that text becomes the raw material for a help center or user documentation site.
+<ul class="mdcp-chips" aria-label="Teams">
+  <li>Engineering</li>
+  <li>Product</li>
+  <li>Design and UX</li>
+  <li>Marketing</li>
+  <li>Sales</li>
+  <li>Support</li>
+</ul>
+
+<div>
+  Teams that design in a canvas tool such as Figma still have reasoning that reads better as text,
+  such as the decision behind a layout or the steps a user follows through a flow. Kept as shards,
+  that text becomes the raw material for a help center or user documentation site.
+</div>
+
+</section>
+
+<section class="mdcp-section">
+
+<p class="mdcp-kicker">Status</p>
 
 ## Where MDCP stands
 
-MDCP is useful today and still being refined. The specification is a draft, and the process and skill keep improving from what real use shows.
+<div class="mdcp-panel">
 
-On a [repository where agents wrote every commit](./concepts/protocol/research/field-report-automated-repository/), the structural checks held: every shard was indexed and no broken internal link reached trunk. The agents produced useful documentation, but it sprawled, with seven shards past 300 lines and one guide still describing a component that had been removed. A person used the skill's doc-review workflow to reorganize it. That gap between structure and meaning is what current work on the protocol and the skill targets.
+MDCP is an early project, built by one maintainer with help from a colleague. It's useful today and still being refined. On a [repository where agents wrote every commit](./concepts/protocol/research/field-report-automated-repository/), the structural checks held: every shard was indexed and no broken internal link reached trunk. The agents produced useful documentation, but it sprawled, with seven shards past 300 lines and one guide still describing a removed component. A person used the skill's doc-review workflow to reorganize it. That gap between structure and meaning is what current work on the protocol and the skill targets.
 
-You can verify the rest:
+</div>
 
-- **A versioned specification.** [MDCP 1.0](./concepts/protocol/mdcp-10-spec/) is a draft written with RFC 2119 keywords. The protocol version moves separately from package releases.
-- **Public decisions.** Design choices are recorded as [architecture decision records](./concepts/adr/), including the ideas that were turned down.
-- **An evidence policy.** Public copy follows a [claims policy](./concepts/protocol/benefit-claims-and-evidence/) that bans unmeasured outcomes, and [research records](./concepts/protocol/research/about-research-records/) keep what was measured.
-- **Built with itself.** This site and the repository's READMEs compile from MDCP shards, and `mdcp check` runs in this repository's CI.
+<dl class="mdcp-evidence mdcp-evidence--three" aria-label="Measured results">
+  <div>
+    <dt>0</dt>
+    <dd>broken links between shards reached trunk in 50 commits on a 75-shard repository</dd>
+  </div>
+  <div>
+    <dt>94 of 94</dt>
+    <dd>shards indexed on a repository where agents wrote all of its 1,450 or so commits</dd>
+  </div>
+  <div>
+    <dt>1.3 s</dt>
+    <dd>for a full compile and check of that 75-shard repository</dd>
+  </div>
+</dl>
+
+<div class="mdcp-evidence-note">
+
+Measured by the maintainer on two repositories and this one, so the samples are small. The [automated repository](./concepts/protocol/research/field-report-automated-repository/) and [validated surface](./concepts/protocol/research/field-report-validated-surface/) field reports also record what the checks missed.
+
+</div>
+
+<ul class="mdcp-proof">
+  <li>
+    <h3>Versioned specification</h3>
+    <div>
+      <a href="./concepts/protocol/mdcp-10-spec/">MDCP 1.0</a> is a draft written with RFC 2119
+      keywords, versioned apart from package releases.
+    </div>
+  </li>
+  <li>
+    <h3>Public decisions</h3>
+    <div>
+      Design choices are recorded as <a href="./concepts/adr/">decision records</a>, including the
+      ideas that were turned down.
+    </div>
+  </li>
+  <li>
+    <h3>Evidence policy</h3>
+    <div>
+      Public copy follows a{' '}
+      <a href="./concepts/protocol/benefit-claims-and-evidence/">claims policy</a> that bans
+      unmeasured outcomes.
+    </div>
+  </li>
+  <li>
+    <h3>Built with itself</h3>
+    <div>
+      This site and the repository's READMEs compile from MDCP shards, checked in this repository's
+      CI.
+    </div>
+  </li>
+</ul>
+
+### Talks
+
+<nav class="mdcp-links mdcp-talks" aria-label="Talks">
+  <a href="https://www.youtube.com/watch?v=LmU99Wp7at8">
+    <strong>DORA Community Discussion</strong>
+    <span>Agent Skills and the MDCP documentation system. Recording on YouTube.</span>
+  </a>
+  <a href="https://luma.com/6pj3kjbc">
+    <strong>LA DevOps, July 30, 2026</strong>
+    <div>
+      Why Intent is the New Syntax. Introducing MarkDown Context Protocol (MDCP). Event page.
+    </div>
+  </a>
+</nav>
+
+</section>
+
+<section class="mdcp-section">
+
+<p class="mdcp-kicker">FAQ</p>
 
 ## Questions
+
+<div class="mdcp-faq">
 
 <details>
   <summary>Does MDCP keep docs in sync with the code automatically?</summary>
@@ -149,27 +410,39 @@ No. The Model Context Protocol connects agents to live tools and data. MDCP work
 
 </details>
 
+</div>
+
+</section>
+
+<section class="mdcp-section">
+
+<p class="mdcp-kicker">Next steps</p>
+
 ## Start here
 
-<CardGrid>
-  <LinkCard
-    title="Install and quick start"
-    href="./guide/install-and-quick-start/"
-    description="Add the CLI to a repository and run your first compile."
-  />
-  <LinkCard
-    title="Why MDCP for coding agents"
-    href="./guide/why-mdcp-for-agents/"
-    description="How docs fail when agents edit a repository, and what MDCP does about each failure."
-  />
-  <LinkCard
-    title="Read the specification"
-    href="./concepts/protocol/mdcp-10-spec/"
-    description="The MDCP 1.0 draft: guide layout, skill workflows and agent context."
-  />
-  <LinkCard
-    title="Contribute"
-    href="./contributing/"
-    description="Set up the monorepo, run the checks and land a change."
-  />
-</CardGrid>
+<nav class="mdcp-links" aria-label="Start here">
+  <a href="./learn/">
+    <strong>Learn MDCP</strong>
+    <span>A short path from why it matters to your first compile.</span>
+  </a>
+  <a href="./guide/install-and-quick-start/">
+    <strong>Install and quick start</strong>
+    <span>Add the CLI to a repository and run your first compile.</span>
+  </a>
+  <a href="./guide/why-mdcp-for-agents/">
+    <strong>Why MDCP for coding agents</strong>
+    <span>How docs fail when agents edit a repository, and what MDCP does about it.</span>
+  </a>
+  <a href="./concepts/protocol/mdcp-10-spec/">
+    <strong>Read the specification</strong>
+    <span>The MDCP 1.0 draft: guide layout, skill workflows and agent context.</span>
+  </a>
+  <a href="./contributing/">
+    <strong>Contribute</strong>
+    <span>Set up the monorepo, run the checks and land a change.</span>
+  </a>
+</nav>
+
+</section>
+
+</div>
