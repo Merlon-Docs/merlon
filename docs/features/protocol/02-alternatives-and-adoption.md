@@ -48,8 +48,8 @@ Suited to **Learner** and **Author** archetypes — see [Personas and priority t
 
 ## Learning investment
 
-| Investment                          | Payback                            |
-| ----------------------------------- | ---------------------------------- |
-| Bootstrap copy + one config session | Replaces bespoke compile scripts   |
-| Shard + manifest workflow           | Smaller PRs, fewer merge conflicts |
-| Four core commands                  | Same gate for human, agent, and CI |
+| Investment                                                                      | Payback                            |
+| ------------------------------------------------------------------------------- | ---------------------------------- |
+| [Getting-started workflow](./workflows/getting-started.md) + one config session | Replaces bespoke compile scripts   |
+| Shard + manifest workflow                                                       | Smaller PRs, fewer merge conflicts |
+| `mdcp compile` and `mdcp check`                                                 | Same gate for human, agent, and CI |
