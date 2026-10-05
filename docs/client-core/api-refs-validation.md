@@ -59,18 +59,13 @@ githubSlugify('`--config` vs `--docs-root`');
 
 CLI authoring rules: [Cross-links and refs — heading slugs](../client-cli/cross-links-and-refs.md#heading-slugs-github-rules).
 
-## Compile order
-
-| Export                          | Purpose                                        |
-| ------------------------------- | ---------------------------------------------- |
-| `sectionFiles`, `assembleGuide` | Resolve compile order from manifest link order |
-
 ## Validation
 
-| Export                  | Purpose                                                                                   |
-| ----------------------- | ----------------------------------------------------------------------------------------- |
-| `checkOrphansForGuides` | Detect unlinked or missing shard files; a relative `dir` resolves against the process cwd |
-| `lintLinks`             | Internal markdown link validation                                                         |
-| `reviewDocs`            | Sprawl signals behind `mdcp review` (`formatReviewReport` renders the text report)        |
-| `computeCoverage`       | Markdown files no guide captures, behind the `check` coverage report                      |
-| `probeDocumentPaths`    | Backtick-path resolution behind `lint.paths` (`ILLUSTRATIVE_MARKER` opts out)             |
+| Export                                                                                                                                                   | Purpose                                                                                                                               |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `checkOrphansForGuides`                                                                                                                                  | Detect unlinked or missing shard files; a relative `dir` resolves against the process cwd                                             |
+| `lintLinks`                                                                                                                                              | Internal markdown link validation                                                                                                     |
+| `reviewDocs`                                                                                                                                             | Sprawl signals behind `mdcp review` (`formatReviewReport` renders the text report)                                                    |
+| `computeCoverage`                                                                                                                                        | Markdown files no guide captures, behind the `check` coverage report                                                                  |
+| `probeDocumentPaths`                                                                                                                                     | Backtick-path resolution behind `lint.paths` (`ILLUSTRATIVE_MARKER` opts out)                                                         |
+| `DEFAULT_CODE_EXTENSIONS`, `DEFAULT_DATA_EXTENSIONS`, `codeExtensionSet`, `dataExtensionSet`, `fileExtensionSet`, `hasCodeExtension`, `hasFileExtension` | The code and data extensions that link validation and `codeEvidence` read, with `lint.codeExtensions` and `lint.dataExtensions` added |

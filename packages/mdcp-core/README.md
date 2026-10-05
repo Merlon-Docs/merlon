@@ -80,13 +80,18 @@ Use `writeCompiledGuidesFromResults(results, options, monolithPath)` to write ea
 
 ## API — Config
 
-| Export                                                                                 | Purpose                                                                     |
-| -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| `loadConfig(path, configBase)`                                                         | Load and validate `mdcp.config.json` (`path` is resolved from `configBase`) |
-| `resolveOutputPath`, `resolveRefsPath`, `resolveGuideDir`, `defaultGuideOutputFile`    | Path resolvers for docs root and `outputDir`                                |
-| `getGuideConfig`, `guideScanDirs`, `shardLintPaths`                                    | In-scope guide fileset and shard lint helpers                               |
-| `MdcpConfigSchema`, `MdcpConfig`, `MdcpConfigInput`, `GuideConfig`, `GuideConfigInput` | Zod schema and types                                                        |
-| `DEFAULT_COMPILE_HOOKS`, `resolveCompileHooks`                                         | Default built-in hook pipeline and guide-level resolution                   |
+| Export                                                                                 | Purpose                                                                          |
+| -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `loadConfig(path, configBase)`                                                         | Load and validate `mdcp.config.json` (`path` is resolved from `configBase`)      |
+| `resolveOutputPath`, `resolveRefsPath`, `resolveGuideDir`, `resolveUnderOutputDir`     | Path resolvers for docs root and `outputDir`                                     |
+| `defaultGuideOutputFile`, `effectiveGuideOutputFile`                                   | A guide's default output file name, and its `compile.outputFile` or that default |
+| `resolveDocsRoot(config, docsRoot)`                                                    | The docs root, which is `docsRoot` as given                                      |
+| `resolveGuideLinkBase(config, docsRoot, name, compileOrderLength, compile)`            | The output a publish output links to for a guide                                 |
+| `getGuideConfig`, `guideScanDirs`, `shardLintPaths`                                    | In-scope guide fileset and shard lint helpers                                    |
+| `MdcpConfigSchema`, `MdcpConfig`, `MdcpConfigInput`, `GuideConfig`, `GuideConfigInput` | Zod schema and types                                                             |
+| `DEFAULT_COMPILE_HOOKS`, `resolveCompileHooks`                                         | Default built-in hook pipeline and guide-level resolution                        |
+
+`resolveGuideLinkBase` returns the guide's `compile.outputFile` when the guide sets one. Without one, it returns the monolith when the config has one, and the guide's compiled guide otherwise. Despite its name, the result is the [link base](../../docs/features/compile-pipeline/publish-relative-links.md#when-it-runs) of only the assembly that writes that file. A guide in the monolith has one link base per document, and its own compiled guide rebases on its own path rather than on the monolith this returns.
 
 ### Path resolution: `configBase` vs docs root
 
@@ -140,18 +145,24 @@ See [Cross-guide link rewriting](../../docs/features/compile-pipeline/cross-guid
 
 ## API — Compile
 
-| Export                                            | Purpose                                                 |
-| ------------------------------------------------- | ------------------------------------------------------- |
-| `compileGuides`, `compileGuideResults`            | Stitch shards into compiled guide text                  |
-| `writeCompiledGuides`                             | Write compiled guides and the optional monolith to disk |
-| `compiledOutputDocuments`                         | Each file compile writes, with the text written there   |
-| `writeOutputFile`, `resolveBackupPath`            | Opt-in backup before overwrite; backup path resolver    |
-| `resolveBackupOptions`                            | Merge config and CLI backup settings                    |
-| `WriteOutputBackupOptions`                        | Backup options type                                     |
-| `sectionFiles`, `processSection`, `assembleGuide` | Lower-level assemble pipeline                           |
-| `formatCompileTitle`, `extractFirstHeading`, …    | Optional `compile.title` injection and deduplication    |
-| `demoteHeadings`, `stripAboutThisGuideHeading`, … | Heading transforms                                      |
-| `registerCompileHook`, `applyCompileHooks`        | Extension hooks (`stripAnchors`, `inlineInserts`, …)    |
+| Export                                                                           | Purpose                                                                                                                                                |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `compileGuides`, `compileGuideResults`                                           | Stitch shards into compiled guide text                                                                                                                 |
+| `compileGuideResultsWithContext`                                                 | The results of `compileGuideResults`, with the guide link index and the shard cache it built                                                           |
+| `compileGuidesFromResults`                                                       | What `compileGuides` returns, from results already compiled                                                                                            |
+| `writeCompiledGuides`, `writeCompiledGuidesFromResults`                          | Write compiled guides and the optional monolith to disk, the second from results already compiled                                                      |
+| `compiledOutputDocuments`                                                        | Each file compile writes, with the text written there                                                                                                  |
+| `buildGuideLinkIndex`                                                            | The [guide link index](../../docs/features/compile-pipeline/cross-guide-links.md#guide-link-index) alone, with the shard cache it filled               |
+| `createShardCache`, `loadShardSnapshot`                                          | A cache of shard reads that compile and link lint can share                                                                                            |
+| `writeOutputFile`, `resolveBackupPath`                                           | Opt-in backup before overwrite; backup path resolver                                                                                                   |
+| `resolveBackupOptions`                                                           | Merge config and CLI backup settings                                                                                                                   |
+| `WriteOutputBackupOptions`                                                       | Backup options type                                                                                                                                    |
+| `sectionFiles`, `processSection`, `assembleGuide`                                | Lower-level assemble pipeline                                                                                                                          |
+| `formatCompileTitle`, `extractFirstHeading`, …                                   | Optional `compile.title` injection and deduplication                                                                                                   |
+| `demoteHeadings`, `stripAboutThisGuideHeading`, …                                | Heading transforms                                                                                                                                     |
+| `rewriteCrossGuideFileLinks`, `rewriteIntraGuideFileLinks`, `slugForSectionFile` | Two of the [link passes](../../docs/features/compile-pipeline/link-passes.md), and the slug of a shard's demoted first heading, before guide numbering |
+| `stripExplicitAnchorMarkers`                                                     | The [stripAnchors](#stripanchors) transform on a string                                                                                                |
+| `registerCompileHook`, `applyCompileHooks`                                       | Extension hooks (`stripAnchors`, `inlineInserts`, …)                                                                                                   |
 
 `compileGuideResults` returns one result per guide. Its `text` is the guide's compiled guide, with links and source tags relative to that file. The monolith is the one file that top-level `outputFile` names, and it stitches each guide without `compile.outputFile`. A guide in the monolith also has a [copy there](../../docs/features/compile-pipeline/publish-relative-links.md#when-it-runs), and its result stores that copy in `monolithText`, with paths and section slugs as the monolith has them.
 
@@ -166,6 +177,15 @@ When top-level `outputFile` is set, `compileGuides` returns the monolith text, w
 When `compile.title` is set, `assembleGuide` injects a `##` heading followed by a blank line before the first section. [Feature settings](../mdcp-cli/README.md#feature-settings) in Config essentials says which spec covers each feature's config keys, `backup` included.
 
 Full spec: [Compile output backup](../../docs/features/compile-output-backup.md).
+
+### Locale packs
+
+A [locale pack](#locale-pack) holds the words compile writes and reads in prose, such as the BROKEN LINK marker and the line-range words of `codeEvidence`. Compile and `lintLinks` use the en-US pack, the only one `getLocalePack` resolves. `buildSlugRegistry` and `stripAboutThisGuideHeading` take a pack as an argument, and `markBrokenLinks` and `lintCompiledLinks` take one as their `locale` option. Each uses en-US without one.
+
+| Export                                                                                      | Purpose                                                      |
+| ------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `getLocalePack(id)`, `listLocalePackIds`, `DEFAULT_LOCALE_ID`, `enUS`                       | Resolve a built-in pack by its BCP 47 id, `en-US` by default |
+| `createLocalePack(options)`, `createBrokenLinksCopy`, `createInsertsCopy`, `formatTemplate` | Build a pack from message templates                          |
 
 <!-- mdcp-shard: end ../../docs/client-core/api-compile.md -->
 
@@ -232,21 +252,16 @@ githubSlugify('`--config` vs `--docs-root`');
 
 CLI authoring rules: [Cross-links and refs — heading slugs](../mdcp-cli/README.md#heading-slugs-github-rules).
 
-### Compile order
-
-| Export                          | Purpose                                        |
-| ------------------------------- | ---------------------------------------------- |
-| `sectionFiles`, `assembleGuide` | Resolve compile order from manifest link order |
-
 ### Validation
 
-| Export                  | Purpose                                                                                   |
-| ----------------------- | ----------------------------------------------------------------------------------------- |
-| `checkOrphansForGuides` | Detect unlinked or missing shard files; a relative `dir` resolves against the process cwd |
-| `lintLinks`             | Internal markdown link validation                                                         |
-| `reviewDocs`            | Sprawl signals behind `mdcp review` (`formatReviewReport` renders the text report)        |
-| `computeCoverage`       | Markdown files no guide captures, behind the `check` coverage report                      |
-| `probeDocumentPaths`    | Backtick-path resolution behind `lint.paths` (`ILLUSTRATIVE_MARKER` opts out)             |
+| Export                                                                                                                                                   | Purpose                                                                                                                               |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `checkOrphansForGuides`                                                                                                                                  | Detect unlinked or missing shard files; a relative `dir` resolves against the process cwd                                             |
+| `lintLinks`                                                                                                                                              | Internal markdown link validation                                                                                                     |
+| `reviewDocs`                                                                                                                                             | Sprawl signals behind `mdcp review` (`formatReviewReport` renders the text report)                                                    |
+| `computeCoverage`                                                                                                                                        | Markdown files no guide captures, behind the `check` coverage report                                                                  |
+| `probeDocumentPaths`                                                                                                                                     | Backtick-path resolution behind `lint.paths` (`ILLUSTRATIVE_MARKER` opts out)                                                         |
+| `DEFAULT_CODE_EXTENSIONS`, `DEFAULT_DATA_EXTENSIONS`, `codeExtensionSet`, `dataExtensionSet`, `fileExtensionSet`, `hasCodeExtension`, `hasFileExtension` | The code and data extensions that link validation and `codeEvidence` read, with `lint.codeExtensions` and `lint.dataExtensions` added |
 
 <!-- mdcp-shard: end ../../docs/client-core/api-refs-validation.md -->
 
@@ -716,14 +731,6 @@ Read [Cross-guide link rewriting](../../docs/features/compile-pipeline/cross-gui
 
 <!-- mdcp-shard: end ../../docs/glossary/ignore-guides.md -->
 
-<!-- mdcp-shard: start ../../docs/glossary/authored-gfm.md -->
-
-## authored GFM
-
-Shard markdown as written before compile, with no preprocessor substitution or template conditionals. Compile hooks may transform it during assembly. Read [Preprocessor / templating (out of scope)](../../docs/features/design-constraints/preprocessor-templating.md#preprocessor--templating-out-of-scope).
-
-<!-- mdcp-shard: end ../../docs/glossary/authored-gfm.md -->
-
 <!-- mdcp-shard: start ../../docs/glossary/locale-pack.md -->
 
 ## locale pack
@@ -738,3 +745,11 @@ A **locale pack** is MDCP’s compile-time bundle of natural-language data that 
 Default `en-US` (one BCP 47 JSON file per locale under `src/locale/locales/`). Language-neutral markup forms and GitHub-style `#L…` fragment **output** stay outside the pack.
 
 <!-- mdcp-shard: end ../../docs/glossary/locale-pack.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/authored-gfm.md -->
+
+## authored GFM
+
+Shard markdown as written before compile, with no preprocessor substitution or template conditionals. Compile hooks may transform it during assembly. Read [Preprocessor / templating (out of scope)](../../docs/features/design-constraints/preprocessor-templating.md#preprocessor--templating-out-of-scope).
+
+<!-- mdcp-shard: end ../../docs/glossary/authored-gfm.md -->

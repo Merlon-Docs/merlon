@@ -1,17 +1,23 @@
 # API — Compile
 
-| Export                                            | Purpose                                                 |
-| ------------------------------------------------- | ------------------------------------------------------- |
-| `compileGuides`, `compileGuideResults`            | Stitch shards into compiled guide text                  |
-| `writeCompiledGuides`                             | Write compiled guides and the optional monolith to disk |
-| `compiledOutputDocuments`                         | Each file compile writes, with the text written there   |
-| `writeOutputFile`, `resolveBackupPath`            | Opt-in backup before overwrite; backup path resolver    |
-| `resolveBackupOptions`                            | Merge config and CLI backup settings                    |
-| `WriteOutputBackupOptions`                        | Backup options type                                     |
-| `sectionFiles`, `processSection`, `assembleGuide` | Lower-level assemble pipeline                           |
-| `formatCompileTitle`, `extractFirstHeading`, …    | Optional `compile.title` injection and deduplication    |
-| `demoteHeadings`, `stripAboutThisGuideHeading`, … | Heading transforms                                      |
-| `registerCompileHook`, `applyCompileHooks`        | Extension hooks (`stripAnchors`, `inlineInserts`, …)    |
+| Export                                                                           | Purpose                                                                                                                                        |
+| -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `compileGuides`, `compileGuideResults`                                           | Stitch shards into compiled guide text                                                                                                         |
+| `compileGuideResultsWithContext`                                                 | The results of `compileGuideResults`, with the guide link index and the shard cache it built                                                   |
+| `compileGuidesFromResults`                                                       | What `compileGuides` returns, from results already compiled                                                                                    |
+| `writeCompiledGuides`, `writeCompiledGuidesFromResults`                          | Write compiled guides and the optional monolith to disk, the second from results already compiled                                              |
+| `compiledOutputDocuments`                                                        | Each file compile writes, with the text written there                                                                                          |
+| `buildGuideLinkIndex`                                                            | The [guide link index](../features/compile-pipeline/cross-guide-links.md#guide-link-index) alone, with the shard cache it filled               |
+| `createShardCache`, `loadShardSnapshot`                                          | A cache of shard reads that compile and link lint can share                                                                                    |
+| `writeOutputFile`, `resolveBackupPath`                                           | Opt-in backup before overwrite; backup path resolver                                                                                           |
+| `resolveBackupOptions`                                                           | Merge config and CLI backup settings                                                                                                           |
+| `WriteOutputBackupOptions`                                                       | Backup options type                                                                                                                            |
+| `sectionFiles`, `processSection`, `assembleGuide`                                | Lower-level assemble pipeline                                                                                                                  |
+| `formatCompileTitle`, `extractFirstHeading`, …                                   | Optional `compile.title` injection and deduplication                                                                                           |
+| `demoteHeadings`, `stripAboutThisGuideHeading`, …                                | Heading transforms                                                                                                                             |
+| `rewriteCrossGuideFileLinks`, `rewriteIntraGuideFileLinks`, `slugForSectionFile` | Two of the [link passes](../features/compile-pipeline/link-passes.md), and the slug of a shard's demoted first heading, before guide numbering |
+| `stripExplicitAnchorMarkers`                                                     | The [stripAnchors](./compile-hooks/strip-anchors.md) transform on a string                                                                     |
+| `registerCompileHook`, `applyCompileHooks`                                       | Extension hooks (`stripAnchors`, `inlineInserts`, …)                                                                                           |
 
 `compileGuideResults` returns one result per guide. Its `text` is the guide's compiled guide, with links and source tags relative to that file. The monolith is the one file that top-level `outputFile` names, and it stitches each guide without `compile.outputFile`. A guide in the monolith also has a [copy there](../features/compile-pipeline/publish-relative-links.md#when-it-runs), and its result stores that copy in `monolithText`, with paths and section slugs as the monolith has them.
 
@@ -26,3 +32,12 @@ When top-level `outputFile` is set, `compileGuides` returns the monolith text, w
 When `compile.title` is set, `assembleGuide` injects a `##` heading followed by a blank line before the first section. [Feature settings](../client-cli/config-essentials.md#feature-settings) in Config essentials says which spec covers each feature's config keys, `backup` included.
 
 Full spec: [Compile output backup](../features/compile-output-backup.md).
+
+## Locale packs
+
+A [locale pack](../glossary/locale-pack.md) holds the words compile writes and reads in prose, such as the BROKEN LINK marker and the line-range words of `codeEvidence`. Compile and `lintLinks` use the en-US pack, the only one `getLocalePack` resolves. `buildSlugRegistry` and `stripAboutThisGuideHeading` take a pack as an argument, and `markBrokenLinks` and `lintCompiledLinks` take one as their `locale` option. Each uses en-US without one.
+
+| Export                                                                                      | Purpose                                                      |
+| ------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `getLocalePack(id)`, `listLocalePackIds`, `DEFAULT_LOCALE_ID`, `enUS`                       | Resolve a built-in pack by its BCP 47 id, `en-US` by default |
+| `createLocalePack(options)`, `createBrokenLinksCopy`, `createInsertsCopy`, `formatTemplate` | Build a pack from message templates                          |

@@ -1,12 +1,17 @@
 # API — Config
 
-| Export                                                                                 | Purpose                                                                     |
-| -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| `loadConfig(path, configBase)`                                                         | Load and validate `mdcp.config.json` (`path` is resolved from `configBase`) |
-| `resolveOutputPath`, `resolveRefsPath`, `resolveGuideDir`, `defaultGuideOutputFile`    | Path resolvers for docs root and `outputDir`                                |
-| `getGuideConfig`, `guideScanDirs`, `shardLintPaths`                                    | In-scope guide fileset and shard lint helpers                               |
-| `MdcpConfigSchema`, `MdcpConfig`, `MdcpConfigInput`, `GuideConfig`, `GuideConfigInput` | Zod schema and types                                                        |
-| `DEFAULT_COMPILE_HOOKS`, `resolveCompileHooks`                                         | Default built-in hook pipeline and guide-level resolution                   |
+| Export                                                                                 | Purpose                                                                          |
+| -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `loadConfig(path, configBase)`                                                         | Load and validate `mdcp.config.json` (`path` is resolved from `configBase`)      |
+| `resolveOutputPath`, `resolveRefsPath`, `resolveGuideDir`, `resolveUnderOutputDir`     | Path resolvers for docs root and `outputDir`                                     |
+| `defaultGuideOutputFile`, `effectiveGuideOutputFile`                                   | A guide's default output file name, and its `compile.outputFile` or that default |
+| `resolveDocsRoot(config, docsRoot)`                                                    | The docs root, which is `docsRoot` as given                                      |
+| `resolveGuideLinkBase(config, docsRoot, name, compileOrderLength, compile)`            | The output a publish output links to for a guide                                 |
+| `getGuideConfig`, `guideScanDirs`, `shardLintPaths`                                    | In-scope guide fileset and shard lint helpers                                    |
+| `MdcpConfigSchema`, `MdcpConfig`, `MdcpConfigInput`, `GuideConfig`, `GuideConfigInput` | Zod schema and types                                                             |
+| `DEFAULT_COMPILE_HOOKS`, `resolveCompileHooks`                                         | Default built-in hook pipeline and guide-level resolution                        |
+
+`resolveGuideLinkBase` returns the guide's `compile.outputFile` when the guide sets one. Without one, it returns the monolith when the config has one, and the guide's compiled guide otherwise. Despite its name, the result is the [link base](../features/compile-pipeline/publish-relative-links.md#when-it-runs) of only the assembly that writes that file. A guide in the monolith has one link base per document, and its own compiled guide rebases on its own path rather than on the monolith this returns.
 
 ## Path resolution: `configBase` vs docs root
 
