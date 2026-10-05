@@ -1,14 +1,16 @@
 # Benefit claims and evidence
 
-Policy for public copy — README, npm package openings, and adoption material. Parent: [Personas and priority tiers](../personas-and-priority-tiers.md).
+Policy for public copy, which covers the README and the npm package openings as well as the documentation site's pages and adoption material. Its parent is [Personas and priority tiers](../personas-and-priority-tiers.md).
 
 ## Claim tiers
 
-| Tier                        | Rule                                                                        | Landing page (README) | Deeper shards                              |
-| --------------------------- | --------------------------------------------------------------------------- | --------------------- | ------------------------------------------ |
-| **A — Mechanism**           | What the tool literally does                                                | Allowed (brief)       | Allowed                                    |
-| **B — Conditional outcome** | Benefit when the user follows documented workflow; qualify with "when you…" | Allowed (WIIFM lines) | Allowed with qualification                 |
-| **C — Unmeasured outcome**  | Speed, quality, token %, "easier LLM coding" without data                   | **Forbidden**         | Adoption stories or future benchmarks only |
+| Tier                       | Rule                                                                        | Landing page (README or site) | Deeper shards                              |
+| -------------------------- | --------------------------------------------------------------------------- | ----------------------------- | ------------------------------------------ |
+| **A: mechanism**           | What the tool literally does                                                | Allowed (brief)               | Allowed                                    |
+| **B: conditional outcome** | Benefit when the user follows documented workflow; qualify with "when you…" | Allowed (WIIFM lines)         | Allowed with qualification                 |
+| **C: unmeasured outcome**  | Speed, quality, token %, "easier LLM coding" without data                   | **Forbidden**                 | Adoption stories or future benchmarks only |
+
+The tiers are advisory, as [Enforceable rules](../design-constraints/enforceable-rules.md) uses the word, because no check reads claim wording. Whoever writes a change to public copy applies them, and the change's reviewer checks them. The review is the only evidence that a change met them.
 
 ## Common corrections
 
@@ -21,6 +23,8 @@ Policy for public copy — README, npm package openings, and adoption material. 
 A figure from a [research record](./research/about-research-records.md) supports at most a Tier B claim. Public copy that uses one gives the record's date and its main caveat, and it links the record. A record describes one corpus at one time. Its result is never stated as a general outcome. Field reports are records, and the same rule covers them.
 
 Public copy that uses a figure from a published study, such as those in [Documentation and software reliability](./documentation-and-reliability.md), gives the study's year and its main caveat, and it links the study. A sponsor that sells tools for the problem the study measures is one such caveat.
+
+The same advisory label applies, because no check reads how public copy cites a figure either.
 
 ## Context size
 
