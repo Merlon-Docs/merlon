@@ -5,4 +5,4 @@
 - **Docs-as-code for agents:** agents update shards before they change code, so “what we meant” stays reviewable in git alongside the change.
 - **Smaller, safer context loads:** People and LLMs read the section that matches the task — not the whole guide every turn.
 - **Validation gate:** `mdcp check` keeps cross-links and refs trustworthy in CI when the docs system grows.
-- **Portable skill:** Works in Cursor, GitHub Copilot, Claude Code, and other hosts that support [Agent Skills](https://agentskills.io).
+- **Portable skill:** works in any host that supports [Agent Skills](https://agentskills.io).

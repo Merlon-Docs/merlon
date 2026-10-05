@@ -32,7 +32,7 @@ Install the mdcp Agent Skill into your repository:
 npx skills add betsalel-williamson/mdcp --skill mdcp
 ```
 
-_(This copies the skill into your agent's skills directory (chosen by the [`skills` CLI](https://www.skills.sh/docs/cli) via `--agent` or auto-detect). Commit it to git so every teammate and agent shares the same documentation discipline. Per-agent paths: [Supported Agents](https://github.com/vercel-labs/skills#supported-agents).)_
+_This copies the skill into your agent's skills directory. The [`skills` CLI](https://www.skills.sh/docs/cli) picks the directory from `--agent` or by detecting the agent, and its docs list the path for each agent. Commit the copy to git so every teammate and agent shares the same documentation discipline._
 
 Then start a bootstrap session:
 
@@ -53,7 +53,7 @@ The agent asks for `FEATURE` and `PERSONA`, then helps wire config, guide layout
 - **Docs-as-code for agents:** agents update shards before they change code, so “what we meant” stays reviewable in git alongside the change.
 - **Smaller, safer context loads:** People and LLMs read the section that matches the task — not the whole guide every turn.
 - **Validation gate:** `mdcp check` keeps cross-links and refs trustworthy in CI when the docs system grows.
-- **Portable skill:** Works in Cursor, GitHub Copilot, Claude Code, and other hosts that support [Agent Skills](https://agentskills.io).
+- **Portable skill:** works in any host that supports [Agent Skills](https://agentskills.io).
 
 <!-- mdcp-shard: end docs/repo-readme/about.md -->
 
@@ -85,7 +85,7 @@ flowchart LR
 
 **In an [Agent Skills](https://agentskills.io) host:** install the skill, then type or paste the bootstrap prompt that [Get started](#get-started) shows.
 
-**In a chat-only tool** (ChatGPT, Gemini web, no repo agent): do **not** install the toolchain yet. Keep notes in your project folder if you have one, or wait until you use an agent that can [edit a git repo](https://github.com/git-guides). Read [Overview](docs/features/overview.md) and [Vision and roadmap](docs/features/protocol/00-vision-and-roadmap.md) first.
+**In a chat-only tool with no access to your repository:** don't install the toolchain yet. Keep notes in your project folder if you have one, or wait until you use an agent that can edit a git repository. Read [Overview](docs/features/overview.md) and [Vision and roadmap](docs/features/protocol/00-vision-and-roadmap.md) first.
 
 **Automation / CI:** the [Agent Skill](docs/features/agent-skill.md) tells agents _when_ to touch docs, and the [CLI](packages/mdcp-cli/README.md) runs `compile` and `check` in scripts and pipelines. [The Toolchain](#the-toolchain) covers both.
 
