@@ -605,6 +605,8 @@ Output uses GFM headings and back-links for captions. The hook inlines each shar
 
 The heading and body replace the link, so a first reference in a table cell breaks the table, as the [compile example](#inlineinserts-compile-example) shows. Give the first reference a paragraph of its own, ahead of any table cell that links to the insert.
 
+In the compiled markdownlint pass of [`mdcp check`](../../docs/features/check-gate.md#check-gate-stages), the broken row fails MD056 (table-column-count). That pass lints only the outputs that the globs in its `lint.markdownlint.compiledConfig` file match, and a table broken in any other output passes the check.
+
 ### inlineInserts numbered captions
 
 Serial counters are **per insert kind** and **per guide compile**:
