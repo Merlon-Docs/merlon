@@ -12,7 +12,7 @@
 - [API — Config](./api-config.md)
 - [API — Compile](./api-compile.md)
 - [API — Refs and validation](./api-refs-validation.md)
-- [API — Shard and peers](./api-export-shard.md)
+- [API — Shard and peers](./api-shard-and-peers.md)
 
 ## Compile hooks
 

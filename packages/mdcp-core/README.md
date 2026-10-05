@@ -260,7 +260,7 @@ CLI authoring rules: [Cross-links and refs — heading slugs](../mdcp-cli/README
 
 <!-- mdcp-shard: end ../../docs/client-core/api-refs-validation.md -->
 
-<!-- mdcp-shard: start ../../docs/client-core/api-export-shard.md -->
+<!-- mdcp-shard: start ../../docs/client-core/api-shard-and-peers.md -->
 
 ## API — Shard and peers
 
@@ -280,7 +280,7 @@ CLI authoring rules: [Cross-links and refs — heading slugs](../mdcp-cli/README
 
 Peer linters are not bundled. Detection order: `node_modules/.bin` → PATH → skip with info.
 
-<!-- mdcp-shard: end ../../docs/client-core/api-export-shard.md -->
+<!-- mdcp-shard: end ../../docs/client-core/api-shard-and-peers.md -->
 
 <!-- mdcp-shard: start ../../docs/client-core/compile-hooks/index.md -->
 
