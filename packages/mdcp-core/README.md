@@ -229,7 +229,7 @@ Prefer outputDir-relative values in config (for example `".caches/refs.json"` wh
 
 #### Heading slugs (github-slugger)
 
-`githubSlugify`, `headingTextToPlain`, and `buildSlugRegistry` derive `#fragment` targets from compiled headings using [`github-slugger`](https://www.npmjs.com/package/github-slugger), which matches GitHub's [html-pipeline `TableOfContentsFilter`](https://github.com/gjtorikian/html-pipeline/blob/main/lib/html/pipeline/toc_filter.rb). GFM does not define auto-generated heading IDs; treat github-slugger parity as the contract.
+`githubSlugify`, `headingTextToPlain`, and `buildSlugRegistry` derive `#fragment` targets from compiled headings using [`github-slugger`](https://www.npmjs.com/package/github-slugger), which matches the anchors GitHub renders for headings. GFM does not define auto-generated heading IDs; treat github-slugger parity as the contract.
 
 | Export               | Purpose                                              |
 | -------------------- | ---------------------------------------------------- |
