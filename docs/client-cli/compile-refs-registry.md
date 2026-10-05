@@ -1,27 +1,6 @@
 # Compile and the refs registry
 
-## End-user value
-
-When you organize compiled outputs in subdirectories (`compile.outputFile: "compiled/guide-a.md"`), `mdcp compile` still keeps the refs registry at the documented cache path under `outputDir`. You can run `mdcp refs-list` right after compile when writing cross-links, without moving the file or running `mdcp refs-gen` first.
-
-## Registry location
-
-`refs.registryFile` resolves by the rule in [Path layout](./config-essentials.md#path-layout), and each guide's `compile.outputFile` doesn't change it.
-
-Example:
-
-```json
-{
-  "outputDir": "_build",
-  "refs": { "registryFile": ".caches/refs.json" },
-  "guides": [{ "name": "guide-a", "compile": { "outputFile": "compiled/guide-a.md" } }]
-}
-```
-
-| Artifact       | Path                              |
-| -------------- | --------------------------------- |
-| Compiled guide | `docs/_build/compiled/guide-a.md` |
-| Refs registry  | `docs/_build/.caches/refs.json`   |
+`mdcp compile` writes the [refs registry](../glossary/refs-registry.md) to `refs.registryFile`, which resolves by the rule in [Path layout](./config-essentials.md#path-layout). A guide's `compile.outputFile` doesn't move the registry. `mdcp refs-list` reads it right after compile, with no `mdcp refs-gen` run first. [Refs registry path](../features/refs-registry-path.md#path-resolution) is the spec and has an example.
 
 ## Registry contents
 
