@@ -40,20 +40,24 @@ Before **1.0.0**, this package has **no API stability guarantee**: exported func
 
 ## Quick example
 
+This script compiles every guide and writes the outputs, then regenerates the refs registry from them. Run it from the directory that holds `docs/mdcp.config.json`.
+
 ```typescript
+import { join } from 'node:path';
 import {
   loadConfig,
+  resolveDocsRoot,
+  resolveOutputPath,
   compileGuideResults,
   compileGuidesFromResults,
-  resolveDocsRoot,
+  writeCompiledGuidesFromResults,
   refsOutputTexts,
-  genRefsFromCompiled,
   resolveRefsPath,
-  checkRefsRegistry,
+  genRefsFromCompiled,
 } from '@bwilliamson/mdcp-core';
 
-const docsRoot = '/path/to/docs';
-const config = loadConfig('mdcp.config.json', docsRoot);
+const config = loadConfig('docs/mdcp.config.json', process.cwd());
+const docsRoot = join(process.cwd(), 'docs');
 
 const options = {
   guidesRoot: resolveDocsRoot(config, docsRoot),
@@ -64,15 +68,15 @@ const options = {
   config,
 };
 const results = compileGuideResults(options);
+writeCompiledGuidesFromResults(results, options, resolveOutputPath(config, docsRoot));
+
 const compiled = compileGuidesFromResults(results, options);
 const outputs = refsOutputTexts(results, options);
-
 const refsPath = resolveRefsPath(docsRoot, config.outputDir, config.refs.registryFile);
 genRefsFromCompiled(compiled, refsPath, outputs);
-checkRefsRegistry(compiled, refsPath, outputs);
 ```
 
-Use `writeCompiledGuidesFromResults(results, options, monolithPath)` to write each compiled guide to disk. It also writes the monolith when you pass its path and at least one guide has no `compile.outputFile`. `resolveOutputPath(config, docsRoot)` gives that path.
+In CI, call `checkRefsRegistry(compiled, refsPath, outputs)` in place of `genRefsFromCompiled`. It returns `ok: false` when the registry on disk is missing or stale. The [Compile API](#api--compile) lists the fields of each result and says when compile writes the monolith, the one file that top-level `outputFile` names. The [Config API](#api--config) says which base each path resolves from.
 
 <!-- mdcp-shard: end ../../docs/client-core/quick-example.md -->
 
