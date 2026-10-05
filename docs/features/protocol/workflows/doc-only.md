@@ -15,13 +15,13 @@ durable docs so search stays trustworthy.
 
 ## What this workflow is for
 
-| Obligation             | As-built expectation                                                                                    |
-| ---------------------- | ------------------------------------------------------------------------------------------------------- |
-| Docs-only branch       | One docs scope per branch, in `docs/features/`, `docs/client/`, `docs/developer/` and standalone guides |
-| Contracts not samples  | Put intent, contracts, and acceptance in shards — not implementation dumps or product source paths      |
-| Indexes and validation | Update guide `index.md` files; run `mdcp check` (do not hand-edit compile output or `refs.json`)        |
-| Current docs only      | Remove superseded workflows, planning backlogs, and pending `.changeset/*.md` links from durable shards |
-| Hard scope boundary    | No `src/` edits, unit tests, or “just fix the code too” — defer code work to feature-level              |
+| Obligation             | As-built expectation                                                                                                                                                                    |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Docs-only branch       | One docs scope per branch, in `docs/features/`, `docs/client/`, `docs/developer/` and standalone guides                                                                                 |
+| Contracts not samples  | Put intent, contracts, and acceptance in shards, not code dumps; link a source file only as evidence for a claim ([code evidence](../../../client-core/compile-hooks/code-evidence.md)) |
+| Indexes and validation | Update guide `index.md` files; run `mdcp check` (do not hand-edit compile output or `refs.json`)                                                                                        |
+| Current docs only      | Remove superseded workflows, planning backlogs, and pending `.changeset/*.md` links from durable shards                                                                                 |
+| Hard scope boundary    | No `src/` edits, unit tests, or “just fix the code too”; defer code work to feature-level                                                                                               |
 
 ## What this workflow is not
 
