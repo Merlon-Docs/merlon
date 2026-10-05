@@ -5,6 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { compileGuideResults } from '../src/compile/assemble.js';
 import { applyCompileHooks, createCompileHookState } from '../src/compile/hooks.js';
 import '../src/compile/hooks/builtin.js';
 import {
@@ -441,6 +442,35 @@ describe('inlineInserts — config', () => {
         ['inlineInserts'],
       );
       expect(out).toContain('| Shared | Table |');
+    });
+  });
+
+  it('reads searchRoots for a guide whose name differs from its directory', () => {
+    mkdirSync(join(work.path, 'review'), { recursive: true });
+    mkdirSync(join(work.path, 'lib', 'diagrams'), { recursive: true });
+    writeFileSync(join(work.path, 'review', 'index.md'), '# Review\n\n- [A](./a.md)\n');
+    writeFileSync(join(work.path, 'review', 'a.md'), '# A\n\nSee [Flow](diagrams/flow.md).\n');
+    writeFileSync(join(work.path, 'lib', 'diagrams', 'flow.md'), 'Flow body.\n');
+    const guides = [
+      {
+        name: 'architecture-review',
+        path: 'review',
+        compile: {
+          outputFile: 'architecture-review.md',
+          hooksConfig: { inlineInserts: { searchRoots: ['lib'] } },
+        },
+      },
+    ];
+    withCwd(work.path, () => {
+      const [result] = compileGuideResults({
+        guidesRoot: work.path,
+        docsRoot: work.path,
+        compileOrder: ['architecture-review'],
+        guides,
+        config: { compileOrder: ['architecture-review'], guides } as never,
+      });
+      expect(result.text).toContain('#### Diagram 1. Flow');
+      expect(result.text).toContain('Flow body.');
     });
   });
 });

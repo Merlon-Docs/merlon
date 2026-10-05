@@ -128,7 +128,9 @@ export function assembleGuide(guideDir: string, options: AssembleGuideOptions = 
 }
 
 function assembleGuideUnmarked(guideDir: string, options: AssembleGuideOptions): AssembledGuide {
-  const guideName = basename(guideDir);
+  // The configured name: hooks look the guide's config up by it, and `path` can end in a
+  // directory with another name.
+  const guideName = options.guideName ?? basename(guideDir);
   const manifestName = options.manifest ?? 'index.md';
   const indexPath = join(guideDir, manifestName);
   const indexText = readFileSync(indexPath, 'utf-8');
@@ -201,7 +203,7 @@ function assembleGuideUnmarked(guideDir: string, options: AssembleGuideOptions):
         sourceFile: filePath,
         guideDir,
         scopeRoot: options.scopeRoot,
-        currentGuideName: options.guideName ?? guideName,
+        currentGuideName: guideName,
         currentOutputBasename: options.outputBasename,
         currentOutputFile: options.outputFile,
         monolithFile: options.monolithFile,
@@ -218,7 +220,7 @@ function assembleGuideUnmarked(guideDir: string, options: AssembleGuideOptions):
         sourceFile: filePath,
         guideDir,
         scopeRoot: options.scopeRoot,
-        currentGuideName: options.guideName ?? guideName,
+        currentGuideName: guideName,
         currentOutputFile: options.publishOutputFile,
         linkIndex: options.linkIndex,
       });
