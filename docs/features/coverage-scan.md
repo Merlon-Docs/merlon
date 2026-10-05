@@ -22,7 +22,7 @@ A guide compiles a list of shards into one output. A [standalone guide](../gloss
 - a guide output target: a [compiled guide](../glossary/compiled-guide.md) or the [monolith](../glossary/monolith.md), or
 - a `standaloneGuides[]` entry.
 
-Manifest membership inside a guide directory is the [orphan check](./feature-catalog.md#orphan-check-p13)'s job, so the coverage scan treats a whole guide directory as accounted for and does not double-report its shards.
+Manifest membership inside a guide directory is the [orphan check](./feature-catalog.md#orphan-check)'s job. So the coverage scan treats a whole guide directory as accounted for and reports none of its shards.
 
 The scan walks the scan root for `*.md`, removes ignored vendor paths, then subtracts the captured set. Whatever remains is **uncaptured** and reported.
 
@@ -37,7 +37,7 @@ The two sets are distinct: a file compiled from shards belongs to the guide outp
 A standalone guide is register-only:
 
 - Compile doesn't write output for it. A guide still stitches it like any shard when the guide's manifest or `compile.scopeRoot` walk reaches it.
-- Its headings stay out of the [refs registry](../glossary/refs-registry.md) unless a guide stitches it into the text the registry is built from.
+- Its headings stay out of the [refs registry](../glossary/refs-registry.md) unless a guide stitches it into a compiled output.
 - Its outbound links are validated: `.md` and source-file targets must resolve on disk, and same-file `#fragment` anchors must match a heading. See [built-in link validation](./link-validation.md#standalone-guide-validation).
 - `mdcp prose` and `mdcp check` run Vale over it, along with the guide directories or the `vale.scanGlobs` paths. A `.vale.ini` section opts one file out, as [Opt a standalone guide out of Vale](../client-cli/optional-linters.md#opt-a-standalone-guide-out-of-vale) shows.
 - The markdownlint passes in `mdcp lint` and `mdcp check` lint it only when a shard lint path reaches it or the compiled config's globs list it. The shard lint paths are the Markdown files in the guide directories, or `lint.markdownlint.shardsGlobs` in their place.
@@ -69,7 +69,7 @@ Machine-readable inventory (captured / uncaptured / standalone / missing) is ava
 
 ## Relationship to the orphan check
 
-The coverage scan does not replace the [orphan check](./feature-catalog.md#orphan-check-p13). They cover different mistakes:
+The coverage scan does not replace the [orphan check](./feature-catalog.md#orphan-check). They cover different mistakes:
 
 | Check         | Scope                                                                                                  | Severity                                   |
 | ------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------ |

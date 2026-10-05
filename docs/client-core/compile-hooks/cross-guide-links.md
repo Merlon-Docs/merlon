@@ -8,14 +8,9 @@ Multi-output consumer repos produce separate compiled guides (such as `glossary.
 
 ## Cross-guide purpose
 
-At compile time, MDCP:
+Compile builds a **guide link index** from every guide in `compileOrder`. It has an entry for each shard in a guide's [`linkedSectionFiles`](../../features/manifest-compile-order.md#linked-shards-and-the-file-name-fallback) that opens with a heading, including the shards outside the guide directory. A `FIND-*` finding takes its slug from its file name, so it has an entry without a heading too. Each entry maps its shard to the compiled `{guideName, outputBasename, outputFile, slug}`, where the slug is the one the shard's demoted first heading gets in the owner's compiled guide, numbered with every earlier heading (see [Cross-guide section slugs](#cross-guide-section-slugs)). When the owner doesn't stitch the shard, the slug comes from the first guide in `compileOrder` that does. A link into the owner's compiled guide is then a dead anchor, since that file has no section for the shard. When another heading there has the same slug, such as a Setup heading for a shard titled Setup, the link points at that heading, and no check catches it. When the owner is stitched into the monolith, `outputFile` is the monolith, `monolithSlug` is the slug the heading gets there, and `guideFile` is the owner's compiled guide when the owner stitches the shard. When the owner doesn't stitch it, `monolithSlug` is the slug of the first copy in the monolith that does. When no copy there stitches it, `monolithSlug` is unset, and a link to the shard takes the entry's `slug`. The monolith has no section for it either. Compile marks such a link in the monolith unless another heading or section there has that slug, such as a declared `{#id}`. Link lint reports one from another output as a dead anchor unless a heading of the monolith has that slug.
 
-1. Builds a **guide link index** from every guide in `compileOrder`. Each path in that guide's `linkedSectionFiles` (manifest plus transitive inline `.md` links) maps to its compiled `{guideName, outputBasename, outputFile, slug}`, where the slug is the one the shard's demoted first heading gets in the owner's compiled guide, numbered with every earlier heading (see [Cross-guide section slugs](#cross-guide-section-slugs)). When the owner doesn't stitch the shard, the slug comes from the first guide in `compileOrder` that does. A link into the owner's compiled guide is then a dead anchor, since that file has no section for the shard. When another heading there has the same slug, such as a Setup heading for a shard titled Setup, the link points at that heading, and no check catches it. When the owner is stitched into the monolith, `outputFile` is the monolith, `monolithSlug` is the slug the heading gets there, and `guideFile` is the owner's compiled guide when the owner stitches the shard. When the owner doesn't stitch it, `monolithSlug` is the slug of the first copy in the monolith that does. When no copy there stitches it, `monolithSlug` is unset, and a link to the shard takes the entry's `slug`. The monolith has no section for it either. Compile marks such a link in the monolith unless another heading or section there has that slug, such as a declared `{#id}`. Link lint reports one from another output as a dead anchor unless a heading of the monolith has that slug
-2. Rewrites **cross-guide** `.md` links per shard (using the shard path for relative resolution) before sections are stitched
-3. Rewrites **publish-relative** `../` file links per shard, relative to the guide's [link base](./publish-relative-links.md#when-it-runs)
-4. Rewrites **same-guide** section links per shard (intra-guide pass with `sourceFile`), then again on the assembled body (intra-guide pass scoped to `guideDir`)
-
-Cross-guide handles indexed markdown between guides and co-compiled transitive targets. Publish-relative rebases remaining file paths in every guide, relative to that same link base (no manual path config). Intra-guide handles same-guide section targets. These are **assembly-time passes**, not compile hooks.
+The cross-guide rewrite then runs per shard, before sections are stitched, as the first of the [link passes](./index.md#link-passes).
 
 ## Cross-guide link matching
 
@@ -25,62 +20,9 @@ A link is rewritten when **all** of the following hold:
 - Target path ends in `.md` (optional `#fragment`)
 - Target is not `http://`, `https://`, or `#…`
 - Target resolves to a shard registered in the guide link index
-- Target shard's guide is **not** listed in `compile.crossGuideLinks.ignoreGuides` on the compiling guide
+- Target shard's guide is **not** listed in `compile.crossGuideLinks.ignoreGuides` on the compiling guide, unless [same compiled output preference](#same-compiled-output-preference) keeps the link in the document
 
-Cross-guide rewrite matches only links whose path starts with `./` or `../`. Same-guide section links — bare sibling paths (`topic/section.md`) and optional `./section.md` — are handled by the intra-guide pass, not cross-guide.
-
-## Link rewrite passes (cross-guide vs intra-guide)
-
-Assembly splits `.md` link rewriting by link shape and target scope:
-
-| Pass            | When                     | Link shapes matched                   | Resolution base                                             |
-| --------------- | ------------------------ | ------------------------------------- | ----------------------------------------------------------- |
-| **Cross-guide** | Per shard, before stitch | `./` and `../` to indexed shards      | `dirname(sourceFile)`, then parent / scopeRoot / cwd        |
-| **Intra-guide** | Per shard; post-assembly | Bare sibling or `./` same-guide paths | Per shard: `dirname(sourceFile)`; post-assembly: `guideDir` |
-
-Cross-guide does **not** match bare sibling paths. Those are intra-guide only. Publish-relative handles remaining `../` file links in every guide. See [Publish-relative link rewriting](./publish-relative-links.md).
-
-### guideDir misaligned with shard tree
-
-Some guides set `path` to a **compiled subdirectory** while section shards live elsewhere under the same guide tree (often one level up from `guideDir`). Example:
-
-```text
-guide/
-  compiled/shards.md   ← manifest (guideDir)
-  section-a.md
-  topic/section-b.md
-  assets/diagram.md
-```
-
-Config uses `"path": "guide/compiled"` with `"compile": { "manifest": "shards.md", … }`.
-
-Bare sibling links authored from shards outside `guideDir` — for example `[Section B](topic/section-b.md)` in `guide/section-a.md` — resolve from **`dirname(sourceFile)`** during the per-shard intra-guide pass, not from `guideDir` alone. The post-assembly intra pass still runs against `guideDir` for any remaining same-guide links on the stitched body.
-
-Links that must step **up and out** of the shard directory still require **`../`**. A manifest under `compiled/shards.md` links to sibling shards with paths like `../section-a.md`; bare paths cannot express parent traversal.
-
-### Transitive section discovery
-
-For each compiling guide, `linkedSectionFiles` is the manifest closure plus every shard reachable by walking **inline** markdown `.md` links from those files within `guideDir` and `compile.scopeRoot` (when set). The **guide link index** indexes **every** path in that set — including shards outside `guideDir` (not only paths under `guideDir` or `glossary/`).
-
-**Ownership** when the same absolute path appears for more than one guide (first match wins):
-
-1. Manifest owner — the guide that lists the shard in its manifest
-2. Path under `guideDir` — the guide whose directory contains the shard
-3. Compiling guide — the guide whose transitive walk included the shard
-
-### What the walk follows
-
-| Authoring form                                                | Transitive inclusion                         |
-| ------------------------------------------------------------- | -------------------------------------------- |
-| Inline link `[label](path.md)` or `[label](path.md#fragment)` | **Yes** — followed into `linkedSectionFiles` |
-| Reference-style `[label][ref]` with `[ref]: path.md`          | **No** — not followed for inclusion          |
-| Backtick path `` `path.md` ``                                 | **No** — inline code is not scanned          |
-
-Authors who need a readable path **without** pulling the target into the compile graph can use a reference-style link or a backtick path. Reference-style and backticks skip transitive inclusion; backticks also skip link rewrite.
-
-### Default `_build` outputs and transitive targets
-
-With the default `outputDir` (`_build`), `./` and `../` links to transitively included shards outside `guideDir` rewrite through the guide link index and [same-output preference](#same-compiled-output-preference). Compiled `_build` output does **not** leave those co-compiled targets as raw `../file.md`.
+Cross-guide rewrite matches only links whose path starts with `./` or `../`, including links to shards of the same guide. The intra-guide pass handles bare paths, such as `topic/section.md`.
 
 ## Cross-guide section slugs
 
@@ -94,18 +36,23 @@ The slugger reads each title without its markers, since compile strips them from
 
 The [monolith](../../glossary/monolith.md) runs one slugger through every guide it stitches, in `compileOrder`. Each guide starts with its lead heading and continues the numbering of the guides before it. So a section can take `#setup-1` in the monolith and `#setup` in its guide's compiled guide, when an earlier guide in the monolith also has a Setup heading. Compile assembles a guide in the monolith twice, once for each document, and each copy links its sections with that document's slugs.
 
-The guide link index takes a shard's slug from its owner's numbering when the owner stitches the shard. [Transitive section discovery](#transitive-section-discovery) defines the owner. When a link goes to the owner's output, it points at the heading as that output numbers it, even when the linking guide also stitches the shard. A guide that stitches a shard owned only through the transitive walk links to its own copy, with an in-document anchor that the guide numbers itself, as [Same compiled output preference](#same-compiled-output-preference) describes.
+The guide link index takes a shard's slug from its owner's numbering when the owner stitches the shard. [Index ownership](#index-ownership) defines the owner. When a link goes to the owner's output, it points at the heading as that output numbers it, even when the linking guide also stitches the shard. A guide that stitches a shard owned only through the transitive walk links to its own copy, with an in-document anchor that the guide numbers itself, as [Same compiled output preference](#same-compiled-output-preference) describes.
 
 Headings that a compile hook adds after numbering, such as [inlineInserts](./inline-inserts.md) captions, take no number. A caption whose slug matches a later section heading's slug moves that heading to `-1`, and links to the section miss it. A renderer that adds heading anchors also gives one to setext headings and to ATX headings indented one to three spaces or nested in a list item or blockquote, which mdcp doesn't read as headings. Such a heading earlier in the guide with a section's title has the same effect.
 
 ## Cross-guide resolution
 
-Path lookup order (relative to the **current shard** directory):
+The pass finds the target shard in the order [Path lookup order](./index.md#path-lookup-order) gives for the cross-guide rewrite.
 
-1. Relative to the shard directory (`dirname(sourceFile)`)
-2. Relative to the shard parent directory
-3. `compile.scopeRoot` when set on the compiling guide
-4. `process.cwd()` and its parent
+### Index ownership
+
+The index gives each shard one owner guide, the first of these that applies:
+
+1. The guide whose manifest lists the shard, or the last such guide in `compileOrder` when several manifests list it
+2. The first guide in `compileOrder` whose directory contains the shard
+3. The first guide in `compileOrder` that compiles the shard by following a link to it
+
+For the first rule, a manifest that links no shards lists the files that the [file-name fallback](../../features/manifest-compile-order.md#linked-shards-and-the-file-name-fallback) compiles. Ownership by the first or second rule is canonical. [Same compiled output preference](#same-compiled-output-preference) says when a guide links its own copy of a shard whose owner is another guide.
 
 ### Same compiled output preference
 
@@ -116,6 +63,8 @@ When a `./` or `../` link resolves to a path present in the **assembling guide's
 - the index owner is another guide but ownership is **non-canonical** (transitive `scopeRoot` inclusion only — not a manifest listing and not under that owner's `guideDir`)
 
 Canonical ownership (manifest or path under `guideDir`) still wins for cross-output targets. Example: a glossary hub that transitively reaches a finding under `review/` keeps `architecture-review.md#find-004` even if the finding body was also pulled into the glossary compile graph. Multi-guide repos that only co-include a shared shard outside every `guideDir` keep in-document `#anchor` targets in each assembling output.
+
+Same-output preference comes before `ignoreGuides`. A link to a shard that the assembling guide stitches takes the in-document anchor when the shard's owner is non-canonical, even when the assembling guide lists that owner in `ignoreGuides`. Such an owner is only the first guide in `compileOrder` whose walk reached the shard, so letting `ignoreGuides` win would make the link depend on that order. MDCP's own publish guides rely on it. Each lists `features` in `ignoreGuides`, and `features` is the owner of the glossary term shards only through its walk. A publish guide still links a term to the section it stitches. [`ignoreGuides` interaction](./publish-relative-links.md#ignoreguides-interaction) says how a link to a stitched shard whose canonical owner is listed compiles.
 
 When the resolved absolute path is in the guide link index (and same-output preference does not already apply):
 
@@ -129,9 +78,13 @@ When the resolved absolute path is in the guide link index (and same-output pref
 
 Each `#slug` is the target heading's slug in the document the link points into. A link between two guides in the monolith compiles twice. In the linking guide's compiled guide, it targets the target guide's compiled guide, such as `b.md#topic`, with that guide's own slug, when that guide stitches the shard. Otherwise it targets the monolith, with the slug of the shard's first copy there. In the monolith, it targets the heading in the monolith, with the slug the monolith gives it. A publish output links a guide in the monolith through the monolith, with the monolith's slug.
 
-An explicit `#fragment` is never renumbered. Compile writes it as the shard author wrote it, in every document. Broken-link marking checks an in-document fragment, such as `#details`, against every heading of the document that contains the link and the section slugs its assembly gave. In the monolith, that set is the headings of every guide there and the section slugs of every copy. Link lint checks an in-document fragment against the same set, and a fragment on another file, such as `a.md#details`, against that file's headings. So a fragment that points at a sub-heading of another guide in the monolith, such as `../a/setup.md#details`, stays a link in both documents. A fragment such as `./setup.md#setup` resolves in the target guide's compiled guide. In the monolith, that slug can belong to an earlier guide's heading with the same title. The link then points at that heading. No check catches that, because the slug exists in the monolith. A link without a fragment gets the right slug when the document it points into stitches its shard. Step 1 of [Cross-guide purpose](#cross-guide-purpose) gives the slug it takes otherwise.
+An explicit `#fragment` is never renumbered. Compile writes it as the shard author wrote it, in every document. Broken-link marking checks an in-document fragment, such as `#details`, against every heading of the document that contains the link and the section slugs its assembly gave. In the monolith, that set is the headings of every guide there and the section slugs of every copy. Link lint checks an in-document fragment against the same set, and a fragment on another file, such as `a.md#details`, against that file's headings. So a fragment that points at a sub-heading of another guide in the monolith, such as `../a/setup.md#details`, stays a link in both documents. A fragment such as `./setup.md#setup` resolves in the target guide's compiled guide. In the monolith, that slug can belong to an earlier guide's heading with the same title. The link then points at that heading. No check catches that, because the slug exists in the monolith. A link without a fragment gets the right slug when the document it points into stitches its shard. [Cross-guide purpose](#cross-guide-purpose) gives the slug it takes otherwise.
 
 Finding shards (`FIND-*.md`) use the finding id from the filename (such as `#find-004`), not the parent outcomes section slug. Broken-link marking and link lint accept the finding id as an in-document target in the output that stitches the finding, though the heading there takes its slug from its text, such as `find-004--example-finding`. On a link from another output, such as `architecture-review.md#find-004`, link lint reports the finding id as a dead anchor, because no heading in the target has it. A declared `{#id}` works the same way.
+
+### Default `_build` outputs and transitive targets
+
+In `_build`, as in any other output directory, a `./` or `../` link to a shard outside `guideDir` that the walk adds follows the rules above. [Same compiled output preference](#same-compiled-output-preference) says when it becomes an in-document anchor, and [`ignoreGuides` interaction](./publish-relative-links.md#ignoreguides-interaction) covers a link that keeps its shard path.
 
 ## Cross-guide exclusions
 
@@ -141,7 +94,7 @@ The pass **does not** transform:
 - Same-document `#fragment` links
 - Markdown links that do not resolve to an indexed shard
 - Non-markdown paths (handled by `codeEvidence` or left unchanged)
-- Links to shards in guides listed in `compile.crossGuideLinks.ignoreGuides` (publish-relative may still rebase the unchanged shard path; see [`ignoreGuides` interaction](./publish-relative-links.md#ignoreguides-interaction))
+- Links to shards in guides listed in `compile.crossGuideLinks.ignoreGuides`, other than a stitched shard that [same compiled output preference](#same-compiled-output-preference) keeps in the document (publish-relative may still rebase the unchanged shard path; see [`ignoreGuides` interaction](./publish-relative-links.md#ignoreguides-interaction))
 
 ## Cross-guide config
 
@@ -183,7 +136,7 @@ Minimal multi-output setup — index and rewrite run automatically from `compile
 
 ### `compile.crossGuideLinks.ignoreGuides`
 
-Set on the **guide being compiled**. Links from that guide to shards of a listed guide keep source `.md` paths instead of rewriting to a `#slug` in the target guide's compiled guide or in the monolith ([ignoreGuides](../../glossary/ignore-guides.md)). Use when one compiled guide should link to live shard files for specific guides (such as technical reference docs that are not folded into a review bundle).
+Set on the **guide being compiled**. Links from that guide to shards of a listed guide keep source `.md` paths instead of rewriting to a `#slug` in the target guide's compiled guide or in the monolith ([ignoreGuides](../../glossary/ignore-guides.md)). [Same compiled output preference](#same-compiled-output-preference) says when a link to a shard that the guide stitches takes an in-document anchor instead. [`ignoreGuides` interaction](./publish-relative-links.md#ignoreguides-interaction) says how compile rebases a kept path, and when a `./` or bare link to a stitched shard takes `#slug`. Use when one compiled guide should link to live shard files for specific guides (such as technical reference docs that are not folded into a review bundle).
 
 ```json
 {

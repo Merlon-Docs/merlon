@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { basename, dirname, relative, resolve, isAbsolute } from 'node:path';
 import { defaultSearchRoots, resolveRelativeFile } from './hooks/path-resolve.js';
 import { maskInlineCode } from '../links/extract.js';
@@ -17,6 +17,20 @@ export function slugForSectionFile(filePath: string, cache?: ShardCache): string
   const raw = readFileSync(filePath, 'utf-8').trim();
   const processed = sectionBodyForSlug(name, raw);
   return slugForDemotedSection(name, processed);
+}
+
+/**
+ * Assembly opens a link target with this mark when the cross-guide or publish-relative pass writes
+ * it. The target is then relative to the link base rather than the shard, so a later pass leaves
+ * the link alone: the publish-relative pattern needs a target that opens with `../`, and the
+ * intra-guide pass skips a marked target. `unmarkLinkTargets` removes the marks after the last
+ * pass. CommonMark replaces U+0000 in its input, so no shard link means the character.
+ */
+const WRITTEN_LINK_MARK = '\u0000';
+
+/** Remove the marks that assembly's link passes put on the targets they wrote. */
+export function unmarkLinkTargets(markdown: string): string {
+  return markdown.replaceAll(`](${WRITTEN_LINK_MARK}`, '](');
 }
 
 const INTRA_GUIDE_MD_LINK_RE = /(\[[^\]]*\]\()((?!https?:)(?:\.\/)?[^)#/\s][^)#]*\.md)(#[^)]*)?\)/g;
@@ -83,6 +97,18 @@ export interface PublishRelativeLinkRewriteOptions {
   currentOutputFile: string;
   linkIndex?: GuideLinkIndex;
   searchRoots?: string[];
+  /** Open each target the pass writes with the mark that tells later passes to leave it alone. */
+  markWritten?: boolean;
+  /**
+   * Absolute paths of the files the run writes. A target that names one resolves before the file
+   * is on disk, so a link to an output compiles the same on a first run and on later ones.
+   */
+  runOutputFiles?: ReadonlySet<string>;
+  /**
+   * Absolute paths of configured outputs the run never writes. A target that names one counts as
+   * missing, so a file an earlier run left there doesn't change the compiled link.
+   */
+  unwrittenOutputFiles?: ReadonlySet<string>;
 }
 
 function parseLinkPath(target: string): { path: string; suffix: string } {
@@ -95,23 +121,18 @@ function resolvePublishLinkTarget(
   filePart: string,
   options: PublishRelativeLinkRewriteOptions,
 ): string | null {
-  const shardDir = dirname(options.sourceFile);
-  const searchRoots = options.scopeRoot ? [options.scopeRoot] : [];
-  return (
-    resolveRelativeFile(filePart, shardDir, searchRoots) ??
-    resolveRelativeFile(filePart, options.guideDir, searchRoots)
-  );
-}
-
-function isOtherPublishOutput(
-  resolvedAbs: string,
-  options: PublishRelativeLinkRewriteOptions,
-): boolean {
-  if (!options.linkIndex) return false;
-  for (const entry of options.linkIndex.values()) {
-    if (entry.outputFile === resolvedAbs) return true;
+  const bases = [
+    dirname(options.sourceFile),
+    ...(options.scopeRoot ? [options.scopeRoot] : []),
+    options.guideDir,
+  ];
+  for (const base of bases) {
+    const candidate = resolve(base, filePart);
+    if (options.runOutputFiles?.has(candidate)) return candidate;
+    if (options.unwrittenOutputFiles?.has(candidate)) continue;
+    if (existsSync(candidate)) return candidate;
   }
-  return false;
+  return null;
 }
 
 function skipPublishRelativeRewrite(
@@ -138,13 +159,13 @@ export function rewritePublishRelativeLinks(
 
     const resolved = resolvePublishLinkTarget(filePart, options);
     if (!resolved) return originalMatch;
-    if (isOtherPublishOutput(resolved, options)) return originalMatch;
     if (skipPublishRelativeRewrite(resolved, options)) return originalMatch;
 
     const fromDir = dirname(outputAbs);
     // A target in the link base's own directory relativizes to '', which would leave an empty href.
     const rel = relative(fromDir, resolve(resolved)).replace(/\\/g, '/') || './';
-    return `${linkPrefixFromMatch(originalMatch, target)}${rel}${suffix})`;
+    const mark = options.markWritten ? WRITTEN_LINK_MARK : '';
+    return `${linkPrefixFromMatch(originalMatch, target)}${mark}${rel}${suffix})`;
   });
 }
 
@@ -162,6 +183,8 @@ export function rewriteIntraGuideFileLinks(
   return rewriteMarkdownLinkLines(markdown, INTRA_GUIDE_MD_LINK_RE, (originalMatch, m) => {
     const file = m[2];
     const fragment = m[3];
+    // An earlier pass wrote this target relative to the link base, not to a shard.
+    if (file.startsWith(WRITTEN_LINK_MARK)) return originalMatch;
     const normalized = file.replace(/^\.\//, '');
     if (options?.sourceFile && normalized.startsWith('../')) return originalMatch;
     let slug: string | undefined;
@@ -209,7 +232,12 @@ export interface CrossGuideLinkRewriteOptions {
    * attributes the shard to another guide (multi-guide transitive co-inclusion).
    */
   slugByPath?: Map<string, string>;
-  /** Target guide names: links from the compiling guide to shards of a listed guide keep source `.md` paths instead of `#slug` targets in the target guide's compiled guide or in the monolith. */
+  /**
+   * Target guide names: links from the compiling guide to shards of a listed guide keep source
+   * `.md` paths instead of `#slug` targets in the target guide's compiled guide or in the monolith.
+   * Same compiled output preference comes first: a link to a shard in `slugByPath` whose owner in
+   * `linkIndex` is non-canonical still takes its in-document anchor.
+   */
   ignoreGuides?: string[];
   searchRoots?: string[];
 }
@@ -305,10 +333,10 @@ function formatCrossGuideTarget(
   return `${prefix}${toGuideFile ? basename(toFile) : entry.outputBasename}#${anchor})`;
 }
 
-/** Rewrite cross-guide `.md` links using the compile-time guide link index. */
-export function rewriteCrossGuideFileLinks(
+function crossGuidePass(
   markdown: string,
   options: CrossGuideLinkRewriteOptions,
+  mark: string,
 ): string {
   return rewriteMarkdownLinkLines(markdown, CROSS_GUIDE_MD_LINK_RE, (originalMatch, m) => {
     const file = m[2];
@@ -317,10 +345,34 @@ export function rewriteCrossGuideFileLinks(
     if (!entry) return originalMatch;
     if (options.ignoreGuides?.includes(entry.guideName)) return originalMatch;
     return formatCrossGuideTarget(
-      linkPrefixFromMatch(originalMatch, file),
+      `${linkPrefixFromMatch(originalMatch, file)}${mark}`,
       fragment,
       entry,
       options,
     );
   });
+}
+
+/**
+ * Rewrite cross-guide `.md` links using the compile-time guide link index. The targets it writes
+ * carry no mark, so `rewriteIntraGuideFileLinks` run on its output can still read one as a shard
+ * link: `glossary.md#term` becomes `#term` when `slugByPath` has a shard named `glossary.md`.
+ * Compile uses a variant that marks each target it writes, so its later passes leave them alone.
+ */
+export function rewriteCrossGuideFileLinks(
+  markdown: string,
+  options: CrossGuideLinkRewriteOptions,
+): string {
+  return crossGuidePass(markdown, options, '');
+}
+
+/**
+ * `rewriteCrossGuideFileLinks` for assembly: each target the pass writes opens with a mark, so the
+ * later link passes leave it alone. Assembly removes the marks with `unmarkLinkTargets`.
+ */
+export function rewriteCrossGuideFileLinksMarked(
+  markdown: string,
+  options: CrossGuideLinkRewriteOptions,
+): string {
+  return crossGuidePass(markdown, options, WRITTEN_LINK_MARK);
 }

@@ -92,7 +92,7 @@ Understanding this sequence explains why most commands exist:
            ↓
   mdcp compile                 Assemble outputs, rewrite links, write refs.json
            ↓
-  mdcp check                   Orphans → compile → refs → links → linters → paths → coverage
+  mdcp check                   Run the validation gate
 ```
 
 **Split** (`mdcp shard`) is the inverse path. Use it to bootstrap shards from an existing source document, not on every edit cycle.
@@ -104,26 +104,15 @@ For each guide in `compileOrder`, core:
 1. **Reads section files**: from link order in the manifest (`index.md` / `shards.md`). See [Manifest compile order](./manifest-compile-order.md) when the manifest mixes preamble example links with a `## Sections` list (`compile.sectionsHeading`).
 2. **Transforms each shard**: demotes headings to fit the guide level; strips `about-this-guide` preamble; runs **compile hooks** (`stripAnchors`, `codeEvidence`, `inlineInserts`) by default. See [Default compile hooks](./default-compile-hooks.md). Cross-guide link rewrite runs at assembly. See [Cross-guide link rewriting](../client-core/compile-hooks/cross-guide-links.md).
 3. **Assembles the guide body**: injects optional `compile.title` as a `##` heading followed by a blank line, then concatenates sections in order. When the first shard’s top heading matches the title, that duplicate heading is stripped.
-4. **Rewrites links**: cross-guide `.md` → `{outputFile}#slug` (or unchanged shard path when `compile.crossGuideLinks.ignoreGuides` applies); every guide rebases remaining `../` paths from resolved absolute targets, relative to the guide's [link base](../client-core/compile-hooks/publish-relative-links.md#when-it-runs); same-guide `./section.md` → in-document `#anchor`. See [Publish-relative link rewriting](../client-core/compile-hooks/publish-relative-links.md).
-5. **Writes outputs**: one [compiled guide](../glossary/compiled-guide.md) per guide (at `compile.outputFile` or the default path), plus the [monolith](../glossary/monolith.md) when top-level `outputFile` is set and at least one guide has no `compile.outputFile`.
+4. **Rewrites links**: the [link passes](../client-core/compile-hooks/index.md#link-passes) turn a shard's links to other shards into `#slug` targets, in the same document or in another output. They rewrite a `./` or `../` link to any indexed shard, and a bare link to a shard the guide stitches. A link to a guide that `compile.crossGuideLinks.ignoreGuides` names keeps a path to the shard instead, except in the cases that [its config section](../client-core/compile-hooks/cross-guide-links.md#compilecrossguidelinksignoreguides) points to. The passes then rebase the shard's `../` paths, kept ones included, relative to the guide's [link base](../client-core/compile-hooks/publish-relative-links.md#when-it-runs), except the ones [Publish-relative exclusions](../client-core/compile-hooks/publish-relative-links.md#publish-relative-exclusions) lists, such as a path that leads to no file.
+5. **Marks broken links and re-aligns tables**: by default, a [BROKEN LINK marker](./link-validation.md#broken-link-marker) replaces each `#fragment` link that matches no heading or section slug in the compiled guide. A link to a missing file stays a link, and link lint reports it. Then core re-aligns each aligned table whose links changed width. See [Tables after link rewriting](../client-core/compile-hooks/tables-after-link-rewriting.md).
+6. **Writes outputs**: one [compiled guide](../glossary/compiled-guide.md) per guide (at `compile.outputFile` or the default path), plus the [monolith](../glossary/monolith.md) when top-level `outputFile` is set and at least one guide has no `compile.outputFile`.
 
 Guides with `compile.outputFile` are **excluded from the monolith** so you can publish npm READMEs, `DEVELOPERS.md`, or compiled review guides side by side.
 
 ## What validation checks
 
-`mdcp check` runs a fixed core pipeline, then optional peer tools:
-
-| Stage          | Module                   | Catches                                                      |
-| -------------- | ------------------------ | ------------------------------------------------------------ |
-| Orphans        | `validate/orphans.ts`    | Shard/manifest mismatches                                    |
-| Compile        | `compile/`               | Assembly failures                                            |
-| Refs           | `refs/registry.ts`       | Stale `refs.json`                                            |
-| Built-in links | `links/`                 | Broken links and fragments in shards and compiled output     |
-| Linters        | `peers/` + host install  | markdownlint, Vale, link-check when configured               |
-| Paths          | `validate/path-probe.ts` | Backtick paths in prose that don't resolve, when enabled     |
-| Coverage       | `validate/coverage.ts`   | Markdown files no guide captures (fatal under `scan.strict`) |
-
-Peer linters are **not bundled**. CI uses `--require-lint` / `--require-vale` to fail when tools are missing.
+`mdcp check` runs a fixed order of stages, from the orphan check to the coverage scan. A failure in one of the first three stops the run at once, while most later stages report a failure and let the run go on. [Check gate](./check-gate.md) lists the stages and when each one runs.
 
 ## Config as the wiring layer
 

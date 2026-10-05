@@ -18,6 +18,7 @@ Product documentation for **what mdcp is designed to do**: the problems it solve
 - [Default compile hooks](./default-compile-hooks.md)
 - [Source tags and default banner](./source-tags-and-banner.md)
 - [Compile output backup](./compile-output-backup.md)
+- [Check gate](./check-gate.md)
 - [Link validation](./link-validation.md)
 - [Monolith link lint](./monolith-link-lint.md)
 - [Path resolution in prose](./path-resolution.md)
@@ -42,7 +43,6 @@ Product documentation for **what mdcp is designed to do**: the problems it solve
 - [Usage model](./protocol/usage-model.md)
 - [Shard single responsibility and idea mitosis](./protocol/shard-srp-and-mitosis.md)
 - [Extensions and archetypes](./protocol/extensions-and-archetypes.md)
-- [Format specification](./protocol/format-specification.md)
 - [MDCP 1.0 spec (draft)](./protocol/mdcp-1.0-spec.md)
 - [Acknowledgments](./protocol/acknowledgments.md)
 

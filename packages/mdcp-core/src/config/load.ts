@@ -132,6 +132,16 @@ function markdownGlob(dir: string, root: string): string {
 }
 
 /**
+ * `path` without the slashes at its end. A loop, since `/\/+$/` rescans a slash run from each
+ * slash.
+ */
+function trimTrailingSlashes(path: string): string {
+  let end = path.length;
+  while (end > 0 && path[end - 1] === '/') end--;
+  return path.slice(0, end);
+}
+
+/**
  * A `shardsGlobs` entry for markdownlint-cli2: `.` as `**`, an entry that starts with `../`
  * with those segments replaced by the escaped absolute dir they name, any other as written.
  * globby reads an absolute negation as relative to its cwd unless its static prefix equals
@@ -145,7 +155,7 @@ function shardsGlobPath(entry: string, root: string): string {
   const up = /^(?:\.\.(?:\/|$))+/.exec(body)?.[0];
   if (!up) return entry;
   const base = escapeGlobPath(resolve(root, up)).replace(/\/$/, '');
-  const rest = body.slice(up.length).replace(/\/+$/, '');
+  const rest = trimTrailingSlashes(body.slice(up.length));
   const dir = isDirectory(resolve(root, body)) ? '/**' : '';
   const pattern = `${rest ? `${base}/${rest}` : base}${dir}`;
   if (!negation) return pattern;

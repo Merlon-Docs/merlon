@@ -67,10 +67,31 @@ export interface HeadingEntry {
   line: number;
 }
 
-export interface RefsRegistry {
-  generatedFrom: string;
+/** One compiled output's headings, slugged on their own. */
+export interface RefsOutput {
+  /** The output's path relative to the docs root, with `/` separators. */
+  file: string;
+  /** The guide whose compiled guide this is. Absent for the monolith. */
+  guideName?: string;
+  /** The output's headings. Each `line` is a line of the file as compile writes it. */
   headings: HeadingEntry[];
   slugs: Record<string, string>;
+}
+
+export interface RefsRegistry {
+  generatedFrom: string;
+  /**
+   * The headings of the text the registry was generated from. For a compile run that is the
+   * monolith when the config sets top-level `outputFile`, and otherwise every compiled guide
+   * joined in `compileOrder`, without banners.
+   */
+  headings: HeadingEntry[];
+  slugs: Record<string, string>;
+  /**
+   * Every file the compile run writes, in the order compile writes them: each compiled guide,
+   * publish outputs included, then the monolith. Absent from a registry generated from one text.
+   */
+  outputs?: RefsOutput[];
 }
 
 function semanticKey(title: string, guide: string, locale: LocalePack): string | null {

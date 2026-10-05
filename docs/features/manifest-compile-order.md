@@ -82,11 +82,19 @@ The heading match is exact: `sectionsHeading` `"Sections"` matches a line that s
 
 ## Linked shards and the file-name fallback
 
-Compile also follows inline `.md` links inside the shards it stitches. A shard reached that way compiles after the manifest's shards when it is in the guide directory or under `compile.scopeRoot`. [Transitive section discovery](../client-core/compile-hooks/cross-guide-links.md#transitive-section-discovery) describes the walk.
+Compile also follows inline `.md` links inside the shards it stitches. A guide compiles its manifest's shards plus every shard it finds by following links from shard to shard, a set the code calls `linkedSectionFiles`. Each link resolves from the directory that contains its shard, and the walk keeps a target that exists in the guide directory or under `compile.scopeRoot`. Those shards compile after the manifest's shards, in the order the walk finds them. [Cross-guide purpose](../client-core/compile-hooks/cross-guide-links.md#cross-guide-purpose) says which shards in the set get an entry in the guide link index.
 
-That walk serves shards in guide subdirectories and under `compile.scopeRoot`. The manifest must link every top-level shard in the guide directory directly, because the [orphan check](./feature-catalog.md#orphan-check-p13) reads only the manifest. A top-level shard that only another shard links still compiles, and `mdcp check` reports it as an orphan.
+| Authoring form                                                | Walk follows it |
+| ------------------------------------------------------------- | --------------- |
+| Inline link `[label](path.md)` or `[label](path.md#fragment)` | Yes             |
+| Reference-style link `[label][ref]` with `[ref]: path.md`     | No              |
+| File path in backticks, such as `` `path.md` ``               | No              |
 
-When the manifest links no shards, compile takes every top-level `.md` file in the guide directory in file-name order, and the orphan check reports nothing for that guide.
+The walk reads each shard's raw text. It also follows an inline link written in a code span or a fenced code block. The walk skips a reference-style link and a path in backticks, so either one can refer to a shard that the guide doesn't compile. No link pass rewrites either form, and the path stays as written in the compiled output.
+
+That walk serves shards in guide subdirectories and under `compile.scopeRoot`. The manifest must link every top-level shard in the guide directory directly, because the [orphan check](./feature-catalog.md#orphan-check) reads only the manifest. A top-level shard that only another shard links still compiles, and `mdcp check` reports it as an orphan.
+
+When the manifest links no shards, compile takes the other top-level `.md` files in the guide directory in file-name order, leaving out any `shards.md`, and the orphan check reports nothing for that guide.
 
 ## Workflow
 

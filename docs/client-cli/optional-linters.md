@@ -18,7 +18,7 @@ mdcp check --require-lint --require-vale   # CI gate with markdownlint + Vale
 mdcp check --skip-vale            # structural checks only
 ```
 
-`mdcp check` runs **built-in** internal link validation by default (`lint.links.enabled`). Peer `markdown-link-check` runs only when **`lint.links.config`** is set and the peer is installed. `mdcp links` always skips quietly if the peer is missing.
+`mdcp check` runs **built-in** internal link validation by default (`lint.links.enabled`). Peer `markdown-link-check` runs only when **`lint.links.config`** is set and the peer is installed. `mdcp links` checks the file that `lint.links.target` names, or else the monolith that top-level `outputFile` names, and exits 1 when the config sets neither. When the peer is missing, it prints an info line and exits 0.
 
 Install npm peers with:
 

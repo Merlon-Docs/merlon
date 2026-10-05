@@ -52,6 +52,47 @@ describe('extractLinks', () => {
     const md = 'Example `` `[x](./a.md)` `` here.\n';
     expect(extractLinks(md)).toHaveLength(0);
   });
+
+  it('extracts a link inside an HTML comment', () => {
+    const md = '# Title\n\n<!-- [Planned](./planned.md) -->\n\n<!--\n[Later](./later.md)\n-->\n';
+    const links = extractLinks(md);
+    expect(links.map((l) => [l.target, l.line])).toEqual([
+      ['./planned.md', 3],
+      ['./later.md', 6],
+    ]);
+  });
+
+  it('reads only inline links on one line, with no brackets in the label', () => {
+    const md = [
+      'See [Planned][p].',
+      '',
+      '[p]: ./planned.md',
+      '',
+      'See <a href="./html.md">HTML</a> and ![Diagram](./diagram.png).',
+      '',
+      'See [Planned',
+      'Feature](./wrapped.md).',
+      '',
+      'See [Inline](./inline.md).',
+      '',
+      'See [Titled](./titled.md "Title") and [Angled](<./angled.md>).',
+      '',
+      'See [![Linked](./linked.png)](./linked.md).',
+      '',
+      'See [the arr[0] notes](./nested.md).',
+      '',
+    ].join('\n');
+    // A title or angle brackets stay in the target, so link validation doesn't read it as a
+    // `.md` path. A label can't contain `]`, so a linked image reads as a link to the image's
+    // own target, and a label with brackets isn't read. "No placeholder links" in
+    // docs/features/link-validation.md says so.
+    expect(extractLinks(md).map((l) => [l.target, l.line])).toEqual([
+      ['./inline.md', 10],
+      ['./titled.md "Title"', 12],
+      ['<./angled.md>', 12],
+      ['./linked.png', 14],
+    ]);
+  });
 });
 
 describe('markBrokenLinks', () => {
@@ -539,6 +580,36 @@ describe('lintCompiledLinks', () => {
     const issues = lintCompiledLinks({ markdown: md, outputFile: '/out.md' });
     expect(issues).toHaveLength(0);
   });
+
+  // The marker pass asks about each line, and the link pass asks once more about each line that
+  // holds a link, however many links it holds.
+  it('asks about each line once in each pass, however many links it holds', () => {
+    const asked: string[] = [];
+    const locale = {
+      ...enUS,
+      brokenLinks: {
+        ...enUS.brokenLinks,
+        lineHasMarker: (line: string) => {
+          asked.push(line);
+          return enUS.brokenLinks.lineHasMarker(line);
+        },
+      },
+    };
+    const markerLine = `${formatBrokenLinkMarker('X', './a.md', '#x', 'dead anchor')} [a](#t) [b](#t) [c](#t)`;
+    const linkLine = '[d](#nope) [e](#nope)';
+    const issues = lintCompiledLinks({
+      markdown: `# T\n\n${markerLine}\n\n${linkLine}\n`,
+      outputFile: '/out.md',
+      locale,
+    });
+    expect(asked.filter((line) => line === markerLine)).toHaveLength(2);
+    expect(asked.filter((line) => line === linkLine)).toHaveLength(2);
+    expect(issues.map((i) => `${i.line} ${i.kind} ${i.label}`)).toEqual([
+      '3 dead anchor ',
+      '5 dead anchor d',
+      '5 dead anchor e',
+    ]);
+  });
 });
 
 describe('formatLinkIssue', () => {
@@ -570,6 +641,25 @@ describe('formatLinkIssue', () => {
       'warn',
     );
     expect(msg).toMatch(/^link-warn: a\.md:1:/);
+  });
+
+  // The monolith isn't guide a's compiled guide, so an issue there names the guide's copy.
+  it('names the guide whose copy in the monolith holds an issue there', () => {
+    const issue = {
+      kind: 'dead anchor' as const,
+      file: '/repo/docs/_build/guides.md',
+      line: 9,
+      label: 'x',
+      originalTarget: '#nope',
+      brokenTarget: '#nope',
+      guideName: 'a',
+    };
+    expect(formatLinkIssue({ ...issue, inMonolith: true })).toBe(
+      'link: /repo/docs/_build/guides.md:9: dead anchor "#nope" (guide "a" in the monolith)',
+    );
+    expect(formatLinkIssue({ ...issue, file: '/repo/docs/_build/a.md' })).toBe(
+      'link: /repo/docs/_build/a.md:9: dead anchor "#nope" (compiled guide "a")',
+    );
   });
 
   // The issues markBrokenLinks returns record their shard. Link lint reports a marked link by its
@@ -703,7 +793,8 @@ describe('lintLinks', () => {
       };
       const results = compileGuideResults(compileOptions);
 
-      // Nothing is written: guides.md exists only as the stitched text.
+      // Nothing is written: guides.md exists only as the stitched text. Compile still rebases the
+      // links to it relative to a.md, as it would once the file is on disk.
       const issues = lintLinks({
         config: MdcpConfigSchema.parse(configInput),
         docsRoot,
@@ -711,7 +802,7 @@ describe('lintLinks', () => {
         compileOptions,
       });
       expect(issues.map((i) => `${i.kind} ${i.originalTarget}`)).toEqual([
-        'dead anchor ../_build/guides.md#nope',
+        'dead anchor guides.md#nope',
       ]);
     });
   });
@@ -1433,6 +1524,24 @@ describe('lintLinks over each written file', () => {
 
   const unmarkedA = { name: 'a', compile: { links: { markBroken: false } } };
 
+  // A marker only the monolith holds, and a link the compiled guide doesn't report, are both
+  // monolith issues. Only those carry `inMonolith`.
+  it.each([
+    ['a BROKEN LINK marker', {}],
+    ['a link', { guides: [unmarkedA] }],
+  ])('marks %s that only the monolith reports as an issue in the monolith', (_case, extra) => {
+    withTmpDir('mdcp-lint-in-monolith-', (work) => {
+      const { docsRoot, issues } = lintWritten(work, monolithPair('See [x](../b/topic.md#nope).'), {
+        outputFile: 'guides.md',
+        compileOrder: ['a', 'b'],
+        ...extra,
+      });
+      expect(
+        issues.map((i) => `${relative(docsRoot, i.file)} ${i.guideName} ${i.inMonolith}`),
+      ).toEqual(['_build/a.md a undefined', '_build/guides.md a true']);
+    });
+  });
+
   it("checks a compiled guide's #fragment against that file, not another guide's", () => {
     withTmpDir('mdcp-lint-own-slugs-', (work) => {
       const { summary, issues, textOf } = lintWritten(
@@ -1992,13 +2101,13 @@ describe('lintLinks over each written file', () => {
     });
   });
 
-  // Guide a stitches b's topic.md through its scope root and ignores guide b. a.md links the
-  // first link's section as #nope, while the monolith in sub/ keeps the path. The second link
-  // goes to c.md#nope in a.md and to #nope in the monolith. The a.md issue for #nope is the first
-  // link's, so the monolith issue of the second link is still reported.
-  it("reports a monolith issue whose target only another link's compiled guide issue has", () => {
+  // Guide a stitches b's topic.md through its scope root and ignores guide b, so both files keep
+  // the path to the shard, each rebased relative to itself. The a.md issue for that link names
+  // the same file as the monolith issue, so it covers it. The second link goes to c.md#nope in
+  // a.md and to #nope in the monolith, so the monolith issue of that link is still reported.
+  it("keeps an ignored guide's shard path in both files and reports a monolith issue that the compiled guide links elsewhere", () => {
     withTmpDir('mdcp-lint-monolith-dedupe-held-ignored-', (work) => {
-      const { docsRoot, issues } = lintWritten(
+      const { docsRoot, issues, textOf } = lintWritten(
         work,
         {
           'a/index.md': '# Guide A\n\n- [Intro](./intro.md)\n',
@@ -2029,17 +2138,16 @@ describe('lintLinks over each written file', () => {
           (i) => `${relative(docsRoot, i.file)}:${i.line} ${i.brokenTarget} ${i.guideName}`,
         ),
       ).toEqual([
-        '_build/a.md:9 #nope a',
+        '_build/a.md:9 ../b/topic.md#nope a',
         '_build/a.md:11 c.md#nope a',
-        '_build/sub/guides.md:9 ../../b/topic.md#nope a',
         '_build/sub/guides.md:11 #nope a',
       ]);
       expect(issues.map(lineOf)).toEqual([
-        'First see [x](#nope).',
+        'First see [x](../b/topic.md#nope).',
         'Then see [x](c.md#nope).',
-        'First see [x](../../b/topic.md#nope).',
         'Then see [x](#nope).',
       ]);
+      expect(textOf('_build/sub/guides.md')).toContain('First see [x](../../b/topic.md#nope).');
     });
   });
 

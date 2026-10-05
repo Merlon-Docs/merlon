@@ -190,6 +190,16 @@ describe('shardLintPaths with shardsGlobs outside the docs root', () => {
     ]);
   });
 
+  it('drops every trailing slash from an entry that leaves the docs root', () => {
+    const { docs } = layout();
+    const entries = ['../pkg/guide', '!../pkg/guide/legacy', '#../pkg/README.md'];
+    const parse = (shardsGlobs: string[]) =>
+      MdcpConfigSchema.parse({ compileOrder: ['inner'], lint: { markdownlint: { shardsGlobs } } });
+    expect(shardLintPaths(parse(entries.map((e) => `${e}///`)), docs)).toEqual(
+      shardLintPaths(parse(entries), docs),
+    );
+  });
+
   it('gives the same paths for a relative docs root', () => {
     const { docs } = layout();
     const config = MdcpConfigSchema.parse({

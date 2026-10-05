@@ -1,9 +1,7 @@
-import { formatHeadingAsAtx, parseHeading } from '../markdown/index.js';
+import { createCodeFenceScanner, formatHeadingAsAtx, parseHeading } from '../markdown/index.js';
 import { formatCompileTitle } from './compile-title.js';
 import { getLocalePack } from '../locale/index.js';
 import type { LocalePack } from '../locale/types.js';
-
-const FENCE_RE = /^(`{3,}|~{3,})(.*)$/;
 
 function demoteLine(line: string, levels: number): string {
   const m = parseHeading(line);
@@ -11,33 +9,21 @@ function demoteLine(line: string, levels: number): string {
   return formatHeadingAsAtx(m, Math.min(m.level + levels, 6));
 }
 
+/**
+ * `mapFn` applied to each line of `text` outside fenced code blocks. A new
+ * `createCodeFenceScanner`, the scan the slug registry's heading reader runs, finds the fences in
+ * `text`. A text that ends with a newline gets one more, so the result ends with a blank line.
+ * The monolith demotes each copy of a guide after the first, so that blank line follows each of
+ * those copies, and dropping it would change the monolith. `monolithGuideFirstLines` counts the
+ * lines of the same demoted text, so it would stay right either way.
+ */
 function mapLinesPreservingFences(text: string, mapFn: (line: string) => string): string {
-  const lines = text.split('\n');
-  const endsWithNewline = text.endsWith('\n');
-  const out: string[] = [];
-  let inFence = false;
-  let fenceChar = '';
-
-  for (const line of lines) {
-    const fenceMatch = line.match(FENCE_RE);
-    if (fenceMatch) {
-      const marker = fenceMatch[1];
-      if (!inFence) {
-        inFence = true;
-        fenceChar = marker[0];
-      } else if (marker[0] === fenceChar) {
-        inFence = false;
-        fenceChar = '';
-      }
-      out.push(line);
-      continue;
-    }
-
-    out.push(inFence ? line : mapFn(line));
-  }
-
-  let body = out.join('\n');
-  if (endsWithNewline) body += '\n';
+  const inFence = createCodeFenceScanner();
+  let body = text
+    .split('\n')
+    .map((line) => (inFence(line) ? line : mapFn(line)))
+    .join('\n');
+  if (text.endsWith('\n')) body += '\n';
   return body;
 }
 
@@ -46,45 +32,15 @@ export function demoteHeadings(text: string, levels = 1): string {
 }
 
 export function demoteExceptFirstH1(text: string): string {
-  const lines = text.split('\n');
-  const endsWithNewline = text.endsWith('\n');
   let keptFirstH1 = false;
-  let inFence = false;
-  let fenceChar = '';
-  const out: string[] = [];
-
-  for (const line of lines) {
-    const fenceMatch = line.match(FENCE_RE);
-    if (fenceMatch) {
-      const marker = fenceMatch[1];
-      if (!inFence) {
-        inFence = true;
-        fenceChar = marker[0];
-      } else if (marker[0] === fenceChar) {
-        inFence = false;
-        fenceChar = '';
-      }
-      out.push(line);
-      continue;
-    }
-
-    if (inFence) {
-      out.push(line);
-      continue;
-    }
-
+  return mapLinesPreservingFences(text, (line) => {
     const m = parseHeading(line);
     if (m && m.level === 1 && !keptFirstH1) {
       keptFirstH1 = true;
-      out.push(line);
-      continue;
+      return line;
     }
-    out.push(m ? demoteLine(line, 1) : line);
-  }
-
-  let body = out.join('\n');
-  if (endsWithNewline) body += '\n';
-  return body;
+    return m ? demoteLine(line, 1) : line;
+  });
 }
 
 export function stripAboutThisGuideHeading(

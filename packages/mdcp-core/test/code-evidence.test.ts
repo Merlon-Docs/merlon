@@ -91,6 +91,17 @@ describe('codeEvidence — symbol resolution', () => {
     expect(symbolFromLabel('L6-L8')).toBeNull();
   });
 
+  it('trims every backtick from both ends of a label, then whitespace', () => {
+    expect(symbolFromLabel('``orgCount``')).toBe('orgCount');
+    expect(symbolFromLabel('`orgCount')).toBe('orgCount');
+    expect(symbolFromLabel('orgCount```')).toBe('orgCount');
+    expect(symbolFromLabel('` orgCount `')).toBe('orgCount');
+    expect(symbolFromLabel('```')).toBeNull();
+    expect(symbolFromLabel('')).toBeNull();
+    expect(symbolFromLabel('a`b')).toBeNull();
+    expect(symbolFromLabel('`a` `b`')).toBeNull();
+  });
+
   const work = useTmpDir('mdcp-code-evidence-');
 
   it('resolves symbol from URL fragment when file exists', () => {
@@ -196,6 +207,20 @@ describe('codeEvidence — path rewrite for rendered output', () => {
         ),
       ).toBe(join(work.path, 'docs', 'architecture-review.md'));
     });
+  });
+
+  it('writes each l of an existing line fragment as L', () => {
+    const body = [
+      '[a](firestore.rules#l6)',
+      '[b](firestore.rules#l6-l8)',
+      '[c](firestore.rules#L6-l8)',
+    ];
+    const out = runCodeEvidence(body.join('\n'), '/tmp/claim.md');
+    expect(out.split('\n')).toEqual([
+      '[a](firestore.rules#L6)',
+      '[b](firestore.rules#L6-L8)',
+      '[c](firestore.rules#L6-L8)',
+    ]);
   });
 
   it('adds line fragments from label text without resolving symbols', () => {

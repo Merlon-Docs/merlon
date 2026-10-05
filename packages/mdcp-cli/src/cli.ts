@@ -28,9 +28,12 @@ import {
   formatLinkIssue,
   reviewDocs,
   formatReviewReport,
+  refsOutputTexts,
+  type HeadingEntry,
   type LinkIssue,
   type LinkSeverity,
   type MdcpConfig,
+  type RefsOutputText,
   ILLUSTRATIVE_MARKER,
 } from '@bwilliamson/mdcp-core';
 import {
@@ -157,7 +160,7 @@ interface CheckFailure {
 
 const LINK_KIND_HINTS: Record<LinkIssue['kind'], string> = {
   'dead anchor':
-    'dead anchor: update the #fragment to a slug from compiled output (`mdcp refs list`).',
+    "dead anchor: change the #fragment to a slug of the file the link points at, which for a bare #fragment is the file that holds it. A bare #fragment may also point at a section's id there, such as a FIND-* id or a declared {#id}. For a compiled output, `mdcp refs-list --format table` lists its slugs by file, relative to the docs root. A standalone guide's headings aren't in the registry.",
   'missing file': 'missing file: create the target file or fix the relative path in the shard.',
   'missing publish path':
     'missing publish path: link a published guide outputFile, or list the target guide in compile.crossGuideLinks.ignoreGuides when shard paths are intentional. Do not link durable docs to pending .changeset/*.md files.',
@@ -181,10 +184,6 @@ function reportCheckFailures(failures: CheckFailure[]): void {
   console.error('Resolve the diagnostics above, then re-run: mdcp check');
 }
 
-function compileToString(config: MdcpConfig, docsRoot: string, globalOpts: GlobalOpts): string {
-  return compileWorkspace(config, docsRoot, cliBackupFlags(globalOpts)).compiled;
-}
-
 function logWritten(results: { path: string; lines: number; backupPath?: string }[]): void {
   for (const r of results) {
     if (r.backupPath) console.log(`backed up → ${r.backupPath}`);
@@ -192,11 +191,43 @@ function logWritten(results: { path: string; lines: number; backupPath?: string 
   }
 }
 
-function writeCompiled(config: MdcpConfig, docsRoot: string, globalOpts: GlobalOpts): string {
+function writeCompiled(
+  config: MdcpConfig,
+  docsRoot: string,
+  globalOpts: GlobalOpts,
+): ReturnType<typeof compileWorkspace> {
   const workspace = compileWorkspace(config, docsRoot, cliBackupFlags(globalOpts));
   const written = writeCompiledFromWorkspace(config, docsRoot, workspace);
   logWritten(written);
-  return workspace.compiled;
+  return workspace;
+}
+
+/**
+ * Every file a compile writes, as the refs registry records it. Only the commands that write or
+ * check the registry build this list, since it stitches the monolith text again.
+ */
+function refsOutputsOf(workspace: ReturnType<typeof compileWorkspace>): RefsOutputText[] {
+  return refsOutputTexts(workspace.results, workspace.opts);
+}
+
+/**
+ * Write the refs registry for a compile: the top-level headings of `workspace.compiled`, and the
+ * headings of each file the compile writes.
+ */
+function genRefs(
+  workspace: ReturnType<typeof compileWorkspace>,
+  refsPath: string,
+  outputs = refsOutputsOf(workspace),
+): void {
+  genRefsFromCompiled(workspace.compiled, refsPath, outputs);
+}
+
+function checkRefs(
+  workspace: ReturnType<typeof compileWorkspace>,
+  refsPath: string,
+  outputs = refsOutputsOf(workspace),
+): { ok: boolean; message: string } {
+  return checkRefsRegistry(workspace.compiled, refsPath, outputs);
 }
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -225,40 +256,50 @@ cli.command('compile', 'Stitch shards into compiled guides').action((opts: Globa
   const written = writeCompiledFromWorkspace(config, docsRoot, workspace);
   logWritten(written);
   const refsPath = resolveRefsPath(docsRoot, config.outputDir, config.refs.registryFile);
-  genRefsFromCompiled(workspace.compiled, refsPath);
+  genRefs(workspace, refsPath);
   if (runBuiltInLinkLint(config, docsRoot, opts, workspace)) process.exit(1);
 });
 
 cli.command('refs-gen', 'Generate refs.json from compiled output').action((opts: GlobalOpts) => {
   const config = getConfig(opts);
-  const compiled = writeCompiled(config, getDocsRoot(opts), opts);
+  const workspace = writeCompiled(config, getDocsRoot(opts), opts);
   const refsPath = resolveRefsPath(getDocsRoot(opts), config.outputDir, config.refs.registryFile);
-  genRefsFromCompiled(compiled, refsPath);
+  genRefs(workspace, refsPath);
   console.log(`Wrote ${refsPath}`);
 });
 
 cli.command('refs-check', 'Verify refs.json matches compiled output').action((opts: GlobalOpts) => {
   const config = getConfig(opts);
-  const compiled = compileToString(config, getDocsRoot(opts), opts);
+  const workspace = compileWorkspace(config, getDocsRoot(opts), cliBackupFlags(opts));
   const refsPath = resolveRefsPath(getDocsRoot(opts), config.outputDir, config.refs.registryFile);
-  const result = checkRefsRegistry(compiled, refsPath);
+  const result = checkRefs(workspace, refsPath);
   console.log(result.message);
   if (!result.ok) process.exit(1);
 });
 
 cli
-  .command('refs-list', 'List heading slugs as JSON')
+  .command('refs-list', 'List the heading slugs of each compiled output as JSON')
   .option('--format <fmt>', 'json or table', { default: 'json' })
   .action((opts: GlobalOpts & { format: string }) => {
     const config = getConfig(opts);
     const refsPath = resolveRefsPath(getDocsRoot(opts), config.outputDir, config.refs.registryFile);
     const registry = readRefsRegistry(refsPath);
+    // A registry from an earlier mdcp has only the top-level headings, which name no file.
+    if (!registry.outputs) {
+      console.error(
+        `${refsPath} lists no compiled outputs; run \`mdcp refs-gen\` to list each heading with its file.`,
+      );
+    }
+    const headings: (HeadingEntry & { file?: string })[] = registry.outputs
+      ? registry.outputs.flatMap((o) => o.headings.map((h) => ({ file: o.file, ...h })))
+      : registry.headings;
     if (opts.format === 'table') {
-      for (const h of registry.headings) {
-        console.log(`${h.slug}\t${h.title}`);
+      for (const h of headings) {
+        const row = [h.slug, h.title];
+        console.log((h.file === undefined ? row : [h.file, ...row]).join('\t'));
       }
     } else {
-      console.log(JSON.stringify(registry.headings, null, 2));
+      console.log(JSON.stringify(headings, null, 2));
     }
   });
 
@@ -405,8 +446,9 @@ cli
       logWritten(written);
 
       const refsPath = resolveRefsPath(docsRoot, config.outputDir, config.refs.registryFile);
-      genRefsFromCompiled(workspace.compiled, refsPath);
-      const refsResult = checkRefsRegistry(workspace.compiled, refsPath);
+      const refsOutputs = refsOutputsOf(workspace);
+      genRefs(workspace, refsPath, refsOutputs);
+      const refsResult = checkRefs(workspace, refsPath, refsOutputs);
       console.log(refsResult.message);
       if (!refsResult.ok) {
         console.error('');

@@ -7,9 +7,10 @@ import { applyCompileHooks, createCompileHookState } from './hooks.js';
 import './hooks/builtin.js';
 import {
   buildSectionSlugMap,
-  rewriteCrossGuideFileLinks,
+  rewriteCrossGuideFileLinksMarked,
   rewriteIntraGuideFileLinks,
   rewritePublishRelativeLinks,
+  unmarkLinkTargets,
 } from './publish-links.js';
 import { buildGuideLinkIndexWithSlugs, type GuideLinkIndex } from './guide-link-index.js';
 import {
@@ -22,7 +23,9 @@ import type { GuideConfig, GuideConfigInput, MdcpConfigInput } from '../config/s
 import { resolveUnderOutputDir, effectiveGuideOutputFile } from '../config/load.js';
 import { resolveCompileHooks } from '../config/resolve-compile-hooks.js';
 import { writeOutputFile, type WriteOutputBackupOptions } from './write-output.js';
+import { realignTables } from './align-tables.js';
 import { markBrokenLinks } from '../links/mark-broken.js';
+import { getLocalePack } from '../locale/index.js';
 import { buildSlugRegistry } from '../refs/slugs.js';
 import type { LinkProvenance } from '../links/mark-broken.js';
 
@@ -69,7 +72,12 @@ export interface AssembleGuideOptions {
   monolithFile?: string;
   config?: MdcpConfigInput;
   linkIndex?: GuideLinkIndex;
-  /** Guide names whose cross-guide shard links keep source `.md` paths. */
+  /**
+   * Guide names whose cross-guide shard links keep source `.md` paths, except where a link to a
+   * shard the guide stitches takes its in-document anchor: through same compiled output preference,
+   * or through the intra-guide pass for a `./` or bare link. The
+   * `compile.crossGuideLinks.ignoreGuides` section of the core README links both rules.
+   */
   ignoreGuides?: string[];
   markBroken?: boolean;
   guideName?: string;
@@ -86,6 +94,21 @@ export interface AssembleGuideOptions {
   sourceTags?: boolean;
 }
 
+/** The options compile assembles a guide with: the public ones, plus what compile knows of the run. */
+interface CompileAssembleOptions extends AssembleGuideOptions {
+  /**
+   * Absolute paths of the files the run writes. The publish-relative pass resolves a link to one
+   * of them before the file is on disk.
+   */
+  runOutputFiles?: ReadonlySet<string>;
+  /**
+   * Absolute paths of configured outputs the run never writes: the monolith when no guide is
+   * stitched into it. The publish-relative pass treats a link to one as missing, even when an
+   * earlier run left the file on disk.
+   */
+  unwrittenOutputFiles?: ReadonlySet<string>;
+}
+
 /** A guide assembled up to broken-link marking. */
 interface AssembledGuide {
   markdown: string;
@@ -98,8 +121,9 @@ interface AssembledGuide {
 }
 
 /**
- * Mark broken links in an assembled guide. `documentSlugs` adds the slugs of the whole document
- * the guide is stitched into: in the monolith, every heading and the section slugs of every copy.
+ * Mark broken links in an assembled guide, then re-align the tables whose links changed width.
+ * `documentSlugs` adds the slugs of the whole document the guide is stitched into: in the
+ * monolith, every heading and the section slugs of every copy.
  */
 function markAssembledGuide(
   guide: AssembledGuide,
@@ -109,14 +133,19 @@ function markAssembledGuide(
 ): string {
   const knownSlugs = new Set(guide.sectionSlugs);
   for (const slug of documentSlugs ?? []) knownSlugs.add(slug);
-  return markBrokenLinks(guide.markdown, {
+  // Table re-alignment finds the markers by the wording of the locale that wrote them.
+  const locale = getLocalePack();
+  const marked = markBrokenLinks(guide.markdown, {
     outputFile: options.outputFile,
     provenance: guide.provenance,
     enabled: options.markBroken !== false,
     guideName,
     compiledOutputPath: options.outputFile,
     knownSlugs,
+    locale,
   }).markdown;
+  // The last compile step: every link rewrite and broken-link marker is in place.
+  return realignTables(marked, { locale });
 }
 
 export function assembleGuide(guideDir: string, options: AssembleGuideOptions = {}): string {
@@ -127,8 +156,10 @@ export function assembleGuide(guideDir: string, options: AssembleGuideOptions = 
   );
 }
 
-function assembleGuideUnmarked(guideDir: string, options: AssembleGuideOptions): AssembledGuide {
-  const guideName = basename(guideDir);
+function assembleGuideUnmarked(guideDir: string, options: CompileAssembleOptions): AssembledGuide {
+  // The configured name: hooks look the guide's config up by it, and `path` can end in a
+  // directory with another name.
+  const guideName = options.guideName ?? basename(guideDir);
   const manifestName = options.manifest ?? 'index.md';
   const indexPath = join(guideDir, manifestName);
   const indexText = readFileSync(indexPath, 'utf-8');
@@ -196,12 +227,14 @@ function assembleGuideUnmarked(guideDir: string, options: AssembleGuideOptions):
       options.hooks,
     );
 
+    // The cross-guide and publish-relative passes mark each target they write, and no later pass
+    // reads a marked target, since its path is relative to the link base rather than the shard.
     if (options.linkIndex) {
-      body = rewriteCrossGuideFileLinks(body, {
+      body = rewriteCrossGuideFileLinksMarked(body, {
         sourceFile: filePath,
         guideDir,
         scopeRoot: options.scopeRoot,
-        currentGuideName: options.guideName ?? guideName,
+        currentGuideName: guideName,
         currentOutputBasename: options.outputBasename,
         currentOutputFile: options.outputFile,
         monolithFile: options.monolithFile,
@@ -218,9 +251,12 @@ function assembleGuideUnmarked(guideDir: string, options: AssembleGuideOptions):
         sourceFile: filePath,
         guideDir,
         scopeRoot: options.scopeRoot,
-        currentGuideName: options.guideName ?? guideName,
+        currentGuideName: guideName,
         currentOutputFile: options.publishOutputFile,
         linkIndex: options.linkIndex,
+        markWritten: true,
+        runOutputFiles: options.runOutputFiles,
+        unwrittenOutputFiles: options.unwrittenOutputFiles,
       });
     }
 
@@ -242,7 +278,7 @@ function assembleGuideUnmarked(guideDir: string, options: AssembleGuideOptions):
     compiled = stripExplicitAnchorMarkers(compiled);
   }
 
-  compiled = rewriteIntraGuideFileLinks(compiled, slugByPath, guideDir);
+  compiled = unmarkLinkTargets(rewriteIntraGuideFileLinks(compiled, slugByPath, guideDir));
 
   // Only the slugs of sections this assembly stitches. A copy in the monolith also takes the
   // section slugs of the other copies when it is marked. A shard that no copy stitches has no
@@ -332,6 +368,32 @@ export function compileGuideResultsWithContext(
     slugsByGuide,
     monolithSlugsByGuide,
   } = buildGuideLinkIndexWithSlugs(options, docsRoot);
+  // Every file the run writes: each guide's compiled guide, and the monolith when a guide is
+  // stitched into it. A shard's link to one rebases the same whether or not it is on disk yet.
+  const runOutputFiles = new Set(
+    options.compileOrder.map((name) =>
+      resolve(
+        resolveUnderOutputDir(
+          docsRoot,
+          outputDir,
+          effectiveGuideOutputFile(
+            name,
+            (guideConfigMap.get(name) as GuideConfig | undefined)?.compile,
+            orderLen,
+          ),
+        ),
+      ),
+    ),
+  );
+  if (monolithFile !== undefined && monolithSlugsByGuide.size > 0) {
+    runOutputFiles.add(monolithFile);
+  }
+  // A configured monolith that no guide is stitched into is never written, so a file an earlier
+  // run left there is stale. A guide whose own output is that path still counts, as in link lint.
+  const unwrittenOutputFiles = new Set<string>();
+  if (monolithFile !== undefined && !runOutputFiles.has(monolithFile)) {
+    unwrittenOutputFiles.add(monolithFile);
+  }
   // Each guide's copy in the monolith, assembled but not yet marked for broken links.
   const monolithCopies = new Map<
     string,
@@ -364,7 +426,7 @@ export function compileGuideResultsWithContext(
     const assembleOptions = (
       documentFile: string,
       sectionSlugs: Map<string, string>,
-    ): AssembleGuideOptions => ({
+    ): CompileAssembleOptions => ({
       manifest: compile?.manifest,
       scopeRoot: compile?.scopeRoot ? resolve(docsRoot, compile.scopeRoot) : undefined,
       sectionsHeading: compile?.sectionsHeading,
@@ -385,6 +447,8 @@ export function compileGuideResultsWithContext(
       slugByPath: sectionSlugs,
       linkedFiles,
       sourceTags: compile?.sourceTags ?? options.config?.sourceTags ?? true,
+      runOutputFiles,
+      unwrittenOutputFiles,
     });
 
     const guideFile = resolve(resolveUnderOutputDir(docsRoot, outputDir, outputFile));

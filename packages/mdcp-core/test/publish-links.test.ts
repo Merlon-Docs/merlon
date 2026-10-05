@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import {
   buildSectionSlugMap,
   rewriteIntraGuideFileLinks,
   rewritePublishRelativeLinks,
 } from '../src/compile/publish-links.js';
-import { compileGuideResults } from '../src/compile/assemble.js';
+import { compileGuideResults, type CompileOptionsInput } from '../src/compile/assemble.js';
 import { withTmpDir } from './helpers/tmp-dir.js';
 
 describe('publish link rewriting', () => {
@@ -278,6 +278,80 @@ describe('publish link rewriting', () => {
     });
   });
 
+  // Link validation reads only the image src of a linked image, so no link pass may rewrite the
+  // outer target either (docs/features/link-validation.md, "No placeholder links").
+  describe('a linked image keeps its outer target', () => {
+    it('in the intra-guide pass', () => {
+      const guideDir = '/fake/guide';
+      const slugByPath = new Map([[resolve(guideDir, 'page.md'), 'page']]);
+
+      const out = rewriteIntraGuideFileLinks(
+        '[![Diagram](./d.png)](./page.md)\n[Plain](./page.md)\n',
+        slugByPath,
+        guideDir,
+      );
+      expect(out).toBe('[![Diagram](./d.png)](./page.md)\n[Plain](#page)\n');
+    });
+
+    it('in the publish-relative pass', () => {
+      withTmpDir('mdcp-linked-image-rel-', (work) => {
+        const docsDeveloper = join(work, 'docs', 'developer');
+        mkdirSync(docsDeveloper, { recursive: true });
+        mkdirSync(join(work, 'docs', 'features'), { recursive: true });
+        writeFileSync(join(work, 'package.json'), '{}');
+        writeFileSync(join(work, 'docs', 'mdcp.config.json'), '{}');
+        writeFileSync(join(work, 'docs', 'features', 'page.md'), '# Page\n');
+        const shard = join(docsDeveloper, 'guide.md');
+        writeFileSync(shard, '# Guide\n');
+
+        const out = rewritePublishRelativeLinks(
+          '[![Diagram](./d.png)](../features/page.md)\n[Plain](../features/page.md)\n',
+          {
+            sourceFile: shard,
+            guideDir: docsDeveloper,
+            currentOutputFile: join(work, 'DEVELOPERS.md'),
+          },
+        );
+        expect(out).toBe(
+          '[![Diagram](./d.png)](../features/page.md)\n[Plain](docs/features/page.md)\n',
+        );
+      });
+    });
+
+    it('in the cross-guide pass', () => {
+      withTmpDir('mdcp-linked-image-cross-', (work) => {
+        mkdirSync(join(work, 'features'), { recursive: true });
+        mkdirSync(join(work, 'client-core'), { recursive: true });
+        writeFileSync(join(work, 'features', 'index.md'), '# Features\n\n- [Topic](./topic.md)\n');
+        writeFileSync(
+          join(work, 'features', 'topic.md'),
+          '# Topic\n\n[![Diagram](./d.png)](../client-core/api.md)\n\n[Plain](../client-core/api.md)\n',
+        );
+        writeFileSync(join(work, 'client-core', 'index.md'), '# Core\n\n- [API](./api.md)\n');
+        writeFileSync(join(work, 'client-core', 'api.md'), '# API\n');
+
+        const results = compileGuideResults({
+          guidesRoot: work,
+          compileOrder: ['features', 'client-core'],
+          docsRoot: work,
+          config: {
+            outputDir: '.',
+            outputFile: 'guides.md',
+            compileOrder: ['features', 'client-core'],
+          },
+          guides: [
+            { name: 'features' },
+            { name: 'client-core', compile: { outputFile: 'README.md' } },
+          ],
+        });
+
+        const features = results.find((r) => r.name === 'features')!.text;
+        expect(features).toContain('[Plain](README.md#api)');
+        expect(features).toContain('[![Diagram](./d.png)](../client-core/api.md)');
+      });
+    });
+  });
+
   it('rewrites publish-rebased parent paths in post-assembly pass without sourceFile', () => {
     const guideDir = '/fake/docs/client-core';
     const glossaryDir = '/fake/docs/glossary';
@@ -411,6 +485,115 @@ describe('publish link rewriting', () => {
       expect(text).toContain('[Security overview](#security-overview)');
       expect(text).not.toMatch(/onboarding\.md\)/);
       expect(text).not.toMatch(/topics\/security\/index\.md\)/);
+    });
+  });
+});
+
+function writeFiles(work: string, files: Record<string, string>): void {
+  for (const [rel, text] of Object.entries(files)) {
+    mkdirSync(dirname(join(work, rel)), { recursive: true });
+    writeFileSync(join(work, rel), text);
+  }
+}
+
+/**
+ * Guide a's shard sits two directories below the repository root and links two outputs of the
+ * run, README.md and DEVELOPERS.md, which sit at the root. Neither output is on disk yet, as on a
+ * first compile.
+ */
+function writeOutputLinkFixture(work: string): void {
+  writeFiles(work, {
+    'docs/a/index.md': '# Guide A\n\n- [Intro](./intro.md)\n',
+    'docs/a/intro.md':
+      '# Intro\n\nSee [readme](../../README.md) and [setup](../../DEVELOPERS.md#setup).\n',
+    'docs/r/index.md': '# Readme\n\n- [Start](./start.md)\n',
+    'docs/r/start.md': '# Start\n\nBody.\n',
+    'docs/d/index.md': '# Developers\n\n- [Setup](./setup.md)\n',
+    'docs/d/setup.md': '# Setup\n\nBody.\n',
+  });
+}
+
+function outputLinkOptions(
+  work: string,
+  aCompile: NonNullable<NonNullable<CompileOptionsInput['guides']>[number]['compile']>,
+): CompileOptionsInput {
+  const compileOrder = ['a', 'r', 'd'];
+  return {
+    guidesRoot: work,
+    compileOrder,
+    docsRoot: work,
+    config: { outputDir: '_build', outputFile: 'guides.md', compileOrder },
+    guides: [
+      { name: 'a', path: 'docs/a', compile: aCompile },
+      { name: 'r', path: 'docs/r', compile: { outputFile: '../README.md' } },
+      { name: 'd', path: 'docs/d', compile: { outputFile: '../DEVELOPERS.md' } },
+    ],
+  };
+}
+
+describe("a shard's own link to an output of the run", () => {
+  it('is rebased for a publish output at another depth', () => {
+    withTmpDir('mdcp-publish-rel-output-link-', (work) => {
+      writeOutputLinkFixture(work);
+      const results = compileGuideResults(outputLinkOptions(work, { outputFile: '../a.md' }));
+      const a = results.find((r) => r.name === 'a')!;
+
+      expect(a.text).toContain('See [readme](README.md) and [setup](DEVELOPERS.md#setup).');
+    });
+  });
+
+  it('is rebased for the compiled guide and the monolith of a monolith guide', () => {
+    withTmpDir('mdcp-publish-rel-output-link-monolith-', (work) => {
+      writeOutputLinkFixture(work);
+      const results = compileGuideResults(outputLinkOptions(work, {}));
+      const a = results.find((r) => r.name === 'a')!;
+
+      expect(a.text).toContain('See [readme](../README.md) and [setup](../DEVELOPERS.md#setup).');
+      expect(a.monolithText).toContain(
+        'See [readme](../README.md) and [setup](../DEVELOPERS.md#setup).',
+      );
+    });
+  });
+
+  it('compiles the same whether or not an earlier run left the outputs on disk', () => {
+    withTmpDir('mdcp-publish-rel-output-link-written-', (work) => {
+      writeOutputLinkFixture(work);
+      const options = outputLinkOptions(work, { outputFile: '../a.md' });
+      const first = compileGuideResults(options).map((r) => r.text);
+      writeFiles(work, {
+        'README.md': '# Readme\n',
+        'DEVELOPERS.md': '# Developers\n\n## Setup\n',
+      });
+
+      expect(compileGuideResults(options).map((r) => r.text)).toEqual(first);
+    });
+  });
+
+  it("is rebased for a monolith guide's compiled guide that isn't on disk yet", () => {
+    withTmpDir('mdcp-publish-rel-output-link-guide-', (work) => {
+      writeOutputLinkFixture(work);
+      writeFiles(work, { 'docs/a/intro.md': '# Intro\n\nSee [d](../../_build/d.md#setup).\n' });
+      const options = outputLinkOptions(work, { outputFile: '../a.md' });
+      options.guides![2] = { name: 'd', path: 'docs/d' };
+      const a = compileGuideResults(options).find((r) => r.name === 'a')!;
+
+      expect(a.text).toContain('See [d](_build/d.md#setup).');
+    });
+  });
+
+  it('keeps a link to a monolith that no guide is stitched into as written, even when an earlier run left the file', () => {
+    withTmpDir('mdcp-publish-rel-output-link-no-monolith-', (work) => {
+      writeOutputLinkFixture(work);
+      writeFiles(work, {
+        'docs/a/intro.md': '# Intro\n\nSee [all](../../_build/guides.md#setup).\n',
+      });
+      const options = outputLinkOptions(work, { outputFile: '../a.md' });
+      const compileA = () => compileGuideResults(options).find((r) => r.name === 'a')!.text;
+
+      expect(compileA()).toContain('See [all](../../_build/guides.md#setup).');
+      // The run never writes the monolith, so a file at its path is stale and doesn't count.
+      writeFiles(work, { '_build/guides.md': '# Old\n\n## Setup\n' });
+      expect(compileA()).toContain('See [all](../../_build/guides.md#setup).');
     });
   });
 });

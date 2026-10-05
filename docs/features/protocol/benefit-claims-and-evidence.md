@@ -52,7 +52,7 @@ On this repository, the median `docs/features/` shard is about **1.5%** of the m
 
 ## Evidence elsewhere
 
-- **`mdcp check` catches orphans and broken refs**: the feature catalog and the core tests
+- **`mdcp check` catches orphans and broken links**: the [Check gate](../check-gate.md) spec and the CLI smoke tests
 - **OpenAPI analogy**: the design intent is in [Scope and positioning](./01-scope-and-positioning.md#openapi-analogy). MDCP doesn't claim membership in a standards body.
 
 ## Adoption anecdotes

@@ -29,6 +29,6 @@ CLI config path rules remain in [Config essentials](./config-essentials.md).
 After setting up a consumer repo:
 
 1. **`mdcp compile`**: per-guide outputs under `_build/` (or explicit `compile.outputFile` targets); optional monolith when `outputFile` is set
-2. **`mdcp check --require-lint`**: orphans, refs, links, and markdownlint on in-scope guide shards
+2. **`mdcp check --require-lint`**: passes the [check gate](../features/check-gate.md) with markdownlint-cli2 required for each configured markdownlint stage
 3. **`mdcp check --require-vale`**: when Vale is configured
-4. **Hook output**: diagram tables inlined (`inlineInserts`), code evidence blocks resolved (`codeEvidence`), cross-guide links rewritten to `#slug` targets in compiled output (or left as shard `.md` paths for guides in `compile.crossGuideLinks.ignoreGuides`)
+4. **Hook output**: diagram tables inlined (`inlineInserts`), code evidence blocks resolved (`codeEvidence`), cross-guide links rewritten to `#slug` targets in compiled output (a link to a guide in `compile.crossGuideLinks.ignoreGuides` keeps its shard `.md` path, except in the cases that [its config section](../client-core/compile-hooks/cross-guide-links.md#compilecrossguidelinksignoreguides) points to)

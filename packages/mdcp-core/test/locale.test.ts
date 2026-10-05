@@ -106,6 +106,53 @@ describe('locale packs', () => {
     expect(enUS.brokenLinks.findMarkers?.('See [ok](#ok).')).toEqual([]);
   });
 
+  it('ends each marker at the first text that completes it, so two markers in a row stay two', () => {
+    const first = formatBrokenLinkMarker('a', '#x', '#x', enUS.brokenLinks.reasonDeadAnchor);
+    const second = formatBrokenLinkMarker('b', '#y', '#y', enUS.brokenLinks.reasonDeadAnchor);
+    expect(enUS.brokenLinks.findMarkers?.(first + second)).toEqual([first, second]);
+    expect(enUS.brokenLinks.findMarkers?.(`${first})`)).toEqual([first]);
+  });
+
+  it('finds a marker on a CRLF line and in text with astral characters', () => {
+    const marker = formatBrokenLinkMarker('😀 é', '#ü', '#ü', enUS.brokenLinks.reasonDeadAnchor);
+    expect(enUS.brokenLinks.lineHasMarker(`${marker}\r`)).toBe(true);
+    expect(enUS.brokenLinks.findMarkers?.(`𝒳 ${marker}\r`)).toEqual([marker]);
+  });
+
+  it('does not find a marker whose variable text holds a line terminator', () => {
+    for (const lineBreak of ['\r', '\u2028', '\u2029']) {
+      const marker = formatBrokenLinkMarker(
+        `a${lineBreak}b`,
+        '#x',
+        '#x',
+        enUS.brokenLinks.reasonDeadAnchor,
+      );
+      expect(enUS.brokenLinks.lineHasMarker(marker)).toBe(false);
+      expect(enUS.brokenLinks.findMarkers?.(marker)).toEqual([]);
+    }
+  });
+
+  it('matches a template that starts or ends with a variable, or has two variables in a row', () => {
+    const pack = createLocalePack({
+      id: 'x-edges',
+      brokenLinks: {
+        markerLabel: 'X',
+        markerTemplate: '{label}{originalTarget} <{markerLabel}> {brokenTarget}: {reason}',
+        reasonDeadAnchor: 'a',
+        reasonMissingFile: 'b',
+        reasonMissingPublishPath: 'c',
+      },
+      inserts: { seeInsertFallback: 'insert' },
+    });
+    // A variable that starts the template takes the text from where the search starts, and one
+    // that ends it takes none, as a lazy `.*?` does.
+    expect(pack.brokenLinks.findMarkers?.('see t#u <X> #v: a, and w <X> y: b')).toEqual([
+      'see t#u <X> #v: ',
+      'a, and w <X> y: ',
+    ]);
+    expect(pack.brokenLinks.lineHasMarker('see <X> v')).toBe(false);
+  });
+
   it('builds insert captions via en-US kind titles', () => {
     expect(numberedInsertHeading('/docs/tables/status-codes.md', '', 1)).toBe(
       'Table 1. Status Codes',

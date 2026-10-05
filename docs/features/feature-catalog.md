@@ -35,9 +35,9 @@ npx skills add betsalel-williamson/mdcp --skill mdcp
 
 Optional local with/without-skill grading for each workflow is maintainer work — see [Live skill evals](../developer/live-skill-evals.md). Not a CI gate.
 
-## Check gate (P0.4)
+## Validation gate
 
-Structural validation: orphans → compile → refs → **links**. Peer linters are optional. Built-in link validation catches dead internal `.md` paths and `#anchor` fragments, as [Link validation](./link-validation.md) describes. Latency targets for large shard sets are in [Performance goals](./protocol/performance.md).
+Run the validation stages in one command, and fail when any of them fails. [Check gate](./check-gate.md) specifies the stages and the exit status. Latency targets for large shard sets are in [Performance goals](./protocol/performance.md).
 
 ```bash
 mdcp check --require-lint
@@ -55,13 +55,13 @@ Split a source document into shards via md-tree.
 mdcp shard   # requires config.source
 ```
 
-## Orphan check (P1.3)
+## Orphan check
 
 Detect shards not in manifest or missing files.
 
 ## Peer Vale prose (not core)
 
-en-US writing cues such as an unlinked "See Chapter…" mention, and dogfood warnings to remove Pandoc IDs (`{#…}` after a heading), live in Vale styles — not in `mdcp check`. They do not replace [Link validation](./link-validation.md) for GFM cross-refs. See [Locale and language boundary](./design-constraints/locale-and-language.md).
+en-US writing cues, such as an unlinked "See Chapter…" mention, live in Vale styles rather than in mdcp's core stages. So does this repository's rule against Pandoc IDs (`{#…}` after a heading). They do not replace [Link validation](./link-validation.md) for GFM cross-refs. `mdcp check` runs them in its Vale stage, as [Check gate](./check-gate.md#check-gate-stages) says, when Vale is installed and the host's Vale config (`vale.config`, default `.vale.ini`) enables their styles. `--skip-vale` skips the stage. See [Locale and language boundary](./design-constraints/locale-and-language.md).
 
 ## Coverage scan
 
@@ -87,7 +87,7 @@ Built-in hooks:
 - **`codeEvidence`** — rewrites repo source links to `#L` line fragments (symbol or line range in link text); rebases paths for the rendered output automatically. See [codeEvidence](../client-core/compile-hooks/code-evidence.md).
 - **`inlineInserts`** — inlines captioned insert shards from shared libraries (`diagrams/`, `tables/`, `figures/`, `media/`); shard bodies may include tables, prose, or media (images, video, audio); numbered `####` headings per kind (`Table 1. …`); first mention per guide inlines, later references back-link. Optional `hooksConfig.inlineInserts.searchRoots`. See [inlineInserts](../client-core/compile-hooks/inline-inserts.md).
 
-**Link rewriting at assembly time:** every compile builds a cross-guide link index from `compileOrder` and rewrites inter-guide `.md` links per shard. It then rebases remaining `../` file paths relative to each guide's [link base](../client-core/compile-hooks/publish-relative-links.md#when-it-runs), and rewrites same-guide `./section.md` links to in-document `#anchor` links. Optional `compile.crossGuideLinks.ignoreGuides` keeps shard `.md` paths for listed guides (publish-relative still rebases them the same way). See [Cross-guide link rewriting](../client-core/compile-hooks/cross-guide-links.md) and [Publish-relative link rewriting](../client-core/compile-hooks/publish-relative-links.md).
+**Link rewriting at assembly time:** every compile builds a cross-guide link index from `compileOrder`, then rewrites each shard's links to files in the [link passes](../client-core/compile-hooks/index.md#link-passes). Optional `compile.crossGuideLinks.ignoreGuides` keeps shard `.md` paths in links to listed guides, except in the cases that [its config section](../client-core/compile-hooks/cross-guide-links.md#compilecrossguidelinksignoreguides) points to. Once links are rewritten and broken ones marked, compile re-aligns each aligned table whose links changed width. See [Tables after link rewriting](../client-core/compile-hooks/tables-after-link-rewriting.md).
 
 ## Agent integration (consumer repo)
 

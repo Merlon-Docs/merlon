@@ -21,7 +21,7 @@ Reported 2026-09 by the maintainer, from a trunk-based repository with no human-
 
 The structural half of the protocol worked without supervision:
 
-- **Manifest membership.** Every shard was indexed. The [orphan check](../../feature-catalog.md#orphan-check-p13) makes an unindexed shard fail the gate, so agents added the index entry as part of the same change.
+- **Manifest membership.** Every shard was indexed. The [orphan check](../../feature-catalog.md#orphan-check) makes an unindexed shard fail the gate, so agents added the index entry as part of the same change.
 - **Link integrity.** No dangling internal link survived to trunk. [Link validation](../../link-validation.md) fails `mdcp check`, so a broken cross-reference never reached review.
 - **Docs landing with code.** About 200 of the ~440 shard-touching commits also touched code. The "update as you go" habit survived contact with a fully automated workflow, which is the outcome the skill's small-batch guidance is aiming at.
 - **Cost.** A 1.5 s gate is cheap enough that no agent had a reason to skip it.
@@ -40,7 +40,7 @@ The content half — the requirement that a shard describe the product as it wor
 
 The report attributes the failure to structure rather than to agents ignoring the skill. Five mechanisms, in rough order of force:
 
-1. **The gate is structural; the rule is semantic.** Agents stop when the gate is green, and `mdcp check` is green with stale prose, dead backtick paths, and a guide describing a removed component. The [check gate](../../feature-catalog.md#check-gate-p04) validates that documents refer to each other correctly, never that they refer to the product correctly.
+1. **The gate is structural; the rule is semantic.** Agents stop when the gate is green, and `mdcp check` is green with stale prose, dead backtick paths, and a guide describing a removed component. The [check gate](../../check-gate.md) validates that documents refer to each other correctly, never that they refer to the product correctly.
 2. **Standalone guides are less checked than compiled ones.** A standalone guide is register-only: compile doesn't write output for it, and the gate checks its outbound links (plus its backtick paths when `lint.paths` is on) but runs none of the compiled-output checks. See [Documentation coverage scan](../../coverage-scan.md). It is also outside the guide directories an agent sweeps when it greps `docs/`. The largest drift in this report was in a standalone guide, and that is not a coincidence.
 3. **Ticket scope ends at the grep.** An agent removing a concept edits the shards its search returns inside its declared scope. The [two-level review](../../agent-skill.md#quality-assurance-qa-principles) asks it to compare the change against related shards, but nothing enumerates every guide that names the removed concept, and a standalone guide outside the searched tree is the one most likely to be missed.
 4. **Deleting has a worse payoff than keeping.** Removing context risks a repeated incident that a reviewer or a later agent will notice and attribute. Keeping it costs nothing at any gate. Where a local rule offers any exception — here, narrative that "explains a constraint" — every agent resolves the tie in the same direction, so archaeology accumulates monotonically. A rule that is unconditional upstream is not safe either; it is simply unbudgeted.

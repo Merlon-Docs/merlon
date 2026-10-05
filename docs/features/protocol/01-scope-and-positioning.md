@@ -11,7 +11,7 @@ MDCP is an **offline document context protocol** — not a wire protocol like [M
 | Problem         | Runtime tool and data access for AI hosts | Author, compile, and validate documentation context                     |
 | Interaction     | JSON-RPC session                          | Files on disk + batch CLI                                               |
 | Source of truth | Server-defined                            | **Shards in version control (git in V1)**; compiled output is generated |
-| Validation      | Server-defined                            | Orphans, refs, links, optional peer linters                             |
+| Validation      | Server-defined                            | One validation gate, `mdcp check`                                       |
 
 ## Why MDCP is not an MCP server
 
