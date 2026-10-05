@@ -10,8 +10,8 @@ To work on the Agent Skill itself, start with [Agent Skill development](../devel
 
 ## Acknowledgments
 
-- [Denali Lumma (@dlumma)](https://github.com/dlumma) — early review and feedback
-- [Lisa Crispin](https://lisacrispin.com) (She/Her) — [LinkedIn](https://www.linkedin.com/in/lisacrispin/)
+- Denali Lumma, for early review and feedback
+- Lisa Crispin (She/Her)
 
 ## License
 
