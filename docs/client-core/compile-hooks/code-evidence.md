@@ -13,7 +13,7 @@ Architecture and technical review shards cite **repo source files** as evidence.
 3. Appends GitHub-style **`#L` fragments** (`#L6`, `#L6-L8`) to the link target
 4. Rewrites the target path to be relative to the guide's [link base](./publish-relative-links.md#when-it-runs)
 
-Publish-relative assembly rebases the other `../` file links in every guide against the same link base, except the ones [Publish-relative exclusions](./publish-relative-links.md#publish-relative-exclusions) lists. In `DEVELOPERS.md`, `../../package.json` becomes `package.json`. See [Publish-relative link rewriting](./publish-relative-links.md).
+The publish-relative pass then rebases the `../` links whose path the hook leaves as the shard wrote it, against the same link base. Such a link can lead to a Markdown file or to another path the hook doesn't read, like `.nvmrc`. It can also lead to a source file that the hook doesn't find, even when the hook added a line fragment to it. In `DEVELOPERS.md`, the hook rebases `../../package.json` to `package.json`, and the publish-relative pass rebases `../../.nvmrc` to `.nvmrc`. [Publish-relative exclusions](./publish-relative-links.md#publish-relative-exclusions) lists the links that pass leaves alone, a link the hook rebased among them.
 
 ## codeEvidence link matching
 

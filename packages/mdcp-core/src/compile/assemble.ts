@@ -5,6 +5,7 @@ import { keepsAnchorMarkers, stripExplicitAnchorMarkers } from './anchors.js';
 import { extractFirstHeading, stripFirstHeadingLine } from './compile-title.js';
 import { applyCompileHooks, createCompileHookState } from './hooks.js';
 import './hooks/builtin.js';
+import { markRebasedEvidenceLinks, recordRebasedEvidenceLinks } from './hooks/code-evidence.js';
 import {
   buildSectionSlugMap,
   rewriteCrossGuideFileLinksMarked,
@@ -211,6 +212,7 @@ function assembleGuideUnmarked(guideDir: string, options: CompileAssembleOptions
 
     let body = processSection(guideName, name, raw, preambleSection).trimEnd();
 
+    const rebasedEvidence = recordRebasedEvidenceLinks(hookState);
     body = applyCompileHooks(
       body,
       {
@@ -229,6 +231,9 @@ function assembleGuideUnmarked(guideDir: string, options: CompileAssembleOptions
 
     // The cross-guide and publish-relative passes mark each target they write, and no later pass
     // reads a marked target, since its path is relative to the link base rather than the shard.
+    // A path `codeEvidence` rebased is relative to the link base too. Assembly marks it once every
+    // hook has run, so no hook sees a mark.
+    body = markRebasedEvidenceLinks(body, rebasedEvidence);
     if (options.linkIndex) {
       body = rewriteCrossGuideFileLinksMarked(body, {
         sourceFile: filePath,

@@ -298,6 +298,7 @@ assembleGuide (per guide, once for each document it is written to)
   ├─ for each shard (manifest order, then linked shards)
   │    ├─ processSection (demote headings, strip about-this-guide)
   │    ├─ applyCompileHooks (named hooks from config, in order)
+  │    ├─ mark the paths codeEvidence rebased
   │    ├─ cross-guide pass (automatic when link index present, marks what it writes)
   │    ├─ rewriteIntraGuideFileLinks (same-guide links, from the shard directory)
   │    └─ rewritePublishRelativeLinks (every guide, relative to its link base, marks what it writes)
@@ -313,7 +314,9 @@ assembleGuide (per guide, once for each document it is written to)
 
 #### Link passes
 
-Assembly rewrites links to files in the passes below. They run on each shard in table order, and the intra-guide pass runs once more on the stitched body. They aren't compile hooks, so `compile.hooks` doesn't turn them off. Every later pass leaves alone a link that the cross-guide or publish-relative pass rewrote, and that includes the run on the stitched body. Assembly marks each target those two passes write, and it removes the marks after that run. So a cross-guide target such as `glossary.md#term` stays as the cross-guide pass wrote it, even when the guide stitches a shard named `glossary.md`.
+Assembly rewrites links to files in the passes below. They run on each shard in table order, and the intra-guide pass runs once more on the stitched body. They aren't compile hooks, so `compile.hooks` doesn't turn them off. Every later pass leaves alone a link that `codeEvidence` rebased or that the cross-guide or publish-relative pass rewrote, and that includes the run on the stitched body. Assembly marks each of those targets, and it removes the marks after that run. So a cross-guide target such as `glossary.md#term` stays as the cross-guide pass wrote it, even when the guide stitches a shard named `glossary.md`.
+
+Assembly marks the paths `codeEvidence` rebased once every hook has run, so no hook sees a mark. It finds each of those links by the text the hook wrote and by its place among the links with that text. So a link the shard wrote with the same text, which the hook left as written, doesn't get a mark. When a hook listed after `codeEvidence` changes that text, or adds or removes a link with that text above it, the publish-relative pass can rebase the hook's path again, and leave another link with that text as it is.
 
 | Pass             | When                                       | Matches                                                                                                     | Output                                         |
 | ---------------- | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
@@ -490,7 +493,7 @@ Architecture and technical review shards cite **repo source files** as evidence.
 3. Appends GitHub-style **`#L` fragments** (`#L6`, `#L6-L8`) to the link target
 4. Rewrites the target path to be relative to the guide's [link base](#when-it-runs)
 
-Publish-relative assembly rebases the other `../` file links in every guide against the same link base, except the ones [Publish-relative exclusions](#publish-relative-exclusions) lists. In `DEVELOPERS.md`, `../../package.json` becomes `package.json`. See [Publish-relative link rewriting](#publish-relative-link-rewriting).
+The publish-relative pass then rebases the `../` links whose path the hook leaves as the shard wrote it, against the same link base. Such a link can lead to a Markdown file or to another path the hook doesn't read, like `.nvmrc`. It can also lead to a source file that the hook doesn't find, even when the hook added a line fragment to it. In `DEVELOPERS.md`, the hook rebases `../../package.json` to `package.json`, and the publish-relative pass rebases `../../.nvmrc` to `.nvmrc`. [Publish-relative exclusions](#publish-relative-exclusions) lists the links that pass leaves alone, a link the hook rebased among them.
 
 ### codeEvidence link matching
 
@@ -981,7 +984,7 @@ Review targets use the compiled `architecture-review.md`. The ignored guide keep
 
 <!-- mdcp-paths: illustrative -->
 
-Specification for assembly-time rebasing of shard-relative file links to each guide's [link base](#when-it-runs). Tests in `packages/mdcp-core/test/publish-links.test.ts`, `packages/mdcp-core/test/links.test.ts` and `packages/mdcp-core/test/guide-output-path.test.ts` map to the sections below. Tests for the exclusion of cross-guide links and for [`ignoreGuides` interaction](#ignoreguides-interaction) are also in `packages/mdcp-core/test/cross-guide-links.test.ts`.
+Specification for assembly-time rebasing of shard-relative file links to each guide's [link base](#when-it-runs). Tests in `packages/mdcp-core/test/publish-links.test.ts`, `packages/mdcp-core/test/links.test.ts` and `packages/mdcp-core/test/guide-output-path.test.ts` map to the sections below. Tests for the exclusion of cross-guide links and for [`ignoreGuides` interaction](#ignoreguides-interaction) are also in `packages/mdcp-core/test/cross-guide-links.test.ts`, and tests for the exclusion of links that `codeEvidence` rebased are in `packages/mdcp-core/test/code-evidence.test.ts`.
 
 ### Why this pass exists
 
@@ -989,7 +992,7 @@ Shards are authored with paths relative to **where the file lives** in the guide
 
 - `../features/foo.md` from `docs/developer/`
 - `../../features/foo.md` from `docs/client-core/compile-hooks/`
-- `../../package.json` from `docs/developer/` (repo root)
+- `../../.nvmrc` from `docs/developer/` (repo root)
 
 That works while readers open shards under `docs/`. It breaks when the same content compiles to a **publish output** elsewhere — for example `DEVELOPERS.md` at the repo root or `packages/mdcp-cli/README.md`.
 
@@ -1051,6 +1054,7 @@ The pass **does not** transform:
 - Same-document `#fragment` links
 - `./section.md` and other `./` paths (cross-guide or intra-guide handle `.md`; publish-relative only matches `../`)
 - A link that the cross-guide pass rewrote, whose path is already relative to the link base, such as `../../README.md#setup` in a guide published to `packages/a/README.md`
+- A link that [`codeEvidence`](#codeevidence) rebased, whose path is relative to the link base too. From the shard's directory, the path can lead to another file with the same name.
 - Unresolvable paths (left unchanged)
 
 ### Repo dogfood examples
@@ -1061,9 +1065,9 @@ Config: [`docs/mdcp.config.json`](../../docs/mdcp.config.json). Every guide exce
 
 | Shard input (`docs/developer/…`) | Compiled in `DEVELOPERS.md`        |
 | -------------------------------- | ---------------------------------- |
-| `../../package.json`             | `package.json`                     |
+| `../../.nvmrc`                   | `.nvmrc`                           |
 | `../features/feature-catalog.md` | `docs/features/feature-catalog.md` |
-| `../mdcp.config.json`            | `docs/mdcp.config.json`            |
+| `../../packages/mdcp-site/`      | `packages/mdcp-site`               |
 
 **`client-cli` → `packages/mdcp-cli/README.md`**
 

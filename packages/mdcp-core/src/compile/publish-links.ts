@@ -21,12 +21,18 @@ export function slugForSectionFile(filePath: string, cache?: ShardCache): string
 
 /**
  * Assembly opens a link target with this mark when the cross-guide or publish-relative pass writes
- * it. The target is then relative to the link base rather than the shard, so a later pass leaves
- * the link alone: the publish-relative pattern needs a target that opens with `../`, and the
- * intra-guide pass skips a marked target. `unmarkLinkTargets` removes the marks after the last
- * pass. CommonMark replaces U+0000 in its input, so no shard link means the character.
+ * it, or when `codeEvidence` rebased it. The target is then relative to the link base rather than
+ * the shard, so a later pass leaves the link alone: the publish-relative pattern needs a target
+ * that opens with `../`, and the intra-guide pass skips a marked target. `unmarkLinkTargets`
+ * removes the marks after the last pass. CommonMark replaces U+0000 in its input, so no shard link
+ * means the character.
  */
 const WRITTEN_LINK_MARK = '\u0000';
+
+/** `target` opened with the mark that tells assembly's later link passes to leave it alone. */
+export function markLinkTarget(target: string): string {
+  return `${WRITTEN_LINK_MARK}${target}`;
+}
 
 /** Remove the marks that assembly's link passes put on the targets they wrote. */
 export function unmarkLinkTargets(markdown: string): string {

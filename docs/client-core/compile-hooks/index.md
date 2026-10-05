@@ -12,6 +12,7 @@ assembleGuide (per guide, once for each document it is written to)
   ├─ for each shard (manifest order, then linked shards)
   │    ├─ processSection (demote headings, strip about-this-guide)
   │    ├─ applyCompileHooks (named hooks from config, in order)
+  │    ├─ mark the paths codeEvidence rebased
   │    ├─ cross-guide pass (automatic when link index present, marks what it writes)
   │    ├─ rewriteIntraGuideFileLinks (same-guide links, from the shard directory)
   │    └─ rewritePublishRelativeLinks (every guide, relative to its link base, marks what it writes)
@@ -27,7 +28,9 @@ assembleGuide (per guide, once for each document it is written to)
 
 ### Link passes
 
-Assembly rewrites links to files in the passes below. They run on each shard in table order, and the intra-guide pass runs once more on the stitched body. They aren't compile hooks, so `compile.hooks` doesn't turn them off. Every later pass leaves alone a link that the cross-guide or publish-relative pass rewrote, and that includes the run on the stitched body. Assembly marks each target those two passes write, and it removes the marks after that run. So a cross-guide target such as `glossary.md#term` stays as the cross-guide pass wrote it, even when the guide stitches a shard named `glossary.md`.
+Assembly rewrites links to files in the passes below. They run on each shard in table order, and the intra-guide pass runs once more on the stitched body. They aren't compile hooks, so `compile.hooks` doesn't turn them off. Every later pass leaves alone a link that `codeEvidence` rebased or that the cross-guide or publish-relative pass rewrote, and that includes the run on the stitched body. Assembly marks each of those targets, and it removes the marks after that run. So a cross-guide target such as `glossary.md#term` stays as the cross-guide pass wrote it, even when the guide stitches a shard named `glossary.md`.
+
+Assembly marks the paths `codeEvidence` rebased once every hook has run, so no hook sees a mark. It finds each of those links by the text the hook wrote and by its place among the links with that text. So a link the shard wrote with the same text, which the hook left as written, doesn't get a mark. When a hook listed after `codeEvidence` changes that text, or adds or removes a link with that text above it, the publish-relative pass can rebase the hook's path again, and leave another link with that text as it is.
 
 | Pass             | When                                       | Matches                                                                                                     | Output                                         |
 | ---------------- | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
