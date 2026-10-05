@@ -752,7 +752,8 @@ describe('lintLinks', () => {
       };
       const results = compileGuideResults(compileOptions);
 
-      // Nothing is written: guides.md exists only as the stitched text.
+      // Nothing is written: guides.md exists only as the stitched text. Compile still rebases the
+      // links to it relative to a.md, as it would once the file is on disk.
       const issues = lintLinks({
         config: MdcpConfigSchema.parse(configInput),
         docsRoot,
@@ -760,7 +761,7 @@ describe('lintLinks', () => {
         compileOptions,
       });
       expect(issues.map((i) => `${i.kind} ${i.originalTarget}`)).toEqual([
-        'dead anchor ../_build/guides.md#nope',
+        'dead anchor guides.md#nope',
       ]);
     });
   });

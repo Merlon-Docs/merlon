@@ -10,6 +10,6 @@ The Architecture section now lists the three link passes in one "Link passes" ta
 
 The cross-guide section no longer describes which links the compile walk follows. The Manifest compile order spec in the features guide covers that now, so links to `#transitive-section-discovery` or `#what-the-walk-follows` should point at its "Linked shards and the file-name fallback" section. The ownership rules for the guide link index are under "Index ownership" (`#index-ownership`) in the cross-guide section, and "Cross-guide purpose" says which shards get an entry: each shard the walk compiles that opens with a heading, and each `FIND-*` finding. The API Config section's publish-outputs paragraph links to the link passes instead of restating them.
 
-The publish-relative section's matching and exclusions lists now match the code. A link a shard writes to an output named in the guide link index, such as `../../README.md`, keeps its shard-relative path, because neither pass rebases it. A link to the compiled guide of a guide in the monolith is rebased like any other file.
+The publish-relative section's matching and exclusions lists now match the code.
 
 The `inlineInserts` search root examples use `shared`, the parent of a `diagrams/` library. Compile resolves the whole link path, such as `diagrams/flow.md`, against each root, so a root named `diagrams` looks for `diagrams/diagrams/flow.md`.

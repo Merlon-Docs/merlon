@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { basename, dirname, relative, resolve, isAbsolute } from 'node:path';
 import { defaultSearchRoots, resolveRelativeFile } from './hooks/path-resolve.js';
 import { maskInlineCode } from '../links/extract.js';
@@ -99,6 +99,16 @@ export interface PublishRelativeLinkRewriteOptions {
   searchRoots?: string[];
   /** Open each target the pass writes with the mark that tells later passes to leave it alone. */
   markWritten?: boolean;
+  /**
+   * Absolute paths of the files the run writes. A target that names one resolves before the file
+   * is on disk, so a link to an output compiles the same on a first run and on later ones.
+   */
+  runOutputFiles?: ReadonlySet<string>;
+  /**
+   * Absolute paths of configured outputs the run never writes. A target that names one counts as
+   * missing, so a file an earlier run left there doesn't change the compiled link.
+   */
+  unwrittenOutputFiles?: ReadonlySet<string>;
 }
 
 function parseLinkPath(target: string): { path: string; suffix: string } {
@@ -111,23 +121,18 @@ function resolvePublishLinkTarget(
   filePart: string,
   options: PublishRelativeLinkRewriteOptions,
 ): string | null {
-  const shardDir = dirname(options.sourceFile);
-  const searchRoots = options.scopeRoot ? [options.scopeRoot] : [];
-  return (
-    resolveRelativeFile(filePart, shardDir, searchRoots) ??
-    resolveRelativeFile(filePart, options.guideDir, searchRoots)
-  );
-}
-
-function isOtherPublishOutput(
-  resolvedAbs: string,
-  options: PublishRelativeLinkRewriteOptions,
-): boolean {
-  if (!options.linkIndex) return false;
-  for (const entry of options.linkIndex.values()) {
-    if (entry.outputFile === resolvedAbs) return true;
+  const bases = [
+    dirname(options.sourceFile),
+    ...(options.scopeRoot ? [options.scopeRoot] : []),
+    options.guideDir,
+  ];
+  for (const base of bases) {
+    const candidate = resolve(base, filePart);
+    if (options.runOutputFiles?.has(candidate)) return candidate;
+    if (options.unwrittenOutputFiles?.has(candidate)) continue;
+    if (existsSync(candidate)) return candidate;
   }
-  return false;
+  return null;
 }
 
 function skipPublishRelativeRewrite(
@@ -154,7 +159,6 @@ export function rewritePublishRelativeLinks(
 
     const resolved = resolvePublishLinkTarget(filePart, options);
     if (!resolved) return originalMatch;
-    if (isOtherPublishOutput(resolved, options)) return originalMatch;
     if (skipPublishRelativeRewrite(resolved, options)) return originalMatch;
 
     const fromDir = dirname(outputAbs);

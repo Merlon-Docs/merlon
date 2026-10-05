@@ -124,7 +124,7 @@ A `shardsGlobs` entry that starts with `../` gets the escaped absolute path of t
 
 Guides with `compile.outputFile` publish outside the shard tree (npm READMEs, `DEVELOPERS.md`, and similar).
 
-After the cross-guide and intra-guide rewrites, compile resolves the `../` links a shard still has and writes them relative to the guide's [link base](#when-it-runs). [Publish-relative exclusions](#publish-relative-exclusions) lists the links it leaves as written, such as a link to an output named in the guide link index. A guide doesn't need path-prefix config for this. [Link passes](#link-passes) lists the passes in order, and [Publish-relative link rewriting](#publish-relative-link-rewriting) has examples from MDCP's own docs.
+After the cross-guide and intra-guide rewrites, compile resolves the `../` links a shard still has and writes them relative to the guide's [link base](#when-it-runs). [Publish-relative exclusions](#publish-relative-exclusions) lists the links it leaves as written, such as a path that leads to no file. A guide doesn't need path-prefix config for this. [Link passes](#link-passes) lists the passes in order, and [Publish-relative link rewriting](#publish-relative-link-rewriting) has examples from MDCP's own docs.
 
 ### `compile.hooks`
 
@@ -319,7 +319,7 @@ Assembly rewrites links to files in the passes below. They run on each shard in 
 | ---------------- | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
 | Cross-guide      | Per shard, after the hooks                 | `./` and `../` paths to a shard in the guide link index                                                     | `#slug`, or another output's path plus `#slug` |
 | Intra-guide      | Per shard, then again on the stitched body | Bare and `./` paths to a shard the guide stitches, and after stitch the `../` paths no earlier pass rewrote | `#slug`                                        |
-| Publish-relative | Per shard, after intra-guide               | `../` paths to a file or directory that exists                                                              | The path relative to the guide's link base     |
+| Publish-relative | Per shard, after intra-guide               | `../` paths to a file or directory that exists, or to an output of the run                                  | The path relative to the guide's link base     |
 
 A link with a `#fragment` keeps it in place of the slug. [Cross-guide resolution](#cross-guide-resolution) says when a cross-guide link stays in the document and which output it names otherwise. [Publish-relative matching](#publish-relative-matching) says which `../` targets the publish-relative pass skips, and [`ignoreGuides` interaction](#ignoreguides-interaction) covers a cross-guide link that keeps its shard path. The publish-relative shard also defines the [link base](#when-it-runs).
 
@@ -337,6 +337,8 @@ A pass that follows a link to a file first drops any leading `./` and the `#frag
 | Publish-relative rewrite  | Shard directory, `compile.scopeRoot`, guide directory                                                                                        |
 
 The shard directory contains the shard being compiled, and the guide directory contains the guide's manifest. `compile.scopeRoot` is resolved from the docs root and skipped when unset. The working directory is `process.cwd()`, where the command runs, and `searchRoots` entries are resolved from it, so the same shard can resolve differently from the repository root and from `docs/`. The intra-guide pass looks paths up among the shards the guide stitches rather than on disk. Its per-shard run skips paths that start with `../`, and the file-name match applies only to a link that is a file name alone, such as `name.md` or `./name.md`.
+
+The publish-relative rewrite also finds a path to an output of the run before compile writes the output. A first compile then rebases a link to an output as later compiles do. The outputs of the run are the ones that [link validation](../../docs/features/link-validation.md#validation-phases) checks in memory: each guide's compiled guide, and the monolith when a guide is stitched into it. When every guide sets `compile.outputFile`, the run never writes the configured monolith. The rewrite then treats a path to the monolith as missing, even when an earlier run left the file on disk, as link validation does.
 
 After lookup, `codeEvidence` and the publish-relative rewrite emit the path relative to the guide's [link base](#when-it-runs), and `inlineInserts` inlines the file. The cross-guide and intra-guide rewrites emit a heading target: `#slug`, after the other output's path when the target is in another file.
 
@@ -1040,11 +1042,12 @@ A link is rewritten when **all** of the following hold:
 - Standard markdown link syntax: `[label](path)`
 - Target starts with one or more `../` segments (not `./` — see exclusions)
 - Target is not `http://`, `https://`, `mailto:`, or `#…`
-- Target resolves to an existing file or directory, in the order [Path lookup order](#path-lookup-order) gives for this pass
+- Target resolves to an existing file or directory, or to an output of the run, in the order [Path lookup order](#path-lookup-order) gives for this pass
 - Resolved path is **not** a same-guide indexed shard (the cross-guide pass rewrites those)
-- Resolved path is **not** the `outputFile` of an entry in the [guide link index](#cross-guide-purpose)
 
 A target made only of `../` segments, such as `../` or `../../`, points at a directory and rebases in every compiled guide. From `docs/developer/` into `DEVELOPERS.md`, the target `../` compiles to `docs`. The target `../../` resolves to the directory that contains `DEVELOPERS.md`, so it compiles to `./`. The rebased path drops any trailing slash, so `../../skills/` compiles to `skills`.
+
+A link the shard writes to an output of the run, such as `../../README.md`, is a shard-relative path like any other, and the pass rebases it. The rebased path leads to the output from a link base at any depth. [Path lookup order](#path-lookup-order) says which outputs count as existing before compile writes them, and why the pass treats a path to the monolith as missing when every guide sets `compile.outputFile`.
 
 ### Publish-relative resolution
 
@@ -1066,10 +1069,7 @@ The pass **does not** transform:
 - Same-document `#fragment` links
 - `./section.md` and other `./` paths (cross-guide or intra-guide handle `.md`; publish-relative only matches `../`)
 - A link that the cross-guide pass rewrote, whose path is already relative to the link base, such as `../../README.md#setup` in a guide published to `packages/a/README.md`
-- A link the shard writes to an output named in the guide link index, such as `../../README.md`
 - Unresolvable paths (left unchanged)
-
-In the guide link index, each entry's `outputFile` is the owner's publish output when the owner sets `compile.outputFile`. Otherwise it is the monolith when the config has one, and the owner's compiled guide when it doesn't. A link the shard writes to one of these outputs keeps its shard-relative path, because neither pass rebases it. That path resolves in a compiled guide only when it also leads from the link base to the output. The compiled guide of a guide in the monolith isn't one of them, and the pass rebases a link to it like any other file.
 
 ### Repo dogfood examples
 

@@ -89,6 +89,21 @@ export interface AssembleGuideOptions {
   sourceTags?: boolean;
 }
 
+/** The options compile assembles a guide with: the public ones, plus what compile knows of the run. */
+interface CompileAssembleOptions extends AssembleGuideOptions {
+  /**
+   * Absolute paths of the files the run writes. The publish-relative pass resolves a link to one
+   * of them before the file is on disk.
+   */
+  runOutputFiles?: ReadonlySet<string>;
+  /**
+   * Absolute paths of configured outputs the run never writes: the monolith when no guide is
+   * stitched into it. The publish-relative pass treats a link to one as missing, even when an
+   * earlier run left the file on disk.
+   */
+  unwrittenOutputFiles?: ReadonlySet<string>;
+}
+
 /** A guide assembled up to broken-link marking. */
 interface AssembledGuide {
   markdown: string;
@@ -136,7 +151,7 @@ export function assembleGuide(guideDir: string, options: AssembleGuideOptions = 
   );
 }
 
-function assembleGuideUnmarked(guideDir: string, options: AssembleGuideOptions): AssembledGuide {
+function assembleGuideUnmarked(guideDir: string, options: CompileAssembleOptions): AssembledGuide {
   // The configured name: hooks look the guide's config up by it, and `path` can end in a
   // directory with another name.
   const guideName = options.guideName ?? basename(guideDir);
@@ -235,6 +250,8 @@ function assembleGuideUnmarked(guideDir: string, options: AssembleGuideOptions):
         currentOutputFile: options.publishOutputFile,
         linkIndex: options.linkIndex,
         markWritten: true,
+        runOutputFiles: options.runOutputFiles,
+        unwrittenOutputFiles: options.unwrittenOutputFiles,
       });
     }
 
@@ -346,6 +363,32 @@ export function compileGuideResultsWithContext(
     slugsByGuide,
     monolithSlugsByGuide,
   } = buildGuideLinkIndexWithSlugs(options, docsRoot);
+  // Every file the run writes: each guide's compiled guide, and the monolith when a guide is
+  // stitched into it. A shard's link to one rebases the same whether or not it is on disk yet.
+  const runOutputFiles = new Set(
+    options.compileOrder.map((name) =>
+      resolve(
+        resolveUnderOutputDir(
+          docsRoot,
+          outputDir,
+          effectiveGuideOutputFile(
+            name,
+            (guideConfigMap.get(name) as GuideConfig | undefined)?.compile,
+            orderLen,
+          ),
+        ),
+      ),
+    ),
+  );
+  if (monolithFile !== undefined && monolithSlugsByGuide.size > 0) {
+    runOutputFiles.add(monolithFile);
+  }
+  // A configured monolith that no guide is stitched into is never written, so a file an earlier
+  // run left there is stale. A guide whose own output is that path still counts, as in link lint.
+  const unwrittenOutputFiles = new Set<string>();
+  if (monolithFile !== undefined && !runOutputFiles.has(monolithFile)) {
+    unwrittenOutputFiles.add(monolithFile);
+  }
   // Each guide's copy in the monolith, assembled but not yet marked for broken links.
   const monolithCopies = new Map<
     string,
@@ -378,7 +421,7 @@ export function compileGuideResultsWithContext(
     const assembleOptions = (
       documentFile: string,
       sectionSlugs: Map<string, string>,
-    ): AssembleGuideOptions => ({
+    ): CompileAssembleOptions => ({
       manifest: compile?.manifest,
       scopeRoot: compile?.scopeRoot ? resolve(docsRoot, compile.scopeRoot) : undefined,
       sectionsHeading: compile?.sectionsHeading,
@@ -399,6 +442,8 @@ export function compileGuideResultsWithContext(
       slugByPath: sectionSlugs,
       linkedFiles,
       sourceTags: compile?.sourceTags ?? options.config?.sourceTags ?? true,
+      runOutputFiles,
+      unwrittenOutputFiles,
     });
 
     const guideFile = resolve(resolveUnderOutputDir(docsRoot, outputDir, outputFile));
