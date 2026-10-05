@@ -57,6 +57,8 @@ The scan honors the repository `.gitignore` by default, so paths already exclude
 
 `mdcp check` runs the coverage scan and prints each uncaptured path (`uncaptured: …`) plus any `standaloneGuides[]` entries that match no file (`missing-standalone: …`). When gaps exist, it also prints a one-line `coverage:` summary.
 
+The scan doesn't follow symbolic links, so a `standaloneGuides[]` entry whose path is a symlink is reported as `missing-standalone`. Register the file the link points to instead.
+
 By default the report is non-fatal. Set `scan.strict: true` so `mdcp check` exits `1` on uncaptured files or missing standalone entries. Turn it on in CI once every file is registered.
 
 Machine-readable inventory (captured / uncaptured / standalone / missing) is available from core via `computeCoverage`.
