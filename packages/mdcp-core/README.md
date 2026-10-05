@@ -306,7 +306,7 @@ The Features Guide's [Compile pipeline](../../docs/features/compile-pipeline/ind
 
 ### Extension pattern
 
-Register custom hooks in consumer or library code:
+A custom hook runs only in a process that registers it with `registerCompileHook` before it calls `compileGuideResults` or `compileGuides`. Importing the core registers the built-in hooks and `identity`, which returns the body unchanged. The mdcp CLI doesn't load a custom hook, so `mdcp compile` and `mdcp check` compile without one. Register yours in your own build script:
 
 ```typescript
 import { registerCompileHook } from '@bwilliamson/mdcp-core';
@@ -316,7 +316,24 @@ registerCompileHook('myHook', (ctx) => {
 });
 ```
 
-Custom hooks are **not** in the default pipeline — list them explicitly in `compile.hooks` when needed.
+Then list it in the array form of `compile.hooks` next to the built-in hooks the guide keeps, such as `["stripAnchors", "codeEvidence", "inlineInserts", "myHook"]`. [Default compile hooks](../../docs/features/default-compile-hooks.md#configuration) gives the forms and why the array has to list them.
+
+Compile skips any name in `compile.hooks` that has no registered hook, and it doesn't warn. A misspelled name, such as `codeEvidense`, compiles as if the list left it out, and no check reports it. Registering a hook under a name already in use replaces that hook, a built-in one included.
+
+A hook gets a `CompileHookContext` and returns the new body. Assembly always sets `hookState`, and passes `{}` as `config` when the caller doesn't give one. `compileGuideResults` sets every other field, and `scopeRoot` only when the guide sets `compile.scopeRoot`. A direct `assembleGuide` call sets `outputFile`, `outputBasename`, `scopeRoot` and `linkIndex` only when its options give them.
+
+| Field            | Value                                                                                                                               |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `body`           | The shard body, after heading demotion, preamble stripping and the hooks listed before this one                                     |
+| `guideName`      | The configured name of the guide being compiled                                                                                     |
+| `filename`       | The shard's file name                                                                                                               |
+| `sourceFile`     | The shard's absolute path                                                                                                           |
+| `config`         | The config the caller passed as `CompileOptions.config` (an `MdcpConfigInput`), or `{}`                                             |
+| `outputFile`     | Optional. The absolute path of the guide's [link base](../../docs/features/compile-pipeline/publish-relative-links.md#when-it-runs) |
+| `outputBasename` | Optional. The file name of `outputFile`                                                                                             |
+| `scopeRoot`      | Optional. The absolute `compile.scopeRoot`, unset when the guide doesn't set it                                                     |
+| `hookState`      | State that the hook calls of one assembly share, from one shard to the next. Always set, though the type marks it optional          |
+| `linkIndex`      | Optional. The [guide link index](../../docs/features/compile-pipeline/cross-guide-links.md#guide-link-index)                        |
 
 Hook implementations should be **pure on `ctx.body`** except when intentionally using shared `hookState`. Leave unmatched links unchanged. Prefer docs-first specs with tests mapped to spec sections (see each hook shard below).
 
