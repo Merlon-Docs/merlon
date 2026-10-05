@@ -15,17 +15,19 @@ place, so an update cannot leave a stale copy behind. Agents load one shard
 that is complete for its job instead of three partial ones.
 
 Sprawl is gradual, so the person who should notice it rarely does. The skill
-runs `mdcp review` at the end of a workflow when a sprawl trigger matches (several
-new shards, a crowded index, a rule found twice, a removed or renamed concept)
-and offers this workflow without being asked.
+runs `mdcp review` at the end of a workflow when one of the
+[sprawl triggers](../../../../skills/mdcp/SKILL.md#6-sprawl-triggers) in
+`SKILL.md` matches. When the review reports findings, the skill offers this
+workflow without being asked.
 
 ## Weekly review routine
 
-For projects whose docs change every week, the skill also recommends a weekly
-routine that runs this workflow once per guide (`mdcp review --guide <name>`,
-then a read of that guide) to settle where each duplicated rule belongs. For
-one-off projects or projects that change only now and then, it says the
-routine is not needed.
+For projects whose docs change in most weeks, the skill also recommends a
+weekly routine that runs this workflow once per guide (`mdcp review --guide <name>`,
+then a read of that guide) to settle where each duplicated rule belongs. Most
+weeks means commits in at least three different weeks of
+`git log --since="4 weeks ago" -- docs/`. For one-off projects or projects that
+change only now and then, it says the routine is not needed.
 
 When it recommends the routine, the repo's contributor docs state what starts
 each run. A CI cron workflow or a scheduled task can start it, and so can a
@@ -54,7 +56,7 @@ none.
 | Atomic commit groups     | One concern per group: moves, then merges and splits, then rewording, then index changes                          |
 | Links keep working       | Every move, merge, or split updates incoming links in the same commit; `mdcp check` passes after each group       |
 | Raise the floor          | A finding that keeps recurring becomes a `review` threshold, a glossary entry, or a prose rule                    |
-| Weekly routine           | Weekly-change projects only; a trigger and run evidence, or labeled advisory; one run per guide, duplicates first |
+| Weekly routine           | Docs that change most weeks; a trigger and run evidence, or labeled advisory; one run per guide, duplicates first |
 
 ## What this workflow is not
 

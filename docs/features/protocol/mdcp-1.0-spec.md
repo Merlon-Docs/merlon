@@ -14,12 +14,12 @@ Conformance keywords: **MUST**, **SHOULD**, **MAY** (RFC 2119 sense).
 
 Conforming repositories **SHOULD** organize shards into guides listed in `compileOrder`. This default structure—often referred to as the **Code Repository Archetype**—is the "batteries-included" layout for software engineering projects:
 
-| Guide tier | Typical path | Holds                                                                                                  | Keep out                                                     |
-| ---------- | ------------ | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------ |
-| Features   | `features/`  | Product capabilities, design/ADRs, contracts, acceptance criteria                                      | Maintainer runbooks, CI/eval loops, contributor setup        |
-| Client     | `client/`    | Consumer value and usage of the product, including install and configuration                           | Internal contributor process, skill authoring and live evals |
-| Developer  | `developer/` | Repo setup, layout, validation, workflow, tracker integration, releases, skill development, live evals | Product capability specs or end-user tutorials               |
-| Glossary   | `glossary/`  | Shared terms and disambiguation                                                                        | General code snippets                                        |
+| Guide tier | Typical path | Holds                                                                                                  | Keep out                                                                    |
+| ---------- | ------------ | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
+| Features   | `features/`  | Product capabilities, design/ADRs, contracts, acceptance criteria                                      | Maintainer runbooks, live eval suites, contributor setup, code walkthroughs |
+| Client     | `client/`    | Consumer value and usage of the product, including install and configuration                           | Internal contributor process, skill authoring and live evals                |
+| Developer  | `developer/` | Repo setup, layout, validation, workflow, tracker integration, releases, skill development, live evals | Product capability specs or end-user tutorials                              |
+| Glossary   | `glossary/`  | Shared terms and disambiguation                                                                        | General code snippets                                                       |
 
 The tiers keep a growing docs set coherent. Contributor workflow stays out of consumer usage, and product specs stay apart from code-level detail. Place each shard by audience and job, not by topic, because one subject can span tiers. A skill's product contract and install steps serve consumers, so they go in `features/` and `client/`. Its maintainer evals go in `developer/`.
 
