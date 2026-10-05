@@ -17,8 +17,17 @@ export function trailingSlashRun(n: number): string {
   return '/'.repeat(n) + 'a';
 }
 
-export function timeMs(fn: () => void): number {
-  const start = performance.now();
-  fn();
-  return performance.now() - start;
+/**
+ * Fastest of `runs` timed calls, in ms. A linear scanner gets under a budget on at least one
+ * run even when the first call is cold or other test files load the machine; a polynomial one
+ * misses it on every run.
+ */
+export function timeMs(fn: () => void, runs = 3): number {
+  let best = Infinity;
+  for (let i = 0; i < runs; i++) {
+    const start = performance.now();
+    fn();
+    best = Math.min(best, performance.now() - start);
+  }
+  return best;
 }
