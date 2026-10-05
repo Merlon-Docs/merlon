@@ -28,7 +28,7 @@ A record that no longer holds is superseded by a new record rather than edited, 
 - **Caveat before the numbers.** Corpus size, age, authorship, and what the sample cannot speak to go above the first table, not in a footnote.
 - **Describe sources structurally, never by name.** Repository, organization, domain, and client identity stay out. Counts and mechanisms generalize; identity does not, and naming a contributed corpus is the contributor's decision rather than the author's.
 - **Separate observation from recommendation.** A record ends by naming which durable position it feeds and links to it. It does not itself become the rule.
-- **Date it and leave it.** A superseding record is a new file.
+- **Date it and leave it.** A superseding record is a new file. The one change a record takes is repointing a link whose target moved, which leaves the observation as written.
 
 ## Records
 

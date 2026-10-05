@@ -92,7 +92,7 @@ Compile also follows inline `.md` links inside the shards it stitches. A guide c
 
 The walk reads each shard's raw text. It also follows an inline link written in a code span or a fenced code block. The walk skips a reference-style link and a path in backticks, so either one can refer to a shard that the guide doesn't compile. No link pass rewrites either form, and the path stays as written in the compiled output.
 
-That walk serves shards in guide subdirectories and under `compile.scopeRoot`. The manifest must link every top-level shard in the guide directory directly, because the [orphan check](./feature-catalog.md#orphan-check-p13) reads only the manifest. A top-level shard that only another shard links still compiles, and `mdcp check` reports it as an orphan.
+That walk serves shards in guide subdirectories and under `compile.scopeRoot`. The manifest must link every top-level shard in the guide directory directly, because the [orphan check](./feature-catalog.md#orphan-check) reads only the manifest. A top-level shard that only another shard links still compiles, and `mdcp check` reports it as an orphan.
 
 When the manifest links no shards, compile takes the other top-level `.md` files in the guide directory in file-name order, leaving out any `shards.md`, and the orphan check reports nothing for that guide.
 

@@ -1,0 +1,5 @@
+---
+'@bwilliamson/mdcp-cli': patch
+---
+
+The CLI README links the new Check gate spec in the features guide, which lists the `mdcp check` stages in order and says which ones stop the run. The command summary row for `mdcp check` no longer gives a stage list. That list left out the path stage and called coverage non-fatal, though coverage fails the run under `scan.strict: true`. The daily workflow section and the consumer verification checklist link the spec instead of listing stages. The checklist's `--require-lint` item says that the flag requires markdownlint-cli2 for each configured markdownlint stage, the compiled one included. The README also says that coverage under `scan.strict: true` stops the run before the failure summary prints. The optional linters section says that `mdcp links` exits 1 when the config sets neither `lint.links.target` nor top-level `outputFile`. With a target set, the command prints an info line and exits 0 when markdown-link-check is missing, where the section said it skips quietly.

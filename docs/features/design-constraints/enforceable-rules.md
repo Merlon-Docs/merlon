@@ -19,7 +19,7 @@ In a repository with a human in the commit path, an ungated rule degrades slowly
 
 Measured evidence for this, including a rule that held structurally while failing semantically for two weeks: [Field report: a fully automated repository](../protocol/research/field-report-automated-repository.md).
 
-This constraint is why MDCP invests in the [check gate](../feature-catalog.md#check-gate-p04) rather than in longer skill prose. Prose that no check enforces competes for an agent's context without changing its behavior.
+Because of this constraint, MDCP invests in the [check gate](../check-gate.md) more than in skill prose. Prose that no check enforces competes for an agent's context without changing its behavior.
 
 ## Current status of MDCP's own rules
 
@@ -38,7 +38,7 @@ This constraint is why MDCP invests in the [check gate](../feature-catalog.md#ch
 | Current docs drop a removed or old name       | **Advisory**                         | Partial: `lint.paths`, link validation              |
 | A review routine states trigger and evidence  | **Advisory**                         | None                                                |
 
-Where the gated rows are specified: [orphan check](../feature-catalog.md#orphan-check-p13), [link validation](../link-validation.md), [documentation coverage scan](../coverage-scan.md), [peer linters](./peer-linters.md).
+The [check gate](../check-gate.md) lists the `mdcp check` stages behind most gated rows. Their own specs are the [orphan check](../feature-catalog.md#orphan-check), [link validation](../link-validation.md), the [documentation coverage scan](../coverage-scan.md) and the [peer linters](./peer-linters.md) page.
 
 A partial gate checks one fragment of an advisory rule. Link validation fails on a link to a missing source file. With `lint.paths.severity` set to `error`, `mdcp check` also fails on a backtick path that resolves nowhere. With peer Vale required, the `MDCP.DatedClaim` rule fails on `as of <date>`, a claim pinned to its date, and on `until <date>`, a temporary note. The rule checks the files Vale scans, which are the standalone guides and either the guide directories or the `vale.scanGlobs` paths that replace them. A shard outside those paths, such as a glossary that only `compile.scopeRoot` reaches, is not checked. The path probe is specified in [path resolution](../path-resolution.md), and the Vale rule in [Locale and language boundary](./locale-and-language.md).
 

@@ -22,7 +22,7 @@ A guide compiles a list of shards into one output. A [standalone guide](../gloss
 - a guide output target: a [compiled guide](../glossary/compiled-guide.md) or the [monolith](../glossary/monolith.md), or
 - a `standaloneGuides[]` entry.
 
-Manifest membership inside a guide directory is the [orphan check](./feature-catalog.md#orphan-check-p13)'s job, so the coverage scan treats a whole guide directory as accounted for and does not double-report its shards.
+Manifest membership inside a guide directory is the [orphan check](./feature-catalog.md#orphan-check)'s job. So the coverage scan treats a whole guide directory as accounted for and reports none of its shards.
 
 The scan walks the scan root for `*.md`, removes ignored vendor paths, then subtracts the captured set. Whatever remains is **uncaptured** and reported.
 
@@ -69,7 +69,7 @@ Machine-readable inventory (captured / uncaptured / standalone / missing) is ava
 
 ## Relationship to the orphan check
 
-The coverage scan does not replace the [orphan check](./feature-catalog.md#orphan-check-p13). They cover different mistakes:
+The coverage scan does not replace the [orphan check](./feature-catalog.md#orphan-check). They cover different mistakes:
 
 | Check         | Scope                                                                                                  | Severity                                   |
 | ------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------ |

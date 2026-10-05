@@ -18,6 +18,7 @@ Product documentation for **what mdcp is designed to do**: the problems it solve
 - [Default compile hooks](./default-compile-hooks.md)
 - [Source tags and default banner](./source-tags-and-banner.md)
 - [Compile output backup](./compile-output-backup.md)
+- [Check gate](./check-gate.md)
 - [Link validation](./link-validation.md)
 - [Monolith link lint](./monolith-link-lint.md)
 - [Path resolution in prose](./path-resolution.md)

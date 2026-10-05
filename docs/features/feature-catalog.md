@@ -35,9 +35,9 @@ npx skills add betsalel-williamson/mdcp --skill mdcp
 
 Optional local with/without-skill grading for each workflow is maintainer work — see [Live skill evals](../developer/live-skill-evals.md). Not a CI gate.
 
-## Check gate (P0.4)
+## Validation gate
 
-Structural validation: orphans → compile → refs → **links**. Peer linters are optional. Built-in link validation catches dead internal `.md` paths and `#anchor` fragments, as [Link validation](./link-validation.md) describes. Latency targets for large shard sets are in [Performance goals](./protocol/performance.md).
+Run the validation stages in one command, and fail when any of them fails. [Check gate](./check-gate.md) specifies the stages and the exit status. Latency targets for large shard sets are in [Performance goals](./protocol/performance.md).
 
 ```bash
 mdcp check --require-lint
@@ -55,13 +55,13 @@ Split a source document into shards via md-tree.
 mdcp shard   # requires config.source
 ```
 
-## Orphan check (P1.3)
+## Orphan check
 
 Detect shards not in manifest or missing files.
 
 ## Peer Vale prose (not core)
 
-en-US writing cues such as an unlinked "See Chapter…" mention, and dogfood warnings to remove Pandoc IDs (`{#…}` after a heading), live in Vale styles — not in `mdcp check`. They do not replace [Link validation](./link-validation.md) for GFM cross-refs. See [Locale and language boundary](./design-constraints/locale-and-language.md).
+en-US writing cues, such as an unlinked "See Chapter…" mention, live in Vale styles rather than in mdcp's core stages. So does this repository's rule against Pandoc IDs (`{#…}` after a heading). They do not replace [Link validation](./link-validation.md) for GFM cross-refs. `mdcp check` runs them in its Vale stage, as [Check gate](./check-gate.md#check-gate-stages) says, when Vale is installed and the host's Vale config (`vale.config`, default `.vale.ini`) enables their styles. `--skip-vale` skips the stage. See [Locale and language boundary](./design-constraints/locale-and-language.md).
 
 ## Coverage scan
 

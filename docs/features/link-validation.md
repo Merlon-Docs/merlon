@@ -6,7 +6,7 @@ Specification for first-party internal link validation at compile and check. Tes
 
 Internal markdown links can compile cleanly but still be broken in published output — dead `#anchor` fragments after heading demotion, missing shard files, or cross-guide rewrite collisions on publish paths (for example `packages/mdcp-cli/README.md`).
 
-MDCP validates link integrity at **shard**, **standalone-guide**, and **compiled-guide** level, emits **`BROKEN LINK`** markers in compiled output by default, and fails `mdcp compile` / `mdcp check` with IDE-clickable `path:line:` diagnostics unless warn mode is enabled.
+`mdcp compile` and `mdcp check` validate links in the compiled outputs, and `mdcp check` adds the standalone guides. A broken link fails both commands with IDE-clickable `path:line:` diagnostics unless warn mode is on. Compile also marks a dead `#fragment` with a **`BROKEN LINK`** marker by default. The shard phase is for API callers.
 
 Validated target classes are `.md` paths, `#fragment` anchors, and **file paths** — a link whose target carries a known extension (`.ts`, `.py`, `.yaml`, `.csv`, …) names a file in the repository, so an unresolved target is a defect. This is what keeps a shard from citing a module that has been deleted. Targets that name no resolvable file — a bare word, a directory path — stay unvalidated, because nothing distinguishes a stale one from an illustrative one.
 
@@ -56,11 +56,11 @@ Publish-relative rewrite and publish-only lint are complementary: rewrite fixes 
 
 ## Validation phases
 
-| Phase      | When                      | Validates                                                                                                                           |
-| ---------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Shard      | `lintLinks` / author time | Unresolved `.md` and source-file paths; same-shard `#fragment` vs demoted heading slugs                                             |
-| Standalone | `lintLinks`               | Same checks as shard phase, over every file matched by `standaloneGuides`                                                           |
-| Compiled   | After assemble            | `#fragment` vs the headings and the slugs broken-link marking used; relative `.md` and source-file paths from output file directory |
+| Phase      | When                                       | Validates                                                                                                                           |
+| ---------- | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Shard      | `lintLinks` with `lintShards` (API only)   | Unresolved `.md` and source-file paths; same-shard `#fragment` vs demoted heading slugs                                             |
+| Standalone | `lintLinks` with `scanRoot` (`mdcp check`) | Same checks as shard phase, over every file matched by `standaloneGuides`                                                           |
+| Compiled   | After assemble                             | `#fragment` vs the headings and the slugs broken-link marking used; relative `.md` and source-file paths from output file directory |
 
 A `.md` target names another output of the same run only when its resolved path equals that output's path. Its `#fragment` is then checked against the compiled text held in memory, so the output doesn't have to be written yet. This holds in publish-only output too. The monolith counts as an output only when at least one guide is stitched into it, because a run where every guide sets `compile.outputFile` never writes it. A link to a monolith that is never written reports `missing publish path`, even when an earlier run left the file on disk. A file that only shares a name with an output, such as a package's `README.md` when the root `README.md` is an output, gets the ordinary check: the file has to exist, and any `#fragment` has to match one of its headings.
 
@@ -76,14 +76,6 @@ Globs resolve against the **scan root** — `scan.root` when set, otherwise the 
 
 Being uncompiled is not a reason to be unchecked: `AGENTS.md`, `CLAUDE.md`, and a shipped skill corpus under `skills/**/*.md` are exactly the documents an agent reads first.
 
-## Check pipeline
-
-```text
-orphans → compile → refs → links (built-in) → peer linters
-```
-
-Built-in link validation runs when `lint.links.enabled !== false` (default **on**).
-
 ## Exit codes
 
 | Condition                      | Exit code | Stderr prefix      |
@@ -94,31 +86,6 @@ Built-in link validation runs when `lint.links.enabled !== false` (default **on*
 | `lint.links.enabled: false`    | **0**     | validation skipped |
 
 Warn mode: global `--warn-broken-links` or `lint.links.severity: "warn"`. Resolution: CLI flag > config > default `"error"`.
-
-## Check failure summary
-
-`mdcp check` may continue peer linters (markdownlint, Vale) after built-in link failures so one run surfaces every gate. Peer tools often print their own “0 errors” success lines afterward, which can hide why the process still exits **1**.
-
-When any gate fails, `mdcp check` ends with a stderr **failure summary** after all steps:
-
-```text
-mdcp check failed:
-  - built-in links: 2 issue(s) (see `link:` lines above)
-    → Fix shard targets cited above, then re-run mdcp check.
-      missing publish path: link a published outputFile (or list the guide in
-      compile.crossGuideLinks.ignoreGuides when shard paths are intentional).
-      Do not link durable docs to pending .changeset/*.md files.
-
-Resolve the diagnostics above, then re-run: mdcp check
-```
-
-| Summary line includes | Role                                                           |
-| --------------------- | -------------------------------------------------------------- |
-| Failed step name      | Which gate failed (orphans, built-in links, peer linters)      |
-| Count / pointer       | How many issues, or “see `link:` / peer output above”          |
-| Remediation hint      | Concrete next action for the failure kinds present in that run |
-
-Success still ends with `mdcp check passed` on stdout. Early hard stops (orphans, refs registry mismatch) keep exiting immediately after their own diagnostics — they do not need a multi-step summary.
 
 ## Link validation config
 
@@ -146,6 +113,8 @@ Success still ends with `mdcp check passed` on stdout. Early hard stops (orphans
 | `lint.dataExtensions`      | `[]`      | Extra data extensions, validated, no symbol lookup  |
 
 Per-guide: `guides[].compile.links.markBroken`.
+
+[Check gate](./check-gate.md) says where link validation runs in `mdcp check`.
 
 ## CLI
 
@@ -215,10 +184,10 @@ link: /repo/docs/_build/a.md:5: dead anchor "#nope" (compiled guide "a")
 - `mdcp check` / `mdcp compile` exit **1** on broken links by default
 - `--warn-broken-links` exits **0** with `link-warn:` diagnostics
 - Config parses link validation defaults
-- `mdcp check` prints a stderr failure summary after peer linters when any continuing gate failed, with step names and remediation hints (not only a bare exit code after “0 errors” peer output)
 
 ## Link validation related
 
+- [Check gate](./check-gate.md)
 - [Monolith link lint](./monolith-link-lint.md)
 - [Cross-guide link rewriting](../client-core/compile-hooks/cross-guide-links.md)
 - [Publish-relative link rewriting](../client-core/compile-hooks/publish-relative-links.md)

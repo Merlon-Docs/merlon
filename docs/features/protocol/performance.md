@@ -27,10 +27,12 @@ Normative targets below. Each target is defined at a shard count. A smaller corp
 
 ### Tier 2: CI gate (core mdcp only, no peers)
 
-| Operation                                  | Target                  | Rationale                            |
-| ------------------------------------------ | ----------------------- | ------------------------------------ |
-| `check` (orphans + compile + refs + links) | **< 5 s** @ 200 shards  | PR feedback under 10 s total         |
-| Same                                       | **< 15 s** @ 500 shards | Large program still acceptable in CI |
+| Operation             | Target                  | Rationale                            |
+| --------------------- | ----------------------- | ------------------------------------ |
+| `check` (core stages) | **< 5 s** @ 200 shards  | PR feedback under 10 s total         |
+| Same                  | **< 15 s** @ 500 shards | Large program still acceptable in CI |
+
+The core stages are orphans, compile, refs, built-in links and coverage, the [Check gate](../check-gate.md) stages that don't run a peer linter. The target leaves out the paths stage, which is off by default.
 
 ### Tier 3: Full CI (with peer linters)
 

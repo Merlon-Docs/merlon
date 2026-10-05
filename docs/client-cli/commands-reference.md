@@ -27,20 +27,20 @@ mdcp compile --config docs/mdcp.config.json --docs-root docs
 # Compile every guide from its shards (link order from each guide's index.md / shards.md)
 mdcp compile
 
-# Full validation gate (orphans → compile → refs → links → peer linters → paths → coverage)
+# Run the full validation gate
 mdcp check
 ```
 
 `mdcp compile` and `mdcp check` exit **1** when broken internal links are found (default). Use `--warn-broken-links` to surface `link-warn:` diagnostics without failing CI. See [Link validation](../features/link-validation.md).
 
-When `mdcp check` fails after continuing through peer linters, it prints a stderr **failure summary** (which steps failed and how to fix them) so CI logs are not only peer “0 errors” lines plus a bare exit code.
+When a continuing stage of `mdcp check` fails, the run ends with a stderr **failure summary** of the failed steps and how to fix each one, unless coverage stops it first under `scan.strict: true`. A CI log then shows why the run failed, even after a peer's own success lines. [Check gate](../features/check-gate.md) lists the stages in order and says which of them stop the run.
 
 ## Command summary
 
 | Command          | When you need it                                                                                   |
 | ---------------- | -------------------------------------------------------------------------------------------------- |
 | `mdcp compile`   | Regenerate compiled outputs and `refs.json` under `outputDir` (exits 1 on broken links by default) |
-| `mdcp check`     | Full gate: orphans → compile → refs → links; optional peer linters; non-fatal coverage report      |
+| `mdcp check`     | Run the full validation gate (exits 1 when any stage fails)                                        |
 | `mdcp review`    | Report documentation sprawl signals across guide shards (report-only; `--strict` to fail)          |
 | `mdcp shard`     | Split a source document into shards (requires `config.source`)                                     |
 | `mdcp refs-list` | List each compiled output's heading slugs and file from `refs.json` as JSON                        |

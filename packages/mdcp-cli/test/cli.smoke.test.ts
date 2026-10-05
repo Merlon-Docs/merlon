@@ -197,6 +197,47 @@ function writeOutsideRootFixture(repo: string, markdownlint: Record<string, unkn
   return docs;
 }
 
+/**
+ * Check gate fixture for `runGate`: guide `g` whose shard has a dead anchor and
+ * names a missing backtick path, with path resolution at `error`, and an
+ * uncaptured `stray.md` beside the guide. Built-in links, paths and coverage
+ * each report one problem, so the order of their lines shows the stage order.
+ */
+function writeGateFixture(docs: string, scan: Record<string, unknown> = {}): void {
+  mkdirSync(join(docs, 'g'), { recursive: true });
+  writeFileSync(join(docs, 'g', 'index.md'), '# G\n\n- [s](s.md)\n');
+  writeFileSync(
+    join(docs, 'g', 's.md'),
+    '# G\n\n## Hi\n\n[bad](#nope)\n\nThe module is `src/gone/module.ts`.\n',
+  );
+  writeFileSync(join(docs, 'stray.md'), '# Stray\n');
+  writeFileSync(
+    join(docs, 'mdcp.config.json'),
+    JSON.stringify({
+      outputDir: '.',
+      outputFile: 'guides.md',
+      compileOrder: ['g'],
+      guides: [{ name: 'g', path: 'g' }],
+      refs: { registryFile: 'refs.json' },
+      scan: { gitignore: false, ...scan },
+      lint: { paths: { severity: 'error' } },
+    }),
+  );
+}
+
+function runGate(docs: string) {
+  return spawnSync(
+    'node',
+    [CLI, 'check', '--config', 'mdcp.config.json', '--docs-root', docs, '--skip-vale'],
+    { encoding: 'utf-8', cwd: docs },
+  );
+}
+
+/** Offset of the first line of `text` that `re` matches, or -1. */
+function lineAt(text: string, re: RegExp): number {
+  return text.search(new RegExp(re.source, 'm'));
+}
+
 describe('cli smoke', () => {
   it('prints version', () => {
     // cac exits 0 on --version but logs and terminates, so we can capture stdout via execFileSync
@@ -1271,6 +1312,67 @@ describe('cli smoke', () => {
       expect(r.stderr).toMatch(/built-in links:/);
       expect(r.stderr).toMatch(/dead anchor:/);
       expect(r.stderr).toMatch(/Resolve the diagnostics above, then re-run: mdcp check/);
+    } finally {
+      rmSync(docs, { recursive: true, force: true });
+    }
+  });
+
+  it('runs the stages after a continuing failure and lists each failed step in stage order', () => {
+    const docs = mkdtempSync(join(tmpdir(), 'mdcp-gate-continue-'));
+    try {
+      writeGateFixture(docs);
+      const r = runGate(docs);
+      expect(r.status).toBe(1);
+      const link = lineAt(r.stderr, /^link: /);
+      const path = lineAt(r.stderr, /^path: .*unresolved path "src\/gone\/module\.ts"/);
+      const uncaptured = lineAt(r.stderr, /^uncaptured: stray\.md$/);
+      const summary = lineAt(r.stderr, /^mdcp check failed:$/);
+      expect(link).toBeGreaterThanOrEqual(0);
+      expect(path).toBeGreaterThan(link);
+      expect(uncaptured).toBeGreaterThan(path);
+      expect(summary).toBeGreaterThan(uncaptured);
+      const linkStep = lineAt(r.stderr, /^ {2}- built-in links: 1 issue/);
+      expect(linkStep).toBeGreaterThan(summary);
+      expect(lineAt(r.stderr, /^ {2}- path resolution: 1 unresolved/)).toBeGreaterThan(linkStep);
+      expect(r.stderr).toMatch(/Resolve the diagnostics above, then re-run: mdcp check/);
+    } finally {
+      rmSync(docs, { recursive: true, force: true });
+    }
+  });
+
+  it('stops at coverage under scan.strict after the continuing stages, with no failure summary', () => {
+    const docs = mkdtempSync(join(tmpdir(), 'mdcp-gate-strict-'));
+    try {
+      writeGateFixture(docs, { strict: true });
+      const r = runGate(docs);
+      expect(r.status).toBe(1);
+      const link = lineAt(r.stderr, /^link: /);
+      const path = lineAt(r.stderr, /^path: /);
+      const uncaptured = lineAt(r.stderr, /^uncaptured: stray\.md$/);
+      expect(link).toBeGreaterThanOrEqual(0);
+      expect(path).toBeGreaterThan(link);
+      expect(uncaptured).toBeGreaterThan(path);
+      expect(lineAt(r.stderr, /^mdcp check failed: coverage gaps/)).toBeGreaterThan(uncaptured);
+      expect(r.stderr).not.toMatch(/^mdcp check failed:$/m);
+      expect(r.stderr).not.toMatch(/Resolve the diagnostics above/);
+    } finally {
+      rmSync(docs, { recursive: true, force: true });
+    }
+  });
+
+  it('stops at an orphan before compile writes an output, with no failure summary', () => {
+    const docs = mkdtempSync(join(tmpdir(), 'mdcp-gate-orphan-'));
+    try {
+      writeGateFixture(docs);
+      writeFileSync(join(docs, 'g', 'orphan.md'), '# G\n\n## Orphan\n');
+      const r = runGate(docs);
+      expect(r.status).toBe(1);
+      expect(r.stderr).toMatch(/^orphan: Orphaned shard not in sections manifest: g\/orphan\.md$/m);
+      expect(r.stderr).toMatch(/^mdcp check failed: 1 orphan shard\(s\)/m);
+      expect(existsSync(join(docs, 'guides.md'))).toBe(false);
+      expect(r.stdout).not.toMatch(/ lines\)$/m);
+      expect(r.stderr).not.toMatch(/^(link|path|uncaptured): /m);
+      expect(r.stderr).not.toMatch(/Resolve the diagnostics above/);
     } finally {
       rmSync(docs, { recursive: true, force: true });
     }
