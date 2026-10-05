@@ -22,7 +22,7 @@ assembleGuide (per guide, once for each document it is written to)
   └─ markBrokenLinks → realignTables (the last step)
 ```
 
-**Guide link index**: `compileGuideResults` builds it once from every guide in `compileOrder`, and the cross-guide pass reads it. [Cross-guide purpose](../../features/compile-pipeline/cross-guide-links.md#cross-guide-purpose) says which shards have an entry.
+**Guide link index**: `compileGuideResults` builds it once from every guide in `compileOrder`, and the cross-guide pass reads it. [Guide link index](../../features/compile-pipeline/cross-guide-links.md#guide-link-index) says which shards have an entry.
 
 **Per-assembly hook state**: mutable `hookState` on `CompileHookContext` (such as `inlineInserts` counters and first-anchor map) shared across shard invocations within one assembly. Each assembly starts with fresh `hookState`, and a guide in the monolith has one assembly for each document, as [When it runs](../../features/compile-pipeline/publish-relative-links.md#when-it-runs) says. So every hook it runs, a registered custom hook included, sees each of its shards twice, and a hook with side effects beyond its return value repeats them.
 

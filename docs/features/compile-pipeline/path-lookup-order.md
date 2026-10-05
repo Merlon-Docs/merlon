@@ -17,13 +17,13 @@ The publish-relative rewrite also finds a path to an output of the run before co
 
 After lookup, `codeEvidence` and the publish-relative rewrite emit the path relative to the guide's [link base](./publish-relative-links.md#when-it-runs), and `inlineInserts` inlines the file. The cross-guide and intra-guide rewrites emit a heading target: `#slug`, after the other output's path when the target is in another file.
 
-## guideDir misaligned with shard tree
+## Guide directory apart from its shards
 
 Some guides set `path` to a compiled subdirectory while the shards are elsewhere in the same tree, often one level up from the guide directory:
 
 ```text
 guide/
-  compiled/shards.md   ← manifest (guideDir)
+  compiled/shards.md   ← manifest (guide directory)
   section-a.md
   topic/section-b.md
   assets/diagram.md

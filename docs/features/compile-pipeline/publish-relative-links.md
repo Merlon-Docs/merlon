@@ -4,24 +4,22 @@
 
 Specification for assembly-time rebasing of shard-relative file links to each guide's [link base](#when-it-runs). Tests in `packages/mdcp-core/test/publish-links.test.ts`, `packages/mdcp-core/test/links.test.ts` and `packages/mdcp-core/test/guide-output-path.test.ts` map to the sections below. Tests for the exclusion of cross-guide links and for [`ignoreGuides` interaction](#ignoreguides-interaction) are also in `packages/mdcp-core/test/cross-guide-links.test.ts`, and tests for the exclusion of links that `codeEvidence` rebased are in `packages/mdcp-core/test/code-evidence.test.ts`.
 
-## Why this pass exists
+## Shard-relative paths
 
-Shards are authored with paths relative to **where the file lives** in the guide tree:
+Shards are authored with paths relative to the shard's own directory in the guide tree:
 
 - `../features/foo.md` from `docs/developer/`
 - `../../features/foo.md` from `docs/client-core/compile-hooks/`
 - `../../.nvmrc` from `docs/developer/` (repo root)
 
-That works while readers open shards under `docs/`. It breaks when the same content compiles to a **publish output** elsewhere — for example `DEVELOPERS.md` at the repo root or `packages/mdcp-cli/README.md`.
+Those paths work while readers open shards under `docs/`. They break when the content compiles to a **publish output** in another directory, such as `DEVELOPERS.md` at the repo root or `packages/mdcp-cli/README.md`.
 
-**Problem:** a single stitched document no longer knows which shard each `../` hop came from, so post-stitch string substitution cannot reliably rebase paths. Nested shards use different `../` depth; publish targets sit at different locations (`repo root`, `packages/*/`).
-
-**Solution:** resolve and rebase **per shard**, before stitch:
+A stitched document doesn't record which shard each `../` hop came from. Nested shards use different `../` depths, and publish outputs sit in different directories, such as the repo root and `packages/*/`. String substitution after stitch can't rebase those paths. The pass resolves and rebases each one **per shard**, before stitch:
 
 1. Resolve the link to an **absolute** target path, in the order [Path lookup order](./path-lookup-order.md) gives for this pass
-2. Emit `relative(dirname(publishOutputFile), absoluteTarget)` in the compiled body
+2. Emit `relative(dirname(linkBase), absoluteTarget)` in the compiled body, where `linkBase` is the guide's [link base](#when-it-runs)
 
-Rebasing doesn't need path-prefix config. The geometry comes from `sourceFile` and the guide's [link base](#when-it-runs), resolved against the filesystem.
+Rebasing doesn't need path-prefix config. The geometry comes from `sourceFile` and the guide's link base, resolved against the filesystem.
 
 ## When it runs
 
@@ -43,7 +41,7 @@ Code: `rewritePublishRelativeLinks` in `packages/mdcp-core/src/compile/publish-l
 A link is rewritten when **all** of the following hold:
 
 - Standard markdown link syntax: `[label](path)`
-- Target starts with one or more `../` segments (not `./` — see exclusions)
+- Target starts with one or more `../` segments (a `./` path is one of the [exclusions](#publish-relative-exclusions))
 - Target is not `http://`, `https://`, `mailto:`, or `#…`
 - Target resolves to an existing file or directory, or to an output of the run, in the order [Path lookup order](./path-lookup-order.md) gives for this pass
 - Resolved path is **not** a same-guide indexed shard (the cross-guide pass rewrites those)
@@ -58,12 +56,12 @@ A link the shard writes to an output of the run, such as `../../README.md`, is a
 The pass finds the target in the order [Path lookup order](./path-lookup-order.md) gives for the publish-relative rewrite, then emits:
 
 ```text
-relative(dirname(publishOutputFile), resolvedAbsolute) + optional #fragment
+relative(dirname(linkBase), resolvedAbsolute) + optional #fragment
 ```
 
 An empty relative path means the target is the directory that contains the link base, and the pass writes `./` for it. That covers a `../`-only target and a named one, such as `../../pkg/` from `docs/pkg/` compiled into `pkg/README.md`.
 
-`publishOutputFile` is the absolute path of the file being assembled (see [When it runs](#when-it-runs)).
+`linkBase` is the absolute path of the guide's [link base](#when-it-runs).
 
 ## Publish-relative exclusions
 
@@ -77,27 +75,21 @@ The pass **does not** transform:
 - A link that [`codeEvidence`](../../client-core/compile-hooks/code-evidence.md) rebased, whose path is relative to the link base too. From the shard's directory, the path can lead to another file with the same name.
 - Unresolvable paths (left unchanged)
 
-## Repo dogfood examples
+## Examples from this repository
 
-Config: [`docs/mdcp.config.json`](../../mdcp.config.json). Every guide except `features` sets `compile.outputFile`, and the examples below show three of them.
+Config: [`docs/mdcp.config.json`](../../mdcp.config.json). Every guide except `features` sets `compile.outputFile`, and the examples below show two of them. [`ignoreGuides` interaction](#ignoreguides-interaction) shows a third.
 
 **`developer` → `DEVELOPERS.md` (repo root)**
 
-| Shard input (`docs/developer/…`) | Compiled in `DEVELOPERS.md`        |
-| -------------------------------- | ---------------------------------- |
-| `../../.nvmrc`                   | `.nvmrc`                           |
-| `../features/feature-catalog.md` | `docs/features/feature-catalog.md` |
-| `../../packages/mdcp-site/`      | `packages/mdcp-site`               |
-
-**`client-cli` → `packages/mdcp-cli/README.md`**
-
-| Shard input (`docs/client-cli/…`) | Compiled in README                       |
-| --------------------------------- | ---------------------------------------- |
-| `../features/feature-catalog.md`  | `../../docs/features/feature-catalog.md` |
+| Shard input (`docs/developer/…`) | Compiled in `DEVELOPERS.md`    |
+| -------------------------------- | ------------------------------ |
+| `../../.nvmrc`                   | `.nvmrc`                       |
+| `../features/agent-skill.md`     | `docs/features/agent-skill.md` |
+| `../../packages/mdcp-site/`      | `packages/mdcp-site`           |
 
 **`client-core/compile-hooks/` → `packages/mdcp-core/README.md`**
 
-Nested shards use more `../` segments in source; per-shard resolution still yields the correct publish-relative path:
+Nested shards use more `../` segments in source, and per-shard resolution gives each one the right path from the README:
 
 | Shard input                                                    | Compiled in README                                                  |
 | -------------------------------------------------------------- | ------------------------------------------------------------------- |
@@ -115,7 +107,8 @@ Link validation accepts those shard paths when the target guide is listed in `ig
 
 ## Related
 
-- [Cross-guide link rewriting](./cross-guide-links.md) — indexed `.md` between guides
-- [Compile hooks — overview](../../client-core/compile-hooks/index.md) — assembly pipeline
-- [API — Config](../../client-core/api-config.md) — `compile.outputFile`
-- [codeEvidence](../../client-core/compile-hooks/code-evidence.md) — separate path rebase for repo source evidence links
+- [Cross-guide link rewriting](./cross-guide-links.md): links to indexed `.md` shards between guides
+- [Compile pipeline](./index.md): the other assembly steps and the rules they share
+- [Compile hooks](../../client-core/compile-hooks/index.md): the hooks overview, with a diagram of each assembly step
+- [Config API](../../client-core/api-config.md): `compile.outputFile`
+- [codeEvidence](../../client-core/compile-hooks/code-evidence.md): a separate path rebase for links to repo source

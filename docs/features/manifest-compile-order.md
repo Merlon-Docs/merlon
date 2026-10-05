@@ -82,7 +82,7 @@ mdcp only considers links **at or after** `## Sections`. Preamble example links 
 
 ## Linked shards and the file-name fallback
 
-Compile also follows inline `.md` links inside the shards it stitches. A guide compiles its manifest's shards plus every shard it finds by following links from shard to shard, a set the code calls `linkedSectionFiles`. Each link resolves from the directory that contains its shard, and the walk keeps a target that exists in the guide directory or under `compile.scopeRoot`. Those shards compile after the manifest's shards, in the order the walk finds them. [Cross-guide purpose](./compile-pipeline/cross-guide-links.md#cross-guide-purpose) says which shards in the set get an entry in the guide link index.
+Compile also follows inline `.md` links inside the shards it stitches. A guide compiles its manifest's shards plus every shard it finds by following links from shard to shard, a set the code calls `linkedSectionFiles`. Each link resolves from the directory that contains its shard, and the walk keeps a target that exists in the guide directory or under `compile.scopeRoot`. Those shards compile after the manifest's shards, in the order the walk finds them. [Guide link index](./compile-pipeline/cross-guide-links.md#guide-link-index) says which shards in the set get an entry in the guide link index.
 
 | Authoring form                                                                                           | Walk follows it |
 | -------------------------------------------------------------------------------------------------------- | --------------- |
