@@ -14,7 +14,7 @@ MDCP separates:
 | **Repo shards**   | `features/`, `client/`, `developer/`, `glossary/`             | Your team in git                              |
 | **Extensions**    | Complementary skills, local overlays under `docs/extensions/` | Your team; **MAY** be proprietary             |
 
-Agents don't hand-edit the vendored skill with repo-specific guidance, which goes in repo shards or the extensions layer ([MDCP 1.0 §4](./mdcp-1.0-spec.md#4-skills-and-immutability)).
+Agents don't hand-edit the vendored skill with repo-specific guidance, which goes in repo shards or the extensions layer ([MDCP 1.0 §5](./mdcp-1.0-spec.md#5-skills-and-immutability)).
 
 ## SOLID principles for MDCP
 

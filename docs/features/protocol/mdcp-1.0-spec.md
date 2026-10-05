@@ -6,7 +6,7 @@ Normative specification for the MarkDown Context Protocol.
 
 ## 1. Introduction
 
-MDCP defines **offline document context preparation**: shard layout, compile semantics, validation pipeline, and Agent Skill development. It does **not** define wire transport (see [Scope and positioning](./01-scope-and-positioning.md)).
+MDCP defines **offline document context preparation**, from shard layout and compile semantics to the validation pipeline and the skill workflows. It does **not** define wire transport (see [Scope and positioning](./01-scope-and-positioning.md)).
 
 Conformance keywords: **MUST**, **SHOULD**, **MAY** (RFC 2119 sense).
 
@@ -31,17 +31,27 @@ Glossary terms **SHOULD** be one shard per entry. [Shared glossary](../../client
 
 The MDCP engine itself is agnostic. Other documentation systems (e.g., Legal Operations, HR Policies) **MAY** introduce their own "battery types" (archetypes) with completely different guide tiers using the same underlying `mdcp compile` and `mdcp check` mechanics.
 
-## 3. Skill workflows
+## 3. Compile and validation
+
+The normative clauses for compile and validation are these feature specifications:
+
+- [Manifest compile order](../manifest-compile-order.md): the order a guide's manifest gives its shards in compiled output
+- [Default compile hooks](../default-compile-hooks.md): the hooks that run on each shard unless a guide switches them off
+- [Check gate](../check-gate.md): the stages of `mdcp check`, the validation gate
+- [Link validation](../link-validation.md): the internal links and anchors that must resolve
+- [Refs registry path](../refs-registry-path.md): where compile writes the refs registry and where commands read it
+
+## 4. Skill workflows
 
 Skill workflows are part of the MDCP 1.0 authoring profile. The `mdcp` skill selects one per task (e.g. the feature-level workflow for a code change). See [Skill workflows](./skill-workflows.md).
 
 Work-item workflows **MUST** resolve `WORK_ITEM` and `WORK_ITEM_LOOKUP` before editing, as [Required intake](./skill-workflows.md#required-intake) defines. Feature work **SHOULD** use the [feature-level workflow](./workflows/feature-level.md).
 
-## 4. Skills and immutability
+## 5. Skills and immutability
 
 The Agent Skills pack in a consumer docs root **MUST NOT** be hand-edited by agents for repo-specific content. Project overlays belong in `docs/extensions/` or normative shards. Extension packs and archetypes: [Extensions and archetypes](./extensions-and-archetypes.md).
 
-## 5. Agent context delivery
+## 6. Agent context delivery
 
 Agent context comes from the parent **Agent Skill** and one-shard reads. There is no token-strip export profile — see [ADR 0001](../adr/0001-remove-export-profiles.md).
 
