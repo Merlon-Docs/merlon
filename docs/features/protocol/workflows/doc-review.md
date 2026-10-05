@@ -75,3 +75,7 @@ A successful review session typically:
    passes about a dozen entries
 3. States each rule in one shard, with other shards linking to it
 4. Passes `mdcp check` after every commit group
+
+Optional local with/without-skill grading for this workflow:
+[doc-review workflow live evals](../../../../tests/skills/mdcp/evals/doc-review/README.md)
+(maintainer workflow, not a CI gate). See [Live skill evals](../../../developer/live-skill-evals.md).

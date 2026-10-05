@@ -42,7 +42,7 @@ Day-to-day workflows that produce a plan (feature-level, doc-only, design-archit
 | getting-started     | Bootstrap + first-feature tutorial           | all tiers                                               |
 | feature-level       | Feature engineering                          | `features/`, `client/`, code + tests                    |
 | doc-only            | Technical writing                            | `features/`, `client/`, `developer/`, standalone guides |
-| design-architecture | Architecture as MDCP shards                  | `features/protocol/`, `features/`                       |
+| design-architecture | Architecture as MDCP shards                  | `features/`, `features/adr/`                            |
 | ux                  | User-centric journeys                        | `client/`, glossary                                     |
 | doc-review          | Whole-set review: merge, split, move, reword | any guide and its index                                 |
 
@@ -55,7 +55,7 @@ Goals and hard boundaries for each workflow (what it is / is not):
 - [UX workflow](./workflows/ux.md)
 - [Doc-review workflow](./workflows/doc-review.md)
 
-Index: [skills.md](../../skills.md). Most workflows also have optional [live skill eval](../../developer/live-skill-evals.md) suites under `tests/skills/mdcp/evals/`.
+Index: [skills.md](../../skills.md). Each workflow also has an optional [live skill eval](../../developer/live-skill-evals.md) suite under `tests/skills/mdcp/evals/`.
 
 ## Guide placement obligations
 
