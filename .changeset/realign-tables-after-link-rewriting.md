@@ -1,0 +1,7 @@
+---
+'@bwilliamson/mdcp-core': patch
+---
+
+Compile re-aligns a GFM table whose links it rewrote. Compile can rewrite a link target to a path or anchor of another length, and a broken link becomes a longer marker. Either change moved the pipes of an aligned table from a shard, and markdownlint's MD060 rule failed on the table in the compiled guide. The last step of each assembly now prints such a table as Prettier does with its default `proseWrap` setting. It measures a wide or fullwidth East Asian character, or an emoji shown as an emoji, as two columns, and a nonspacing mark or a format character as none. A text-style emoji such as ☝ counts one column, as markdownlint counts it.
+
+Compile re-aligns a table whose cells without a link still match the width of their column's delimiter cell, and that pads some cell with more than one space. A compact or tight table stays as written, and so does a table in more than ten nested blockquotes. Compile doesn't re-align a table in fenced code, though it can still change a link there. A table in a list item or a blockquote keeps its indentation and its quote markers. In a tight list, the table ends at the next list item, and a table that opens its list item keeps the marker on its header row. Prettier and markdownlint measure some text differently, such as Hindi or pointed Hebrew. When a cell without a link contains such text, MD060 flags the table in the shard and in the compiled guide.

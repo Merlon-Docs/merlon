@@ -8,7 +8,7 @@ mdcp check --config docs/mdcp.config.json --docs-root docs
 mdcp refs-list
 ```
 
-`mdcp check` fails on dead `#` fragments and bad paths. `mdcp refs-list` shows registry entries from the [refs registry](../glossary/refs-registry.md).
+`mdcp check` fails on dead `#` fragments and bad paths. `mdcp refs-list` lists the heading slugs of each compiled output, with the output's file, from the [refs registry](../glossary/refs-registry.md). A `#fragment` has to match a slug of the file the link points at. For a bare `#fragment` in a shard, that is each output that stitches the shard. Compile stitches a guide's shard into the guide's [compiled guide](../glossary/compiled-guide.md) and, for a guide in the [monolith](../glossary/monolith.md), into the monolith too, where the same heading can take another slug, such as `setup-1` for `setup`. A bare `#fragment` may also point at the id of a section in that output, such as a `FIND-*` finding id or a declared `{#id}`. `mdcp refs-list` doesn't print those ids. Compile doesn't write an output for a [standalone guide](../glossary/standalone-guide.md), so the registry doesn't hold its headings.
 
 ## Heading slugs (GitHub rules)
 

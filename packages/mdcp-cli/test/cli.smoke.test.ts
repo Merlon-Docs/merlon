@@ -335,6 +335,128 @@ describe('cli smoke', () => {
     }
   });
 
+  // Guide p is a publish output, so the monolith leaves it out. The registry still lists it.
+  it('lists the headings of every compiled output with its file when a monolith is set', () => {
+    const repo = mkdtempSync(join(tmpdir(), 'mdcp-refs-outputs-'));
+    const docs = join(repo, 'docs');
+    const run = (args: string[]) =>
+      spawnSync(
+        'node',
+        [CLI, ...args, '--config', 'docs/mdcp.config.json', '--docs-root', 'docs'],
+        {
+          encoding: 'utf-8',
+          cwd: repo,
+        },
+      );
+    try {
+      const files: Record<string, string> = {
+        'a/index.md': '# Guide A\n\n- [Setup](./setup.md)\n',
+        'a/setup.md': '# Setup\n\nText.\n',
+        'p/index.md': '# Pub\n\n- [Start](./start.md)\n',
+        'p/start.md': '# Start\n\nText.\n\n## When it runs\n\nText.\n',
+      };
+      for (const [rel, text] of Object.entries(files)) {
+        mkdirSync(dirname(join(docs, rel)), { recursive: true });
+        writeFileSync(join(docs, rel), text);
+      }
+      writeFileSync(
+        join(docs, 'mdcp.config.json'),
+        JSON.stringify({
+          outputFile: 'guides.md',
+          compileOrder: ['a', 'p'],
+          guides: [{ name: 'p', compile: { outputFile: '../../README.md' } }],
+          refs: { registryFile: 'refs.json' },
+        }),
+      );
+      expect(run(['compile']).status).toBe(0);
+
+      const registry = JSON.parse(readFileSync(join(docs, '_build', 'refs.json'), 'utf-8'));
+      // The top level is still the monolith alone.
+      expect(registry.headings.map((h: { slug: string }) => h.slug)).toEqual(['guide-a', 'setup']);
+      expect(
+        registry.outputs.map((o: { file: string; headings: { slug: string }[] }) => [
+          o.file,
+          o.headings.map((h) => h.slug),
+        ]),
+      ).toEqual([
+        ['_build/a.md', ['guide-a', 'setup']],
+        ['../README.md', ['pub', 'start', 'when-it-runs']],
+        ['_build/guides.md', ['guide-a', 'setup']],
+      ]);
+
+      const listed = run(['refs', 'list']);
+      expect(listed.status).toBe(0);
+      const headings = JSON.parse(listed.stdout) as { file: string; slug: string; line: number }[];
+      const runs = headings.find((h) => h.slug === 'when-it-runs');
+      expect(runs?.file).toBe('../README.md');
+      const readme = readFileSync(join(repo, 'README.md'), 'utf-8').split('\n');
+      expect(readme[runs!.line - 1]).toBe('### When it runs');
+      expect(headings.filter((h) => h.slug === 'setup').map((h) => h.file)).toEqual([
+        '_build/a.md',
+        '_build/guides.md',
+      ]);
+
+      const table = run(['refs-list', '--format', 'table']);
+      expect(table.stdout).toContain('../README.md\twhen-it-runs\tWhen it runs\n');
+
+      // refs-check compiles again, so a new heading in the publish output makes the file stale.
+      expect(run(['refs-check']).status).toBe(0);
+      writeFileSync(join(docs, 'p', 'start.md'), `${files['p/start.md']}\n## Later\n\nText.\n`);
+      const stale = run(['refs-check']);
+      expect(stale.status).toBe(1);
+      expect(stale.stdout).toContain('refs.json is stale');
+      expect(run(['refs-gen']).status).toBe(0);
+      expect(run(['refs-check']).status).toBe(0);
+    } finally {
+      rmSync(repo, { recursive: true, force: true });
+    }
+  });
+
+  it('lists the top-level headings of a registry that has no outputs, and says to regenerate it', () => {
+    const docs = mkdtempSync(join(tmpdir(), 'mdcp-refs-old-'));
+    try {
+      // The registry has another name, so the message has to give its path.
+      writeFileSync(
+        join(docs, 'mdcp.config.json'),
+        JSON.stringify({ compileOrder: ['a'], refs: { registryFile: 'registry.json' } }),
+      );
+      const heading = {
+        key: 'guide-a.guide-a',
+        slug: 'guide-a',
+        title: 'Guide A',
+        guide: 'guide-a',
+        sourceFile: null,
+        level: 1,
+        line: 3,
+      };
+      const refsPath = join(docs, '_build', 'registry.json');
+      mkdirSync(join(docs, '_build'));
+      writeFileSync(
+        refsPath,
+        JSON.stringify({ generatedFrom: 'compiled', headings: [heading], slugs: {} }),
+      );
+      const list = (...args: string[]) =>
+        spawnSync(
+          'node',
+          [CLI, 'refs-list', ...args, '--config', 'mdcp.config.json', '--docs-root', docs],
+          { encoding: 'utf-8', cwd: docs },
+        );
+      const listed = list();
+      expect(listed.status).toBe(0);
+      expect(JSON.parse(listed.stdout)).toEqual([heading]);
+      expect(listed.stderr).toBe(
+        `${refsPath} lists no compiled outputs; run \`mdcp refs-gen\` to list each heading with its file.\n`,
+      );
+
+      // With no file to give, a table row is the slug and the title.
+      const table = list('--format', 'table');
+      expect(table.status).toBe(0);
+      expect(table.stdout).toBe('guide-a\tGuide A\n');
+    } finally {
+      rmSync(docs, { recursive: true, force: true });
+    }
+  });
+
   it('normalizes cwd-relative refs.registryFile under outputDir (#11)', () => {
     const docs = mkdtempSync(join(tmpdir(), 'mdcp-smoke-'));
     try {
@@ -1336,6 +1458,19 @@ describe('cli smoke', () => {
       expect(reported).toEqual([
         `link: ${join(docs, '_build', 'a.md')}:${line}: dead anchor "#topic-b" (compiled guide "a")`,
       ]);
+
+      // The hint sends the reader to the slugs of each output, where a.md has no topic-b. It also
+      // names the section ids a bare #fragment may take, which refs-list doesn't print.
+      expect(checked.output).toContain(
+        "→ dead anchor: change the #fragment to a slug of the file the link points at, which for a bare #fragment is the file that holds it. A bare #fragment may also point at a section's id there, such as a FIND-* id or a declared {#id}. For a compiled output, `mdcp refs-list --format table` lists its slugs by file, relative to the docs root. A standalone guide's headings aren't in the registry.",
+      );
+      const table = runIn(docs, ['refs-list', '--format', 'table']);
+      expect(table.status).toBe(0);
+      expect(table.output.split('\n').filter((l) => l.startsWith('_build/a.md\t'))).toEqual([
+        '_build/a.md\tguide-a\tGuide A',
+        '_build/a.md\tintro\tIntro',
+      ]);
+      expect(table.output).toContain('_build/b.md\ttopic-b\tTopic B');
     } finally {
       rmSync(docs, { recursive: true, force: true });
     }
@@ -1375,7 +1510,7 @@ describe('cli smoke', () => {
         `link: ${join(docs, 'AGENTS.md')}:3: missing file "./gone.md"`,
         `link: ${join(docs, '_build', 'a.md')}:11: dead anchor "Then see ${marker('#nope')}" (compiled guide "a")`,
         `link: ${join(docs, '_build', 'a.md')}:9: dead anchor "b.md#nope" (compiled guide "a")`,
-        `link: ${join(docs, '_build', 'guides.md')}:9: dead anchor "First see ${marker('../b/topic.md#nope')}" (compiled guide "a")`,
+        `link: ${join(docs, '_build', 'guides.md')}:9: dead anchor "First see ${marker('../b/topic.md#nope')}" (guide "a" in the monolith)`,
       ]);
     } finally {
       rmSync(docs, { recursive: true, force: true });

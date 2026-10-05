@@ -207,6 +207,13 @@ describe('stripPandocAnchors', () => {
     expect(stripPandocAnchors('x{#a}{#b}y', { trimPrecedingWhitespace: false })).toBe('xy');
   });
 
+  it('trims the whitespace between consecutive anchors in mode A', () => {
+    expect(stripPandocAnchors('A {#x} \t{#y}\nB {#z} C', { trimPrecedingWhitespace: true })).toBe(
+      'A\nB C',
+    );
+    expect(stripPandocAnchors('   {#x}  {#y}', { trimPrecedingWhitespace: true })).toBe('');
+  });
+
   it('leaves incomplete {# pumps alone', () => {
     expect(stripPandocAnchors('prefix {#no-close', { trimPrecedingWhitespace: true })).toBe(
       'prefix {#no-close',

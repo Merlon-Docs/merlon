@@ -75,4 +75,41 @@ describe('sectionFiles', () => {
       resolve(glossary, 'term.md'),
     ]);
   });
+
+  // A label runs to its first `]` and a target to its first `)`, across line breaks. A label that
+  // holds a `]` before its end isn't a link. The path ends at the last `.md` that the `)` or a
+  // `#fragment` follows.
+  it('reads manifest links across CRLF and wrapped lines and ends each path at its last .md', () => {
+    writeFileSync(
+      join(work.path, 'index.md'),
+      [
+        '# Guide',
+        '- [One](./one.md)\r',
+        '- [Two\r\nlines](two.md#part)',
+        '- [a [b] c](skipped.md)',
+        '- [Three](three.md.md) and \\[Four](four.md#x.md)',
+        '- [Five](#five) [Gone](#gone) [Toc](#table-of-contents) [Six](six.md#)',
+        '',
+      ].join('\n'),
+    );
+    for (const name of ['one', 'two', 'skipped', 'three.md', 'four', 'five', 'six']) {
+      writeFileSync(join(work.path, `${name}.md`), `# ${name}\n`);
+    }
+
+    expect(sectionFiles(work.path)).toEqual(
+      ['one', 'two', 'three.md', 'four', 'six', 'five'].map((n) => resolve(work.path, `${n}.md`)),
+    );
+  });
+
+  it('follows shard links that span lines or sit in a CRLF shard', () => {
+    writeFileSync(join(work.path, 'index.md'), '# Guide\r\n\r\n- [A](a.md)\r\n');
+    writeFileSync(join(work.path, 'a.md'), '# A\r\n\r\nSee [the\r\nnext](b.md#top).\r\n');
+    writeFileSync(join(work.path, 'b.md'), '# B\n\nSee [c](\nc.md) and [d](d.md#)\n');
+    writeFileSync(join(work.path, 'c.md'), '# C\n');
+    writeFileSync(join(work.path, 'd.md'), '# D\n');
+
+    expect(linkedSectionFiles(work.path)).toEqual(
+      ['a', 'b', 'd'].map((n) => resolve(work.path, `${n}.md`)),
+    );
+  });
 });

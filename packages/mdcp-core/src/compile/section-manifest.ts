@@ -1,9 +1,7 @@
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { loadShardSnapshot, type ShardCache } from './shard-cache.js';
-
-const FILE_LINK_RE = /\[[^\]]*\]\(([^)]+\.md)(?:#[^)]*)?\)/g;
-const SLUG_LINK_RE = /\]\(#([^)]+)\)/g;
+import { mdLinkPaths, slugLinkTargets } from './link-scan.js';
 
 export interface SectionFilesOptions {
   manifest?: string;
@@ -30,8 +28,8 @@ function resolveManifestPaths(
   const scope = options.scopeRoot ? resolve(options.scopeRoot) : null;
   const files: string[] = [];
 
-  for (const match of text.matchAll(FILE_LINK_RE)) {
-    const rel = match[1].split('#')[0];
+  for (const path of mdLinkPaths(text)) {
+    const rel = path.split('#')[0];
     const resolved = resolve(guideDir, rel);
     if (scope && !resolved.startsWith(scope + '/') && resolved !== scope) {
       continue;
@@ -39,8 +37,7 @@ function resolveManifestPaths(
     if (!files.includes(resolved)) files.push(resolved);
   }
 
-  for (const match of text.matchAll(SLUG_LINK_RE)) {
-    const slug = match[1];
+  for (const slug of slugLinkTargets(text)) {
     if (slug === 'table-of-contents') continue;
     const name = `${slug}.md`;
     const local = join(guideDir, name);
@@ -93,8 +90,8 @@ export function linkedSectionFiles(guideDir: string, options: SectionFilesOption
     const text = cache
       ? loadShardSnapshot(filePath, cache, preambleSection).raw
       : readFileSync(filePath, 'utf-8');
-    for (const match of text.matchAll(FILE_LINK_RE)) {
-      const rel = match[1].split('#')[0];
+    for (const path of mdLinkPaths(text)) {
+      const rel = path.split('#')[0];
       const resolved = resolve(dirname(filePath), rel);
       if (!inScope(resolved)) continue;
       if (!existsSync(resolved) || collected.has(resolved)) continue;

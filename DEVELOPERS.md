@@ -576,7 +576,7 @@ Config: [`docs/mdcp.config.json`](docs/mdcp.config.json). Guides with `compile.o
 
 Publish landing style for root README: [Personas and priority tiers](docs/features/personas-and-priority-tiers.md#publish-landing-style).
 
-Compile rebases each shard's `../` links relative to the file being assembled, the guide's [link base](./packages/mdcp-core/README.md#when-it-runs). A publish guide's link base is its output in the table above. `features` is assembled twice: its compiled guide rebases relative to `docs/_build/features.md`, and its copy in the monolith relative to `docs/_build/guides.md`. Repo scripts pass `--config docs/mdcp.config.json --docs-root docs`, and [Config essentials](./packages/mdcp-cli/README.md#--config-vs---docs-root) says how each option resolves.
+Compile rebases each shard's `../` links relative to the file being assembled, the guide's [link base](./packages/mdcp-core/README.md#when-it-runs), except the links that [Publish-relative exclusions](./packages/mdcp-core/README.md#publish-relative-exclusions) lists. A publish guide's link base is its output in the table above. `features` is assembled twice: its compiled guide rebases relative to `docs/_build/features.md`, and its copy in the monolith relative to `docs/_build/guides.md`. Repo scripts pass `--config docs/mdcp.config.json --docs-root docs`, and [Config essentials](./packages/mdcp-cli/README.md#--config-vs---docs-root) says how each option resolves.
 
 ### Edit workflow
 
@@ -624,6 +624,19 @@ While we are unopinionated about document structure, we are **strict about links
 
 For more details on the link validation rules, please consult the [Format specification](docs/features/protocol/format-specification.md).
 
+### Tables
+
+A table's cells can contain links, in a list item or a blockquote too. Prettier aligns each GFM table in a shard, and compile can rewrite a link to a target of another length. Compile then re-aligns the table as Prettier prints it with this repo's `proseWrap` setting, `preserve`. The compiled table passes markdownlint's MD060 rule. [Tables after link rewriting](./packages/mdcp-core/README.md#tables-after-link-rewriting) says which tables compile re-aligns.
+
+Compile leaves a table out of line, or MD060 flags it, in these cases:
+
+- Each cell of the table fills its column in the shard. Compile treats a table as compact unless some cell pads its text with more than one space, and it leaves a compact table as written when a link in it changes width. Shorten the text of one cell so Prettier pads it. `pnpm format:check` runs Prettier on the compiled outputs that the repo commits, such as `README.md`, and fails on such a table there. It skips `docs/_build/`, which `.gitignore` lists.
+- A cell contains an explicit `{#id}` anchor. Compile strips the anchor and doesn't re-align the table. Keep these anchors out of table cells.
+- A cell contains link syntax to a repository file inside a code span. `codeEvidence` rewrites that link's path for the output and can add a line fragment, and compile doesn't re-align the table after that change. Keep such links out of table cells.
+- A cell without a link contains text that Prettier and markdownlint measure differently, such as Hindi or pointed Hebrew. MD060 flags the table in the shard, and it flags the compiled table too, whether or not compile re-aligns it.
+
+Give the first link to an [insert](./packages/mdcp-core/README.md#inlineinserts) in a guide a paragraph of its own, ahead of any table cell that links to the insert. Compile replaces that link with the insert's heading and body, which breaks a sentence or a table around it. See [inlineInserts first inline](./packages/mdcp-core/README.md#inlineinserts-first-inline).
+
 ### Formatting and Linting
 
 To help avoid formatting errors and enforce consistent style, we recommend using `@bwilliamson/mdcp-presets`. These presets configure tools like Prettier and `markdownlint-cli2` to handle whitespace, indentation, and common styling issues automatically. For configuration details, see [Optional Linters](./packages/mdcp-cli/README.md#optional-linters).
@@ -638,82 +651,75 @@ _Note: GitHub and GitHub Flavored Markdown are trademarks of GitHub, Inc. This p
 
 ## Safe markdown parsing (heading helpers)
 
-Maintainer note for why `mdcp-core` centralizes heading parsing and related cleanup in shared **language-agnostic** helpers instead of ad-hoc regular expressions, and how remaining package regexes were audited for [ReDoS](#redos) risk.
-
-CodeQL surfaces these findings. Prose chapter-cue lint lives in Vale; see [Locale and language boundary](docs/features/design-constraints/locale-and-language.md).
+Maintainer note for why `mdcp-core` parses headings and related markup with shared **language-agnostic** helpers instead of ad-hoc regular expressions, and which regexes remain in the package. [ADR 0005](docs/features/adr/0005-keep-ts-scanners-over-rg-peggy-rust.md) records how the rule came about and why the scanners stay in TypeScript.
 
 ### Why this is necessary
 
-GitHub CodeQL’s `js/polynomial-redos` rule flagged several `mdcp-core` paths that parse headings and strip leftover `{#…}` markers. The patterns used overlapping or unbounded quantifiers (`\s*` next to `{#…}`, `\s+` with a greedy remainder, non-greedy `.*?` between braces) on library-controlled strings. On adversarial input those matches can take time that grows badly with length — a [ReDoS](#redos) class of denial-of-service risk.
+CodeQL's `js/polynomial-redos` rule flags a regex with overlapping or unbounded quantifiers that runs on library-controlled strings. Typical shapes are `\s*` next to `{#…}`, `\s+` before a greedy remainder, and a non-greedy `.*?` between braces. On a crafted input such a match takes time that grows faster than the input does, which is the [ReDoS](#redos) class of denial-of-service risk.
 
-Even when everyday docs never hit the pathological case, the open alerts block a clean security dashboard, and the same regex shapes were copied across compile, refs, and links. Fixing call sites one-by-one without a shared parse path invites the class to return.
+Everyday docs rarely hit the pathological case, but open alerts block a clean security dashboard. Compile, refs and links all parse headings and strip markers. Fixing those call sites one at a time lets the class come back in the next copy. The shared helpers give each of those jobs one parse path.
 
-### What we do instead (Phase A)
+### Shared linear helpers
 
-Phase A introduces shared **linear** helpers for:
+The helpers in `packages/mdcp-core/src/markdown/` run in linear time. They cover these jobs:
 
-- recognizing headings via `parseHeading` (ATX kind today; see [GFM scope](docs/features/design-constraints/gfm-scope.md#headings))
-- demoting recognized headings (rewrite emits ATX)
-- stripping leftover Pandoc IDs (`{#…}`) when cleaning compiled output (defensive cleanup — authoring opinion to avoid them is Vale `MDCP-PandocId`)
+- parsing each heading line with `parseHeading` (ATX kind today; see [GFM scope](docs/features/design-constraints/gfm-scope.md#headings)) and writing it back as ATX with `formatHeadingAsAtx`
+- stripping leftover Pandoc IDs (`{#…}`) when cleaning compiled output, as defensive cleanup (the Vale style `MDCP-PandocId` reports an error on a heading that has one)
 - producing plain heading text for language-agnostic [heading slug](#heading-slug) generation
+- tracking fenced code blocks line by line, masking non-prose regions and counting words for prose checks
 
-Public package APIs keep their existing names; call sites delegate to the helpers. Duration-budget regression tests exercise the known CodeQL pump classes so a future regex reintroduction fails CI.
+Heading demotion in `compile/headings.ts` runs `parseHeading` and `formatHeadingAsAtx` on each line outside fenced blocks. It finds those blocks with `createCodeFenceScanner`, the same scan that the slug registry's heading reader runs, and that scan reads a CRLF line too. Demotion starts a new scan on each text it demotes, such as one shard, while the registry reads a whole guide with one scan. A shard that ends inside an open fence can make the two disagree about the shard after it.
 
-See [Packages and tests](#packages-and-tests) for where the helper module lives under `mdcp-core`.
+Link validation finds broken-link markers with `findTemplateMatches`, a scanner in `locale/create-locale-pack.ts`. It splits the locale's `markerTemplate` at each variable but `markerLabel` and finds the parts in order, with no line terminator between two of them. It returns the markers that a pattern with a lazy `.*?` for each variable matches, and its time grows linearly with the length of the line. Compiled link lint asks about a line a fixed number of times, however many links it holds.
 
-### Phase B inventory (remaining regexes)
+The manifest walk and the `inlineInserts` hook find links in a whole manifest or shard body with the scanners in `compile/link-scan.ts`. The walk reads `.md` links and `](#slug)` links with them, and the hook reads links into an insert library. Each scanner returns the matches of a link regex, such as `\[[^\]]*\]\(([^)]+\.md)(?:#[^)]*)?\)` for `.md` links, in time that grows linearly with the text. The regex itself reads a target with `[^)]`, which crosses line breaks, so on a crafted text its time can grow with the cube of the text's length.
 
-Phase B inventories remaining regexes in `packages/mdcp-core/src/` after Phase A **and** after prose chapter-cue lint moved to [Vale](https://vale.sh/) (`@bwilliamson/mdcp-presets` `vale/MDCP`, [#230](https://github.com/betsalel-williamson/mdcp/pull/230)). Decision rule: **keep** when the shape is clearly linear; **rewrite** when polynomial-adjacent (`\s*` / overlapping optional groups next to digits, or the CodeQL class); **dismiss** when a conservative checker flags a standard markdown-link idiom that stays empirically linear; **out of scope** when the concern is language/prose opinion (belongs in Vale, not core).
+`codeEvidence` reads line ranges such as `L6-L8` or `lines 12–15` with `lineRangeFromText`, an imperative scanner in `compile/hooks/line-range.ts`. It takes its words from the locale pack. The hook trims the backticks around a link label with a loop, and `shardLintPaths` uses one too, for the slashes at the end of a `shardsGlobs` entry that starts with `../`. Public package APIs keep their names, and call sites delegate to the helpers. Duration-budget tests in `packages/mdcp-core/test/redos-budget.test.ts` run the helpers and scanners on pump inputs, so a regex that brings the class back fails CI.
 
-Duration-budget tests cover rewritten paths. Link extract/rewrite patterns stay as regexes with the dismissals below — not a full parser purge. Alternatives such as ripgrep, Peggy, or Rust for these scanners are declined for now; see [ADR 0005](docs/features/adr/0005-keep-ts-scanners-over-rg-peggy-rust.md).
+### Regex sites that remain
 
-#### Rewritten (linear scanners)
+A regex in `packages/mdcp-core/src/` falls under this rule:
 
-| Location                         | Former risk shape                                    | Disposition                                                                           |
-| -------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `compile/hooks/code-evidence.ts` | `LINE_RANGE_RE` optional `L`/`lines?` + `\s*` + alts | Imperative `lineRangeFromText`; word cues from the locale pack (not hardcoded)        |
-| `compile/headings.ts` About H1   | `^#\s+About…\s*$` (safe but heading-regex sprawl)    | `parseHeading` + locale `aboutThisGuideTitle` (case-insensitive; not hardcoded en-US) |
+- **Keep** a pattern that is clearly linear.
+- **Rewrite** a pattern next to the CodeQL class, such as `\s*` or overlapping optional groups next to digits, as a scanner with a duration-budget test.
+- **Keep** the Markdown link idioms that [Link idioms](#link-idioms) lists as regexes, and fix any `js/polynomial-redos` alert on one with a scanner.
+- Leave prose and language opinion out of core, because it belongs in Vale.
 
-#### Moved out of core (Vale)
+#### Kept (linear)
 
-| Former core concern                       | Home now                                                                    |
-| ----------------------------------------- | --------------------------------------------------------------------------- |
-| Bare / unlinked “See Chapter…” prose cues | `@bwilliamson/mdcp-presets` Vale style `MDCP` ([vale.sh](https://vale.sh/)) |
-| Pandoc heading-ID authoring opinion       | Dogfood Vale `MDCP-PandocId`                                                |
+| Location                                                   | Pattern role                                                                                                                              | Rationale                                                                             |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `compile/section-slug.ts`                                  | `FIND-N.md` and the `.md` suffix                                                                                                          | Anchored, or suffix only                                                              |
+| `compile/section-manifest.ts`                              | The `##` heading that `compile.sectionsHeading` names                                                                                     | Escaped literal; anchored `^##\s+…\s*$`                                               |
+| `links/validate.ts`, `links/validate-shards.ts`            | `https?://` prefix and `.md` suffix                                                                                                       | Anchored, or suffix only                                                              |
+| `compile/hooks/inline-inserts.ts`                          | The `https?://` prefix and `.md` suffix of an insert path, the insert kind that starts a caption title, and the `.` or `:` after the kind | Anchored, or suffix only                                                              |
+| `compile/assemble.ts`                                      | Collapse `\n{3,}`                                                                                                                         | One character with a minimum count; each newline run matches once                     |
+| `shard/orchestrator.ts`                                    | Demote a leading H1 marker                                                                                                                | `#` and a space, at the start of a line                                               |
+| `compile/hooks/code-evidence.ts` symbol search             | An escaped symbol alone, after a declaration keyword, or before `(`                                                                       | Literal words around at most one whitespace run                                       |
+| `compile/hooks/code-evidence.ts` label and fragment checks | An identifier label, or an existing `#L6` or `#L6-L8` fragment                                                                            | Anchored at the start, and the identifier and range checks at the end too             |
+| `validate/path-probe.ts`                                   | Backtick code spans, and tests on each span                                                                                               | One negated class between literal backticks; each test is anchored or one class       |
+| `locale/create-locale-pack.ts`                             | `{name}` placeholders in locale messages, and the en-US heading-key pattern                                                               | A letter and a run of one class between literal braces; the en-US pattern is anchored |
+| `compile/align-tables.ts`                                  | Delimiter cells, lines of spaces and quote markers, the block starts and HTML block starts that end a table                               | Anchored; tag attributes need a space between them, and each other run is one class   |
+| `markdown/display-width.ts`                                | Zero-width, emoji and flag graphemes, and a printable-ASCII check                                                                         | Run on one grapheme, or one class over the text                                       |
+| Path and glob helpers                                      | `./`, `../` and `.` prefixes, a leading `!`, `#` or `:`, and one trailing `/`                                                             | Anchored                                                                              |
+| Adornment, escape and split helpers                        | `**` and emphasis markers, backslashes, regex and glob escaping, letter and number classes, whitespace and separator splits               | Literal or one character class                                                        |
 
-Do **not** reintroduce `lintXrefs` or chapter-cue regexes in `mdcp-core`.
+#### Link idioms
 
-#### Kept (clearly linear)
+| Location                                      | Pattern role                                              | Input                                      |
+| --------------------------------------------- | --------------------------------------------------------- | ------------------------------------------ |
+| `links/extract.ts` `MD_LINK_RE`               | Non-image `[label](target)`                               | One line at a time, with code spans masked |
+| `compile/publish-links.ts`                    | Cross-guide, intra-guide and publish-relative link shapes | One line at a time, with code spans masked |
+| `compile/hooks/code-evidence.ts` `MD_LINK_RE` | `[label](target)` for evidence links                      | The whole shard body                       |
 
-| Location                         | Pattern role                   | Rationale                                       |
-| -------------------------------- | ------------------------------ | ----------------------------------------------- |
-| `compile/headings.ts` `FENCE_RE` | Fence open/close markers       | Anchored; `` `{3,}` `` / `~{3,}` then remainder |
-| `refs/slugs.ts` slug cleanup     | `[^a-z0-9]+`, trim dashes      | Single character-class replace                  |
-| `compile/section-slug.ts`        | `FIND-N.md`, `.md` suffix      | Anchored / suffix only                          |
-| `compile/section-manifest.ts`    | Dynamic `##` sections heading  | Escaped literal; anchored `^##\s+…\s*$`         |
-| `links/validate.ts`              | `https?://`, `.md` suffix      | Anchored / suffix                               |
-| `compile/assemble.ts`            | Collapse `\n{3,}`              | Bounded quantifier on one character             |
-| `shard/orchestrator.ts`          | Demote leading H1 marker       | Fixed two-character `#` + space prefix          |
-| Misc adornment / path trims      | Bold stars, inline ticks, `./` | Literal or single-class                         |
-
-#### Dismissed (link idioms — keep regex)
-
-| Location                                      | Pattern role                      | Rationale                                                                                       |
-| --------------------------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `links/extract.ts` `MD_LINK_RE`               | Non-image `[label](target)`       | Standard GFM link extract; character-class stars; line-scoped; empirically linear at 40k+ chars |
-| `code-evidence.ts` link match                 | `[…](…)` rewrite                  | Same class; simpler `[^)]*` form already passes conservative checkers                           |
-| `compile/section-manifest.ts` file/slug links | Manifest `.md` / `#slug` links    | Same link idiom; used on small manifests                                                        |
-| `compile/publish-links.ts` rewrite REs        | Intra/cross-guide / publish paths | Nested lookarounds + `.md` suffix; conservative checkers may flag; V8 timings stay linear       |
-| `compile/hooks/inline-inserts.ts`             | Insert-library link match         | Same as publish-links; library-dir alternation is fixed                                         |
-
-These dismissals are intentional: Phase B does **not** replace every regex with parsers. If CodeQL later opens `js/polynomial-redos` on a dismissed site, treat that alert as a new fix ticket (same TDD pattern as Phase A).
+Each of these matches the `[label](target)` form with negated character classes. They aren't linear. On a crafted input the time grows at least with the square of the input's length. The Input column says which length counts. A negated class such as `[^)]` crosses line breaks, so short lines don't limit a regex that reads the whole text. Phase B kept these idioms as regexes, as [ADR 0005](docs/features/adr/0005-keep-ts-scanners-over-rg-peggy-rust.md) records, and the maintainers decided to keep them. If CodeQL opens `js/polynomial-redos` on one of these sites, fix it with a linear scanner and a duration-budget test. A fix can start from `scanInlineLinks` in `compile/link-scan.ts`, which walks the `[label](target)` shape these regexes match in linear time and lets a callback accept or turn down each target. Its callback doesn't get the index of the `[`, and the scan turns down each link that shares a label end it turned down before, so a caller that skips image links has to extend it first.
 
 ### Authoring implications
 
 - Prefer the shared helpers for new heading or slug logic; do not add new polynomial-risk regexes for those jobs.
 - Prefer imperative scanners when adding line-range style matchers (optional whitespace next to digits or overlapping alternatives). Authored **word** cues for line ranges belong in the locale pack; keep `L` / `:` forms and `#L…` output language-neutral in the scanner.
-- Prefer GFM auto-slugs; do not author Pandoc IDs on headings (Vale warns in this repo). Compile stripping stays available for legacy content.
-- Unlinked chapter/section prose cues are Vale’s job — not a new `mdcp-core` lint path.
+- Prefer GFM auto-slugs. Don't author Pandoc IDs on headings, since Vale reports an error on one in this repo. Compile still strips them from legacy content.
+- Don't reintroduce `lintXrefs` or chapter-cue regexes in `mdcp-core`. Unlinked chapter and section cues in prose are Vale's job, as [Locale and language boundary](docs/features/design-constraints/locale-and-language.md) describes.
 
 <!-- mdcp-shard: end docs/developer/safe-markdown-parsing.md -->
 
@@ -1602,7 +1608,7 @@ The problem refs solve is structural. Stitching shards shifts heading levels and
 | **refs registry**  | Derived catalog (`refs.json`) of compiled heading entries                         |
 | **ref** (informal) | One heading entry or one link target under that system                            |
 | **generate refs**  | Rebuild the registry from compiled output (`mdcp refs-gen` / compile side effect) |
-| **list refs**      | Print registry headings (`mdcp refs-list`)                                        |
+| **list refs**      | Print each compiled output's headings with its file (`mdcp refs-list`)            |
 | **check refs**     | Confirm registry matches compiled headings (`mdcp refs-check` / via `mdcp check`) |
 
 Refs check links. They do not find documents. To find a shard, use host search (`rg`, IDE search) or the guide `index.md`, then read that one shard. To check links, run `mdcp check`. To see the registry's slugs, run `mdcp refs-list`. [ADR 0002](docs/features/adr/0002-remove-refs-lookup.md) records why MDCP has no lookup command.
@@ -1613,9 +1619,9 @@ Refs check links. They do not find documents. To find a shard, use host search (
 
 ## refs registry
 
-Derived catalog of [heading slugs](#heading-slug) from compile output, typically written as `refs.json` under `outputDir`. It holds the [monolith](#monolith)'s headings when the config sets top-level `outputFile`, and otherwise the headings of every [compiled guide](#compiled-guide). Parent concept: [refs](#refs).
+Derived catalog of [heading slugs](#heading-slug) from compile output, typically written as `refs.json` under `outputDir`. It lists the headings of each file compile writes, slugged file by file. Those files are every [compiled guide](#compiled-guide) and the [monolith](#monolith), and a compiled guide can be a [publish output](#publish-output). Parent concept: [refs](#refs).
 
-The registry is **generated state**, not authored shards. `mdcp compile` and `mdcp refs-gen` rebuild it, and `mdcp check` and `mdcp refs-check` verify it still matches the latest compile. [Refs registry path](docs/features/refs-registry-path.md) gives the path rules.
+The registry is **generated state**, not authored shards. `mdcp compile` and `mdcp refs-gen` rebuild it, and `mdcp check` and `mdcp refs-check` verify it still matches the latest compile. [Refs registry path](docs/features/refs-registry-path.md) gives the path rules, and [registry contents](./packages/mdcp-cli/README.md#registry-contents) lists its fields.
 
 <!-- mdcp-shard: end docs/glossary/refs-registry.md -->
 

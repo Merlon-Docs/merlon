@@ -44,14 +44,7 @@ A `shardsGlobs` entry that starts with `../` gets the escaped absolute path of t
 
 Guides with `compile.outputFile` publish outside the shard tree (npm READMEs, `DEVELOPERS.md`, and similar).
 
-After cross-guide rewrite, every guide rebases the remaining shard-authored `../` links automatically:
-
-- Resolve each link from the **shard file** to an absolute path
-- Emit a path **relative to the guide's [link base](./compile-hooks/publish-relative-links.md#when-it-runs)**
-
-You don't need per-guide path-prefix config. The output location and shard path supply the geometry. See [Publish-relative link rewriting](./compile-hooks/publish-relative-links.md) for intent, pass ordering, and examples from MDCP's own docs.
-
-Intra-guide `./section.md` links rewrite to `#anchor` (post-stitch pass).
+After the cross-guide and intra-guide rewrites, compile resolves the `../` links a shard still has and writes them relative to the guide's [link base](./compile-hooks/publish-relative-links.md#when-it-runs). [Publish-relative exclusions](./compile-hooks/publish-relative-links.md#publish-relative-exclusions) lists the links it leaves as written, such as a link to an output named in the guide link index. A guide doesn't need path-prefix config for this. [Link passes](./compile-hooks/index.md#link-passes) lists the passes in order, and [Publish-relative link rewriting](./compile-hooks/publish-relative-links.md) has examples from MDCP's own docs.
 
 ## `compile.hooks`
 

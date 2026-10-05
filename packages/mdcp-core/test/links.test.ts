@@ -539,6 +539,36 @@ describe('lintCompiledLinks', () => {
     const issues = lintCompiledLinks({ markdown: md, outputFile: '/out.md' });
     expect(issues).toHaveLength(0);
   });
+
+  // The marker pass asks about each line, and the link pass asks once more about each line that
+  // holds a link, however many links it holds.
+  it('asks about each line once in each pass, however many links it holds', () => {
+    const asked: string[] = [];
+    const locale = {
+      ...enUS,
+      brokenLinks: {
+        ...enUS.brokenLinks,
+        lineHasMarker: (line: string) => {
+          asked.push(line);
+          return enUS.brokenLinks.lineHasMarker(line);
+        },
+      },
+    };
+    const markerLine = `${formatBrokenLinkMarker('X', './a.md', '#x', 'dead anchor')} [a](#t) [b](#t) [c](#t)`;
+    const linkLine = '[d](#nope) [e](#nope)';
+    const issues = lintCompiledLinks({
+      markdown: `# T\n\n${markerLine}\n\n${linkLine}\n`,
+      outputFile: '/out.md',
+      locale,
+    });
+    expect(asked.filter((line) => line === markerLine)).toHaveLength(2);
+    expect(asked.filter((line) => line === linkLine)).toHaveLength(2);
+    expect(issues.map((i) => `${i.line} ${i.kind} ${i.label}`)).toEqual([
+      '3 dead anchor ',
+      '5 dead anchor d',
+      '5 dead anchor e',
+    ]);
+  });
 });
 
 describe('formatLinkIssue', () => {
@@ -570,6 +600,25 @@ describe('formatLinkIssue', () => {
       'warn',
     );
     expect(msg).toMatch(/^link-warn: a\.md:1:/);
+  });
+
+  // The monolith isn't guide a's compiled guide, so an issue there names the guide's copy.
+  it('names the guide whose copy in the monolith holds an issue there', () => {
+    const issue = {
+      kind: 'dead anchor' as const,
+      file: '/repo/docs/_build/guides.md',
+      line: 9,
+      label: 'x',
+      originalTarget: '#nope',
+      brokenTarget: '#nope',
+      guideName: 'a',
+    };
+    expect(formatLinkIssue({ ...issue, inMonolith: true })).toBe(
+      'link: /repo/docs/_build/guides.md:9: dead anchor "#nope" (guide "a" in the monolith)',
+    );
+    expect(formatLinkIssue({ ...issue, file: '/repo/docs/_build/a.md' })).toBe(
+      'link: /repo/docs/_build/a.md:9: dead anchor "#nope" (compiled guide "a")',
+    );
   });
 
   // The issues markBrokenLinks returns record their shard. Link lint reports a marked link by its
@@ -1432,6 +1481,24 @@ describe('lintLinks over each written file', () => {
   });
 
   const unmarkedA = { name: 'a', compile: { links: { markBroken: false } } };
+
+  // A marker only the monolith holds, and a link the compiled guide doesn't report, are both
+  // monolith issues. Only those carry `inMonolith`.
+  it.each([
+    ['a BROKEN LINK marker', {}],
+    ['a link', { guides: [unmarkedA] }],
+  ])('marks %s that only the monolith reports as an issue in the monolith', (_case, extra) => {
+    withTmpDir('mdcp-lint-in-monolith-', (work) => {
+      const { docsRoot, issues } = lintWritten(work, monolithPair('See [x](../b/topic.md#nope).'), {
+        outputFile: 'guides.md',
+        compileOrder: ['a', 'b'],
+        ...extra,
+      });
+      expect(
+        issues.map((i) => `${relative(docsRoot, i.file)} ${i.guideName} ${i.inMonolith}`),
+      ).toEqual(['_build/a.md a undefined', '_build/guides.md a true']);
+    });
+  });
 
   it("checks a compiled guide's #fragment against that file, not another guide's", () => {
     withTmpDir('mdcp-lint-own-slugs-', (work) => {
