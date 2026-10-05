@@ -28,7 +28,7 @@ Hooks are no-ops when shard content does not match (no evidence links, no insert
 
 **Cross-guide link rewriting** is not a compile hook — it runs automatically at assembly time from `compileOrder` and per-guide `compile.outputFile`. Optional per-guide exceptions: `compile.crossGuideLinks.ignoreGuides`. See [Cross-guide link rewriting](../client-core/compile-hooks/cross-guide-links.md).
 
-Table re-alignment also runs outside the hooks, as the last step of each assembly, after broken-link marking. See [Tables after link rewriting](../client-core/compile-hooks/index.md#tables-after-link-rewriting).
+Table re-alignment also runs outside the hooks, as the last step of each assembly, after broken-link marking. See [Tables after link rewriting](../client-core/compile-hooks/tables-after-link-rewriting.md).
 
 Custom hooks registered via `registerCompileHook` are **not** included in defaults — only built-in names above.
 

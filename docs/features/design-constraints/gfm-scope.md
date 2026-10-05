@@ -2,6 +2,8 @@
 
 Authored docs use [GFM](../../glossary/gfm.md) ([spec](https://github.github.com/gfm/)). No Pandoc, LaTeX, or wikilinks as the authoring contract.
 
+A shard doesn't need anything beyond GFM. mdcp doesn't require front matter or a section template, and a guide's structure comes from its manifest and ordinary headings. [ADR 0003](../adr/0003-do-not-adopt-okf.md) records why a stricter knowledge format was declined.
+
 MDCP’s compile, refs, and link checks implement a **subset** of GFM for headings today. Prefer ATX in authored shards (peer markdownlint `MD003: atx` matches that).
 
 ## Headings

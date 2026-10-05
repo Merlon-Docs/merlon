@@ -1,7 +1,7 @@
 /**
- * Table re-alignment, the last compile step: tests driven by "Tables after link rewriting" in
- * docs/client-core/compile-hooks/index.md. Each expected table is the one Prettier prints for the
- * same rows.
+ * Table re-alignment, the last compile step: tests driven by
+ * docs/client-core/compile-hooks/tables-after-link-rewriting.md. Each expected table is the one
+ * Prettier prints for the same rows.
  */
 import { describe, it, expect } from 'vitest';
 import { mkdirSync, writeFileSync } from 'node:fs';

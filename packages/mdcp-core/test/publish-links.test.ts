@@ -278,6 +278,80 @@ describe('publish link rewriting', () => {
     });
   });
 
+  // Link validation reads only the image src of a linked image, so no link pass may rewrite the
+  // outer target either (docs/features/link-validation.md, "No placeholder links").
+  describe('a linked image keeps its outer target', () => {
+    it('in the intra-guide pass', () => {
+      const guideDir = '/fake/guide';
+      const slugByPath = new Map([[resolve(guideDir, 'page.md'), 'page']]);
+
+      const out = rewriteIntraGuideFileLinks(
+        '[![Diagram](./d.png)](./page.md)\n[Plain](./page.md)\n',
+        slugByPath,
+        guideDir,
+      );
+      expect(out).toBe('[![Diagram](./d.png)](./page.md)\n[Plain](#page)\n');
+    });
+
+    it('in the publish-relative pass', () => {
+      withTmpDir('mdcp-linked-image-rel-', (work) => {
+        const docsDeveloper = join(work, 'docs', 'developer');
+        mkdirSync(docsDeveloper, { recursive: true });
+        mkdirSync(join(work, 'docs', 'features'), { recursive: true });
+        writeFileSync(join(work, 'package.json'), '{}');
+        writeFileSync(join(work, 'docs', 'mdcp.config.json'), '{}');
+        writeFileSync(join(work, 'docs', 'features', 'page.md'), '# Page\n');
+        const shard = join(docsDeveloper, 'guide.md');
+        writeFileSync(shard, '# Guide\n');
+
+        const out = rewritePublishRelativeLinks(
+          '[![Diagram](./d.png)](../features/page.md)\n[Plain](../features/page.md)\n',
+          {
+            sourceFile: shard,
+            guideDir: docsDeveloper,
+            currentOutputFile: join(work, 'DEVELOPERS.md'),
+          },
+        );
+        expect(out).toBe(
+          '[![Diagram](./d.png)](../features/page.md)\n[Plain](docs/features/page.md)\n',
+        );
+      });
+    });
+
+    it('in the cross-guide pass', () => {
+      withTmpDir('mdcp-linked-image-cross-', (work) => {
+        mkdirSync(join(work, 'features'), { recursive: true });
+        mkdirSync(join(work, 'client-core'), { recursive: true });
+        writeFileSync(join(work, 'features', 'index.md'), '# Features\n\n- [Topic](./topic.md)\n');
+        writeFileSync(
+          join(work, 'features', 'topic.md'),
+          '# Topic\n\n[![Diagram](./d.png)](../client-core/api.md)\n\n[Plain](../client-core/api.md)\n',
+        );
+        writeFileSync(join(work, 'client-core', 'index.md'), '# Core\n\n- [API](./api.md)\n');
+        writeFileSync(join(work, 'client-core', 'api.md'), '# API\n');
+
+        const results = compileGuideResults({
+          guidesRoot: work,
+          compileOrder: ['features', 'client-core'],
+          docsRoot: work,
+          config: {
+            outputDir: '.',
+            outputFile: 'guides.md',
+            compileOrder: ['features', 'client-core'],
+          },
+          guides: [
+            { name: 'features' },
+            { name: 'client-core', compile: { outputFile: 'README.md' } },
+          ],
+        });
+
+        const features = results.find((r) => r.name === 'features')!.text;
+        expect(features).toContain('[Plain](README.md#api)');
+        expect(features).toContain('[![Diagram](./d.png)](../client-core/api.md)');
+      });
+    });
+  });
+
   it('rewrites publish-rebased parent paths in post-assembly pass without sourceFile', () => {
     const guideDir = '/fake/docs/client-core';
     const glossaryDir = '/fake/docs/glossary';

@@ -43,7 +43,6 @@ Product documentation for **what mdcp is designed to do**: the problems it solve
 - [Usage model](./protocol/usage-model.md)
 - [Shard single responsibility and idea mitosis](./protocol/shard-srp-and-mitosis.md)
 - [Extensions and archetypes](./protocol/extensions-and-archetypes.md)
-- [Format specification](./protocol/format-specification.md)
 - [MDCP 1.0 spec (draft)](./protocol/mdcp-1.0-spec.md)
 - [Acknowledgments](./protocol/acknowledgments.md)
 

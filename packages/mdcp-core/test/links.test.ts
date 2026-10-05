@@ -52,6 +52,47 @@ describe('extractLinks', () => {
     const md = 'Example `` `[x](./a.md)` `` here.\n';
     expect(extractLinks(md)).toHaveLength(0);
   });
+
+  it('extracts a link inside an HTML comment', () => {
+    const md = '# Title\n\n<!-- [Planned](./planned.md) -->\n\n<!--\n[Later](./later.md)\n-->\n';
+    const links = extractLinks(md);
+    expect(links.map((l) => [l.target, l.line])).toEqual([
+      ['./planned.md', 3],
+      ['./later.md', 6],
+    ]);
+  });
+
+  it('reads only inline links on one line, with no brackets in the label', () => {
+    const md = [
+      'See [Planned][p].',
+      '',
+      '[p]: ./planned.md',
+      '',
+      'See <a href="./html.md">HTML</a> and ![Diagram](./diagram.png).',
+      '',
+      'See [Planned',
+      'Feature](./wrapped.md).',
+      '',
+      'See [Inline](./inline.md).',
+      '',
+      'See [Titled](./titled.md "Title") and [Angled](<./angled.md>).',
+      '',
+      'See [![Linked](./linked.png)](./linked.md).',
+      '',
+      'See [the arr[0] notes](./nested.md).',
+      '',
+    ].join('\n');
+    // A title or angle brackets stay in the target, so link validation doesn't read it as a
+    // `.md` path. A label can't contain `]`, so a linked image reads as a link to the image's
+    // own target, and a label with brackets isn't read. "No placeholder links" in
+    // docs/features/link-validation.md says so.
+    expect(extractLinks(md).map((l) => [l.target, l.line])).toEqual([
+      ['./inline.md', 10],
+      ['./titled.md "Title"', 12],
+      ['<./angled.md>', 12],
+      ['./linked.png', 14],
+    ]);
+  });
 });
 
 describe('markBrokenLinks', () => {

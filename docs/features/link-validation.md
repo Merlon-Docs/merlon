@@ -8,11 +8,17 @@ Internal markdown links can compile cleanly but still be broken in published out
 
 `mdcp compile` and `mdcp check` validate links in the compiled outputs, and `mdcp check` adds the standalone guides. A broken link fails both commands with IDE-clickable `path:line:` diagnostics unless warn mode is on. Compile also marks a dead `#fragment` with a **`BROKEN LINK`** marker by default. The shard phase is for API callers.
 
-Validated target classes are `.md` paths, `#fragment` anchors, and **file paths** — a link whose target carries a known extension (`.ts`, `.py`, `.yaml`, `.csv`, …) names a file in the repository, so an unresolved target is a defect. This is what keeps a shard from citing a module that has been deleted. Targets that name no resolvable file — a bare word, a directory path — stay unvalidated, because nothing distinguishes a stale one from an illustrative one.
+Validated target classes are `.md` paths, `#fragment` anchors and **file paths**. A target with a known extension, such as `.ts`, `.yaml` or `.csv`, names a repository file, so an unresolved one is a defect. Any other target, such as a bare word or a directory path, stays unvalidated, because nothing tells a stale one from an illustrative one.
 
-The extensions come from a built-in code list and a built-in data list. **Code** extensions name files a symbol can cite a line in, which the [code evidence hook](../client-core/compile-hooks/code-evidence.md) does. **Data** extensions name files that hold configuration or records. Link validation checks that such a file exists, as it does for code, but the hook doesn't search it for a symbol, since a symbol found in inert content is an occurrence rather than a declaration. `lint.codeExtensions` and `lint.dataExtensions` add extensions for stacks the built-in lists leave out. Listing a data format's extension in `lint.codeExtensions` also turns on symbol lookup for it.
+The extensions come from a built-in code list and a built-in data list. Link validation checks that a file with either kind of extension exists. The [code evidence hook](../client-core/compile-hooks/code-evidence.md) uses the same lists and says how it treats each kind. `lint.codeExtensions` and `lint.dataExtensions` add extensions for stacks the built-in lists leave out.
 
-Peer `mdcp links` / `markdown-link-check` remains optional for external URL HTTP checks — not a substitute for internal link validation.
+For external URLs, `mdcp links` runs the optional peer `markdown-link-check`.
+
+## No placeholder links
+
+Every internal link must resolve, so link a planned page in the change that adds it. A placeholder reads as a real reference and leads nowhere.
+
+Link validation reads each inline link written as `[label](target)` on one line, except in a code span or in a backtick fence outside a blockquote. So a dead link in an HTML comment, a tilde fence or an indented code block still fails `mdcp check`. It skips images, reference-style links, HTML `<a>` elements, labels that wrap onto the next line and labels that contain brackets. In a linked image, `[![Diagram](./d.png)](./page.md)`, it reads only `./d.png`, and compile doesn't rewrite `./page.md`. A title or angle brackets become part of the target, so link validation skips the link or fails it although the target exists. Write each internal link inline on one line, with no image or other brackets in the label and no title or angle brackets around the target.
 
 ## BROKEN LINK marker
 
@@ -20,18 +26,18 @@ After the [link passes](../client-core/compile-hooks/index.md#link-passes), comp
 
 A guide's copy in the [monolith](../glossary/monolith.md) is marked after every copy is assembled, against the headings of the whole monolith, so a `#fragment` there can point at a heading of any guide the monolith stitches. The copy also accepts the section slug of every copy there, whichever guide is the shard's owner.
 
-Broken links are replaced with visible prose (no clickable dead href):
+Compile marks a link only when its target after the link passes is a `#fragment` in the same document. A link to a missing file stays a link in the compiled guide, and link lint reports it as `missing file` or `missing publish path`. A marker replaces the link with visible prose that a reader can't click:
 
 ```markdown
 **BROKEN LINK:** "Feature catalog" (`../features/feature-catalog.md`) → `#feature-catalog` (dead anchor in compiled guide)
 ```
 
-| Field           | Source                                                               |
-| --------------- | -------------------------------------------------------------------- |
-| Link label      | Original `[label]` text                                              |
-| Original target | Shard-relative path as authored                                      |
-| Broken target   | Resolved compile target (`#slug`, `guides.md#slug`, `missing.md`, …) |
-| Reason          | `dead anchor`, `missing file`, `missing publish path`                |
+| Field           | Source                                                    |
+| --------------- | --------------------------------------------------------- |
+| Link label      | Original `[label]` text                                   |
+| Original target | The link's target as the shard wrote it                   |
+| Broken target   | The `#fragment` the link has after the link passes        |
+| Reason          | `dead anchor in compiled guide`, in the en-US locale pack |
 
 The original target comes from the shard link at the same place among the links with that label, and each marker replaces its own link where it stands. So of two links with one label, each marker gives the target its own link was written with, and a link that a compiled guide and the monolith both mark gets the same marker in both.
 
@@ -51,8 +57,6 @@ Guides with `compile.outputFile` are **publish-only** outputs (npm READMEs, `DEV
 See [publish-relative rewrite](../client-core/compile-hooks/publish-relative-links.md) for how shard paths are rebased before this policy runs.
 
 Example: `client-cli` with `ignoreGuides: ["features"]` compiles `../features/feature-catalog.md` to `../../docs/features/feature-catalog.md` in `packages/mdcp-cli/README.md`. The cross-guide pass keeps the shard path, and the publish-relative pass rebases it. Lint accepts it because `features` is in `ignoreGuides`.
-
-Publish-relative rewrite and publish-only lint are complementary: rewrite fixes geometry from absolute resolution; lint enforces which target classes are allowed in publish output.
 
 ## Validation phases
 
@@ -74,16 +78,16 @@ A file registered under `standaloneGuides` doesn't get compile output, so the co
 
 Globs resolve against the **scan root** — `scan.root` when set, otherwise the invocation directory — the same root the coverage pass uses, so one registration covers both.
 
-Being uncompiled is not a reason to be unchecked: `AGENTS.md`, `CLAUDE.md`, and a shipped skill corpus under `skills/**/*.md` are exactly the documents an agent reads first.
+Standalone guides are often the first documents an agent reads, such as `AGENTS.md`, `CLAUDE.md` and the skill files under `skills/**/*.md`.
 
 ## Exit codes
 
-| Condition                      | Exit code | Stderr prefix      |
-| ------------------------------ | --------- | ------------------ |
-| No broken links                | **0**     | —                  |
-| Broken links, default severity | **1**     | `link:`            |
-| Broken links, warn mode        | **0**     | `link-warn:`       |
-| `lint.links.enabled: false`    | **0**     | validation skipped |
+| Condition                      | Exit code | Stderr prefix        |
+| ------------------------------ | --------- | -------------------- |
+| No broken links                | **0**     | none                 |
+| Broken links, default severity | **1**     | `link:`              |
+| Broken links, warn mode        | **0**     | `link-warn:`         |
+| `lint.links.enabled: false`    | **0**     | none (stage skipped) |
 
 Warn mode: global `--warn-broken-links` or `lint.links.severity: "warn"`. Resolution: CLI flag > config > default `"error"`.
 
@@ -116,14 +120,6 @@ Per-guide: `guides[].compile.links.markBroken`.
 
 [Check gate](./check-gate.md) says where link validation runs in `mdcp check`.
 
-## CLI
-
-Global option (all commands that run link validation):
-
-| Flag                  | Role                           |
-| --------------------- | ------------------------------ |
-| `--warn-broken-links` | Report broken links but exit 0 |
-
 ## Diagnostic shape
 
 Each issue starts with the file and line where link lint found it. The reason and target follow, then the guide the issue belongs to, when it has one. In the monolith, that guide is the one whose copy contains the line. A compiled output's line is a line of the written file. On a line with a BROKEN LINK marker, the reason is `dead anchor` and the target is the whole line. Link lint reports that line once and doesn't check the other links on it.
@@ -147,14 +143,14 @@ link: /repo/docs/_build/a.md:5: dead anchor "#nope" (compiled guide "a")
 ## Link validation acceptance criteria
 
 - BROKEN LINK marker replaces dead link in compiled output (label, original target, broken target, reason)
-- BROKEN LINK marker for missing `.md` file
+- A link to a missing `.md` file keeps its link syntax in compiled output, with no BROKEN LINK marker
 - Of two links with the same label, each BROKEN LINK marker gives the target its own link was written with
 - A BROKEN LINK marker replaces its own link, even when the same text is in an earlier code span
 - No marker when `compile.links.markBroken: false`
 - Shard dead file link at `path:line`
+- A link inside an HTML comment is validated
 - Shard dead same-doc `#fragment`
-- Shard link to a source file that does not resolve reports `missing file`
-- Compiled link to a source file that does not resolve reports `missing file`
+- A shard or compiled link to a source file that does not resolve reports `missing file`
 - Link target without a resolvable file class (bare word, directory) stays unvalidated
 - `standaloneGuides` files are link-linted, globs included, at the scan root
 - An extension listed in `lint.codeExtensions` or `lint.dataExtensions` is validated like a built-in one, with or without a leading dot
