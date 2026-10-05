@@ -153,16 +153,14 @@ When a [manifest](#manifest) has preamble prose with example links, set `compile
 
 ### `--config` vs `--docs-root`
 
-> **Link target:** On GitHub, this section's anchor is `#--config-vs---docs-root` (not `#config-vs-docs-root`).
-
 These two global options answer different questions:
 
 | Option            | Resolved from                                                                       | Purpose                            |
 | ----------------- | ----------------------------------------------------------------------------------- | ---------------------------------- |
 | **`--config`**    | **Invocation directory**, where you run the command (repo root in most npm scripts) | Locates `mdcp.config.json` on disk |
-| **`--docs-root`** | N/A (you pass the shard tree root explicitly)                                       | Root of guide directories          |
+| **`--docs-root`** | **Invocation directory**, which is also the docs root when you omit the option      | Root of guide directories          |
 
-`--config` is never prefixed with `--docs-root`. [Path layout](#path-layout) describes the docs root.
+`--config` is never prefixed with `--docs-root`. A command run from the repository root without `--docs-root` treats the root as the docs root, so repo-root scripts pass `--docs-root docs`. [Path layout](#path-layout) describes the docs root.
 
 #### Repo-root npm scripts
 
@@ -244,7 +242,7 @@ docs/                          ← --docs-root
 | `refs.registryFile`   | `outputDir`   | `docs/_build/.caches/refs.json`     |
 | `compile.outputFile`  | `outputDir`   | `../../DEVELOPERS.md` from `_build` |
 
-Delete `_build/` to clean all generated output. `.caches/` holds derived state (refs registry) and, when `--backup` is used, prior compile output at the paths [Backup path layout](../../docs/features/compile-output-backup.md#backup-path-layout) gives.
+Delete `_build/` to clean everything compile writes under `outputDir`. A publish output outside it, such as `../../DEVELOPERS.md`, stays where it is. `.caches/` holds derived state (refs registry) and, when `--backup` is used, prior compile output at the paths [Backup path layout](../../docs/features/compile-output-backup.md#backup-path-layout) gives.
 
 #### Default per-guide outputs
 
