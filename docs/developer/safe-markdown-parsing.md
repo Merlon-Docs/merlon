@@ -17,7 +17,7 @@ The helpers in `packages/mdcp-core/src/markdown/` run in linear time. They cover
 - producing plain heading text for language-agnostic [heading slug](../glossary/heading-slug.md) generation
 - tracking fenced code blocks line by line, masking non-prose regions and counting words for prose checks
 
-Heading demotion in `compile/headings.ts` runs `parseHeading` and `formatHeadingAsAtx` on each line outside fenced blocks. It finds those blocks with `createCodeFenceScanner`, the same scan that the slug registry's heading reader runs, and that scan reads a CRLF line too. Demotion starts a new scan on each text it demotes, such as one shard, while the registry reads a whole guide with one scan. A shard that ends inside an open fence can make the two disagree about the shard after it.
+Heading demotion in `compile/headings.ts` runs `parseHeading` and `formatHeadingAsAtx` on each line outside fenced blocks. It finds those blocks with `createCodeFenceScanner`, the same scan that the slug registry's heading reader runs, and that scan reads a CRLF line too. [Fence scan limits](../features/compile-pipeline/fence-scan.md#fence-scan-limits) says when the two can disagree about a shard.
 
 The link passes, `codeEvidence`, broken-link marking and link lint find fenced code with `createQuotedFenceScanner` in `markdown/prose.ts`. It runs the scan behind `createCodeFenceScanner` on each line, and another one on the text of each blockquote up to ten deep, in time that grows linearly with the text. A `>` four or more columns past its container doesn't open a quote, since that scan reads the line as indented code or paragraph text.
 

@@ -13,4 +13,4 @@ Fences are found line by line. A fence counts when it starts at most three colum
 
 The strip itself works line by line too. It trims whitespace only on the marker's own line, so a marker that opens a paragraph leaves the blank line above it in place. When a marker opens a line's text, the whitespace after it goes instead, and the line keeps its indent. The strip still drops a line that contains only a marker. With the markers on separate lines, the time grows linearly with the document.
 
-`mdcp compile` output changes the same way. The CLI and core READMEs quote the syntax again, and the core README gives `stripAnchors` its own section with these rules.
+`mdcp compile` output changes the same way. The CLI and core READMEs quote the syntax again, and the core README gives `stripAnchors` its own section, which states the heading-line and code rules. Fence scan, `docs/features/compile-pipeline/fence-scan.md` in the Features Guide's Compile pipeline group, states the fence reading and its limits.
