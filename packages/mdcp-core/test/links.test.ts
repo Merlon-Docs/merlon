@@ -539,6 +539,36 @@ describe('lintCompiledLinks', () => {
     const issues = lintCompiledLinks({ markdown: md, outputFile: '/out.md' });
     expect(issues).toHaveLength(0);
   });
+
+  // The marker pass asks about each line, and the link pass asks once more about each line that
+  // holds a link, however many links it holds.
+  it('asks about each line once in each pass, however many links it holds', () => {
+    const asked: string[] = [];
+    const locale = {
+      ...enUS,
+      brokenLinks: {
+        ...enUS.brokenLinks,
+        lineHasMarker: (line: string) => {
+          asked.push(line);
+          return enUS.brokenLinks.lineHasMarker(line);
+        },
+      },
+    };
+    const markerLine = `${formatBrokenLinkMarker('X', './a.md', '#x', 'dead anchor')} [a](#t) [b](#t) [c](#t)`;
+    const linkLine = '[d](#nope) [e](#nope)';
+    const issues = lintCompiledLinks({
+      markdown: `# T\n\n${markerLine}\n\n${linkLine}\n`,
+      outputFile: '/out.md',
+      locale,
+    });
+    expect(asked.filter((line) => line === markerLine)).toHaveLength(2);
+    expect(asked.filter((line) => line === linkLine)).toHaveLength(2);
+    expect(issues.map((i) => `${i.line} ${i.kind} ${i.label}`)).toEqual([
+      '3 dead anchor ',
+      '5 dead anchor d',
+      '5 dead anchor e',
+    ]);
+  });
 });
 
 describe('formatLinkIssue', () => {

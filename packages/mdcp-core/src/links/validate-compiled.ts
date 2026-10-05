@@ -85,9 +85,19 @@ export function lintCompiledLinkTargets(
   const locale = options.locale ?? getLocalePack();
   const issues: LinkIssue[] = [];
   const lines = options.markdown.split('\n');
+  // A line can hold many links, so each line is searched for a marker once.
+  const markerLines = new Map<number, boolean>();
+  const lineHasMarker = (line: number): boolean => {
+    let has = markerLines.get(line);
+    if (has === undefined) {
+      has = locale.brokenLinks.lineHasMarker(lines[line - 1] ?? '');
+      markerLines.set(line, has);
+    }
+    return has;
+  };
 
   for (const link of extractLinks(options.markdown)) {
-    if (locale.brokenLinks.lineHasMarker(lines[link.line - 1] ?? '')) continue;
+    if (lineHasMarker(link.line)) continue;
 
     const result = validateCompiledLinkTarget(link.target, registry, {
       outputFile: options.outputFile,

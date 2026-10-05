@@ -4,6 +4,8 @@ import { headingTextToPlain } from '../src/refs/slugs.js';
 import { demoteHeadings } from '../src/compile/headings.js';
 import { lineRangeFromText } from '../src/compile/hooks/line-range.js';
 import { isPathClaim, probePathClaims } from '../src/validate/path-probe.js';
+import { enUS } from '../src/locale/index.js';
+import { lintCompiledLinks } from '../src/links/validate-compiled.js';
 import { manySpaces, nestedOpenAnchors, timeMs, trailingSlashRun } from './helpers/redos-pumps.js';
 
 /** Tight budget: safe linear parsers finish well under this; polynomial paths blow it. */
@@ -14,6 +16,9 @@ const SLASH_N = 20_000;
 const BACKTICK_RUNS = 600;
 const MARKED_HEADINGS = 2_000;
 const LINE_MARKERS = 20_000;
+const MARKER_PARTS = 80;
+const MARKER_STARTS = 5_000;
+const MARKER_LINE_LINKS = 2_000;
 
 describe('ReDoS budget demos (CodeQL js/polynomial-redos)', () => {
   it('stripExplicitAnchorMarkers stays under budget on long leading spaces + incomplete {#', () => {
@@ -116,6 +121,76 @@ describe('ReDoS budget demos (CodeQL js/polynomial-redos)', () => {
         generated: [trailingSlashRun(SLASH_N)],
         vocabulary: [trailingSlashRun(SLASH_N)],
       });
+    });
+    expect(ms).toBeLessThan(BUDGET_MS);
+  });
+
+  // The en-US marker template has a variable between each two of its five literal parts. With
+  // every copy of each part after the copies of the part before it, and no `)` after the last
+  // `` ` ( ``, a regex with a lazy `.*?` for each variable tries every choice of where each one
+  // ends before it fails.
+  const crossedMarkerParts = (n: number) =>
+    '**BROKEN LINK:** "' + '" (`'.repeat(n) + '`) → `'.repeat(n) + '` ('.repeat(n);
+
+  it('lineHasMarker stays under budget on a line of crossed marker parts', () => {
+    const input = crossedMarkerParts(MARKER_PARTS);
+    const ms = timeMs(() => {
+      enUS.brokenLinks.lineHasMarker(input);
+    });
+    expect(ms).toBeLessThan(BUDGET_MS);
+  });
+
+  it('findMarkers stays under budget on a line of crossed marker parts', () => {
+    const input = crossedMarkerParts(MARKER_PARTS);
+    const ms = timeMs(() => {
+      enUS.brokenLinks.findMarkers?.(input);
+    });
+    expect(ms).toBeLessThan(BUDGET_MS);
+  });
+
+  // Each copy of the first part starts a search that finds the next three parts and then the last
+  // one only after a line separator. A scan that searches again from each start for each part
+  // rereads the rest of the line every time.
+  const markerStarts = (n: number) =>
+    '**BROKEN LINK:** "'.repeat(n) + '" (`' + '`) → `' + '` (' + '\u2028)';
+
+  it('lineHasMarker stays under budget on a line of first parts whose last part follows a line separator', () => {
+    const input = markerStarts(MARKER_STARTS);
+    const ms = timeMs(() => {
+      enUS.brokenLinks.lineHasMarker(input);
+    });
+    expect(ms).toBeLessThan(BUDGET_MS);
+  });
+
+  it('findMarkers stays under budget on a line of first parts whose last part follows a line separator', () => {
+    const input = markerStarts(MARKER_STARTS);
+    const ms = timeMs(() => {
+      enUS.brokenLinks.findMarkers?.(input);
+    });
+    expect(ms).toBeLessThan(BUDGET_MS);
+  });
+
+  // Link lint skips each link on a line that holds a marker, so it asks about that line once for
+  // each of its links. A marker search whose cost grows with the line, even when the marker comes
+  // first, makes that cost grow with the line times its links.
+  const markerLine = (markerFirst: boolean) => {
+    const marker = enUS.brokenLinks.formatMarker('a', '#b', '#b', 'dead anchor');
+    const links = ' [a](#t)'.repeat(MARKER_LINE_LINKS);
+    return markerFirst ? marker + links : links + ' ' + marker;
+  };
+
+  it('lineHasMarker stays under budget when asked once per link about a long line', () => {
+    const input = markerLine(true);
+    const ms = timeMs(() => {
+      for (let i = 0; i < MARKER_LINE_LINKS; i++) enUS.brokenLinks.lineHasMarker(input);
+    });
+    expect(ms).toBeLessThan(BUDGET_MS);
+  });
+
+  it('lintCompiledLinks stays under budget on a line with a marker after many links', () => {
+    const markdown = '# T\n\n' + markerLine(false) + '\n';
+    const ms = timeMs(() => {
+      lintCompiledLinks({ markdown, outputFile: '/x/out.md', guideName: 'g' });
     });
     expect(ms).toBeLessThan(BUDGET_MS);
   });
