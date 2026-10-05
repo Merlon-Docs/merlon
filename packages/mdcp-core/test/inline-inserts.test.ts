@@ -71,6 +71,36 @@ describe('inlineInserts — link matching', () => {
       '[Media\r\nclip](media/clip.md)',
     ]);
   });
+
+  // Unlike the link passes, the hook reads fenced code and code spans, as the spec says.
+  describe('in fenced code and code spans', () => {
+    const work = useTmpDir('mdcp-inserts-');
+    const span = 'Inline: `[Flow](./diagrams/flow.md)` here.';
+    const fence = ['~~~md', '[Flow](./diagrams/flow.md)', '~~~'].join('\n');
+
+    function writeFlow(): string {
+      const guideDir = join(work.path, 'review');
+      mkdirSync(join(guideDir, 'diagrams'), { recursive: true });
+      writeFileSync(join(guideDir, 'diagrams', 'flow.md'), '| A | B |\n|---|---|\n| 1 | 2 |\n');
+      return join(guideDir, 'claim.md');
+    }
+
+    it('inlines the insert in a fence of tildes and back-links it from a code span', () => {
+      const out = runInlineInserts(`${fence}\n\n${span}`, writeFlow());
+      expect(out).toBe(
+        '~~~md\n\n\n#### Diagram 1. Flow\n\n| A | B |\n|---|---|\n| 1 | 2 |\n\n\n~~~\n\n' +
+          'Inline: `[Flow](#diagram-1-flow)` here.',
+      );
+    });
+
+    it('inlines the insert in a code span and back-links it from a fence of tildes', () => {
+      const out = runInlineInserts(`${span}\n\n${fence}`, writeFlow());
+      expect(out).toBe(
+        'Inline: `\n\n#### Diagram 1. Flow\n\n| A | B |\n|---|---|\n| 1 | 2 |\n\n` here.\n\n' +
+          '~~~md\n[Flow](#diagram-1-flow)\n~~~',
+      );
+    });
+  });
 });
 
 describe('inlineInserts — heading and slug helpers', () => {

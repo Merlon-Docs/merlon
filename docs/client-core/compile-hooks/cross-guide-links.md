@@ -2,7 +2,7 @@
 
 <!-- mdcp-paths: illustrative -->
 
-Specification for assembly-time cross-shard and cross-guide link rewriting. Tests in `packages/mdcp-core/test/cross-guide-links.test.ts` map to the sections below (docs first, then TDD).
+Specification for assembly-time cross-shard and cross-guide link rewriting. Tests in `packages/mdcp-core/test/cross-guide-links.test.ts` map to the sections below (docs first, then TDD). The fenced code tests in `packages/mdcp-core/test/links.test.ts` also cover [cross-guide link matching](#cross-guide-link-matching) and [cross-guide exclusions](#cross-guide-exclusions).
 
 Multi-output consumer repos produce separate compiled guides (such as `glossary.md`, `architecture-review.md`, `technical-guide.md`) from shards that span `review/`, `security/`, `features/`, and sibling guide directories. Source shards link with relative `.md` paths. Compiled output must use stable in-document or cross-output `#slug` targets so link-fragment lint passes.
 
@@ -21,6 +21,7 @@ A link is rewritten when **all** of the following hold:
 - Target is not `http://`, `https://`, or `#…`
 - Target resolves to a shard registered in the guide link index
 - Target shard's guide is **not** listed in `compile.crossGuideLinks.ignoreGuides` on the compiling guide, unless [same compiled output preference](#same-compiled-output-preference) keeps the link in the document
+- The link is outside fenced code and code spans (see [Link passes](./index.md#link-passes))
 
 Cross-guide rewrite matches only links whose path starts with `./` or `../`, including links to shards of the same guide. The intra-guide pass handles bare paths, such as `topic/section.md`.
 
@@ -92,6 +93,7 @@ The pass **does not** transform:
 
 - External URLs
 - Same-document `#fragment` links
+- Link syntax in fenced code or in a code span
 - Markdown links that do not resolve to an indexed shard
 - Non-markdown paths (handled by `codeEvidence` or left unchanged)
 - Links to shards in guides listed in `compile.crossGuideLinks.ignoreGuides`, other than a stitched shard that [same compiled output preference](#same-compiled-output-preference) keeps in the document (publish-relative may still rebase the unchanged shard path; see [`ignoreGuides` interaction](./publish-relative-links.md#ignoreguides-interaction))

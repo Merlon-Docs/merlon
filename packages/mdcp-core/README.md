@@ -318,6 +318,8 @@ Assembly rewrites links to files in the passes below. They run on each shard in 
 
 Assembly marks the paths `codeEvidence` rebased once every hook has run, so no hook sees a mark. It finds each of those links by the text the hook wrote and by its place among the links with that text. So a link the shard wrote with the same text, which the hook left as written, doesn't get a mark. When a hook listed after `codeEvidence` changes that text, or adds or removes a link with that text above it, the publish-relative pass can rebase the hook's path again, and leave another link with that text as it is.
 
+The passes leave a link in fenced code or in a code span as written, and so do `codeEvidence` and broken-link marking. They pair code spans within each line, so a code span that wraps onto the next line doesn't hide a link. They find fenced code with the fence scan that [stripAnchors code](#stripanchors-code) describes, which reads fences of backticks or tildes and follows list items. They also run that scan on the text of each blockquote, so a fence in a quote counts up to ten blockquotes deep. The per-shard passes and `codeEvidence` start a new scan on each shard. Broken-link marking and compiled link lint read the whole guide with one scan, as the intra-guide run on the stitched body does. So a shard that ends inside an open fence can make them disagree about the shard after it.
+
 | Pass             | When                                       | Matches                                                                                                     | Output                                         |
 | ---------------- | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
 | Cross-guide      | Per shard, after the hooks                 | `./` and `../` paths to a shard in the guide link index                                                     | `#slug`, or another output's path plus `#slug` |
@@ -482,7 +484,7 @@ Because code spans are paired within each line, a span that wraps onto the line,
 
 <!-- mdcp-paths: illustrative -->
 
-Specification for the `codeEvidence` compile hook. Tests in `packages/mdcp-core/test/code-evidence.test.ts` map to the sections below (docs first, then TDD).
+Specification for the `codeEvidence` compile hook. Tests in `packages/mdcp-core/test/code-evidence.test.ts` map to the sections below (docs first, then TDD). The fenced code tests in `packages/mdcp-core/test/links.test.ts` also cover [codeEvidence link matching](#codeevidence-link-matching).
 
 ### codeEvidence purpose
 
@@ -502,8 +504,11 @@ A link is rewritten when **all** of the following hold:
 - Standard markdown link syntax: `[label](path)`
 - Target path names a **file in the repository** (a code extension such as `.ts`, `.py`, `.go`, a data extension such as `.yaml` or `.csv`, or an extensionless path like `Makefile`)
 - Target is not `http://`, `https://`, or `#…`
+- The link is outside fenced code and code spans
 
 Markdown (`.md`) links, external URLs, and same-guide shard links are left unchanged.
+
+The hook finds fenced code and code spans as the [link passes](#link-passes) do. A link outside code can still wrap onto the next line.
 
 **Code and data differ in what the hook adds.** A code file can be cited by line, so symbol lookup can give it an `#L` fragment. A data file, such as configuration or records, is resolved and rebased for the output path. It gets an `#L` fragment only from a line range the shard writes in the label, the path or the fragment, and never from symbol lookup, because an identifier found in inert content is an occurrence rather than a declaration. Link validation uses the same code and data extension lists. To look symbols up in a data format, list its extension in `lint.codeExtensions`. See [Built-in link validation](../../docs/features/link-validation.md).
 
@@ -547,6 +552,7 @@ The hook **does not** transform:
 
 - Markdown shard links (`.md`)
 - External URLs
+- Link syntax in fenced code or in a code span
 - The path of a source link whose file can't be resolved (see [codeEvidence path resolution](#codeevidence-path-resolution) for its fragment)
 - A symbol in a data-file link into an `#L` fragment, unless the extension is listed in `lint.codeExtensions`
 - Body text when `codeEvidence` is disabled via `compile.hooks: { "codeEvidence": false }` or an explicit hook override that omits it
@@ -583,7 +589,7 @@ Shard input (under `review/claim.md`):
 ```markdown
 Evidence: [`orgCount`](../../functions/src/foo.ts)
 
-See [firestore.rules L6-L8](../../firestore.rules#L6-L8).
+See [firestore.rules L6-L8](../../firestore.rules).
 ```
 
 Compiled output (when `functions/src/foo.ts` defines `orgCount` on line 6 and output is `architecture-review.md` at repo root):
@@ -639,6 +645,8 @@ A link is an insert reference when **all** of the following hold:
 - Target starts with an insert library directory and a `/`, after an optional `./` or run of `../`. The directories are `diagram`, `diagrams`, `table`, `tables`, `figure`, `figures`, `media`, `insert` and `inserts`, in any case. No `http://` or `https://` URL starts that way.
 - The path after the directory doesn't start with `#` or whitespace. It ends in `.md` in any case, with at least one character before the `.md`.
 - An optional `#fragment` after the `.md` can't be empty, and file lookup ignores it.
+
+The hook reads the whole shard body, fenced code and code spans included. So it inlines an insert, or writes a back-link, for an insert link in a code example too, where the [link passes](#link-passes) leave a link as written.
 
 ### inlineInserts exclusions
 
@@ -774,7 +782,7 @@ Catalog link `` `[Walkthrough](../media/walkthrough.md)` `` compiles to `#### Me
 
 <!-- mdcp-paths: illustrative -->
 
-Specification for assembly-time cross-shard and cross-guide link rewriting. Tests in `packages/mdcp-core/test/cross-guide-links.test.ts` map to the sections below (docs first, then TDD).
+Specification for assembly-time cross-shard and cross-guide link rewriting. Tests in `packages/mdcp-core/test/cross-guide-links.test.ts` map to the sections below (docs first, then TDD). The fenced code tests in `packages/mdcp-core/test/links.test.ts` also cover [cross-guide link matching](#cross-guide-link-matching) and [cross-guide exclusions](#cross-guide-exclusions).
 
 Multi-output consumer repos produce separate compiled guides (such as `glossary.md`, `architecture-review.md`, `technical-guide.md`) from shards that span `review/`, `security/`, `features/`, and sibling guide directories. Source shards link with relative `.md` paths. Compiled output must use stable in-document or cross-output `#slug` targets so link-fragment lint passes.
 
@@ -793,6 +801,7 @@ A link is rewritten when **all** of the following hold:
 - Target is not `http://`, `https://`, or `#…`
 - Target resolves to a shard registered in the guide link index
 - Target shard's guide is **not** listed in `compile.crossGuideLinks.ignoreGuides` on the compiling guide, unless [same compiled output preference](#same-compiled-output-preference) keeps the link in the document
+- The link is outside fenced code and code spans (see [Link passes](#link-passes))
 
 Cross-guide rewrite matches only links whose path starts with `./` or `../`, including links to shards of the same guide. The intra-guide pass handles bare paths, such as `topic/section.md`.
 
@@ -864,6 +873,7 @@ The pass **does not** transform:
 
 - External URLs
 - Same-document `#fragment` links
+- Link syntax in fenced code or in a code span
 - Markdown links that do not resolve to an indexed shard
 - Non-markdown paths (handled by `codeEvidence` or left unchanged)
 - Links to shards in guides listed in `compile.crossGuideLinks.ignoreGuides`, other than a stitched shard that [same compiled output preference](#same-compiled-output-preference) keeps in the document (publish-relative may still rebase the unchanged shard path; see [`ignoreGuides` interaction](#ignoreguides-interaction))
@@ -1029,6 +1039,7 @@ A link is rewritten when **all** of the following hold:
 - Target is not `http://`, `https://`, `mailto:`, or `#…`
 - Target resolves to an existing file or directory, or to an output of the run, in the order [Path lookup order](#path-lookup-order) gives for this pass
 - Resolved path is **not** a same-guide indexed shard (the cross-guide pass rewrites those)
+- The link is outside fenced code and code spans (see [Link passes](#link-passes))
 
 A target made only of `../` segments, such as `../` or `../../`, points at a directory and rebases in every compiled guide. From `docs/developer/` into `DEVELOPERS.md`, the target `../` compiles to `docs`. The target `../../` resolves to the directory that contains `DEVELOPERS.md`, so it compiles to `./`. The rebased path drops any trailing slash, so `../../skills/` compiles to `skills`.
 
@@ -1052,6 +1063,7 @@ The pass **does not** transform:
 
 - External URLs
 - Same-document `#fragment` links
+- Link syntax in fenced code or in a code span
 - `./section.md` and other `./` paths (cross-guide or intra-guide handle `.md`; publish-relative only matches `../`)
 - A link that the cross-guide pass rewrote, whose path is already relative to the link base, such as `../../README.md#setup` in a guide published to `packages/a/README.md`
 - A link that [`codeEvidence`](#codeevidence) rebased, whose path is relative to the link base too. From the shard's directory, the path can lead to another file with the same name.
@@ -1114,13 +1126,13 @@ Where Prettier and markdownlint disagree, a layout that passes one tool fails th
 
 If a cell without a link contains such text, markdownlint's MD060 rule already flags the table in the shard, and it flags the compiled table too. Where compile and Prettier measure that cell differently, as for a Hebrew point, compile leaves the table out of line where its links changed width. Where they agree, as for Hindi text without a nonspacing mark, compile re-aligns the table to Prettier's layout. If only a cell with a link contains such text, compile re-aligns the table by its own measure. For text other than Indic, the result passes MD060, and Prettier's check fails on it. Indic text fails MD060, and Prettier's check passes only when the text has no nonspacing mark.
 
-Compile re-aligns a table when its cells without a link match the width of their column's delimiter cell and some cell with a link doesn't. The delimiter row has no link, so it keeps the width the shard gave each column. A table qualifies when some cell differs in width from the delimiter cell of its column, and each such cell contains a link or a broken-link marker. That rule also re-aligns a shard table whose link cells were out of line before compile. The table must also pad some cell with more than one space, which a compact table never does. A compact or tight table stays as written, and so does a table whose pipes still line up. When something else changes the width of a cell, the table stays as compile left it. Stripping an explicit `{#id}` anchor from a cell does that, and so does `codeEvidence` when it rewrites link syntax to a repository file inside a code span, rebasing its path or adding a line fragment. A custom compile hook can do it too.
+Compile re-aligns a table when its cells without a link match the width of their column's delimiter cell and some cell with a link doesn't. The delimiter row has no link, so it keeps the width the shard gave each column. A table qualifies when some cell differs in width from the delimiter cell of its column, and each such cell contains a link or a broken-link marker. That rule also re-aligns a shard table whose link cells were out of line before compile. The table must also pad some cell with more than one space, which a compact table never does. A compact or tight table stays as written, and so does a table whose pipes still line up. When something else changes the width of a cell, the table stays as compile left it. Stripping a `{#id}` anchor from a cell does that, and so does `inlineInserts` when it changes an insert link in a code span. A custom compile hook can do it too.
 
 The padding rule misses an aligned table where each column's cells all have the same width, since no cell then pads past one space. Compile reads that table as compact and doesn't re-align it after a link changes width. MD060 accepts the result as a compact table, but Prettier's check fails on it.
 
-The table ends at a blank line or a fence, and at a line that leaves its blockquote. It also ends at a line indented as far as the rows or less that opens another block, such as a list item, a heading, a blockquote, an HTML block or a thematic break. So a table in a tight list ends at the next list item, or at a nested list right under it. A list item ends a table even where it couldn't interrupt a paragraph, such as an item numbered `10.`, so compile reads a fence in that item as fenced code. Every other line up to the end is a row. Each row must start and end with a pipe after the indentation and blockquote markers of the delimiter row. Compile leaves the whole table as written when any row breaks that rule or has more cells than the delimiter row. A tab anywhere in a row also leaves the table as written. When compile leaves a table, it leaves every row up to the table's end, even a row that looks like a delimiter row.
+The table ends at a blank line or a fence, and at a line that leaves its blockquote. It also ends at a line indented as far as the rows or less that opens another block, such as a list item, a heading, a blockquote, an HTML block or a thematic break. So a table in a tight list ends at the next list item, or at a nested list right under it. A list item ends a table even where it couldn't interrupt a paragraph, such as an item numbered `10.`, so re-alignment reads a fence in that item as fenced code. Every other line up to the end is a row. Each row must start and end with a pipe after the indentation and blockquote markers of the delimiter row. Compile leaves the whole table as written when any row breaks that rule or has more cells than the delimiter row. A tab anywhere in a row also leaves the table as written. When compile leaves a table, it leaves every row up to the table's end, even a row that looks like a delimiter row.
 
-A table in a list item or a blockquote keeps its indentation and its markers. A table in more than ten nested blockquotes stays as written, since finding the fences of each quote around it takes time that grows with the square of the depth. When a table opens its list item, Prettier prints the header row on the marker's line, such as `- | Page | Purpose |`, and indents the other rows to the item's text. Compile re-aligns that table when the marker is as wide as that indentation, and keeps the marker on the header row. Compile leaves a table whose header row sits in fewer blockquotes than a non-blank line right above it, or in as many and indented less than that line's text, unless the header row opens a list item. That row may continue the paragraph above it, and GFM then doesn't read a table there. Compile doesn't re-align a table in fenced code, in a blockquote or out of one. A link in that table can still change and leave the table out of line. `codeEvidence` rewrites a link to a repository file in any fence. Link rewriting and broken-link marking skip a fence of backticks outside a blockquote, but they change links in a fence of tildes or in a quoted fence. Compile reads an indented code block or an HTML block as prose, as link rewriting does, so it re-aligns a table there too. When the line right after the last row closes a comment, such as `-->`, compile reads that line as one more row and leaves the table as written. A pipe escaped as `\|` stays in its cell, in a code span or out of one.
+A table in a list item or a blockquote keeps its indentation and its markers. A table in more than ten nested blockquotes stays as written, since finding the fences of each quote around it takes time that grows with the square of the depth. When a table opens its list item, Prettier prints the header row on the marker's line, such as `- | Page | Purpose |`, and indents the other rows to the item's text. Compile re-aligns that table when the marker is as wide as that indentation, and keeps the marker on the header row. Compile leaves a table whose header row sits in fewer blockquotes than a non-blank line right above it, or in as many and indented less than that line's text, unless the header row opens a list item. That row may continue the paragraph above it, and GFM then doesn't read a table there. Compile doesn't re-align a table in fenced code, in a blockquote or out of one. The link passes, `codeEvidence` and broken-link marking leave the links in fenced code as written. Their fence scan reads a table as a paragraph, though, so a list item that can't interrupt one, such as `10.`, doesn't open a fence for them. A table in that fence can end up out of line. `inlineInserts` still changes an insert link in fenced code, as [inlineInserts link matching](#inlineinserts-link-matching) says, so a fenced table that links to an insert can also end up out of line. Compile reads an indented code block or an HTML block as prose, as link rewriting does, so it re-aligns a table there too. When the line right after the last row closes a comment, such as `-->`, compile reads that line as one more row and leaves the table as written. A pipe escaped as `\|` stays in its cell, in a code span or out of one.
 
 Code: `realignTables` in `packages/mdcp-core/src/compile/align-tables.ts`, which measures cells with `displayWidth` in `packages/mdcp-core/src/markdown/display-width.ts`. Tests in `packages/mdcp-core/test/align-tables.test.ts` and `packages/mdcp-core/test/display-width.test.ts` map to this section.
 

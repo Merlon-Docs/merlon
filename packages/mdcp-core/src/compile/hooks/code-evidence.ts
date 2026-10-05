@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs';
 import { dirname, relative } from 'node:path';
 import type { CompileHook, CompileHookState } from '../hooks.js';
 import { markLinkTarget } from '../publish-links.js';
+import { maskInlineCode } from '../../links/extract.js';
+import { createQuotedFenceScanner } from '../../markdown/index.js';
 import {
   codeExtensionSet,
   defaultSearchRoots,
@@ -150,15 +152,49 @@ function rewriteEvidenceLink(
   return evidenceLink(label, pathPart, resolved, outputFile, lineFrag ?? undefined);
 }
 
+type ReplaceEvidenceLink = (match: string, label: string, target: string) => string;
+
+/** `text`, which holds no fenced code, with each link outside a code span replaced. */
+function replaceProseLinks(text: string, replace: ReplaceEvidenceLink): string {
+  // Masking keeps each index, so a match in `masked` is at the same place in `text`.
+  const masked = text.split('\n').map(maskInlineCode).join('\n');
+  let out = '';
+  let last = 0;
+  for (const m of masked.matchAll(MD_LINK_RE)) {
+    const start = m.index;
+    const end = start + m[0].length;
+    const label = text.slice(start + 1, start + 1 + m[1].length);
+    const target = text.slice(end - 1 - m[2].length, end - 1);
+    out += text.slice(last, start) + replace(text.slice(start, end), label, target);
+    last = end;
+  }
+  return out + text.slice(last);
+}
+
 /**
  * `body` with each link the hook reads replaced by what `replace` returns for it. `replace` gets the
- * link's label and target.
+ * link's label and target. The hook skips fenced code, in a blockquote too, and code spans, as the
+ * link passes and link lint do. A link can still span lines between two fences, so a label that
+ * prose wrapping breaks keeps its link.
  */
-function replaceEvidenceLinks(
-  body: string,
-  replace: (match: string, label: string, target: string) => string,
-): string {
-  return body.replace(MD_LINK_RE, replace);
+function replaceEvidenceLinks(body: string, replace: ReplaceEvidenceLink): string {
+  const inFence = createQuotedFenceScanner();
+  const out: string[] = [];
+  let prose: string[] = [];
+  const flush = () => {
+    if (prose.length > 0) out.push(replaceProseLinks(prose.join('\n'), replace));
+    prose = [];
+  };
+  for (const line of body.split('\n')) {
+    if (inFence(line)) {
+      flush();
+      out.push(line);
+    } else {
+      prose.push(line);
+    }
+  }
+  flush();
+  return out.join('\n');
 }
 
 /** A link the hook rebased: the text it wrote, and how many of its links before it have that text. */

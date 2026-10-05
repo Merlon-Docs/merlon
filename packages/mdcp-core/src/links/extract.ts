@@ -1,3 +1,5 @@
+import { createQuotedFenceScanner } from '../markdown/index.js';
+
 /** Match markdown links but not images `![alt](url)`. */
 export const MD_LINK_RE = /(?<!!)\[([^\]]*)\]\(([^)]+)\)/g;
 
@@ -39,23 +41,21 @@ export function maskInlineCode(line: string): string {
   return out;
 }
 
-/** Extract markdown links with 1-based line numbers; skip fenced and inline code. */
+/**
+ * Extract markdown links with 1-based line numbers. Skip fenced code, which
+ * `createQuotedFenceScanner` finds in a blockquote too, and code spans.
+ */
 export function extractLinks(markdown: string): ExtractedLink[] {
   const links: ExtractedLink[] = [];
   const lines = markdown.split('\n');
-  let inFence = false;
+  const inFence = createQuotedFenceScanner();
   let lineStart = 0;
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const lineOffset = lineStart;
     lineStart += line.length + 1;
-    const stripped = line.trim();
-    if (stripped.startsWith('```')) {
-      inFence = !inFence;
-      continue;
-    }
-    if (inFence) continue;
+    if (inFence(line)) continue;
 
     const masked = maskInlineCode(line);
     for (const m of masked.matchAll(MD_LINK_RE)) {

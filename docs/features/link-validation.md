@@ -18,7 +18,7 @@ For external URLs, `mdcp links` runs the optional peer `markdown-link-check`.
 
 Every internal link must resolve, so link a planned page in the change that adds it. A placeholder reads as a real reference and leads nowhere.
 
-Link validation reads each inline link written as `[label](target)` on one line, except in a code span or in a backtick fence outside a blockquote. So a dead link in an HTML comment, a tilde fence or an indented code block still fails `mdcp check`. It skips images, reference-style links, HTML `<a>` elements, labels that wrap onto the next line and labels that contain brackets. In a linked image, `[![Diagram](./d.png)](./page.md)`, it reads only `./d.png`, and compile doesn't rewrite `./page.md`. A title or angle brackets become part of the target, so link validation skips the link or fails it although the target exists. Write each internal link inline on one line, with no image or other brackets in the label and no title or angle brackets around the target.
+Link validation reads each inline link written as `[label](target)` on one line, except in a code span or fenced code. So a dead link in an HTML comment or an indented code block still fails `mdcp check`. It skips images, reference-style links, HTML `<a>` elements, labels that wrap onto the next line and labels that contain brackets. In a linked image, `[![Diagram](./d.png)](./page.md)`, it reads only `./d.png`, and compile doesn't rewrite `./page.md`. A title or angle brackets become part of the target, so link validation skips the link or fails it although the target exists. Write each internal link inline on one line, with no image or other brackets in the label and no title or angle brackets around the target.
 
 ## BROKEN LINK marker
 
@@ -66,11 +66,13 @@ Example: `client-cli` with `ignoreGuides: ["features"]` compiles `../features/fe
 | Standalone | `lintLinks` with `scanRoot` (`mdcp check`) | Same checks as shard phase, over every file matched by `standaloneGuides`                                                           |
 | Compiled   | After assemble                             | `#fragment` vs the headings and the slugs broken-link marking used; relative `.md` and source-file paths from output file directory |
 
+Broken-link marking and each phase skip a link in fenced code or a code span, as the [link passes](../client-core/compile-hooks/index.md#link-passes) do. The compiled phase skips a BROKEN LINK marker in fenced code, but reports one in a code span.
+
 A `.md` target names another output of the same run only when its resolved path equals that output's path. Its `#fragment` is then checked against the compiled text held in memory, so the output doesn't have to be written yet. This holds in publish-only output too. The monolith counts as an output only when at least one guide is stitched into it, because a run where every guide sets `compile.outputFile` never writes it. A link to a monolith that is never written reports `missing publish path`, even when an earlier run left the file on disk. A file that only shares a name with an output, such as a package's `README.md` when the root `README.md` is an output, gets the ordinary check: the file has to exist, and any `#fragment` has to match one of its headings.
 
 The compiled phase reads each output as compile writes it, banner included, so the line in a diagnostic is a line of that file. A `#fragment` in an output has to match one of its headings or a slug from the set that broken-link marking used. A slug that only another guide's compiled guide has is a dead anchor, even when the monolith has that heading. So is the slug of a shard that the output doesn't stitch, even when the shard is in the directory of the output's guide. A fragment on a link to another output of the run has to match a heading of that output. A finding id or a declared `{#id}` doesn't, because the heading there takes its anchor from its text. So `architecture-review.md#find-004` is a dead anchor, though compile writes that link for a link to the finding's shard. [Cross-guide purpose](../client-core/compile-hooks/cross-guide-links.md#cross-guide-purpose) says which slug a link to a shard takes in an output without the shard's section, and when that slug matches another heading there. [Monolith link lint](./monolith-link-lint.md) says how the monolith is checked, and when an issue there repeats one in a compiled guide.
 
-Compiled-phase checks run **after** compile's [link passes](../client-core/compile-hooks/index.md#link-passes). Co-compiled transitive targets are the shards in a guide's [`linkedSectionFiles`](./manifest-compile-order.md#linked-shards-and-the-file-name-fallback) outside its directory. A `./` or `../` link to one rewrites like any other cross-guide link, as [Cross-guide resolution](../client-core/compile-hooks/cross-guide-links.md#cross-guide-resolution) describes. [Index ownership](../client-core/compile-hooks/cross-guide-links.md#index-ownership) there assigns each shard to one guide. Validation treats remaining raw `../file.md` (or `./file.md`) to those co-compiled paths as broken when publish-only policy requires a compiled target. <!-- mdcp-paths: illustrative -->
+Co-compiled transitive targets are the shards in a guide's [`linkedSectionFiles`](./manifest-compile-order.md#linked-shards-and-the-file-name-fallback) outside its directory. A `./` or `../` link to one rewrites like any other cross-guide link, as [Cross-guide resolution](../client-core/compile-hooks/cross-guide-links.md#cross-guide-resolution) describes. [Index ownership](../client-core/compile-hooks/cross-guide-links.md#index-ownership) there assigns each shard to one guide. Validation treats remaining raw `../file.md` (or `./file.md`) to those co-compiled paths as broken when publish-only policy requires a compiled target. <!-- mdcp-paths: illustrative -->
 
 ## Standalone guide validation
 
@@ -151,13 +153,14 @@ link: /repo/docs/_build/a.md:5: dead anchor "#nope" (compiled guide "a")
 - A link inside an HTML comment is validated
 - Shard dead same-doc `#fragment`
 - A shard or compiled link to a source file that does not resolve reports `missing file`
-- Link target without a resolvable file class (bare word, directory) stays unvalidated
+- Link target with no known extension (bare word, directory) stays unvalidated
 - `standaloneGuides` files are link-linted, globs included, at the scan root
 - An extension listed in `lint.codeExtensions` or `lint.dataExtensions` is validated like a built-in one, with or without a leading dot
 - A data-file link is validated and rebased, and symbol lookup gives it no `#L` fragment; the same extension listed in `lint.codeExtensions` gets one
 - Compiled dead anchor after demotion
 - A shard link points at its section heading when an earlier heading in the compiled guide has the same title, the guide's H1 or a sub-heading in an earlier shard included
 - A heading line inside a fenced code block takes no slug, in the compiled phase and in the shard phase
+- A link or BROKEN LINK example in fenced code is neither marked nor reported, but a BROKEN LINK marker in a code span is reported
 - Compiled dead path after publish-relative link rewrite
 - Compiled `.md` link to another output of the same run reports `dead anchor` when its `#fragment` matches no heading in that output, even before the output is written and from publish-only output
 - Compiled link to the configured monolith reports `missing publish path` when every guide is publish-only, even when an earlier run left the file on disk

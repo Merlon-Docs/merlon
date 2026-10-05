@@ -40,6 +40,8 @@ A link is an insert reference when **all** of the following hold:
 - The path after the directory doesn't start with `#` or whitespace. It ends in `.md` in any case, with at least one character before the `.md`.
 - An optional `#fragment` after the `.md` can't be empty, and file lookup ignores it.
 
+The hook reads the whole shard body, fenced code and code spans included. So it inlines an insert, or writes a back-link, for an insert link in a code example too, where the [link passes](./index.md#link-passes) leave a link as written.
+
 ## inlineInserts exclusions
 
 The hook **does not** transform:

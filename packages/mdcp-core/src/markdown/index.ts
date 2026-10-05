@@ -16,6 +16,7 @@ export {
   stripBlockMarkers,
   countWords,
   createCodeFenceScanner,
+  createQuotedFenceScanner,
 } from './prose.js';
 
 /** Language-agnostic GFM helpers (heading recognition, marker cleanup). Locale copy lives under `../locale/`. */

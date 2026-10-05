@@ -2,7 +2,7 @@
 
 <!-- mdcp-paths: illustrative -->
 
-Specification for the `codeEvidence` compile hook. Tests in `packages/mdcp-core/test/code-evidence.test.ts` map to the sections below (docs first, then TDD).
+Specification for the `codeEvidence` compile hook. Tests in `packages/mdcp-core/test/code-evidence.test.ts` map to the sections below (docs first, then TDD). The fenced code tests in `packages/mdcp-core/test/links.test.ts` also cover [codeEvidence link matching](#codeevidence-link-matching).
 
 ## codeEvidence purpose
 
@@ -22,8 +22,11 @@ A link is rewritten when **all** of the following hold:
 - Standard markdown link syntax: `[label](path)`
 - Target path names a **file in the repository** (a code extension such as `.ts`, `.py`, `.go`, a data extension such as `.yaml` or `.csv`, or an extensionless path like `Makefile`)
 - Target is not `http://`, `https://`, or `#…`
+- The link is outside fenced code and code spans
 
 Markdown (`.md`) links, external URLs, and same-guide shard links are left unchanged.
+
+The hook finds fenced code and code spans as the [link passes](./index.md#link-passes) do. A link outside code can still wrap onto the next line.
 
 **Code and data differ in what the hook adds.** A code file can be cited by line, so symbol lookup can give it an `#L` fragment. A data file, such as configuration or records, is resolved and rebased for the output path. It gets an `#L` fragment only from a line range the shard writes in the label, the path or the fragment, and never from symbol lookup, because an identifier found in inert content is an occurrence rather than a declaration. Link validation uses the same code and data extension lists. To look symbols up in a data format, list its extension in `lint.codeExtensions`. See [Built-in link validation](../../features/link-validation.md).
 
@@ -67,6 +70,7 @@ The hook **does not** transform:
 
 - Markdown shard links (`.md`)
 - External URLs
+- Link syntax in fenced code or in a code span
 - The path of a source link whose file can't be resolved (see [codeEvidence path resolution](#codeevidence-path-resolution) for its fragment)
 - A symbol in a data-file link into an `#L` fragment, unless the extension is listed in `lint.codeExtensions`
 - Body text when `codeEvidence` is disabled via `compile.hooks: { "codeEvidence": false }` or an explicit hook override that omits it

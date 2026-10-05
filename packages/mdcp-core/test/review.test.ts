@@ -106,6 +106,24 @@ describe('reviewDocs', () => {
       expect(run(docs, ['g'], { thresholds: { maxIndexEntries: 3 } }).findings).toEqual([]);
     });
 
+    // Review blanks a fence of backticks or tildes before it reads links, but not a quoted fence or
+    // a fence that opens a list item. extractLinks skips those, so index-size doesn't count them.
+    it.each([
+      ['a quoted fence', (items: string) => `> \`\`\`md\n${items.replace(/^/gm, '> ')}\n> \`\`\``],
+      [
+        'a fence that opens a list item',
+        (items: string) => `- \`\`\`md\n${items.replace(/^/gm, '  ')}\n  \`\`\``,
+      ],
+    ])('ignores links in %s', (_name, fence) => {
+      const items = Array.from({ length: 5 }, (_, i) => `- [S${i}](./s${i}.md)`).join('\n');
+      const docs = writeDocs({
+        'g/index.md': `${indexWith(1)}\n${fence(items)}\n`,
+        ...shardsFor('g', 5),
+      });
+      const findings = run(docs, ['g'], { thresholds: { maxIndexEntries: 2 } }).findings;
+      expect(findings.filter((f) => f.signal === 'index-size')).toEqual([]);
+    });
+
     it('reviews nested indexes reached through the manifest', () => {
       const nested: Record<string, string> = { 'g/index.md': '# G\n\n- [Sub](./sub/index.md)\n' };
       nested['g/sub/index.md'] = indexWith(13);

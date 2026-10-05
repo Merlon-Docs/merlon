@@ -1,4 +1,5 @@
 import { getLocalePack, type LocalePack } from '../locale/index.js';
+import { createQuotedFenceScanner } from '../markdown/index.js';
 import { buildSlugRegistry, type RefsRegistry } from '../refs/slugs.js';
 import { extractLinks } from './extract.js';
 import { validateCompiledLinkTarget } from './validate.js';
@@ -27,9 +28,8 @@ export interface LintCompiledLinksOptions {
 }
 
 /**
- * One `dead anchor` issue for each line that holds a BROKEN LINK marker. A line that starts with
- * three backticks, after any indent, opens or closes a fence, and lint skips the lines inside it.
- * A `~~~` fence doesn't count.
+ * One `dead anchor` issue for each line that holds a BROKEN LINK marker. Lint skips fenced code,
+ * which `createQuotedFenceScanner` finds in a blockquote too, as `extractLinks` does.
  */
 export function lintBrokenLinkMarkers(
   markdown: string,
@@ -39,15 +39,10 @@ export function lintBrokenLinkMarkers(
 ): LinkIssue[] {
   const issues: LinkIssue[] = [];
   const lines = markdown.split('\n');
-  let inFence = false;
+  const inFence = createQuotedFenceScanner();
 
   for (let i = 0; i < lines.length; i++) {
-    const stripped = lines[i].trim();
-    if (stripped.startsWith('```')) {
-      inFence = !inFence;
-      continue;
-    }
-    if (inFence) continue;
+    if (inFence(lines[i])) continue;
 
     if (locale.brokenLinks.lineHasMarker(lines[i])) {
       issues.push({
@@ -56,7 +51,7 @@ export function lintBrokenLinkMarkers(
         line: i + 1,
         label: '',
         originalTarget: '',
-        brokenTarget: stripped,
+        brokenTarget: lines[i].trim(),
         guideName,
       });
     }

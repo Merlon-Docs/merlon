@@ -186,6 +186,19 @@ function containerAt(items: number[], column: number): number {
  * Each call reads its line a fixed number of times, with no regex.
  */
 export function createCodeFenceScanner(): (line: string) => boolean {
+  const scan = createFenceLineScanner();
+  return (line) => scan(line) === 'fence';
+}
+
+/**
+ * How `createFenceLineScanner` reads a line: `fence` for a line of fenced code, `indented` for a
+ * line whose text starts four or more columns past its container outside fenced code, so that it
+ * opens no block, and `other` for every other line.
+ */
+type FenceLine = 'fence' | 'indented' | 'other';
+
+/** `createCodeFenceScanner`, telling the lines that open no block from other lines outside fences. */
+function createFenceLineScanner(): (line: string) => FenceLine {
   let fence: (Fence & { container: number }) | null = null;
   // Content columns of the open list items, innermost last.
   const items: number[] = [];
@@ -200,7 +213,7 @@ export function createCodeFenceScanner(): (line: string) => boolean {
       if (column >= fence.container || line.slice(start).trim() === '') {
         const close = column - fence.container < CODE_INDENT && isFenceClose(line, fence, start);
         if (close) fence = null;
-        return true;
+        return 'fence';
       }
       // The line ends the list item that holds the fence, so the fence ends too.
       fence = null;
@@ -209,7 +222,7 @@ export function createCodeFenceScanner(): (line: string) => boolean {
       if (emptyItem) items.pop();
       emptyItem = false;
       paragraph = false;
-      return false;
+      return 'other';
     }
     emptyItem = false;
     if (paragraph) {
@@ -223,19 +236,19 @@ export function createCodeFenceScanner(): (line: string) => boolean {
       if (!opens) {
         // A setext underline in the paragraph's own item turns the paragraph into a heading.
         if (!lazy && !indented && isSetextUnderline(line, start)) paragraph = false;
-        return false;
+        return indented ? 'indented' : 'other';
       }
     }
     while (items.length > 0 && column < items[items.length - 1]) items.pop();
     const container = items.length > 0 ? items[items.length - 1] : 0;
     paragraph = false;
-    if (column - container >= CODE_INDENT) return false;
+    if (column - container >= CODE_INDENT) return 'indented';
     const opened = fenceOpen(line, start);
     if (opened) {
       fence = { ...opened, container };
-      return true;
+      return 'fence';
     }
-    if (isThematicBreak(line, start) || isAtxOpener(line, start)) return false;
+    if (isThematicBreak(line, start) || isAtxOpener(line, start)) return 'other';
     let content: ItemContent = { index: start, column };
     for (let next = listItemContent(line, start, column); next;) {
       content = next;
@@ -245,16 +258,104 @@ export function createCodeFenceScanner(): (line: string) => boolean {
     const inItem = content.index === start ? null : fenceOpen(line, content.index);
     if (inItem) {
       fence = { ...inItem, container: content.column };
-      return true;
+      return 'fence';
     }
     const text = content.index;
     if (restIsBlank(line, text)) {
       // A list item with no text holds no paragraph yet.
       emptyItem = true;
-      return false;
+      return 'other';
     }
     // The scanner doesn't read blockquotes, so a quoted line leaves no paragraph to continue.
     paragraph = line[text] !== '>' && !isAtxOpener(line, text) && !isThematicBreak(line, text);
+    return 'other';
+  };
+}
+
+/**
+ * `line` from index `from`, which sits at column `from`, with each tab replaced by the spaces that
+ * reach the next multiple of four columns.
+ */
+function expandTabs(line: string, from: number): string {
+  let out = '';
+  let column = from;
+  let start = from;
+  for (let i = from; i < line.length; i++) {
+    if (line[i] !== '\t') continue;
+    column += i - start;
+    const next = advance('\t', column);
+    out += line.slice(start, i) + ' '.repeat(next - column);
+    column = next;
+    start = i + 1;
+  }
+  return out + line.slice(start);
+}
+
+/** The most blockquotes `createQuotedFenceScanner` reads a fence in. */
+const MAX_FENCE_QUOTE_DEPTH = 10;
+
+/**
+ * `createCodeFenceScanner`, reading fences inside blockquotes too. Call the returned function with
+ * each line in order. It returns true for each line of fenced code, outside a blockquote or in
+ * one, and false for every other line.
+ *
+ * Outside blockquotes the code fence scanner decides. Inside them, each blockquote's text, the
+ * line after its `>` marker and the one space after that, goes to a code fence scanner of its own,
+ * from the quote's first line. A line with fewer markers ends the quotes it leaves, and a list
+ * item marker before one of a line's quote markers opens a new quote there, as in `- > ```sh`.
+ * Spaces can come before each marker, up to three columns past its container. Four or more
+ * columns past it, the `>` is text in indented code or in a paragraph, as CommonMark reads it,
+ * so the line has no quote marker there. A line of fenced code ends every quote that a later line
+ * could continue, since a quote marker there is code. Fences more than ten blockquotes deep go
+ * unseen.
+ *
+ * After a line's first `>` marker, a tab advances to the next multiple of four columns of the line.
+ * A marker followed by a tab takes one column of it as its space, and the rest of the tab indents
+ * the quote's text, as CommonMark reads it. So `>\t```sh` opens a fence indented two columns. A
+ * tab before a line's first `>` marker hides that line's quotes from the scan.
+ *
+ * Each call reads its line at most a fixed number of times for each blockquote it reads.
+ */
+export function createQuotedFenceScanner(): (line: string) => boolean {
+  const outer = createFenceLineScanner();
+  // A fence line scanner for the text of each open blockquote, outermost first.
+  const quotes: ((line: string) => FenceLine)[] = [];
+  return (line) => {
+    // What the outer scanner, then each quote's scanner, read the rest of the line as.
+    let kind = outer(line);
+    if (kind === 'fence') {
+      quotes.length = 0;
+      return true;
+    }
+    let text = line;
+    let i = 0;
+    let depth = 0;
+    // A list item marker opened a quote on this line, so it and every quote inside it are new.
+    let opened = false;
+    // An indented line opens no block, so a `>` in it is no quote marker.
+    while (kind !== 'indented' && depth < MAX_FENCE_QUOTE_DEPTH) {
+      for (;;) {
+        while (text[i] === ' ') i++;
+        const marker = listMarkerLength(text.slice(i, i + 11));
+        if (marker === 0) break;
+        i += marker;
+        opened = true;
+      }
+      if (text[i] !== '>') break;
+      if (depth === 0 && text.includes('\t', i)) {
+        // Only spaces and list item markers come before the first `>`, so an index there is a column.
+        text = text.slice(0, i + 1) + expandTabs(text, i + 1);
+      }
+      i += text[i + 1] === ' ' ? 2 : 1;
+      if (opened || depth >= quotes.length) quotes[depth] = createFenceLineScanner();
+      kind = quotes[depth](text.slice(i));
+      if (kind === 'fence') {
+        quotes.length = depth + 1;
+        return true;
+      }
+      depth++;
+    }
+    quotes.length = depth;
     return false;
   };
 }

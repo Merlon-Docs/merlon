@@ -8,6 +8,7 @@ import {
   stripBlockMarkers,
   countWords,
   createCodeFenceScanner,
+  createQuotedFenceScanner,
 } from '../src/markdown/index.js';
 import { filterScanIgnored } from '../src/validate/coverage.js';
 import { manySpaces, timeMs } from './helpers/redos-pumps.js';
@@ -255,6 +256,116 @@ describe('createCodeFenceScanner', () => {
       for (let i = 0; i < 20; i++) fenced(lines);
     });
     expect(ms).toBeLessThan(100);
+  });
+});
+
+/** Run a fresh quote-aware scanner over `lines` and return its answer for each line. */
+function quotedFenced(lines: string[]): boolean[] {
+  const inFence = createQuotedFenceScanner();
+  return lines.map((line) => inFence(line));
+}
+
+describe('createQuotedFenceScanner', () => {
+  it('reads fences outside blockquotes as the code fence scanner does', () => {
+    const lines = ['a', '~~~', 'x', '~~~', '- ```', '  y', '  ```', 'b'];
+    expect(quotedFenced(lines)).toEqual(fenced(lines));
+  });
+
+  it('reads a fence inside a blockquote, at any depth up to ten', () => {
+    expect(quotedFenced(['> ```', '> x', '> ```', '> y'])).toEqual([true, true, true, false]);
+    expect(quotedFenced(['> > ~~~', '>> x', '> > ~~~', '> > y'])).toEqual([
+      true,
+      true,
+      true,
+      false,
+    ]);
+    const deep = '> '.repeat(10);
+    expect(quotedFenced([`${deep}\`\`\``, `${deep}x`])).toEqual([true, true]);
+    const deeper = '> '.repeat(11);
+    expect(quotedFenced([`${deeper}\`\`\``, `${deeper}x`])).toEqual([false, false]);
+  });
+
+  it('ends the fence with its blockquote', () => {
+    expect(quotedFenced(['> ```', '> x', 'y', '> z'])).toEqual([true, true, false, false]);
+    expect(quotedFenced(['> > ```', '> > x', '> y', '> > z'])).toEqual([true, true, false, false]);
+  });
+
+  it('opens a new quote after a list item marker', () => {
+    expect(quotedFenced(['- > ```sh', '  > x', '  > ```', 'y'])).toEqual([true, true, true, false]);
+    // The second item's quote is a new one, so the first item's open fence doesn't hold it.
+    expect(quotedFenced(['- > ```', '- > y'])).toEqual([true, false]);
+  });
+
+  it('reads a quote marker inside fenced code as code', () => {
+    expect(quotedFenced(['```', '> ```', '```', '> x'])).toEqual([true, true, true, false]);
+    expect(quotedFenced(['> ~~~', '> > ```', '> ~~~', '> > x'])).toEqual([true, true, true, false]);
+  });
+
+  it('reads a tab after a quote marker as CommonMark does', () => {
+    // The marker takes one column of the tab, and the rest indents the fence two columns.
+    expect(quotedFenced(['>\t```sh', '>\tx', '>\t```', '> y'])).toEqual([true, true, true, false]);
+    expect(quotedFenced(['> \t```', '> \tx', '> \t```'])).toEqual([true, true, true]);
+    expect(quotedFenced(['>\t>\t```', '>\t>\tx', '>\t>\t```'])).toEqual([true, true, true]);
+    expect(quotedFenced(['  >\t```', '  >\tx', '  >\t```', 'y'])).toEqual([
+      true,
+      true,
+      true,
+      false,
+    ]);
+    // A second tab indents the text six columns, so the line is indented code.
+    expect(quotedFenced(['>\t\t```', '>\t\tx'])).toEqual([false, false]);
+  });
+
+  it('reads a CRLF line as it reads the line without its \\r', () => {
+    const lines = ['> ```', '> x', '>', '> ```', '> y', '- > ~~~', '  > z', '  > ~~~', 'w'];
+    const expected = [true, true, true, true, false, true, true, true, false];
+    expect(quotedFenced(lines)).toEqual(expected);
+    expect(quotedFenced(lines.map((line) => `${line}\r`))).toEqual(expected);
+  });
+
+  it('reads a `>` four or more columns past its container as code or text', () => {
+    // An indented code block, and lines that continue a paragraph.
+    expect(quotedFenced(['    > ```', '    > x', '    > ```'])).toEqual([false, false, false]);
+    expect(quotedFenced(['Text.', '    > ```', '    > x'])).toEqual([false, false, false]);
+    // Fenced code ends its quote, and the indented line after it is an indented code block.
+    expect(quotedFenced(['> ```', '    > x', '> ```', '> y'])).toEqual([true, false, true, true]);
+    // Four columns past the quote marker's space, the text is indented code in the quote.
+    expect(quotedFenced(['>     > ```', '>     > x'])).toEqual([false, false]);
+    // Two columns past a list item's text, the `>` opens a quote in the item; four columns past
+    // it, the line is indented code in the item.
+    expect(quotedFenced(['- a', '', '    > ```', '    > x', '    > ```'])).toEqual([
+      false,
+      false,
+      true,
+      true,
+      true,
+    ]);
+    expect(quotedFenced(['- a', '', '      > ```', '      > x'])).toEqual([
+      false,
+      false,
+      false,
+      false,
+    ]);
+  });
+
+  it('stays linear on long lines of quote and list markers', () => {
+    const lines = [
+      '> '.repeat(20_000) + '```',
+      '- > '.repeat(10_000) + 'x',
+      '>'.repeat(40_000),
+      '- '.repeat(20_000) + '> ```',
+      '> '.repeat(9) + '- '.repeat(20_000) + '> x',
+      '>\t'.repeat(20_000) + '```',
+    ];
+    // Lines ten quotes deep with long text, which each quote's scanner reads.
+    const deep = Array.from({ length: 200 }, () => '> '.repeat(10) + 'x '.repeat(500));
+    const ms = timeMs(() => {
+      for (let i = 0; i < 5; i++) {
+        quotedFenced(lines);
+        quotedFenced(deep);
+      }
+    });
+    expect(ms).toBeLessThan(200);
   });
 });
 

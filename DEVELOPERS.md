@@ -623,7 +623,7 @@ Compile leaves a table out of line, or MD060 flags it, in these cases:
 
 - Each cell of the table fills its column in the shard. Compile treats a table as compact unless some cell pads its text with more than one space, and it leaves a compact table as written when a link in it changes width. Shorten the text of one cell so Prettier pads it. `pnpm format:check` runs Prettier on the compiled outputs that the repo commits, such as `README.md`, and fails on such a table there. It skips `docs/_build/`, which `.gitignore` lists.
 - A cell contains an explicit `{#id}` anchor. Compile strips the anchor and doesn't re-align the table. Keep these anchors out of table cells.
-- A cell contains link syntax to a repository file inside a code span. `codeEvidence` rewrites that link's path for the output and can add a line fragment, and compile doesn't re-align the table after that change. Keep such links out of table cells.
+- A cell shows the link syntax of an [insert](./packages/mdcp-core/README.md#inlineinserts) in a code span. `inlineInserts` rewrites that link as it does outside code, and compile doesn't re-align the table after that change. Keep such examples out of table cells.
 - A cell without a link contains text that Prettier and markdownlint measure differently, such as Hindi or pointed Hebrew. MD060 flags the table in the shard, and it flags the compiled table too, whether or not compile re-aligns it.
 
 Give the first link to an [insert](./packages/mdcp-core/README.md#inlineinserts) in a guide a paragraph of its own, ahead of any table cell that links to the insert. Compile replaces that link with the insert's heading and body, which breaks a sentence or a table around it. See [inlineInserts first inline](./packages/mdcp-core/README.md#inlineinserts-first-inline).
@@ -661,6 +661,8 @@ The helpers in `packages/mdcp-core/src/markdown/` run in linear time. They cover
 
 Heading demotion in `compile/headings.ts` runs `parseHeading` and `formatHeadingAsAtx` on each line outside fenced blocks. It finds those blocks with `createCodeFenceScanner`, the same scan that the slug registry's heading reader runs, and that scan reads a CRLF line too. Demotion starts a new scan on each text it demotes, such as one shard, while the registry reads a whole guide with one scan. A shard that ends inside an open fence can make the two disagree about the shard after it.
 
+The link passes, `codeEvidence`, broken-link marking and link lint find fenced code with `createQuotedFenceScanner` in `markdown/prose.ts`. It runs the scan behind `createCodeFenceScanner` on each line, and another one on the text of each blockquote up to ten deep, in time that grows linearly with the text. A `>` four or more columns past its container doesn't open a quote, since that scan reads the line as indented code or paragraph text.
+
 Link validation finds broken-link markers with `findTemplateMatches`, a scanner in `locale/create-locale-pack.ts`. It splits the locale's `markerTemplate` at each variable but `markerLabel` and finds the parts in order, with no line terminator between two of them. It returns the markers that a pattern with a lazy `.*?` for each variable matches, and its time grows linearly with the length of the line. Compiled link lint asks about a line a fixed number of times, however many links it holds.
 
 The manifest walk and the `inlineInserts` hook find links in a whole manifest or shard body with the scanners in `compile/link-scan.ts`. The walk reads `.md` links and `](#slug)` links with them, and the hook reads links into an insert library. Each scanner returns the matches of a link regex, such as `\[[^\]]*\]\(([^)]+\.md)(?:#[^)]*)?\)` for `.md` links, in time that grows linearly with the text. The regex itself reads a target with `[^)]`, which crosses line breaks, so on a crafted text its time can grow with the cube of the text's length.
@@ -697,11 +699,11 @@ A regex in `packages/mdcp-core/src/` falls under this rule:
 
 #### Link idioms
 
-| Location                                      | Pattern role                                              | Input                                      |
-| --------------------------------------------- | --------------------------------------------------------- | ------------------------------------------ |
-| `links/extract.ts` `MD_LINK_RE`               | Non-image `[label](target)`                               | One line at a time, with code spans masked |
-| `compile/publish-links.ts`                    | Cross-guide, intra-guide and publish-relative link shapes | One line at a time, with code spans masked |
-| `compile/hooks/code-evidence.ts` `MD_LINK_RE` | `[label](target)` for evidence links                      | The whole shard body                       |
+| Location                                      | Pattern role                                              | Input                                                         |
+| --------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------- |
+| `links/extract.ts` `MD_LINK_RE`               | Non-image `[label](target)`                               | One line at a time, with code spans masked                    |
+| `compile/publish-links.ts`                    | Cross-guide, intra-guide and publish-relative link shapes | One line at a time, with code spans masked                    |
+| `compile/hooks/code-evidence.ts` `MD_LINK_RE` | `[label](target)` for evidence links                      | Each run of lines between fenced code, with code spans masked |
 
 Each of these matches the `[label](target)` form with negated character classes. They aren't linear. On a crafted input the time grows at least with the square of the input's length. The Input column says which length counts. A negated class such as `[^)]` crosses line breaks, so short lines don't limit a regex that reads the whole text. Phase B kept these idioms as regexes, as [ADR 0005](docs/features/adr/0005-keep-ts-scanners-over-rg-peggy-rust.md) records, and the maintainers decided to keep them. If CodeQL opens `js/polynomial-redos` on one of these sites, fix it with a linear scanner and a duration-budget test. A fix can start from `scanInlineLinks` in `compile/link-scan.ts`, which walks the `[label](target)` shape these regexes match in linear time and lets a callback accept or turn down each target. Its callback doesn't get the index of the `[`, and the scan turns down each link that shares a label end it turned down before, so a caller that skips image links has to extend it first.
 

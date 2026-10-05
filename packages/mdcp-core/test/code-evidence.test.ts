@@ -369,4 +369,80 @@ describe('codeEvidence — publish-relative pass', () => {
       expect(g.text).toContain('Second [c](../q/conf.yaml).');
     });
   });
+
+  // Fenced code and a code span above the link show it as the hook writes it. The hook skips both,
+  // so marking has to skip them too, or assembly marks a copy there.
+  it('marks the rebased link after copies of its text in fenced code and a code span', () => {
+    withTmpDir('mdcp-evidence-code-copy-', (work) => {
+      const fence = '```md\nShown: [`target`](../../src/foo.ts#L3).\n```';
+      const span = 'Inline: `` [`target`](../../src/foo.ts#L3) `` here.';
+      writeTree(work, {
+        ...EVIDENCE_TREE,
+        'docs/src/foo.ts': 'export const decoy = 1;\n',
+        'docs/a/sub/deep.md': `# Deep\n\n${fence}\n\n${span}\n\nSee [\`target\`](../../../src/foo.ts).\n`,
+      });
+      const [a] = compileGuideResults(guideAOptions(work, '_build'));
+
+      expect(a.text).toContain(`\n${fence}\n`);
+      expect(a.text).toContain(`\n${span}\n`);
+      expect(a.text).toContain('See [`target`](../../src/foo.ts#L3).');
+    });
+  });
+});
+
+describe('codeEvidence — code spans and wrapped links', () => {
+  const SPAN = '`[foo.ts lines 10-12](../../src/foo.ts)`';
+
+  function writeSpanGuide(work: string, span: string) {
+    writeTree(work, {
+      'src/foo.ts': 'const a = 1;\nconst b = 2;\nexport function target() {}\n',
+      'docs/a/index.md': '# Guide A\n\n- [Span](./span.md)\n',
+      'docs/a/span.md': span,
+    });
+    return compileGuideResults(guideAOptions(work, '.'))[0];
+  }
+
+  // A code span shows link syntax as text. The link passes and link lint skip it, and table
+  // re-alignment doesn't count it as a link, so a rewrite there left its table out of line.
+  it('leaves link syntax in a code span as written, in a table too', () => {
+    withTmpDir('mdcp-evidence-code-span-', (work) => {
+      const width = SPAN.length;
+      const table = [
+        `| Kind    | ${'Syntax'.padEnd(width)} |`,
+        `| ------- | ${'-'.repeat(width)} |`,
+        `| Example | ${SPAN} |`,
+      ].join('\n');
+      const a = writeSpanGuide(
+        work,
+        `# Span\n\nInline: ${SPAN} stays.\n\n${table}\n\nLink: [foo.ts lines 10-12](../../src/foo.ts).\n`,
+      );
+
+      expect(a.text).toContain(`Inline: ${SPAN} stays.`);
+      expect(a.text).toContain(`\n${table}\n`);
+      expect(a.text).toContain('Link: [foo.ts lines 10-12](../src/foo.ts#L10-L12).');
+    });
+  });
+
+  it('rewrites a link whose label wraps onto the next line', () => {
+    withTmpDir('mdcp-evidence-wrapped-', (work) => {
+      const a = writeSpanGuide(
+        work,
+        '# Span\n\nSee [the `target`\nfunction](../../src/foo.ts) and\n[`target`](../../src/foo.ts).\n',
+      );
+
+      expect(a.text).toContain(
+        'See [the `target`\nfunction](../src/foo.ts) and\n[`target`](../src/foo.ts#L3).',
+      );
+    });
+  });
+
+  // The hook masks code spans before it matches, as the link passes do, so a `]` in a code span
+  // stays in the label. The publish-relative pass used to rebase the path without the fragment.
+  it('rewrites a link whose label holds a ] in a code span', () => {
+    withTmpDir('mdcp-evidence-bracket-', (work) => {
+      const a = writeSpanGuide(work, '# Span\n\nSee [`a[0]` in lines 2-3](../../src/foo.ts).\n');
+
+      expect(a.text).toContain('See [`a[0]` in lines 2-3](../src/foo.ts#L2-L3).');
+    });
+  });
 });

@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { basename, dirname, relative, resolve, isAbsolute } from 'node:path';
 import { defaultSearchRoots, resolveRelativeFile } from './hooks/path-resolve.js';
 import { maskInlineCode } from '../links/extract.js';
+import { createQuotedFenceScanner } from '../markdown/index.js';
 import type { GuideLinkIndex, GuideLinkEntry } from './guide-link-index.js';
 import { sectionBodyForSlug, slugForDemotedSection } from './section-slug.js';
 import { assignSectionSlugs, type SectionSlugContext, type ShardCache } from './shard-cache.js';
@@ -42,23 +43,21 @@ export function unmarkLinkTargets(markdown: string): string {
 const INTRA_GUIDE_MD_LINK_RE = /(\[[^\]]*\]\()((?!https?:)(?:\.\/)?[^)#/\s][^)#]*\.md)(#[^)]*)?\)/g;
 const CROSS_GUIDE_MD_LINK_RE =
   /(\[[^\]]*\]\()((?!https?:)(?:(?:\.\.\/)+|\.\/)[^)#/\s][^)#]*\.md)(#[^)]*)?\)/g;
-/** Apply a link regex line-wise with inline-code masking (labels may contain `]` inside backticks). */
+/**
+ * Apply a link regex line-wise with inline-code masking (labels may contain `]` inside backticks).
+ * Lines of fenced code stay as written, in a blockquote too, as `extractLinks` skips them.
+ */
 function rewriteMarkdownLinkLines(
   markdown: string,
   re: RegExp,
   replace: (originalMatch: string, masked: RegExpMatchArray) => string,
 ): string {
   const lines = markdown.split('\n');
-  let inFence = false;
+  const inFence = createQuotedFenceScanner();
 
   return lines
     .map((line) => {
-      const stripped = line.trim();
-      if (stripped.startsWith('```')) {
-        inFence = !inFence;
-        return line;
-      }
-      if (inFence) return line;
+      if (inFence(line)) return line;
 
       const masked = maskInlineCode(line);
       let out = line;

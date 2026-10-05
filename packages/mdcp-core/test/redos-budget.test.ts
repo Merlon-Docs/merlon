@@ -27,6 +27,7 @@ const LINE_MARKERS = 20_000;
 const MARKER_PARTS = 80;
 const MARKER_STARTS = 5_000;
 const MARKER_LINE_LINKS = 2_000;
+const QUOTE_LINE_MARKERS = 10_000;
 const CRLF_FENCE_RUN = 15_000;
 const LABEL_BACKTICKS = 20_000;
 const OPEN_FILE_LINKS = 400;
@@ -245,6 +246,20 @@ describe('ReDoS budget demos (CodeQL js/polynomial-redos)', () => {
 
   it('lintCompiledLinks stays under budget on a line with a marker after many links', () => {
     const markdown = '# T\n\n' + markerLine(false) + '\n';
+    const ms = timeMs(() => {
+      lintCompiledLinks({ markdown, outputFile: '/x/out.md', guideName: 'g' });
+    });
+    expect(ms).toBeLessThan(BUDGET_MS);
+  });
+
+  // Link lint finds fenced code with createQuotedFenceScanner, which reads the list item markers
+  // before each quote marker and gives each quote's text to a scanner of its own.
+  it('lintCompiledLinks stays under budget on long runs of list item and quote markers', () => {
+    const markdown = [
+      '- '.repeat(QUOTE_LINE_MARKERS) + '> ```',
+      '> '.repeat(9) + '- '.repeat(QUOTE_LINE_MARKERS) + '> x',
+      '>\t'.repeat(QUOTE_LINE_MARKERS) + '[a](#a)',
+    ].join('\n');
     const ms = timeMs(() => {
       lintCompiledLinks({ markdown, outputFile: '/x/out.md', guideName: 'g' });
     });

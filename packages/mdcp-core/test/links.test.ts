@@ -2639,3 +2639,172 @@ describe('collectShardProvenance', () => {
     });
   });
 });
+
+describe('fenced code', () => {
+  // Each fence kind as a shard writes it around one line. The link passes, codeEvidence,
+  // broken-link marking and link lint used to skip only a line of three backticks outside a
+  // blockquote, and to toggle on any such line.
+  const FENCES: [string, (line: string) => string][] = [
+    ['a tilde fence', (line) => `~~~text\n${line}\n~~~`],
+    ['a quoted fence', (line) => `> \`\`\`text\n> ${line}\n> \`\`\``],
+    ['a fence that opens a list item', (line) => `- \`\`\`text\n  ${line}\n  \`\`\``],
+    ['a fence that holds a shorter one', (line) => `\`\`\`\`md\n\`\`\`\n${line}\n\`\`\`\n\`\`\`\``],
+    ['a tilde fence that holds a line of backticks', (line) => `~~~md\n\`\`\`\n${line}\n~~~`],
+    // The quote marker takes one column of the tab as its space, and the fence has two more.
+    ['a quoted fence after a tab', (line) => `>\t\`\`\`text\n>\t${line}\n>\t\`\`\``],
+  ];
+
+  // Each fence kind again in a shard with CRLF line endings, so each line the scan reads ends in \r.
+  const FENCE_CASES: [string, (line: string) => string, string][] = FENCES.flatMap(
+    ([name, fence]): [string, (line: string) => string, string][] => [
+      [name, fence, '\n'],
+      [`${name} with CRLF line endings`, fence, '\r\n'],
+    ],
+  );
+  const lf = (text: string) => text.replaceAll('\r', '');
+
+  const LINKS =
+    '[t](../b/topic.md), [i](./intro.md), [d](../b/), [`target`](../../src/foo.ts) and [bad](#nope)';
+  // How the passes write LINKS in docs/a.md, up to the broken-link marker.
+  const REWRITTEN = '[t](b.md#topic), [i](#intro), [d](b), [`target`](../src/foo.ts#L3) and ';
+
+  function writeTree(root: string, files: Record<string, string>): void {
+    for (const [rel, text] of Object.entries(files)) {
+      mkdirSync(dirname(join(root, rel)), { recursive: true });
+      writeFileSync(join(root, rel), text);
+    }
+  }
+
+  /** Guides a and b under `docs/`, each compiled to `docs/<name>.md` and both to the monolith. */
+  function writeGuides(work: string, caseText: string, markBroken = true) {
+    writeTree(work, {
+      'src/foo.ts': 'const a = 1;\nconst b = 2;\nexport function target() {}\n',
+      'docs/a/index.md': '# Guide A\n\n- [Intro](./intro.md)\n- [Case](./case.md)\n',
+      'docs/a/intro.md': '# Intro\n\nBody.\n',
+      'docs/a/case.md': caseText,
+      'docs/b/index.md': '# Guide B\n\n- [Topic](./topic.md)\n',
+      'docs/b/topic.md': '# Topic\n\nBody.\n',
+    });
+    const docs = join(work, 'docs');
+    const guide = (name: string) => ({ name, compile: { links: { markBroken } } });
+    const compileOptions = {
+      guidesRoot: docs,
+      compileOrder: ['a', 'b'],
+      docsRoot: docs,
+      config: { outputDir: '.', outputFile: 'guides.md', compileOrder: ['a', 'b'] },
+      guides: [guide('a'), guide('b')],
+    };
+    return { docs, compileOptions, results: compileGuideResults(compileOptions) };
+  }
+
+  it.each(FENCE_CASES)('leaves the links in %s as written', (_, fence, eol) => {
+    withTmpDir('mdcp-fenced-links-', (work) => {
+      const block = fence(`Code: ${LINKS}.`);
+      const { results, compileOptions } = writeGuides(
+        work,
+        `# Case\n\nBefore: ${LINKS}.\n\n${block}\n\nAfter: ${LINKS}.\n`.replaceAll('\n', eol),
+      );
+      const a = lf(results.find((r) => r.name === 'a')!.text);
+      const monolith = lf(compileGuidesFromResults(results, compileOptions));
+
+      expect(a).toContain(`\n${block}\n`);
+      expect(monolith).toContain(`\n${block}\n`);
+      expect(a).toContain(`Before: ${REWRITTEN}**BROKEN LINK:**`);
+      expect(a).toContain(`After: ${REWRITTEN}**BROKEN LINK:**`);
+    });
+  });
+
+  it.each(FENCE_CASES)('reports no link in %s', (_, fence, eol) => {
+    withTmpDir('mdcp-fenced-lint-', (work) => {
+      const links = '[gone](./gone.md) and [bad](#nope)';
+      const caseText =
+        `# Case\n\nBefore: ${links}.\n\n${fence(`Code: ${links}.`)}\n\nAfter: ${links}.\n`.replaceAll(
+          '\n',
+          eol,
+        );
+      const { docs, results, compileOptions } = writeGuides(work, caseText, false);
+      const issues = lintLinks({
+        config: MdcpConfigSchema.parse(compileOptions.config),
+        docsRoot: docs,
+        results,
+        compileOptions,
+        lintShards: true,
+      });
+      const texts = new Map<string, string>([
+        [join(docs, 'a', 'case.md'), caseText],
+        [join(docs, 'a.md'), results.find((r) => r.name === 'a')!.text],
+        [join(docs, 'guides.md'), compileGuidesFromResults(results, compileOptions)],
+      ]);
+      const lineOf = (issue: { file: string; line: number }) =>
+        texts.get(issue.file)?.split('\n')[issue.line - 1] ?? '';
+
+      // Each phase reports both links on the line before the fence and the line after it.
+      expect(issues.length).toBeGreaterThanOrEqual(8);
+      expect(issues.map(lineOf).filter((line) => !/^(Before|After): /.test(line))).toEqual([]);
+    });
+  });
+
+  it.each(FENCE_CASES)('ignores a BROKEN LINK example in %s', (_, fence, eol) => {
+    const marker = formatBrokenLinkMarker('X', './a.md', '#x', 'dead anchor');
+    const md = `# T\n\n${fence(marker)}\n`.replaceAll('\n', eol);
+    expect(lintCompiledLinks({ markdown: md, outputFile: '/out.md' })).toEqual([]);
+  });
+
+  // Lint looks for a marker on the whole line outside fenced code, so a code span doesn't hide one.
+  it('reports a BROKEN LINK marker in a code span', () => {
+    const marker = formatBrokenLinkMarker('X', './a.md', '#x', 'dead anchor');
+    const md = `# T\n\nInline: \`\` ${marker} \`\` here.\n`;
+    const issues = lintCompiledLinks({ markdown: md, outputFile: '/out.md' });
+    expect(issues.map((issue) => [issue.line, issue.kind])).toEqual([[3, 'dead anchor']]);
+  });
+
+  // Indented four spaces, a line of backticks is no fence and a `>` is no quote marker: the line
+  // is code in an indented code block, or text in a paragraph. The passes and link lint read an
+  // indented code block as prose, so they read the links on those lines and the lines after them.
+  // They used to skip the lines after indented backticks up to the next line of backticks.
+  const INDENTED: [string, (line: string) => string][] = [
+    ['an indented code block', (line) => `    \`\`\`text\n    ${line}\n    \`\`\``],
+    ['a paragraph', (line) => `Text.\n    \`\`\`\n${line}`],
+    [
+      'an indented code block of `>` lines',
+      (line) => `    > \`\`\`text\n    > ${line}\n    > \`\`\``,
+    ],
+    ['a paragraph continued with `>` lines', (line) => `Text.\n    > \`\`\`\n    > ${line}`],
+  ];
+
+  it.each(INDENTED)('rewrites the links after indented backticks in %s', (_, block) => {
+    withTmpDir('mdcp-indented-links-', (work) => {
+      const { results, compileOptions } = writeGuides(
+        work,
+        `# Case\n\n${block(`Code: ${LINKS}.`)}\n\nAfter: ${LINKS}.\n`,
+      );
+      const a = results.find((r) => r.name === 'a')!;
+      const monolith = compileGuidesFromResults(results, compileOptions);
+
+      expect(a.text).toContain(`Code: ${REWRITTEN}**BROKEN LINK:**`);
+      expect(a.text).toContain(`After: ${REWRITTEN}**BROKEN LINK:**`);
+      expect(monolith).toContain(`Code: [t](#topic), [i](#intro)`);
+    });
+  });
+
+  it.each(INDENTED)('reports the links after indented backticks in %s', (_, block) => {
+    withTmpDir('mdcp-indented-lint-', (work) => {
+      const caseText = `# Case\n\n${block('Code: [gone](./gone.md) and [bad](#nope).')}\n`;
+      const { docs, results, compileOptions } = writeGuides(work, caseText, false);
+      const issues = lintLinks({
+        config: MdcpConfigSchema.parse(compileOptions.config),
+        docsRoot: docs,
+        results,
+        compileOptions,
+        lintShards: true,
+      });
+      const shardIssues = issues.filter((issue) => issue.file === join(docs, 'a', 'case.md'));
+      const codeLine = caseText.split('\n').findIndex((line) => line.includes('Code: ')) + 1;
+
+      expect(shardIssues.map((issue) => [issue.line, issue.originalTarget])).toEqual([
+        [codeLine, './gone.md'],
+        [codeLine, '#nope'],
+      ]);
+    });
+  });
+});

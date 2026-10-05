@@ -47,6 +47,7 @@ A link is rewritten when **all** of the following hold:
 - Target is not `http://`, `https://`, `mailto:`, or `#…`
 - Target resolves to an existing file or directory, or to an output of the run, in the order [Path lookup order](./index.md#path-lookup-order) gives for this pass
 - Resolved path is **not** a same-guide indexed shard (the cross-guide pass rewrites those)
+- The link is outside fenced code and code spans (see [Link passes](./index.md#link-passes))
 
 A target made only of `../` segments, such as `../` or `../../`, points at a directory and rebases in every compiled guide. From `docs/developer/` into `DEVELOPERS.md`, the target `../` compiles to `docs`. The target `../../` resolves to the directory that contains `DEVELOPERS.md`, so it compiles to `./`. The rebased path drops any trailing slash, so `../../skills/` compiles to `skills`.
 
@@ -70,6 +71,7 @@ The pass **does not** transform:
 
 - External URLs
 - Same-document `#fragment` links
+- Link syntax in fenced code or in a code span
 - `./section.md` and other `./` paths (cross-guide or intra-guide handle `.md`; publish-relative only matches `../`)
 - A link that the cross-guide pass rewrote, whose path is already relative to the link base, such as `../../README.md#setup` in a guide published to `packages/a/README.md`
 - A link that [`codeEvidence`](./code-evidence.md) rebased, whose path is relative to the link base too. From the shard's directory, the path can lead to another file with the same name.
