@@ -79,11 +79,11 @@ Per-shard assembly via built-in compile hooks on [authored GFM](../glossary/auth
 
 Built-in hooks:
 
-- **`stripAnchors`** — removes `{#anchor}` markers (also default via `compile.stripAnchors`)
-- **`codeEvidence`** — rewrites repo source links to `#L` line fragments (symbol or line range in link text); rebases paths for the rendered output automatically. See [codeEvidence](../client-core/compile-hooks/code-evidence.md).
-- **`inlineInserts`** — inlines captioned insert shards from shared libraries (`diagrams/`, `tables/`, `figures/`, `media/`); shard bodies may include tables, prose, or media (images, video, audio); numbered `####` headings per kind (`Table 1. …`); first mention per guide inlines, later references back-link. Optional `hooksConfig.inlineInserts.searchRoots`. See [inlineInserts](../client-core/compile-hooks/inline-inserts.md).
+- [`stripAnchors`](../client-core/compile-hooks/strip-anchors.md) removes `{#id}` anchor markers.
+- [`codeEvidence`](../client-core/compile-hooks/code-evidence.md) adds `#L` line fragments to links to source files.
+- [`inlineInserts`](../client-core/compile-hooks/inline-inserts.md) inlines captioned insert shards at their first link.
 
-**Link rewriting at assembly time:** every compile builds a guide link index from `compileOrder`, then rewrites each shard's links to files in the [link passes](./compile-pipeline/link-passes.md). Optional `compile.crossGuideLinks.ignoreGuides` keeps shard `.md` paths in links to listed guides, except in the cases that [its config section](./compile-pipeline/cross-guide-links.md#compilecrossguidelinksignoreguides) points to. Once links are rewritten and broken ones marked, compile re-aligns each aligned table whose links changed width. See [Tables after link rewriting](./compile-pipeline/tables-after-link-rewriting.md).
+**Link rewriting at assembly time:** after the hooks, the [link passes](./compile-pipeline/link-passes.md) rewrite each shard's links to files. [Compile pipeline](./compile-pipeline/index.md) specifies them with table re-alignment, and the rules those steps share with the hooks.
 
 ## Agent integration (consumer repo)
 

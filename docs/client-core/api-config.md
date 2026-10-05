@@ -10,14 +10,12 @@
 
 ## Path resolution: `configBase` vs docs root
 
-| Concern                                | Base                          | Example                                                                               |
-| -------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------- |
-| Finding `mdcp.config.json`             | `configBase` (invocation dir) | `--config docs/mdcp.config.json` → `<repo>/docs/mdcp.config.json`                     |
-| Guide shards (default)                 | Docs root (`--docs-root`)     | `resolveGuideDir('features', config, docsRoot)` → absolute `<docsRoot>/features`      |
-| `outputDir`                            | Docs root                     | `_build` → `<docsRoot>/_build`                                                        |
-| Compiled outputs and the refs registry | `outputDir`                   | `features.md` → `<docsRoot>/_build/features.md`; `.caches/refs.json` for the registry |
+| Concern                    | Base                          | Example                                                                          |
+| -------------------------- | ----------------------------- | -------------------------------------------------------------------------------- |
+| Finding `mdcp.config.json` | `configBase` (invocation dir) | `--config docs/mdcp.config.json` → `<repo>/docs/mdcp.config.json`                |
+| Guide shards (default)     | Docs root (`--docs-root`)     | `resolveGuideDir('features', config, docsRoot)` → absolute `<docsRoot>/features` |
 
-Compiled outputs, the monolith included, and `refs.registryFile` resolve through `resolveUnderOutputDir(docsRoot, outputDir, file)`, which applies the rule in [Path layout](../client-cli/config-essentials.md#path-layout). Backup paths don't use this helper, and Path layout says how they resolve.
+`resolveOutputPath` and `resolveRefsPath` resolve a generated path with `resolveUnderOutputDir(docsRoot, outputDir, file)`. [Resolution bases](../client-cli/config-essentials.md#resolution-bases) in Config essentials gives the base of `outputDir` and of each generated path.
 
 ```typescript
 import { loadConfig, resolveGuideDir } from '@bwilliamson/mdcp-core';
@@ -36,9 +34,7 @@ Without `shardsGlobs`, `shardLintPaths` returns a glob for the Markdown files in
 
 A `shardsGlobs` entry that starts with `../` gets the escaped absolute path of the directory those segments name in their place, followed by `/**` when the entry is a directory. A negated entry gets `**` in front of the absolute path, because globby reads most absolute negations as relative to its cwd.
 
-`loadConfig` validates the file with `MdcpConfigSchema` and fills the top-level defaults, such as `outputDir`, `banner`, `sourceTags`, `scan`, `backup`, `refs` and `review`. A key inside an omitted optional object, such as `lint`, `lint.links`, `vale` or a guide's `compile`, is `undefined` after loading, and the code that reads it applies the documented default. Config essentials lists the output layout and its defaults under [Path layout](../client-cli/config-essentials.md#path-layout). The default banner text is in [Source tags and default banner](../features/source-tags-and-banner.md).
-
-`compile.includeBanner` controls whether the global banner is prepended (defaults to `true` for all outputs). `compile.sourceTags` overrides the top-level `sourceTags` setting per guide (for example, set `false` on a Slidev deck whose leading frontmatter must stay at the top of the file).
+`loadConfig` validates the file with `MdcpConfigSchema` and fills the top-level defaults, such as `outputDir`, `banner`, `sourceTags`, `scan`, `backup`, `refs` and `review`. A key inside an omitted optional object, such as `lint`, `lint.links`, `vale` or a guide's `compile`, is `undefined` after loading, and the code that reads it applies the documented default. Config essentials lists the output layout and its defaults under [Path layout](../client-cli/config-essentials.md#path-layout). [Source tags and default banner](../features/source-tags-and-banner.md) gives the default banner text and the per-guide `compile.includeBanner` and `compile.sourceTags` keys.
 
 ### Publish outputs and link paths
 
@@ -48,18 +44,12 @@ After the cross-guide and intra-guide rewrites, compile resolves the `../` links
 
 ## `compile.hooks`
 
-Built-in hooks run by default when `compile.hooks` is omitted. See [Default compile hooks](../features/default-compile-hooks.md).
-
-- **Omitted** — run `DEFAULT_COMPILE_HOOKS` in order: `stripAnchors`, `codeEvidence`, `inlineInserts`
-- **`string[]`** — explicit override; replaces defaults entirely (backward compatible)
-- **`Record<string, boolean>`** — opt out; keys with `false` remove that hook from defaults
-
-Optional per-hook settings: `compile.hooksConfig` (`inlineInserts.searchRoots`). Post-stitch anchor stripping: `compile.stripAnchors` (default `true`), independent of the per-shard `stripAnchors` hook unless opted out.
+`resolveCompileHooks(compile)` returns the list of hooks a guide runs, which is `DEFAULT_COMPILE_HOOKS` when `compile.hooks` is omitted. [Default compile hooks](../features/default-compile-hooks.md#configuration) gives the forms `compile.hooks` takes. `compile.hooksConfig` holds per-hook settings, such as [`inlineInserts.searchRoots`](./compile-hooks/inline-inserts.md#inlineinserts-config), and [stripAnchors purpose](./compile-hooks/strip-anchors.md#stripanchors-purpose) says what `compile.stripAnchors` does.
 
 ## `compile.crossGuideLinks`
 
 Assembly-time cross-guide link options on the **compiling** guide (not a compile hook):
 
-- **`ignoreGuides`**: `string[]` of guide names. Links from the compiling guide to shards of a listed guide keep source `.md` paths instead of rewriting to `#slug` targets, except in the cases that [its config section](../features/compile-pipeline/cross-guide-links.md#compilecrossguidelinksignoreguides) points to
+- **`ignoreGuides`**: `string[]` of guide names. Links from the compiling guide to shards of a listed guide keep source `.md` paths instead of rewriting to `#slug` targets, except where a link to a shard the compiling guide stitches takes its in-document anchor, as [ignoreGuides](../glossary/ignore-guides.md) says.
 
-See [Cross-guide link rewriting](../features/compile-pipeline/cross-guide-links.md) and [ignoreGuides](../glossary/ignore-guides.md).
+See [Cross-guide link rewriting](../features/compile-pipeline/cross-guide-links.md).

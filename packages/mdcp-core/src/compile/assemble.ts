@@ -77,7 +77,8 @@ export interface AssembleGuideOptions {
    * Guide names whose cross-guide shard links keep source `.md` paths, except where a link to a
    * shard the guide stitches takes its in-document anchor: through same compiled output preference,
    * or through the intra-guide pass for a `./` or bare link. The
-   * `compile.crossGuideLinks.ignoreGuides` section of the core README links both rules.
+   * `compile.crossGuideLinks.ignoreGuides` section of docs/features/compile-pipeline/cross-guide-links.md
+   * links both rules.
    */
   ignoreGuides?: string[];
   markBroken?: boolean;

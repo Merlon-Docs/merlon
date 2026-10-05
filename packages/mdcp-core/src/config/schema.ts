@@ -55,8 +55,10 @@ const GuideSchema = z.object({
           /**
            * Target guide names: links from this guide to shards of a listed guide keep source `.md`
            * paths instead of `#slug` targets in the target guide's compiled guide or in the monolith.
-           * A link to a shard this guide stitches can still take its in-document anchor, as the
-           * `compile.crossGuideLinks.ignoreGuides` section of the core README says.
+           * A link to a shard this guide stitches can still take its in-document anchor: through same
+           * compiled output preference, or through the intra-guide pass for a `./` or bare link. The
+           * `compile.crossGuideLinks.ignoreGuides` section of
+           * docs/features/compile-pipeline/cross-guide-links.md links both rules.
            */
           ignoreGuides: z.array(z.string()).optional(),
         })

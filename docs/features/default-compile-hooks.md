@@ -10,17 +10,17 @@ Most guides want the same built-in hooks. A default pipeline keeps the hook arra
 
 When `guides[].compile.hooks` is omitted, mdcp runs these hooks **in order** on each shard (after heading demotion, and after the About this guide heading is dropped from the preamble shard):
 
-| Hook            | Purpose                                                                                                 |
-| --------------- | ------------------------------------------------------------------------------------------------------- |
-| `stripAnchors`  | Remove `{#id}` anchor markers per shard; post-stitch strip uses `compile.stripAnchors` (default `true`) |
-| `codeEvidence`  | Rewrite repo source links to `#L` line fragments                                                        |
-| `inlineInserts` | Inline captioned insert-library shards on first link                                                    |
+| Hook            | Purpose                                              |
+| --------------- | ---------------------------------------------------- |
+| `stripAnchors`  | Remove `{#id}` anchor markers per shard              |
+| `codeEvidence`  | Rewrite repo source links to `#L` line fragments     |
+| `inlineInserts` | Inline captioned insert-library shards on first link |
 
-[stripAnchors](../client-core/compile-hooks/strip-anchors.md) lists which `{#id}` examples in code the hook keeps, and why a heading line keeps none.
+[stripAnchors](../client-core/compile-hooks/strip-anchors.md) lists which `{#id}` examples in code the hook keeps, and why a heading line keeps none. Its [purpose](../client-core/compile-hooks/strip-anchors.md#stripanchors-purpose) says when the strip runs again on the stitched guide.
 
 Hooks are no-ops when shard content does not match (no evidence links, no insert links, etc.).
 
-**Cross-guide link rewriting** is not a compile hook — it runs automatically at assembly time from `compileOrder` and per-guide `compile.outputFile`. Optional per-guide exceptions: `compile.crossGuideLinks.ignoreGuides`. See [Cross-guide link rewriting](./compile-pipeline/cross-guide-links.md).
+**Cross-guide link rewriting** is not a compile hook. It runs automatically at assembly time from `compileOrder` and per-guide `compile.outputFile`. See [Cross-guide link rewriting](./compile-pipeline/cross-guide-links.md), whose [`ignoreGuides` section](./compile-pipeline/cross-guide-links.md#compilecrossguidelinksignoreguides) covers the per-guide exceptions.
 
 Table re-alignment also runs outside the hooks, as the last step of each assembly, after broken-link marking. See [Tables after link rewriting](./compile-pipeline/tables-after-link-rewriting.md).
 
@@ -37,22 +37,6 @@ Omit `compile.hooks`. Optional per-hook config lives under `hooksConfig` (`inlin
   "name": "glossary",
   "compile": {
     "outputFile": "glossary.md"
-  }
-}
-```
-
-### Cross-guide exceptions (optional)
-
-Cross-guide link rewrite runs at assembly by default. To keep shard `.md` paths in links to specific target guides, set `compile.crossGuideLinks.ignoreGuides` on the compiling guide. [Its config section](./compile-pipeline/cross-guide-links.md#compilecrossguidelinksignoreguides) points to the cases where a link to one of those guides still takes an in-document anchor:
-
-```json
-{
-  "name": "glossary",
-  "compile": {
-    "outputFile": "glossary.md",
-    "crossGuideLinks": {
-      "ignoreGuides": ["technical-guide"]
-    }
   }
 }
 ```
