@@ -1,0 +1,73 @@
+---
+// Landing-page hero. Replaces Starlight's default so the splash page can carry a
+// product eyebrow, the install command and a shards-to-guides illustration.
+// Only the splash page sets `hero`, so no other page renders this.
+import { LinkButton } from '@astrojs/starlight/components';
+
+// Starlight's skip link targets this id (PAGE_TITLE_ID, not exported).
+const PAGE_TITLE_ID = '_top';
+
+const { data } = Astro.locals.starlightRoute.entry;
+const { title = data.title, tagline, actions = [] } = data.hero || {};
+const install = 'npx skills add betsalel-williamson/mdcp --skill mdcp';
+---
+
+<div class="mdcp-hero">
+  <div class="mdcp-hero__copy">
+    <p class="mdcp-hero__eyebrow">
+      <span class="mdcp-hero__dot" aria-hidden="true"></span>
+      MarkDown Context Protocol (MDCP)<span class="mdcp-hero__eyebrow-extra"> · Spec 1.0 draft · MIT</span>
+    </p>
+    <h1 id={PAGE_TITLE_ID} data-page-title set:html={title} />
+    {tagline && <p class="mdcp-hero__tagline" set:html={tagline} />}
+    {
+      actions.length > 0 && (
+        <div class="mdcp-hero__actions">
+          {actions.map(({ attrs: { class: className, ...attrs } = {}, icon, link: href, text, variant }) => (
+            <LinkButton {href} {variant} icon={icon?.name} class:list={[className]} {...attrs}>
+              {text}
+              {icon?.html && <Fragment set:html={icon.html} />}
+            </LinkButton>
+          ))}
+        </div>
+      )
+    }
+    <div class="mdcp-hero__install">
+      <code><span aria-hidden="true">$ </span>{install}</code>
+      <button type="button" data-copy={install} aria-label="Copy install command">Copy</button>
+    </div>
+  </div>
+
+  <div class="mdcp-hero__art" aria-hidden="true">
+    <div class="mdcp-art__col">
+      <span class="mdcp-art__label">Shards</span>
+      <span class="mdcp-art__shard">features/intent.md</span>
+      <span class="mdcp-art__shard">client/install.md</span>
+      <span class="mdcp-art__shard">developer/release.md</span>
+      <span class="mdcp-art__shard">glossary/shard.md</span>
+    </div>
+    <div class="mdcp-art__flow">
+      <span>mdcp compile</span>
+    </div>
+    <div class="mdcp-art__col">
+      <span class="mdcp-art__label">Guides</span>
+      <span class="mdcp-art__guide"><strong>README.md</strong>for people who use it</span>
+      <span class="mdcp-art__guide"><strong>DEVELOPERS.md</strong>for contributors</span>
+      <span class="mdcp-art__check">mdcp check passed</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  for (const button of document.querySelectorAll<HTMLButtonElement>('.mdcp-hero__install button')) {
+    button.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(button.dataset.copy ?? '');
+        button.textContent = 'Copied';
+        setTimeout(() => (button.textContent = 'Copy'), 1500);
+      } catch {
+        button.textContent = 'Select and copy';
+      }
+    });
+  }
+</script>

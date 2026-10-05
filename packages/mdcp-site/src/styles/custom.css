@@ -11,50 +11,523 @@
   --sl-color-accent-high: #0a3a36;
 }
 
-/* Front page: status strip under the hero. */
-.mdcp-status {
-  display: flex;
-  flex-wrap: wrap;
+/* ---------- Landing page ---------- */
+
+/* Starlight caps splash content width; give the hero and sections room to breathe. */
+[data-has-hero] .sl-container {
+  max-width: 72rem;
+}
+
+[data-has-hero] .main-pane {
+  background:
+    radial-gradient(
+      60rem 30rem at 85% -10%,
+      color-mix(in srgb, var(--sl-color-accent) 18%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      40rem 24rem at -10% 10%,
+      color-mix(in srgb, var(--sl-color-accent) 8%, transparent),
+      transparent 70%
+    );
+}
+
+/* Hero */
+.mdcp-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 3rem;
+  align-items: center;
+  padding-block: clamp(2rem, 6vw, 5.5rem) clamp(2.5rem, 6vw, 5rem);
+}
+
+.mdcp-hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
   gap: 0.5rem;
   margin: 0 0 1.25rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--sl-color-gray-2);
+  background: color-mix(in srgb, var(--sl-color-gray-6) 70%, transparent);
+  border: 1px solid var(--sl-color-hairline);
+}
+
+.mdcp-hero__dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--sl-color-accent);
+}
+
+.mdcp-hero h1 {
+  margin: 0;
+  font-size: clamp(2.25rem, 5.2vw, 4rem);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  font-weight: 700;
+  color: var(--sl-color-white);
+  text-wrap: balance;
+}
+
+.mdcp-hero__tagline {
+  margin: 1.25rem 0 0;
+  max-width: 34rem;
+  font-size: clamp(1.0625rem, 1.6vw, 1.25rem);
+  line-height: 1.55;
+  color: var(--sl-color-gray-2);
+}
+
+.mdcp-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  margin-top: 2rem;
+}
+
+.mdcp-hero__install {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.75rem;
+  max-width: 34rem;
+  padding: 0.35rem 0.35rem 0.35rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--sl-color-hairline);
+  background: var(--sl-color-gray-7, var(--sl-color-black));
+}
+
+.mdcp-hero__install code {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  white-space: nowrap;
+  font-size: 0.8125rem;
+  color: var(--sl-color-gray-1);
+  background: none;
+  padding: 0;
+  scrollbar-width: none;
+}
+
+.mdcp-hero__install code span {
+  color: var(--sl-color-accent-high);
+  user-select: none;
+}
+
+.mdcp-hero__install button {
+  flex: none;
+  padding: 0.4rem 0.8rem;
+  border: 0;
+  border-radius: 0.5rem;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--sl-color-text-invert);
+  background: var(--sl-color-accent);
+  cursor: pointer;
+}
+
+/* Hero illustration: shards flowing into guides. */
+.mdcp-hero__art {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: 1.25rem;
+  border: 1px solid var(--sl-color-hairline);
+  background: color-mix(in srgb, var(--sl-color-gray-6) 55%, transparent);
+  box-shadow: 0 30px 60px -30px rgb(0 0 0 / 0.35);
+}
+
+.mdcp-art__col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.mdcp-art__label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sl-color-gray-3);
+}
+
+.mdcp-art__shard,
+.mdcp-art__guide {
+  padding: 0.5rem 0.65rem;
+  border-radius: 0.5rem;
+  font-family: var(--sl-font-mono);
+  font-size: 0.6875rem;
+  color: var(--sl-color-gray-2);
+  background: var(--sl-color-bg);
+  border: 1px solid var(--sl-color-hairline);
+}
+
+.mdcp-art__guide {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.75rem;
+  font-family: inherit;
+  font-size: 0.75rem;
+  color: var(--sl-color-gray-3);
+  border-color: color-mix(in srgb, var(--sl-color-accent) 45%, transparent);
+}
+
+.mdcp-art__guide strong {
+  font-family: var(--sl-font-mono);
+  font-size: 0.8125rem;
+  color: var(--sl-color-white);
+}
+
+.mdcp-art__flow {
+  position: relative;
+  writing-mode: vertical-rl;
+  padding: 0.75rem 0.3rem;
+  border-radius: 999px;
+  font-family: var(--sl-font-mono);
+  font-size: 0.6875rem;
+  color: var(--sl-color-accent-high);
+  background: var(--sl-color-accent-low);
+}
+
+.mdcp-art__check {
+  align-self: flex-start;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-family: var(--sl-font-mono);
+  font-size: 0.6875rem;
+  color: var(--sl-color-accent-high);
+  background: var(--sl-color-accent-low);
+}
+
+.mdcp-art__check::before {
+  content: '✓ ';
+}
+
+/* Sections */
+.mdcp-home {
+  --mdcp-gap: clamp(4rem, 9vw, 7rem);
+}
+
+.sl-markdown-content .mdcp-home > section {
+  margin-top: 0;
+  padding-top: var(--mdcp-gap);
+}
+
+.sl-markdown-content .mdcp-home > section:first-child {
+  padding-top: clamp(1rem, 3vw, 2rem);
+  border-top: 1px solid var(--sl-color-hairline);
+}
+
+.sl-markdown-content .mdcp-home h2 {
+  margin-top: 0.5rem;
+  font-size: clamp(1.75rem, 3.4vw, 2.5rem);
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  max-width: 36rem;
+  text-wrap: balance;
+}
+
+.sl-markdown-content .mdcp-home h3 {
+  margin: 0;
+  font-size: 1.0625rem;
+  letter-spacing: -0.01em;
+}
+
+.sl-markdown-content .mdcp-home p {
+  max-width: 44rem;
+  color: var(--sl-color-gray-2);
+}
+
+.sl-markdown-content .mdcp-home .mdcp-kicker + h2,
+.sl-markdown-content .mdcp-home .mdcp-kicker + .sl-heading-wrapper {
+  margin-top: 0.5rem;
+}
+
+.sl-markdown-content .mdcp-kicker {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sl-color-accent-high);
+}
+
+:root[data-theme='light'] .sl-markdown-content .mdcp-kicker {
+  color: var(--sl-color-accent);
+}
+
+.sl-markdown-content .mdcp-lead {
+  margin-top: 1rem;
+  font-size: 1.125rem;
+  line-height: 1.6;
+}
+
+.sl-markdown-content .mdcp-home ul,
+.sl-markdown-content .mdcp-home ol {
   padding: 0;
   list-style: none;
 }
 
-.mdcp-status li {
+.sl-markdown-content .mdcp-home li {
   margin: 0;
-  padding: 0.3rem 0.75rem;
-  border: 1px solid var(--sl-color-gray-5);
-  border-radius: 999px;
-  font-size: var(--sl-text-sm);
-  color: var(--sl-color-gray-2);
 }
 
-.mdcp-status strong {
-  margin-right: 0.35rem;
-  color: var(--sl-color-white);
-}
-
-/* Front page: FAQ. */
-.sl-markdown-content details {
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--sl-color-gray-5);
-  border-radius: 0.5rem;
-}
-
-.sl-markdown-content details + details {
+.sl-markdown-content .mdcp-home li p {
   margin-top: 0.5rem;
+  font-size: 0.9375rem;
+  line-height: 1.6;
 }
 
-.sl-markdown-content summary {
+/* Numbered steps */
+.sl-markdown-content .mdcp-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2.5rem;
+  margin-top: 3rem;
+  counter-reset: step;
+}
+
+.sl-markdown-content .mdcp-steps li {
+  counter-increment: step;
+  padding-top: 1.25rem;
+  border-top: 2px solid var(--sl-color-accent);
+}
+
+.sl-markdown-content .mdcp-steps li::before {
+  content: '0' counter(step);
+  display: block;
+  margin-bottom: 0.75rem;
+  font-family: var(--sl-font-mono);
+  font-size: 0.8125rem;
+  color: var(--sl-color-accent-high);
+}
+
+:root[data-theme='light'] .sl-markdown-content .mdcp-steps li::before {
+  color: var(--sl-color-accent);
+}
+
+/* Split text + tree */
+.sl-markdown-content .mdcp-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 3rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.sl-markdown-content .mdcp-tree {
+  margin: 0;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid var(--sl-color-hairline);
+  background: var(--sl-color-gray-7, var(--sl-color-black));
+  font-size: 0.8125rem;
+  line-height: 1.8;
+  overflow-x: auto;
+}
+
+/* Feature grid, divided by hairlines instead of boxes */
+.sl-markdown-content .mdcp-features,
+.sl-markdown-content .mdcp-proof {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2rem;
+  margin-top: 3.5rem;
+}
+
+.sl-markdown-content .mdcp-features li,
+.sl-markdown-content .mdcp-proof li {
+  padding-left: 1rem;
+  border-left: 1px solid var(--sl-color-hairline-shade, var(--sl-color-gray-5));
+}
+
+/* Chips */
+.sl-markdown-content .mdcp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-block: 1.75rem;
+}
+
+.sl-markdown-content .mdcp-chips li {
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--sl-color-white);
+  background: color-mix(in srgb, var(--sl-color-gray-6) 80%, transparent);
+  border: 1px solid var(--sl-color-hairline);
+}
+
+/* Status panel */
+.sl-markdown-content .mdcp-panel {
+  margin-top: 1.5rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border-radius: 1rem;
+  background: var(--sl-color-accent-low);
+  border: 1px solid color-mix(in srgb, var(--sl-color-accent) 35%, transparent);
+}
+
+.sl-markdown-content .mdcp-panel p {
+  margin: 0;
+  max-width: none;
+  line-height: 1.65;
+  color: var(--sl-color-gray-1);
+}
+
+/* FAQ */
+.sl-markdown-content .mdcp-faq {
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--sl-color-hairline);
+}
+
+.sl-markdown-content .mdcp-faq details {
+  margin: 0;
+  border-inline-start: 0;
+  padding-inline: 0;
+  padding: 1.1rem 0;
+  border-bottom: 1px solid var(--sl-color-hairline);
+}
+
+.sl-markdown-content .mdcp-faq summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
   font-weight: 600;
   color: var(--sl-color-white);
   cursor: pointer;
+  list-style: none;
 }
 
-/* Front page: three-card row. */
-@media (min-width: 50rem) {
-  .mdcp-three .card-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+.sl-markdown-content .mdcp-faq summary::before {
+  display: none;
+}
+
+.sl-markdown-content .mdcp-faq summary::marker,
+.sl-markdown-content .mdcp-faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.sl-markdown-content .mdcp-faq summary::after {
+  content: '+';
+  flex: none;
+  font-weight: 400;
+  color: var(--sl-color-gray-3);
+}
+
+.sl-markdown-content .mdcp-faq details[open] summary::after {
+  content: '−';
+}
+
+.sl-markdown-content .mdcp-faq details > :not(summary) {
+  margin-top: 0.75rem;
+  max-width: 44rem;
+  color: var(--sl-color-gray-2);
+}
+
+/* Start-here links */
+.sl-markdown-content .mdcp-links {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+  margin-bottom: 3rem;
+}
+
+.sl-markdown-content .mdcp-links a {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.25rem;
+  border-radius: 1rem;
+  border: 1px solid var(--sl-color-hairline);
+  text-decoration: none;
+  transition:
+    border-color 0.15s,
+    transform 0.15s;
+}
+
+.sl-markdown-content .mdcp-links a:hover {
+  border-color: var(--sl-color-accent);
+  transform: translateY(-2px);
+}
+
+.sl-markdown-content .mdcp-links strong {
+  color: var(--sl-color-white);
+}
+
+.sl-markdown-content .mdcp-links strong::after {
+  content: ' →';
+  color: var(--sl-color-accent);
+}
+
+.sl-markdown-content .mdcp-links span {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--sl-color-gray-3);
+}
+
+/* Tablet */
+@media (max-width: 60rem) {
+  .mdcp-hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.5rem;
+  }
+
+  .sl-markdown-content .mdcp-features,
+  .sl-markdown-content .mdcp-proof,
+  .sl-markdown-content .mdcp-links {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Phone: one column, generous rhythm, art trimmed to the essentials. */
+@media (max-width: 40rem) {
+  .mdcp-hero {
+    padding-top: 1.5rem;
+  }
+
+  .mdcp-hero__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .mdcp-hero__actions .sl-link-button {
+    justify-content: center;
+  }
+
+  /* The illustration repeats the copy; drop it so the first screen is the pitch and the install. */
+  .mdcp-hero__art {
+    display: none;
+  }
+
+  .mdcp-hero__eyebrow-extra {
+    display: none;
+  }
+
+  .sl-markdown-content .mdcp-steps,
+  .sl-markdown-content .mdcp-split,
+  .sl-markdown-content .mdcp-features,
+  .sl-markdown-content .mdcp-proof,
+  .sl-markdown-content .mdcp-links {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.75rem;
+  }
+
+  .sl-markdown-content .mdcp-steps,
+  .sl-markdown-content .mdcp-features,
+  .sl-markdown-content .mdcp-proof {
+    margin-top: 2rem;
+  }
+
+  .sl-markdown-content .mdcp-lead {
+    font-size: 1.0625rem;
   }
 }

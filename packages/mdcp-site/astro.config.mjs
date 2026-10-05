@@ -35,7 +35,7 @@ export default defineConfig({
       // covers hand-authored pages in this package.
       editLink: { baseUrl: `${REPO_URL}/edit/${DEFAULT_BRANCH}/packages/mdcp-site/` },
       customCss: ['./src/styles/custom.css'],
-      components: { Head: './src/components/Head.astro' },
+      components: { Head: './src/components/Head.astro', Hero: './src/components/Hero.astro' },
       sidebar,
     }),
   ],
