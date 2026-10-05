@@ -24,7 +24,7 @@ mdcp compile --config docs/mdcp.config.json --docs-root docs
 ## Daily workflow
 
 ```bash
-# Compile every guide from its shards (link order from each guide's index.md / shards.md)
+# Compile every guide from its shards (link order from each guide's manifest, index.md by default)
 mdcp compile
 
 # Run the full validation gate

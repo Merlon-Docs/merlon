@@ -132,12 +132,12 @@ After you set up a repository, confirm each item:
 
 Each folder directly under the docs root (`--docs-root`) is a [guide](#guide) when its name appears in `compileOrder`. The guide **`name`** in config matches the **directory name**.
 
-| Piece                                           | Role                                                                                                                                                   |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Guide directory (`features/`, `client-cli/`, …) | One logical guide, made of human-edited shards                                                                                                         |
-| `index.md` (or `shards.md`)                     | Human table of contents. Its link order sets the **compile order**                                                                                     |
-| `chapter-*.md` (typical)                        | One topic or chapter per file                                                                                                                          |
-| `about-this-guide.md`                           | Optional preamble shard: compile drops its `# About this guide` heading and keeps the text. `compile.preambleSection` names another file for this role |
+| Piece                                                                 | Role                                                                                                                                                    |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Guide directory (`features/`, `client-cli/`, …)                       | One logical guide, made of human-edited shards                                                                                                          |
+| `index.md`, or the file `compile.manifest` names, such as `shards.md` | Human table of contents. Its link order sets the **compile order**, as [Manifest compile order](../../docs/features/manifest-compile-order.md) explains |
+| `chapter-*.md` (typical)                                              | One topic or chapter per file                                                                                                                           |
+| `about-this-guide.md`                                                 | Optional preamble shard: compile drops its `# About this guide` heading and keeps the text. `compile.preambleSection` names another file for this role  |
 
 Support directories such as `styles/` for Vale are **not** guides unless listed in `compileOrder`. Compile doesn't write output for them. Shard markdownlint and Vale skip them too unless your config names them, as [In-scope guide fileset](#in-scope-guide-fileset) explains. A guide whose `compile.scopeRoot` points into one still stitches the shards it links, as the [shared glossary](#shared-glossary) does.
 
@@ -440,7 +440,7 @@ mdcp compile --config docs/mdcp.config.json --docs-root docs
 ### Daily workflow
 
 ```bash
-# Compile every guide from its shards (link order from each guide's index.md / shards.md)
+# Compile every guide from its shards (link order from each guide's manifest, index.md by default)
 mdcp compile
 
 # Run the full validation gate
