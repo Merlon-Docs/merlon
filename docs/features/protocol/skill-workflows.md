@@ -14,6 +14,8 @@ The obligations on this page are advisory, as [Enforceable rules](../design-cons
 
 Every work-item workflow **MUST** open with an **Intake** section listing the fields below. The agent takes each value from the request and the repository first, and asks only for what is still missing when someone can answer. When nobody can answer, as in a headless or scheduled run, it states a default in one line and continues. `WORK_ITEM` is then the request itself. It stops to wait only when the user asked for a plan first, or before a destructive or irreversible step, a real change of scope, or input only the user can give. The skill's **When nobody can answer** section in `SKILL.md` holds these defaults.
 
+The live eval runs behind the headless behavior are in the research record [Skill eval round: measured changes to the mdcp skill](./research/skill-eval-round-2026-10-03.md).
+
 Required fields for work-item workflows:
 
 | Field              | Meaning                                                                                   | Example intake question                                                                   |
