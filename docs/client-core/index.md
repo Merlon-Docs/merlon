@@ -9,14 +9,14 @@
 
 ## API
 
-- [API — Config](./api-config.md)
-- [API — Compile](./api-compile.md)
-- [API — Refs and validation](./api-refs-validation.md)
-- [API — Shard and peers](./api-shard-and-peers.md)
+- [Config API](./api-config.md)
+- [Compile API](./api-compile.md)
+- [Refs and validation API](./api-refs-validation.md)
+- [Shard and peers API](./api-shard-and-peers.md)
 
 ## Compile hooks
 
-- [Compile hooks — overview](./compile-hooks/index.md)
+- [Compile hooks overview](./compile-hooks/index.md)
 - [stripAnchors](./compile-hooks/strip-anchors.md)
 - [codeEvidence](./compile-hooks/code-evidence.md)
 - [inlineInserts](./compile-hooks/inline-inserts.md)

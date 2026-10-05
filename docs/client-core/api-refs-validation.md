@@ -1,4 +1,4 @@
-# API — Refs and validation
+# Refs and validation API
 
 ## Refs (cross-links)
 

@@ -32,7 +32,7 @@ mdcp compile --config mdcp.config.json --docs-root .
 
 ### Programmatic API
 
-The core library takes the same two bases, and [API Config](../client-core/api-config.md) says which one each function needs.
+The core library takes the same two bases, and [Config API](../client-core/api-config.md) says which one each function needs.
 
 ## Minimal config
 

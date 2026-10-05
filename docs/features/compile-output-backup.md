@@ -96,4 +96,4 @@ Commands affected: `compile`, `refs gen`, `lint`, `links`, `check`.
 ## Related
 
 - [Config essentials — path layout](../client-cli/config-essentials.md#path-layout)
-- [API — Compile](../client-core/api-compile.md)
+- [Compile API](../client-core/api-compile.md)

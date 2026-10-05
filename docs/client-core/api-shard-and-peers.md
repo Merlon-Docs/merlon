@@ -1,4 +1,4 @@
-# API — Shard and peers
+# Shard and peers API
 
 ## Shard (split)
 

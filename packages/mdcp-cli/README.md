@@ -199,7 +199,7 @@ mdcp compile --config mdcp.config.json --docs-root .
 
 #### Programmatic API
 
-The core library takes the same two bases, and [API Config](../mdcp-core/README.md#api--config) says which one each function needs.
+The core library takes the same two bases, and [Config API](../mdcp-core/README.md#config-api) says which one each function needs.
 
 ### Minimal config
 
@@ -310,7 +310,7 @@ This table links the page that documents each key:
 | `compile.preambleSection`                                                                                              | [Project layout](#project-layout)                                                                                                                                     |
 | `banner`, `sourceTags`, `compile.includeBanner`, `compile.sourceTags`                                                  | [Source tags and banner](../../docs/features/source-tags-and-banner.md)                                                                                               |
 | `compile.manifest`, `compile.sectionsHeading`                                                                          | [Manifest compile order](../../docs/features/manifest-compile-order.md)                                                                                               |
-| `compile.title`                                                                                                        | [Compile API](../mdcp-core/README.md#api--compile)                                                                                                                    |
+| `compile.title`                                                                                                        | [Compile API](../mdcp-core/README.md#compile-api)                                                                                                                     |
 | `compile.hooks`, `compile.hooksConfig`                                                                                 | [Default compile hooks](../../docs/features/default-compile-hooks.md), and the core [Compile hooks](../mdcp-core/README.md#compile-hooks) index for the hook pipeline |
 | `compile.stripAnchors`                                                                                                 | [stripAnchors](../mdcp-core/README.md#stripanchors)                                                                                                                   |
 | `compile.crossGuideLinks`                                                                                              | [Cross-guide link rewriting](../../docs/features/compile-pipeline/cross-guide-links.md)                                                                               |
@@ -393,7 +393,7 @@ Set `"demoteFirstH1": true` on every `merge` part after the first. A later part 
 
 `mdcp shard` starts a new shard at each `##` heading in a guide's part, and deeper headings stay in the shard above them. The schema accepts a guide's `splitLevel`, an integer from 1 to 6 that defaults to 2, but `mdcp shard` doesn't apply it, because the [md-tree](../../docs/features/design-constraints/md-tree-integration.md) `explode` command it runs takes no level. Each shard is a file named after its heading, and the guide's `index.md` links the shards in order.
 
-The text between a guide's H1 and its first `##` heading becomes an "About this guide" shard, `about-this-guide.md`, which compile stitches without its heading. An `h1Extract` or `merge` source can set `"preamble": { "promoteToH2": "<heading>" }` to give that shard another heading. The shard is then named after that heading, and compile keeps the heading as it does for any other shard. `mdcp shard` reads `preamble` from the first guide in `guides` only and gives every guide's preamble shard its heading. The core API page [Shard and peers](../mdcp-core/README.md#api--shard-and-peers) says how the library reads these mappings.
+The text between a guide's H1 and its first `##` heading becomes an "About this guide" shard, `about-this-guide.md`, which compile stitches without its heading. An `h1Extract` or `merge` source can set `"preamble": { "promoteToH2": "<heading>" }` to give that shard another heading. The shard is then named after that heading, and compile keeps the heading as it does for any other shard. `mdcp shard` reads `preamble` from the first guide in `guides` only and gives every guide's preamble shard its heading. The core API page [Shard and peers](../mdcp-core/README.md#shard-and-peers-api) says how the library reads these mappings.
 
 This config makes the first H1 section the `overview` guide, and the second and third the `admin` guide:
 

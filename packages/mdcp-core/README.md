@@ -76,13 +76,13 @@ const refsPath = resolveRefsPath(docsRoot, config.outputDir, config.refs.registr
 genRefsFromCompiled(compiled, refsPath, outputs);
 ```
 
-In CI, call `checkRefsRegistry(compiled, refsPath, outputs)` in place of `genRefsFromCompiled`. It returns `ok: false` when the registry on disk is missing or stale. The [Compile API](#api--compile) lists the fields of each result and says when compile writes the monolith, the one file that top-level `outputFile` names. The [Config API](#api--config) says which base each path resolves from.
+In CI, call `checkRefsRegistry(compiled, refsPath, outputs)` in place of `genRefsFromCompiled`. It returns `ok: false` when the registry on disk is missing or stale. The [Compile API](#compile-api) lists the fields of each result and says when compile writes the monolith, the one file that top-level `outputFile` names. The [Config API](#config-api) says which base each path resolves from.
 
 <!-- mdcp-shard: end ../../docs/client-core/quick-example.md -->
 
 <!-- mdcp-shard: start ../../docs/client-core/api-config.md -->
 
-## API — Config
+## Config API
 
 | Export                                                                                 | Purpose                                                                          |
 | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
@@ -145,7 +145,7 @@ See [Cross-guide link rewriting](../../docs/features/compile-pipeline/cross-guid
 
 <!-- mdcp-shard: start ../../docs/client-core/api-compile.md -->
 
-## API — Compile
+## Compile API
 
 | Export                                                                           | Purpose                                                                                                                                                |
 | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -193,7 +193,7 @@ A [locale pack](#locale-pack) holds the words compile writes and reads in prose,
 
 <!-- mdcp-shard: start ../../docs/client-core/api-refs-validation.md -->
 
-## API — Refs and validation
+## Refs and validation API
 
 ### Refs (cross-links)
 
@@ -269,7 +269,7 @@ CLI authoring rules: [Cross-links and refs — heading slugs](../mdcp-cli/README
 
 <!-- mdcp-shard: start ../../docs/client-core/api-shard-and-peers.md -->
 
-## API — Shard and peers
+## Shard and peers API
 
 ### Shard (split)
 
