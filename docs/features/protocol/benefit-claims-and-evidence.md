@@ -16,9 +16,9 @@ Policy for public copy — README, npm package openings, and adoption material. 
 - **Retrieval / lookup verb as WIIFM** — Forbidden. Doc discovery is host search; do not claim MDCP retrieves context by slug — see [ADR 0002](../adr/0002-remove-refs-lookup.md).
 - **Ship faster with agents** — Tier C; use adoption stories or measured outcomes.
 
-## Context-size measurement (dogfood repo)
+## Context size
 
-**Source:** [context-size-dogfood.csv](./context-size-dogfood.csv)
+When agents follow the [usage model](./usage-model.md) and read one shard instead of the whole [monolith](../../glossary/monolith.md), per-turn context can be smaller. That is the Tier B form of the claim. The figures for mdcp's own docs are in a dated record, [Context sizes: this repository's guides against one shard](./research/context-size-dogfood-2026-10-05.md). The Agent Skill tells an agent to find one shard with host search and open it, and to read compiled output only as a last resort. It can't stop an agent from reading a whole compiled guide or the monolith, and no record has measured how often agents stay at one shard.
 
 Regenerate after compile:
 
@@ -39,16 +39,6 @@ pnpm bench:context-size -- --tokenizer-module ./count.mjs  # your counter: expor
 ```
 
 `MDCP_TOKENIZER` and `MDCP_TOKENIZER_MODULE` set the same choices from the environment, and `--no-write` prints the table without touching the CSV.
-
-### How to read the numbers
-
-- **Whole guide versus one shard.** The `guide_*` rows are what an agent loads when it reads a compiled guide in full, the same order of size as pasting a large docs excerpt into a prompt. The `shard_*` rows are what it loads when it reads one shard. The ratio between them is the useful number.
-- **Sharding** can reduce per-turn context **when agents read one shard instead of the whole [monolith](../../glossary/monolith.md)**. See `median_shard_pct_of_monolith` and `median_shard_token_pct_of_monolith` in the CSV.
-- MDCP does **not** stop an agent from reading the whole monolith or a whole compiled guide. Discipline and Agent Skill instructions matter.
-
-### Tier B wording (dogfood measurement)
-
-On this repository, the median `docs/features/` shard is about **1.5%** of the monolith `docs/_build/guides.md`, by characters and by estimated tokens (about 850 tokens against about 60,000). Here the monolith contains the features guide and the glossary terms it links. When agents follow the [usage model](./usage-model.md) and read one shard instead of the whole monolith, per-turn context can be smaller. MDCP does not enforce that discipline. The Agent Skill and your workflow do.
 
 ## Evidence elsewhere
 

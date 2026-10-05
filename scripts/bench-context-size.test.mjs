@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve, sep } from 'node:path';
 import { after, describe, it } from 'node:test';
 import { loadTokenizer, parseArgs, summarize } from './bench-context-size.mjs';
 
@@ -15,6 +15,15 @@ describe('bench-context-size', () => {
     assert.equal(parseArgs(['--tokenizer', 'chars4'], { MDCP_TOKENIZER: 'x' }).tokenizer, 'chars4');
     assert.equal(parseArgs(['--no-write']).write, false);
     assert.throws(() => parseArgs(['--bogus']), /Unknown argument/);
+  });
+
+  it('writes each run to a dated CSV beside the research records', () => {
+    const out = parseArgs([], {}, '2026-10-05').out.split(sep).join('/');
+    assert.ok(
+      out.endsWith('/docs/features/protocol/research/context-size-dogfood-2026-10-05.csv'),
+      out,
+    );
+    assert.equal(parseArgs(['--out', 'x.csv'], {}, '2026-10-05').out, resolve('x.csv'));
   });
 
   it('skips the bare -- that pnpm passes through', () => {

@@ -32,6 +32,7 @@ A record that no longer holds is superseded by a new record rather than edited, 
 
 ## Records
 
+- [Context sizes: this repository's guides against one shard](./context-size-dogfood-2026-10-05.md)
 - [Field report: a fully automated repository](./field-report-automated-repository.md)
 - [Field report: the edge of the validated surface](./field-report-validated-surface.md)
 - [Skill eval round: measured changes to the mdcp skill](./skill-eval-round-2026-10-03.md)
