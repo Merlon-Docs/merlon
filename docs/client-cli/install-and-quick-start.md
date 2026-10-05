@@ -64,4 +64,13 @@ For prose lint (`mdcp prose`, `mdcp check --require-vale`), install [Vale](https
 
 4. Add `docs:compile` and `docs:check` scripts to your repo-root `package.json`, as [Repo-root npm scripts](./config-essentials.md#repo-root-npm-scripts) shows. The check script runs `mdcp check --require-lint`. Add `--require-vale` to it when Vale is configured.
 
-5. Run the same compile and check scripts in CI. The [verification checklist](./consumer-migration.md#verification-checklist) lists what to confirm once they pass.
+5. Run the same compile and check scripts in CI. The [verification checklist](#verification-checklist) lists what to confirm once they pass.
+
+## Verification checklist
+
+After you set up a repository, confirm each item:
+
+1. **`mdcp compile`**: per-guide outputs under `_build/` (or explicit `compile.outputFile` targets); optional monolith when `outputFile` is set
+2. **`mdcp check --require-lint`**: passes the [check gate](../features/check-gate.md) with markdownlint-cli2 required for each configured markdownlint stage
+3. **`mdcp check --require-vale`**: when Vale is configured
+4. **Hook output**: diagram tables inlined (`inlineInserts`), code evidence blocks resolved (`codeEvidence`), cross-guide links rewritten to `#slug` targets in compiled output (a link to a guide in `compile.crossGuideLinks.ignoreGuides` keeps its shard `.md` path, except in the cases that [its config section](../client-core/compile-hooks/cross-guide-links.md#compilecrossguidelinksignoreguides) points to)

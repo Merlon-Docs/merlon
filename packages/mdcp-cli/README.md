@@ -92,6 +92,15 @@ For prose lint (`mdcp prose`, `mdcp check --require-vale`), install [Vale](https
 
 5. Run the same compile and check scripts in CI. The [verification checklist](#verification-checklist) lists what to confirm once they pass.
 
+### Verification checklist
+
+After you set up a repository, confirm each item:
+
+1. **`mdcp compile`**: per-guide outputs under `_build/` (or explicit `compile.outputFile` targets); optional monolith when `outputFile` is set
+2. **`mdcp check --require-lint`**: passes the [check gate](../../docs/features/check-gate.md) with markdownlint-cli2 required for each configured markdownlint stage
+3. **`mdcp check --require-vale`**: when Vale is configured
+4. **Hook output**: diagram tables inlined (`inlineInserts`), code evidence blocks resolved (`codeEvidence`), cross-guide links rewritten to `#slug` targets in compiled output (a link to a guide in `compile.crossGuideLinks.ignoreGuides` keeps its shard `.md` path, except in the cases that [its config section](../mdcp-core/README.md#compilecrossguidelinksignoreguides) points to)
+
 <!-- mdcp-shard: end ../../docs/client-cli/install-and-quick-start.md -->
 
 <!-- mdcp-shard: start ../../docs/client-cli/project-layout.md -->
@@ -330,25 +339,6 @@ mdcp check
 ### Guide manifests and compile order
 
 There is no separate manifest sync step, so rerun `mdcp compile` and `mdcp check` after a manifest change. [Manifest compile order](../../docs/features/manifest-compile-order.md) says how link order in the manifest sets compile order and when to set `compile.sectionsHeading`.
-
-### Compile hooks and multi-guide links
-
-Built-in hooks run by default — omit `compile.hooks` for the common case. Specs and multi-guide / `ignoreGuides` examples live in **core** docs (not duplicated here):
-
-- [Default compile hooks](../../docs/features/default-compile-hooks.md)
-- [Compile hooks](../mdcp-core/README.md#compile-hooks)
-- [Cross-guide links](../mdcp-core/README.md#cross-guide-link-rewriting)
-
-CLI config path rules remain in [Config essentials](#config-essentials).
-
-### Verification checklist
-
-After setting up a consumer repo:
-
-1. **`mdcp compile`**: per-guide outputs under `_build/` (or explicit `compile.outputFile` targets); optional monolith when `outputFile` is set
-2. **`mdcp check --require-lint`**: passes the [check gate](../../docs/features/check-gate.md) with markdownlint-cli2 required for each configured markdownlint stage
-3. **`mdcp check --require-vale`**: when Vale is configured
-4. **Hook output**: diagram tables inlined (`inlineInserts`), code evidence blocks resolved (`codeEvidence`), cross-guide links rewritten to `#slug` targets in compiled output (a link to a guide in `compile.crossGuideLinks.ignoreGuides` keeps its shard `.md` path, except in the cases that [its config section](../mdcp-core/README.md#compilecrossguidelinksignoreguides) points to)
 
 <!-- mdcp-shard: end ../../docs/client-cli/consumer-migration.md -->
 
