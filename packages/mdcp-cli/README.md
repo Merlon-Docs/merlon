@@ -18,7 +18,7 @@ This npm package is **not** the MDCP Agent Skill. Each piece of MDCP has its own
 - **Core:** the programmatic library the CLI is built on, [`@bwilliamson/mdcp-core`](https://www.npmjs.com/package/@bwilliamson/mdcp-core)
 - **Agent Skill:** the host instructions (`SKILL.md` and its workflows) an agent loads for `/mdcp`, which decide when the agent edits docs and which workflow it follows
 
-The CLI and the skill are separate installs with separate docs. [Get started](../../README.md#get-started) in the project README shows how to install the skill and start its bootstrap session, and the [skill catalog](../../docs/skills.md) lists its workflows. The skill doesn't include the `mdcp` binary, so a repository that runs `mdcp compile` or `mdcp check` in scripts or CI installs this package as well. [Agent integration](#agent-integration) shows the npm scripts.
+The CLI and the skill are separate installs with separate docs. [Get started](../../README.md#get-started) in the project README shows how to install the skill and start its bootstrap session, and the [skill catalog](../../docs/skills.md) lists its workflows. The skill doesn't include the `mdcp` binary, so a repository that runs `mdcp compile` or `mdcp check` in scripts or CI installs this package as well. [Repo-root npm scripts](#repo-root-npm-scripts) shows the npm scripts.
 
 <!-- mdcp-shard: end ../../docs/client-cli/about.md -->
 
@@ -537,7 +537,7 @@ When writing `` `[link text](#anchor)` `` in a shard, the fragment must match th
 ```bash
 mdcp compile --config docs/mdcp.config.json --docs-root docs
 mdcp check --config docs/mdcp.config.json --docs-root docs
-mdcp refs-list
+mdcp refs-list --config docs/mdcp.config.json --docs-root docs
 ```
 
 `mdcp check` fails on dead `#` fragments and bad paths. `mdcp refs-list` lists the heading slugs of each compiled output, with the output's file, from the [refs registry](#refs-registry). A `#fragment` has to match a slug of the file the link points at. For a bare `#fragment` in a shard, that is each output that stitches the shard. Compile stitches a guide's shard into the guide's [compiled guide](#compiled-guide) and, for a guide in the [monolith](#monolith), into the monolith too, where the same heading can take another slug, such as `setup-1` for `setup`. A bare `#fragment` may also point at the id of a section in that output, such as a `FIND-*` finding id or a declared `{#id}`. `mdcp refs-list` doesn't print those ids. Compile doesn't write an output for a [standalone guide](#standalone-guide), so the registry doesn't hold its headings.
@@ -680,28 +680,6 @@ Typical loop: edit shards → `mdcp compile` → `mdcp check` → optional `mdcp
 [Install and quick start](#install-and-quick-start) covers install and flags, and the [Agent Skill](#not-the-agent-skill) contains the docs workflows an agent follows.
 
 <!-- mdcp-shard: end ../../docs/client-cli/why-mdcp-for-agents.md -->
-
-<!-- mdcp-shard: start ../../docs/client-cli/agent-integration.md -->
-
-## Agent integration
-
-Wire **`@bwilliamson/mdcp-cli`** into CI or coding agents with npm scripts.
-
-```json
-{
-  "scripts": {
-    "docs:compile": "mdcp compile --config docs/mdcp.config.json --docs-root docs",
-    "docs:check": "mdcp check --config docs/mdcp.config.json --docs-root docs --require-lint"
-  }
-}
-```
-
-```bash
-mdcp check --require-lint
-mdcp refs-list
-```
-
-<!-- mdcp-shard: end ../../docs/client-cli/agent-integration.md -->
 
 <!-- mdcp-shard: start ../../docs/client-cli/related-packages.md -->
 

@@ -21,7 +21,6 @@
 ## Working with agents
 
 - [Why mdcp for coding agents](./why-mdcp-for-agents.md)
-- [Agent integration](./agent-integration.md)
 
 ## See also
 
