@@ -36,7 +36,8 @@ export default defineConfig({
       editLink: { baseUrl: `${REPO_URL}/edit/${DEFAULT_BRANCH}/packages/mdcp-site/` },
       customCss: ['./src/styles/custom.css'],
       components: { Head: './src/components/Head.astro', Hero: './src/components/Hero.astro' },
-      sidebar,
+      // The hand-authored Learn page leads the generated guide groups.
+      sidebar: [{ label: 'Learn MDCP', slug: 'learn' }, ...sidebar],
     }),
   ],
 });

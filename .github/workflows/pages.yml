@@ -62,6 +62,9 @@ jobs:
       # Builds the toolchain, compiles docs, syncs shards into the site, runs
       # astro build, then checks every internal link in dist/.
       - run: pnpm run site:build
+      # Runs axe-core (WCAG 2.2 A and AA) on a sample of built pages in both
+      # themes at desktop and phone widths, using the runner's Chrome.
+      - run: pnpm --filter @bwilliamson/mdcp-site run check:a11y
 
       - name: Upload Pages artifact
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/develop'

@@ -55,7 +55,8 @@
     "docs:compile": "pnpm run docs:compile:repo && pnpm run docs:compile:examples",
     "site:prepare": "pnpm run build && pnpm run docs:compile:repo",
     "site:dev": "pnpm run site:prepare && pnpm --filter @bwilliamson/mdcp-site run dev",
-    "site:build": "pnpm run site:prepare && pnpm --filter @bwilliamson/mdcp-site run build:site"
+    "site:build": "pnpm run site:prepare && pnpm --filter @bwilliamson/mdcp-site run build:site",
+    "site:a11y": "pnpm --filter @bwilliamson/mdcp-site run check:a11y"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -87,7 +88,11 @@
     "@eslint/js": "^10.0.1",
     "@slidev/cli": "latest",
     "@slidev/theme-default": "latest",
+    "astro-eslint-parser": "^3.2.0",
     "eslint": "^10.11.0",
+    "eslint-plugin-astro": "^3.2.1",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "gpt-tokenizer": "^4.0.0",
     "husky": "^9.1.7",
     "lint-staged": "^17.5.1",
     "markdownlint-cli2": "^0.23.3",

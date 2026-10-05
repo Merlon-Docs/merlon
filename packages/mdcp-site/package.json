@@ -9,13 +9,16 @@
     "dev": "node scripts/sync-content.mjs && astro dev",
     "build:site": "node scripts/sync-content.mjs && astro build && node scripts/check-links.mjs",
     "preview": "astro preview",
-    "test": "node --test scripts/*.test.mjs"
+    "test": "node --test scripts/*.test.mjs",
+    "check:a11y": "node scripts/check-a11y.mjs"
   },
   "devDependencies": {
     "@astrojs/starlight": "^0.42.4",
     "@bwilliamson/mdcp-core": "workspace:*",
     "astro": "^7.3.5",
+    "axe-core": "^4.13.0",
     "github-slugger": "^2.0.0",
-    "mermaid": "^12.0.0"
+    "mermaid": "^12.0.0",
+    "playwright-core": "^1.63.0"
   }
 }

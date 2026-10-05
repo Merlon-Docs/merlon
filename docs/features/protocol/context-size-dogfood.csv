@@ -1,7 +1,28 @@
 metric,value,unit,notes,recorded_at
-features_monolith_chars,260958,chars,docs/_build/guides.md,2026-10-04
-feature_shard_count,25,count,excludes index.md,2026-10-04
-feature_shard_median_chars,5304,chars,docs/features/**/*.md,2026-10-04
-feature_shard_p90_chars,10881,chars,docs/features/**/*.md,2026-10-04
-median_shard_pct_of_monolith,2,percent,median shard / monolith character ratio,2026-10-04
-features_guide_raw_chars,260957,chars,per-guide output if present,2026-10-04
+tokenizer,o200k_base,name,rough estimate; other models count differently,2026-10-05
+guide_monolith_chars,282975,chars,docs/_build/guides.md,2026-10-05
+guide_monolith_tokens,61941,tokens,docs/_build/guides.md,2026-10-05
+guide_developer_chars,140938,chars,DEVELOPERS.md,2026-10-05
+guide_developer_tokens,29939,tokens,DEVELOPERS.md,2026-10-05
+guide_client_cli_chars,59408,chars,packages/mdcp-cli/README.md,2026-10-05
+guide_client_cli_tokens,13459,tokens,packages/mdcp-cli/README.md,2026-10-05
+guide_client_core_chars,81349,chars,packages/mdcp-core/README.md,2026-10-05
+guide_client_core_tokens,18387,tokens,packages/mdcp-core/README.md,2026-10-05
+guide_repo_readme_chars,10366,chars,README.md,2026-10-05
+guide_repo_readme_tokens,2537,tokens,README.md,2026-10-05
+shard_count,132,count,docs/{features,developer,client-cli,client-core,repo-readme,glossary}/**/*.md, excludes index.md,2026-10-05
+shard_mean_chars,3839,chars,docs/{features,developer,client-cli,client-core,repo-readme,glossary}/**/*.md, excludes index.md,2026-10-05
+shard_mean_tokens,832,tokens,docs/{features,developer,client-cli,client-core,repo-readme,glossary}/**/*.md, excludes index.md,2026-10-05
+shard_median_chars,2696,chars,docs/{features,developer,client-cli,client-core,repo-readme,glossary}/**/*.md, excludes index.md,2026-10-05
+shard_median_tokens,651,tokens,docs/{features,developer,client-cli,client-core,repo-readme,glossary}/**/*.md, excludes index.md,2026-10-05
+shard_p90_chars,8832,chars,docs/{features,developer,client-cli,client-core,repo-readme,glossary}/**/*.md, excludes index.md,2026-10-05
+shard_p90_tokens,1868,tokens,docs/{features,developer,client-cli,client-core,repo-readme,glossary}/**/*.md, excludes index.md,2026-10-05
+shard_max_chars,20490,chars,docs/{features,developer,client-cli,client-core,repo-readme,glossary}/**/*.md, excludes index.md,2026-10-05
+shard_max_tokens,4505,tokens,docs/{features,developer,client-cli,client-core,repo-readme,glossary}/**/*.md, excludes index.md,2026-10-05
+features_monolith_chars,282975,chars,docs/_build/guides.md,2026-10-05
+feature_shard_count,53,count,excludes index.md,2026-10-05
+feature_shard_median_chars,4319,chars,docs/features/**/*.md,2026-10-05
+feature_shard_p90_chars,8918,chars,docs/features/**/*.md,2026-10-05
+feature_shard_median_tokens,864,tokens,docs/features/**/*.md,2026-10-05
+median_shard_pct_of_monolith,1.5,percent,median feature shard / monolith character ratio,2026-10-05
+median_shard_token_pct_of_monolith,1.4,percent,median feature shard / monolith token ratio,2026-10-05

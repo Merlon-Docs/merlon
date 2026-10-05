@@ -1,0 +1,165 @@
+---
+title: Learn MDCP
+description: A short path through the MarkDown Context Protocol (MDCP), from why documentation matters to software reliability, through the core ideas, to your first compile and a context-size measurement.
+editUrl: false
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 2
+---
+
+import ContextSizes from '../../components/ContextSizes.astro';
+
+<div class="mdcp-learn">
+
+<div class="mdcp-lead">
+  New to the MarkDown Context Protocol (MDCP)? Work through this path from top to bottom, or jump
+  to the step you need. Each step ends with somewhere to go next.
+</div>
+
+## Start here
+
+Read why MDCP exists first. It explains the problem in about five minutes, and it's the one page to
+read if you read nothing else.
+
+<nav class="mdcp-links" aria-label="Start here">
+  <a href="../concepts/protocol/documentation-and-reliability/">
+    <strong>Documentation and software reliability</strong>
+    <span>What unreliable software costs, where documentation fits, and what MDCP does about it.</span>
+  </a>
+  <a href="../guide/install-and-quick-start/">
+    <strong>Install and quick start</strong>
+    <span>Already convinced? Add the CLI to a repository and run your first compile.</span>
+  </a>
+</nav>
+
+## 1 · Understand the problem
+
+Software failures cost hundreds of billions to trillions of dollars a year, and documentation is one
+of the causes a team can act on. When agents write much of the change, docs also break in a few
+familiar, structural ways.
+
+<nav class="mdcp-links" aria-label="Understand the problem">
+  <a href="../guide/why-mdcp-for-agents/">
+    <strong>Why MDCP for coding agents</strong>
+    <span>How docs fail when agents edit a repository, and which command addresses each failure.</span>
+  </a>
+  <a href="../concepts/protocol/research/field-report-automated-repository/">
+    <strong>Field report: a fully automated repository</strong>
+    <span>What the checks caught when agents wrote every commit, and what they missed.</span>
+  </a>
+</nav>
+
+## 2 · Understand the ideas
+
+Start with the shard, then read how guides, the check and the
+skill build on it.
+
+<nav class="mdcp-links" aria-label="Understand the ideas">
+  <a href="../glossary/shard/">
+    <strong>Shard</strong>
+    <span>A small Markdown file about one topic, which people and agents read and review.</span>
+  </a>
+  <a href="../glossary/guide/">
+    <strong>Guide</strong>
+    <span>A list of shards that compiles into the README or handbook one reader opens.</span>
+  </a>
+  <a href="../glossary/check/">
+    <strong>Check</strong>
+    <div>
+      <code>mdcp check</code> fails CI on broken links, unindexed shards and stale compiled files.
+    </div>
+  </a>
+  <a href="../concepts/agent-skill/">
+    <strong>Agent Skill</strong>
+    <span>The instructions an agent follows to update shards in the same change as the code.</span>
+  </a>
+  <a href="../concepts/protocol/usage-model/">
+    <strong>Usage model</strong>
+    <span>How people and agents read one shard at a time, and who checks what.</span>
+  </a>
+</nav>
+
+## 3 · Try it
+
+Install the skill in your agent, or the CLI in your repository, and run a compile. The quick start
+takes a repository from no shards to a passing check.
+
+```bash wrap
+npx skills add betsalel-williamson/mdcp --skill mdcp
+```
+
+<nav class="mdcp-links" aria-label="Try it">
+  <a href="../guide/install-and-quick-start/">
+    <strong>Install and quick start</strong>
+    <span>Add the CLI, write your first shards and run <code>mdcp compile</code> and <code>mdcp check</code>.</span>
+  </a>
+  <a href="../guide/project-layout/">
+    <strong>Project layout</strong>
+    <span>Where shards, guides and compiled output live in a repository.</span>
+  </a>
+</nav>
+
+## 4 · Measure it
+
+How much context does an agent load? This repository measures a whole compiled guide against one shard. The figures are rough estimates. Every model and system tokenizes differently, so compare the
+sizes with each other, not with a bill.
+
+<ContextSizes />
+
+Measure your own repository with `pnpm bench:context-size`, and switch the tokenizer to match your stack:
+
+- `--tokenizer o200k_base` is the default. `cl100k_base`, `p50k_base` and the other gpt-tokenizer encodings work the same way.
+- `--tokenizer chars4` skips the tokenizer and divides characters by four.
+- `--tokenizer-module ./count.mjs` loads your own counter, a module that exports `countTokens(text)`.
+
+```bash wrap
+pnpm bench:context-size -- --tokenizer cl100k_base
+```
+
+<nav class="mdcp-links" aria-label="Measure it">
+  <a href="../concepts/protocol/benefit-claims-and-evidence/">
+    <strong>Benefit claims and evidence</strong>
+    <span>How to read the measurements, and what MDCP may and may not claim from them.</span>
+  </a>
+</nav>
+
+## 5 · Compare to what you know
+
+Already keep a long README, a wiki or an `llms.txt` file? See where MDCP agrees, where it differs, and
+how it relates to the Model Context Protocol.
+
+<nav class="mdcp-links" aria-label="Compare to what you know">
+  <a href="../concepts/protocol/02-alternatives-and-adoption/">
+    <strong>Alternatives and adoption</strong>
+    <span>MDCP next to single-file docs, docs sites and other conventions.</span>
+  </a>
+  <a href="../concepts/protocol/01-scope-and-positioning/">
+    <strong>Scope and positioning</strong>
+    <span>What MDCP is and isn't, including how it differs from an MCP server.</span>
+  </a>
+</nav>
+
+## Where to next
+
+Past the basics? Pick a direction.
+
+<nav class="mdcp-links" aria-label="Where to next">
+  <a href="../concepts/protocol/mdcp-10-spec/">
+    <strong>Read the specification</strong>
+    <span>The MDCP 1.0 draft: guide layout, skill workflows and agent context.</span>
+  </a>
+  <a href="../concepts/adr/">
+    <strong>Decision records</strong>
+    <span>The reasoning behind each design choice, including the ideas that were turned down.</span>
+  </a>
+  <a href="../contributing/">
+    <strong>Contribute</strong>
+    <span>Set up the monorepo, run the checks and land a change.</span>
+  </a>
+  <a href="https://www.youtube.com/watch?v=LmU99Wp7at8">
+    <strong>Watch a talk</strong>
+    <span>The DORA Community Discussion on Agent Skills and the MDCP documentation system.</span>
+  </a>
+</nav>
+
+</div>
