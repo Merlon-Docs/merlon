@@ -1276,3 +1276,113 @@ describe('guides in the monolith', () => {
     });
   });
 });
+
+describe('later link passes leave a cross-guide link alone', () => {
+  // The cross-guide pass writes a link to an output in the same directory as its file name alone.
+  // Guide a stitches its own glossary.md, which the intra-guide pass used to find from the shard
+  // directory, so the link became a dead #term.
+  it('keeps a link to another output when the linking guide stitches a shard of that file name', () => {
+    withTmpDir('mdcp-cross-kept-shard-name-', (work) => {
+      writeTree(work, {
+        'a/index.md': '# Guide A\n\n- [Intro](./intro.md)\n- [Local glossary](./glossary.md)\n',
+        'a/intro.md': '# Intro\n\nSee [term](../g/term.md).\n',
+        'a/glossary.md': '# Local glossary\n\nBody.\n',
+        'g/index.md': '# Glossary\n\n- [Term](./term.md)\n',
+        'g/term.md': '# Term\n\nBody.\n',
+      });
+      const results = compileGuideResults(
+        monolithOptions(
+          work,
+          ['a', 'g'],
+          [
+            { name: 'a', compile: { outputFile: 'a.md' } },
+            { name: 'g', compile: { outputFile: 'glossary.md' } },
+          ],
+        ),
+      );
+      const a = results.find((r) => r.name === 'a')!.text;
+
+      expect(a).toContain('See [term](glossary.md#term).');
+      expect(a).not.toContain('BROKEN LINK');
+    });
+  });
+
+  // In a's compiled guide the link names g's compiled guide, g.md. Guide a stitches sub/g.md,
+  // which the intra-guide pass used to find by its file name.
+  it('keeps a link to another monolith guide when the linking guide stitches a shard named like its compiled guide', () => {
+    withTmpDir('mdcp-cross-kept-monolith-name-', (work) => {
+      writeTree(work, {
+        'a/index.md': '# Guide A\n\n- [Intro](./intro.md)\n- [Notes](./sub/g.md)\n',
+        'a/intro.md': '# Intro\n\nSee [term](../g/term.md).\n',
+        'a/sub/g.md': '# Notes\n\nBody.\n',
+        'g/index.md': '# Guide G\n\n- [Term](./term.md)\n',
+        'g/term.md': '# Term\n\nBody.\n',
+      });
+      const opts = monolithOptions(work, ['a', 'g']);
+      const results = compileGuideResults(opts);
+      const a = results.find((r) => r.name === 'a')!.text;
+      const monolith = compileGuidesFromResults(results, opts);
+
+      expect(a).toContain('See [term](g.md#term).');
+      expect(a).not.toContain('BROKEN LINK');
+      expect(monolith).toContain('See [term](#term).');
+      expect(monolith).not.toContain('BROKEN LINK');
+    });
+  });
+
+  // From the shard's directory, ../../README.md names docs/README.md. The publish-relative pass
+  // used to look the cross-guide target up from there and rebase it to that file.
+  it('keeps a link to another output that names some other file from the shard directory', () => {
+    withTmpDir('mdcp-cross-kept-shard-lookup-', (work) => {
+      writeTree(work, {
+        'docs/a/index.md': '# Guide A\n\n- [Intro](./sub/intro.md)\n',
+        'docs/a/sub/intro.md': '# Intro\n\nSee [t](../../r/start.md#t).\n',
+        'docs/r/index.md': '# Readme\n\n- [Start](./start.md)\n',
+        'docs/r/start.md': '# Start\n\n## T\n\nBody.\n',
+        'docs/README.md': '# Docs readme\n',
+      });
+      const results = compileGuideResults(
+        monolithOptions(
+          work,
+          ['a', 'r'],
+          [
+            { name: 'a', path: 'docs/a', compile: { outputFile: '../packages/a/README.md' } },
+            { name: 'r', path: 'docs/r', compile: { outputFile: '../README.md' } },
+          ],
+        ),
+      );
+      const a = results.find((r) => r.name === 'a')!.text;
+
+      expect(a).toContain('See [t](../../README.md#t).');
+    });
+  });
+
+  // Guide b's directory sits in guide a's, so a stitches b/topic.md, which b's manifest lists, and a
+  // ignores b. The run on the stitched body used to read the rebased ../ path from a's directory
+  // and link the section. The per-shard intra-guide pass still links a ./ or bare link there.
+  it("keeps a ../ link to an ignored guide's stitched shard as a path in both documents", () => {
+    withTmpDir('mdcp-cross-kept-ignored-nested-', (work) => {
+      writeTree(work, {
+        'docs/index.md': '# Guide A\n\n- [Intro](./intro.md)\n- [Deep](./sub/deep.md)\n',
+        'docs/intro.md': '# Intro\n\nDot [t](./b/topic.md). Bare [t](b/topic.md).\n',
+        'docs/sub/deep.md': '# Deep\n\nUp [t](../b/topic.md).\n',
+        'docs/b/index.md': '# Guide B\n\n- [Topic](./topic.md)\n',
+        'docs/b/topic.md': '# Topic B\n\nBody.\n',
+      });
+      const opts = monolithOptions(
+        work,
+        ['a', 'b'],
+        [
+          { name: 'a', path: 'docs', compile: { crossGuideLinks: { ignoreGuides: ['b'] } } },
+          { name: 'b', path: 'docs/b', compile: { outputFile: '../b.md' } },
+        ],
+      );
+      const a = compileGuideResults(opts).find((r) => r.name === 'a')!;
+
+      for (const text of [a.text, a.monolithText!]) {
+        expect(text).toContain('Dot [t](#topic-b). Bare [t](#topic-b).');
+        expect(text).toContain('Up [t](../docs/b/topic.md).');
+      }
+    });
+  });
+});

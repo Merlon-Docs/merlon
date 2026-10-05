@@ -487,6 +487,28 @@ describe('compileGuides', () => {
     });
   });
 
+  // Without linkIndex no cross-guide pass runs, so publish-relative rebases sub/deep.md's link to
+  // a shard the guide stitches. The run after stitch used to read the rebased path from the guide
+  // directory, which publishOutputFile shares here, and turn it into #intro.
+  it('keeps the rebased path of a ../ link to a stitched shard when assembleGuide gets publishOutputFile without linkIndex', () => {
+    withTmpDir('mdcp-publish-rebased-kept-', (work) => {
+      const guideDir = join(work, 'docs', 'a');
+      mkdirSync(join(guideDir, 'sub'), { recursive: true });
+      writeFileSync(
+        join(guideDir, 'index.md'),
+        '# Guide A\n\n- [Intro](./intro.md)\n- [Deep](./sub/deep.md)\n',
+      );
+      writeFileSync(join(guideDir, 'intro.md'), '# Intro\n\nBody.\n');
+      writeFileSync(join(guideDir, 'sub', 'deep.md'), '# Deep\n\nUp [i](../intro.md).\n');
+
+      const out = assembleGuide(guideDir, {
+        publishOutputFile: join(guideDir, 'out.md'),
+        outputFile: join(guideDir, 'out.md'),
+      });
+      expect(out).toContain('Up [i](intro.md).');
+    });
+  });
+
   it('returns empty string when all guides have publish outputs', () => {
     withTmpDir('mdcp-all-publish-', (work) => {
       const guideDir = join(work, 'guide');

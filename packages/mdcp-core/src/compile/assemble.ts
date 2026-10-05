@@ -7,9 +7,10 @@ import { applyCompileHooks, createCompileHookState } from './hooks.js';
 import './hooks/builtin.js';
 import {
   buildSectionSlugMap,
-  rewriteCrossGuideFileLinks,
+  rewriteCrossGuideFileLinksMarked,
   rewriteIntraGuideFileLinks,
   rewritePublishRelativeLinks,
+  unmarkLinkTargets,
 } from './publish-links.js';
 import { buildGuideLinkIndexWithSlugs, type GuideLinkIndex } from './guide-link-index.js';
 import {
@@ -206,8 +207,10 @@ function assembleGuideUnmarked(guideDir: string, options: AssembleGuideOptions):
       options.hooks,
     );
 
+    // The cross-guide and publish-relative passes mark each target they write, and no later pass
+    // reads a marked target, since its path is relative to the link base rather than the shard.
     if (options.linkIndex) {
-      body = rewriteCrossGuideFileLinks(body, {
+      body = rewriteCrossGuideFileLinksMarked(body, {
         sourceFile: filePath,
         guideDir,
         scopeRoot: options.scopeRoot,
@@ -231,6 +234,7 @@ function assembleGuideUnmarked(guideDir: string, options: AssembleGuideOptions):
         currentGuideName: guideName,
         currentOutputFile: options.publishOutputFile,
         linkIndex: options.linkIndex,
+        markWritten: true,
       });
     }
 
@@ -252,7 +256,7 @@ function assembleGuideUnmarked(guideDir: string, options: AssembleGuideOptions):
     compiled = stripExplicitAnchorMarkers(compiled);
   }
 
-  compiled = rewriteIntraGuideFileLinks(compiled, slugByPath, guideDir);
+  compiled = unmarkLinkTargets(rewriteIntraGuideFileLinks(compiled, slugByPath, guideDir));
 
   // Only the slugs of sections this assembly stitches. A copy in the monolith also takes the
   // section slugs of the other copies when it is marked. A shard that no copy stitches has no

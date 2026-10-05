@@ -2,7 +2,7 @@
 
 <!-- mdcp-paths: illustrative -->
 
-Specification for assembly-time rebasing of shard-relative file links to each guide's [link base](#when-it-runs). Tests in `packages/mdcp-core/test/publish-links.test.ts`, `packages/mdcp-core/test/links.test.ts` and `packages/mdcp-core/test/guide-output-path.test.ts` map to the sections below.
+Specification for assembly-time rebasing of shard-relative file links to each guide's [link base](#when-it-runs). Tests in `packages/mdcp-core/test/publish-links.test.ts`, `packages/mdcp-core/test/links.test.ts` and `packages/mdcp-core/test/guide-output-path.test.ts` map to the sections below. Tests for the exclusion of cross-guide links and for [`ignoreGuides` interaction](#ignoreguides-interaction) are also in `packages/mdcp-core/test/cross-guide-links.test.ts`.
 
 ## Why this pass exists
 
@@ -70,11 +70,9 @@ The pass **does not** transform:
 - External URLs
 - Same-document `#fragment` links
 - `./section.md` and other `./` paths (cross-guide or intra-guide handle `.md`; publish-relative only matches `../`)
-- A link that the cross-guide pass rewrote to another output's path plus `#slug`, when this pass's lookup finds an output at that path or doesn't find a file
+- A link that the cross-guide pass rewrote, whose path is already relative to the link base, such as `../../README.md#setup` in a guide published to `packages/a/README.md`
 - A link the shard writes to an output named in the guide link index, such as `../../README.md`
 - Unresolvable paths (left unchanged)
-
-The pass looks up a target that the cross-guide pass wrote as if the shard had written it, though that target is relative to the link base. When the lookup finds some other file at that path, the pass rewrites the link to point at it.
 
 In the guide link index, each entry's `outputFile` is the owner's publish output when the owner sets `compile.outputFile`. Otherwise it is the monolith when the config has one, and the owner's compiled guide when it doesn't. A link the shard writes to one of these outputs keeps its shard-relative path, because neither pass rebases it. That path resolves in a compiled guide only when it also leads from the link base to the output. The compiled guide of a guide in the monolith isn't one of them, and the pass rebases a link to it like any other file.
 
@@ -107,6 +105,10 @@ Nested shards use more `../` segments in source; per-shard resolution still yiel
 ## `ignoreGuides` interaction
 
 When `compile.crossGuideLinks.ignoreGuides` keeps a cross-guide link as a shard `.md` path, publish-relative still rebases that path relative to the compiling guide's link base. Example: `client-cli` with `ignoreGuides: ["features"]` compiles `../features/feature-catalog.md` to `../../docs/features/feature-catalog.md` in the package README.
+
+The intra-guide run on the stitched body leaves the rebased path alone, even when the compiling guide stitches the shard. So a guide in the monolith links the shard file in both documents, each path relative to its own link base.
+
+A kept `./` link takes another route, because this pass only matches `../`. When the compiling guide stitches the shard, the per-shard intra-guide pass rewrites a `./` or bare link to it as `#slug`. So one compiled guide can link a shard by its path from a `../` link and by its anchor from a `./` link.
 
 Link validation accepts those shard paths when the target guide is listed in `ignoreGuides` on the compiling guide. See [Link validation](../../features/link-validation.md#publish-only-link-policy).
 

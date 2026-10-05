@@ -12,11 +12,11 @@ assembleGuide (per guide, once for each document it is written to)
   ├─ for each shard (manifest order, then linked shards)
   │    ├─ processSection (demote headings, strip about-this-guide)
   │    ├─ applyCompileHooks (named hooks from config, in order)
-  │    ├─ rewriteCrossGuideFileLinks (automatic when link index present)
+  │    ├─ cross-guide pass (automatic when link index present, marks what it writes)
   │    ├─ rewriteIntraGuideFileLinks (same-guide links, from the shard directory)
-  │    └─ rewritePublishRelativeLinks (every guide, relative to its link base)
+  │    └─ rewritePublishRelativeLinks (every guide, relative to its link base, marks what it writes)
   │
-  ├─ stitch → stripAnchors (default) → intra-guide .md
+  ├─ stitch → stripAnchors (default) → intra-guide .md → unmark
   │
   └─ markBrokenLinks → realignTables (the last step)
 ```
@@ -27,17 +27,15 @@ assembleGuide (per guide, once for each document it is written to)
 
 ### Link passes
 
-Assembly rewrites links to files in the passes below. They run on each shard in table order, and the intra-guide pass runs once more on the stitched body. They aren't compile hooks, so `compile.hooks` doesn't turn them off.
+Assembly rewrites links to files in the passes below. They run on each shard in table order, and the intra-guide pass runs once more on the stitched body. They aren't compile hooks, so `compile.hooks` doesn't turn them off. Every later pass leaves alone a link that the cross-guide or publish-relative pass rewrote, and that includes the run on the stitched body. Assembly marks each target those two passes write, and it removes the marks after that run. So a cross-guide target such as `glossary.md#term` stays as the cross-guide pass wrote it, even when the guide stitches a shard named `glossary.md`.
 
-| Pass             | When                                       | Matches                                                                         | Output                                         |
-| ---------------- | ------------------------------------------ | ------------------------------------------------------------------------------- | ---------------------------------------------- |
-| Cross-guide      | Per shard, after the hooks                 | `./` and `../` paths to a shard in the guide link index                         | `#slug`, or another output's path plus `#slug` |
-| Intra-guide      | Per shard, then again on the stitched body | Bare and `./` paths to a shard the guide stitches, and `../` paths after stitch | `#slug`                                        |
-| Publish-relative | Per shard, after intra-guide               | `../` paths to a file or directory that exists                                  | The path relative to the guide's link base     |
+| Pass             | When                                       | Matches                                                                                                     | Output                                         |
+| ---------------- | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| Cross-guide      | Per shard, after the hooks                 | `./` and `../` paths to a shard in the guide link index                                                     | `#slug`, or another output's path plus `#slug` |
+| Intra-guide      | Per shard, then again on the stitched body | Bare and `./` paths to a shard the guide stitches, and after stitch the `../` paths no earlier pass rewrote | `#slug`                                        |
+| Publish-relative | Per shard, after intra-guide               | `../` paths to a file or directory that exists                                                              | The path relative to the guide's link base     |
 
 A link with a `#fragment` keeps it in place of the slug. [Cross-guide resolution](./cross-guide-links.md#cross-guide-resolution) says when a cross-guide link stays in the document and which output it names otherwise. [Publish-relative matching](./publish-relative-links.md#publish-relative-matching) says which `../` targets the publish-relative pass skips, and [`ignoreGuides` interaction](./publish-relative-links.md#ignoreguides-interaction) covers a cross-guide link that keeps its shard path. The publish-relative shard also defines the [link base](./publish-relative-links.md#when-it-runs).
-
-The intra-guide pass also reads the links that the cross-guide pass wrote. The cross-guide pass writes a link to an output in the same directory as the output's file name alone, such as `glossary.md#term`. When the guide stitches a shard with that file name, wherever the shard sits, the intra-guide pass rewrites the link to `#term`. Compile marks it as a dead anchor, unless a heading of the document has that slug, which the link then points at. Guides without `compile.outputFile` all write to the output directory, so a link from one to another meets this when the linking guide stitches a shard named like the other's output.
 
 ### Path lookup order
 

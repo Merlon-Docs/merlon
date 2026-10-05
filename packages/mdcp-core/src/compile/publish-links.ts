@@ -19,6 +19,20 @@ export function slugForSectionFile(filePath: string, cache?: ShardCache): string
   return slugForDemotedSection(name, processed);
 }
 
+/**
+ * Assembly opens a link target with this mark when the cross-guide or publish-relative pass writes
+ * it. The target is then relative to the link base rather than the shard, so a later pass leaves
+ * the link alone: the publish-relative pattern needs a target that opens with `../`, and the
+ * intra-guide pass skips a marked target. `unmarkLinkTargets` removes the marks after the last
+ * pass. CommonMark replaces U+0000 in its input, so no shard link means the character.
+ */
+const WRITTEN_LINK_MARK = '\u0000';
+
+/** Remove the marks that assembly's link passes put on the targets they wrote. */
+export function unmarkLinkTargets(markdown: string): string {
+  return markdown.replaceAll(`](${WRITTEN_LINK_MARK}`, '](');
+}
+
 const INTRA_GUIDE_MD_LINK_RE = /(\[[^\]]*\]\()((?!https?:)(?:\.\/)?[^)#/\s][^)#]*\.md)(#[^)]*)?\)/g;
 const CROSS_GUIDE_MD_LINK_RE =
   /(\[[^\]]*\]\()((?!https?:)(?:(?:\.\.\/)+|\.\/)[^)#/\s][^)#]*\.md)(#[^)]*)?\)/g;
@@ -83,6 +97,8 @@ export interface PublishRelativeLinkRewriteOptions {
   currentOutputFile: string;
   linkIndex?: GuideLinkIndex;
   searchRoots?: string[];
+  /** Open each target the pass writes with the mark that tells later passes to leave it alone. */
+  markWritten?: boolean;
 }
 
 function parseLinkPath(target: string): { path: string; suffix: string } {
@@ -144,7 +160,8 @@ export function rewritePublishRelativeLinks(
     const fromDir = dirname(outputAbs);
     // A target in the link base's own directory relativizes to '', which would leave an empty href.
     const rel = relative(fromDir, resolve(resolved)).replace(/\\/g, '/') || './';
-    return `${linkPrefixFromMatch(originalMatch, target)}${rel}${suffix})`;
+    const mark = options.markWritten ? WRITTEN_LINK_MARK : '';
+    return `${linkPrefixFromMatch(originalMatch, target)}${mark}${rel}${suffix})`;
   });
 }
 
@@ -162,6 +179,8 @@ export function rewriteIntraGuideFileLinks(
   return rewriteMarkdownLinkLines(markdown, INTRA_GUIDE_MD_LINK_RE, (originalMatch, m) => {
     const file = m[2];
     const fragment = m[3];
+    // An earlier pass wrote this target relative to the link base, not to a shard.
+    if (file.startsWith(WRITTEN_LINK_MARK)) return originalMatch;
     const normalized = file.replace(/^\.\//, '');
     if (options?.sourceFile && normalized.startsWith('../')) return originalMatch;
     let slug: string | undefined;
@@ -305,10 +324,10 @@ function formatCrossGuideTarget(
   return `${prefix}${toGuideFile ? basename(toFile) : entry.outputBasename}#${anchor})`;
 }
 
-/** Rewrite cross-guide `.md` links using the compile-time guide link index. */
-export function rewriteCrossGuideFileLinks(
+function crossGuidePass(
   markdown: string,
   options: CrossGuideLinkRewriteOptions,
+  mark: string,
 ): string {
   return rewriteMarkdownLinkLines(markdown, CROSS_GUIDE_MD_LINK_RE, (originalMatch, m) => {
     const file = m[2];
@@ -317,10 +336,34 @@ export function rewriteCrossGuideFileLinks(
     if (!entry) return originalMatch;
     if (options.ignoreGuides?.includes(entry.guideName)) return originalMatch;
     return formatCrossGuideTarget(
-      linkPrefixFromMatch(originalMatch, file),
+      `${linkPrefixFromMatch(originalMatch, file)}${mark}`,
       fragment,
       entry,
       options,
     );
   });
+}
+
+/**
+ * Rewrite cross-guide `.md` links using the compile-time guide link index. The targets it writes
+ * carry no mark, so `rewriteIntraGuideFileLinks` run on its output can still read one as a shard
+ * link: `glossary.md#term` becomes `#term` when `slugByPath` has a shard named `glossary.md`.
+ * Compile uses a variant that marks each target it writes, so its later passes leave them alone.
+ */
+export function rewriteCrossGuideFileLinks(
+  markdown: string,
+  options: CrossGuideLinkRewriteOptions,
+): string {
+  return crossGuidePass(markdown, options, '');
+}
+
+/**
+ * `rewriteCrossGuideFileLinks` for assembly: each target the pass writes opens with a mark, so the
+ * later link passes leave it alone. Assembly removes the marks with `unmarkLinkTargets`.
+ */
+export function rewriteCrossGuideFileLinksMarked(
+  markdown: string,
+  options: CrossGuideLinkRewriteOptions,
+): string {
+  return crossGuidePass(markdown, options, WRITTEN_LINK_MARK);
 }

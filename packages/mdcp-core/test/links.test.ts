@@ -2059,13 +2059,13 @@ describe('lintLinks over each written file', () => {
     });
   });
 
-  // Guide a stitches b's topic.md through its scope root and ignores guide b. a.md links the
-  // first link's section as #nope, while the monolith in sub/ keeps the path. The second link
-  // goes to c.md#nope in a.md and to #nope in the monolith. The a.md issue for #nope is the first
-  // link's, so the monolith issue of the second link is still reported.
-  it("reports a monolith issue whose target only another link's compiled guide issue has", () => {
+  // Guide a stitches b's topic.md through its scope root and ignores guide b, so both files keep
+  // the path to the shard, each rebased relative to itself. The a.md issue for that link names
+  // the same file as the monolith issue, so it covers it. The second link goes to c.md#nope in
+  // a.md and to #nope in the monolith, so the monolith issue of that link is still reported.
+  it("keeps an ignored guide's shard path in both files and reports a monolith issue that the compiled guide links elsewhere", () => {
     withTmpDir('mdcp-lint-monolith-dedupe-held-ignored-', (work) => {
-      const { docsRoot, issues } = lintWritten(
+      const { docsRoot, issues, textOf } = lintWritten(
         work,
         {
           'a/index.md': '# Guide A\n\n- [Intro](./intro.md)\n',
@@ -2096,17 +2096,16 @@ describe('lintLinks over each written file', () => {
           (i) => `${relative(docsRoot, i.file)}:${i.line} ${i.brokenTarget} ${i.guideName}`,
         ),
       ).toEqual([
-        '_build/a.md:9 #nope a',
+        '_build/a.md:9 ../b/topic.md#nope a',
         '_build/a.md:11 c.md#nope a',
-        '_build/sub/guides.md:9 ../../b/topic.md#nope a',
         '_build/sub/guides.md:11 #nope a',
       ]);
       expect(issues.map(lineOf)).toEqual([
-        'First see [x](#nope).',
+        'First see [x](../b/topic.md#nope).',
         'Then see [x](c.md#nope).',
-        'First see [x](../../b/topic.md#nope).',
         'Then see [x](#nope).',
       ]);
+      expect(textOf('_build/sub/guides.md')).toContain('First see [x](../../b/topic.md#nope).');
     });
   });
 
