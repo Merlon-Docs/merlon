@@ -2,9 +2,17 @@
 
 mdcp splits, compiles, and validates sharded Markdown for repos where **LLMs help write docs**, **humans review them**, and **compiled output serves feature work and end-user guides**.
 
+## Audience priority
+
+Public pages speak first to the people who can make documentation a required policy.
+
+- **Primary: people with authority over reliability.** Platform and DevOps leads, engineering and technical managers, QA and reliability engineers, and the person responsible for the team's AI skill stack. They can require the skill and the check across repositories. The landing page lists these roles and gives them a short path to policy.
+- **Secondary: people who already value docs.** Technical writers and engineers who write things down adopt the skill for themselves and argue for it inside their teams.
+- **Anti-persona: the engineer who keeps the system in their head.** This engineer doesn't see a problem with undocumented knowledge, even though that knowledge leaves when they do. Public copy addresses the risk this creates for the primary audience instead of arguing with this reader. It stays respectful, because winning them over later is still the goal.
+
 ## Adoption archetypes
 
-Four goals — not job titles. Interns and students map to **Learner**; technical writers and domain SMEs map to **Author**; foundation reviewers map to **Champion**. Do not enumerate roles on landing pages. Each archetype gets one [WIIFM](../glossary/wiifm.md) line (landing-safe):
+Four goals — not job titles. Interns and students map to **Learner**; technical writers and domain SMEs map to **Author**; foundation reviewers map to **Champion**. The landing page names the primary audience's roles; archetype tables and WIIFM lines stay goal-based. Each archetype gets one [WIIFM](../glossary/wiifm.md) line (landing-safe):
 
 | Archetype    | Goal                                     | WIIFM (landing-safe)                                       | Typical path                                |
 | ------------ | ---------------------------------------- | ---------------------------------------------------------- | ------------------------------------------- |

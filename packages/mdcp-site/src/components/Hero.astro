@@ -1,6 +1,6 @@
 ---
-// Landing-page hero. Replaces Starlight's default so the splash page can carry a
-// product eyebrow, the install command and real `mdcp check` output.
+// Landing-page hero. Replaces Starlight's default so the splash page can show MDCP's
+// two parts side by side: the AI skill working in an agent, and the CLI checking in CI.
 // Only the splash page sets `hero`, so no other page renders this.
 import { LinkButton } from '@astrojs/starlight/components';
 
@@ -9,12 +9,20 @@ const PAGE_TITLE_ID = '_top';
 
 const { data } = Astro.locals.starlightRoute.entry;
 const { title = data.title, tagline, actions = [] } = data.hero || {};
-const install = 'npx skills add betsalel-williamson/mdcp --skill mdcp';
+
+const installs = [
+  {
+    label: 'AI skill',
+    where: 'in your coding agent',
+    command: 'npx skills add betsalel-williamson/mdcp --skill mdcp',
+  },
+  { label: 'CLI', where: 'in your repo and CI', command: 'npm install -D @bwilliamson/mdcp-cli' },
+];
 ---
 
 <div class="mdcp-hero">
   <div class="mdcp-hero__copy">
-    <p class="mdcp-hero__eyebrow">MarkDown Context Protocol (MDCP) · Spec 1.0 draft · MIT</p>
+    <p class="mdcp-hero__eyebrow">MDCP · Spec 1.0 draft · MIT</p>
     <h1 id={PAGE_TITLE_ID} data-page-title set:html={title} />
     {tagline && <p class="mdcp-hero__tagline" set:html={tagline} />}
     {
@@ -29,47 +37,78 @@ const install = 'npx skills add betsalel-williamson/mdcp --skill mdcp';
         </div>
       )
     }
-    <div class="mdcp-hero__install">
-      <code
-        ><span aria-hidden="true">$ </span>{
-          install.split(' ').map((word, i) => (
-            <Fragment>
-              {i > 0 && ' '}
-              <span class="mdcp-hero__word">{word}</span>
-            </Fragment>
-          ))
-        }</code
-      >
-      <button type="button" data-copy={install}>
-        <span data-label>Copy</span><span class="sr-only"> install command</span>
-      </button>
-      <span class="sr-only" role="status" data-status></span>
+    <div class="mdcp-hero__installs">
+      {
+        installs.map(({ label, where, command }) => (
+          <div class="mdcp-hero__install">
+            <p class="mdcp-hero__install-label">
+              {label} <span>{where}</span>
+            </p>
+            <code>
+              <span aria-hidden="true">$ </span>
+              {command.split(' ').map((word, i) => (
+                <Fragment>
+                  {i > 0 && ' '}
+                  <span class="mdcp-hero__word">{word}</span>
+                </Fragment>
+              ))}
+            </code>
+            <button type="button" data-copy={command}>
+              <span data-label>Copy</span>
+              <span class="sr-only"> the {label} install command</span>
+            </button>
+            <span class="sr-only" role="status" data-status />
+          </div>
+        ))
+      }
     </div>
   </div>
 
-  <figure class="mdcp-hero__term">
-    <div class="mdcp-term__bar" aria-hidden="true">
-      <span></span><span></span><span></span>
-      <span class="mdcp-term__title">sample-guides</span>
-    </div>
-    <pre
-      class="mdcp-term__body"><span class="mdcp-term__cmd"><span aria-hidden="true">$ </span>mdcp check</span>
-<span class="mdcp-term__err">orphan:</span> Orphaned shard not in sections manifest: developer-guide/release.md
-<span class="mdcp-term__err">mdcp check failed:</span> 1 orphan shard(s). Add them to a guide index or remove unused files.
+  <div class="mdcp-hero__panes">
+    <figure class="mdcp-pane">
+      <div class="mdcp-pane__bar">
+        <span class="mdcp-pane__step" aria-hidden="true">1</span>
+        <span class="mdcp-pane__name">AI skill</span>
+        <span class="mdcp-pane__where">in your coding agent</span>
+      </div>
+      <pre
+        class="mdcp-pane__body"><span class="mdcp-pane__ask"><span aria-hidden="true">&gt; </span>Add a --since flag to the export command.</span>
 
-<span class="mdcp-term__cmd"><span aria-hidden="true">$ </span>mdcp check</span>
-<span class="mdcp-term__err">link:</span> _build/developer-guide.md:13: dead anchor "admin-guide.md#install-steps"
-<span class="mdcp-term__err">link:</span> _build/guides.md:62: dead anchor "#install-steps"
-<span class="mdcp-term__err">mdcp check failed:</span> built-in links: 2 issue(s)
-  → dead anchor: update the #fragment to a slug from compiled output (`mdcp refs list`).
+<span class="mdcp-pane__agent">Agent, following the mdcp skill:</span>
+<span class="mdcp-pane__done" aria-hidden="true">✓</span> Read docs/features/export.md
+<span class="mdcp-pane__done" aria-hidden="true">✓</span> Changed src/export.ts
+<span class="mdcp-pane__done" aria-hidden="true">✓</span> Updated docs/features/export.md in the same change
+<span class="mdcp-pane__done" aria-hidden="true">✓</span> Ran mdcp check: passed
+Ready for review: code and docs in one pull request.</pre>
+      <figcaption>
+        An illustrative session. The steps are the ones the skill tells an agent to take.
+      </figcaption>
+    </figure>
 
-<span class="mdcp-term__cmd"><span aria-hidden="true">$ </span>mdcp check</span>
-<span class="mdcp-term__ok">mdcp check passed</span></pre>
-    <figcaption>
-      Output from <code>mdcp check</code> on the sample guides with an unindexed shard and a dead
-      anchor planted, then after both were fixed. Paths are shortened.
-    </figcaption>
-  </figure>
+    <figure class="mdcp-pane">
+      <div class="mdcp-pane__bar">
+        <span class="mdcp-pane__step" aria-hidden="true">2</span>
+        <span class="mdcp-pane__name">CLI</span>
+        <span class="mdcp-pane__where">in your repo and CI</span>
+      </div>
+      <pre
+        class="mdcp-pane__body"><span class="mdcp-pane__cmd"><span aria-hidden="true">$ </span>mdcp compile</span>
+→ _build/overview.md (38 lines)
+→ _build/admin-guide.md (14 lines)
+→ _build/developer-guide.md (14 lines)
+
+<span class="mdcp-pane__cmd"><span aria-hidden="true">$ </span>mdcp check</span>
+<span class="mdcp-pane__err">orphan:</span> Orphaned shard not in sections manifest: developer-guide/release.md
+<span class="mdcp-pane__err">mdcp check failed:</span> 1 orphan shard(s). Add them to a guide index or remove unused files.
+
+<span class="mdcp-pane__cmd"><span aria-hidden="true">$ </span>mdcp check</span>
+<span class="mdcp-pane__ok">mdcp check passed</span></pre>
+      <figcaption>
+        Real output on the sample guides. Compile writes three guides, and the check fails on a
+        planted unindexed shard until it's fixed.
+      </figcaption>
+    </figure>
+  </div>
 </div>
 
 <script>
