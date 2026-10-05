@@ -111,6 +111,8 @@ Visit [github.com/betsalel-williamson/mdcp](https://github.com/betsalel-williams
 
 5. Run the same compile and check scripts in CI. The [verification checklist](#verification-checklist) lists what to confirm once they pass.
 
+   If your repository commits compiled outputs, such as a package README that is a [publish output](#publish-output), add a CI step that runs `git diff --exit-code` after `mdcp compile`. That step fails when a committed output differs from what its shards compile to. `mdcp check` writes every output again before it checks them, so it passes on a stale one.
+
 ### Verification checklist
 
 After you set up a repository, confirm each item:
@@ -704,13 +706,13 @@ The file stays a standalone guide, so coverage and link validation still check i
 
 Which **CLI commands** address common docs failures when agents edit the repo:
 
-| Pain                       | What goes wrong                        | Command                                            |
-| -------------------------- | -------------------------------------- | -------------------------------------------------- |
-| **Single-file docs**       | Merge conflicts, stale TOC             | `mdcp compile`; `mdcp check` catches orphans       |
-| **Broken cross-links**     | Agents guess `#anchor` slugs           | `mdcp check` (optional `mdcp refs-list` for slugs) |
-| **Context overload**       | Whole compiled output pasted each turn | Host search, then read one shard                   |
-| **Docs drift**             | Shards and output diverge              | `mdcp check` before merge                          |
-| **Custom compile scripts** | Bash/Python glue nobody owns           | `compile`, `check`, `@bwilliamson/mdcp-presets`    |
+| Pain                       | What goes wrong                        | Command                                                   |
+| -------------------------- | -------------------------------------- | --------------------------------------------------------- |
+| **Single-file docs**       | Merge conflicts, stale TOC             | `mdcp compile`; `mdcp check` catches orphans              |
+| **Broken cross-links**     | Agents guess `#anchor` slugs           | `mdcp check` (optional `mdcp refs-list` for slugs)        |
+| **Context overload**       | Whole compiled output pasted each turn | Host search, then read one shard                          |
+| **Docs drift**             | Committed outputs lag their shards     | `mdcp compile` in CI, then fail on `git diff --exit-code` |
+| **Custom compile scripts** | Bash/Python glue nobody owns           | `compile`, `check`, `@bwilliamson/mdcp-presets`           |
 
 Typical loop: edit shards → `mdcp compile` → `mdcp check` → optional `mdcp refs-list` → read one shard when the next turn needs doc context.
 
@@ -765,6 +767,18 @@ Glossary terms stitched into this guide, in alphabetical order:
 
 <!-- mdcp-shard: end ../../docs/client-cli/terms.md -->
 
+<!-- mdcp-shard: start ../../docs/glossary/publish-output.md -->
+
+## publish output
+
+A **publish output** is the file a [guide](#guide) compiles to when it sets its own `compile.outputFile`, such as a package README or the repository-root `DEVELOPERS.md`. [Path layout](#path-layout) says how compile resolves the path.
+
+Publish outputs stay out of the optional [monolith](#monolith), and link validation applies the [publish-only link policy](../../docs/features/link-validation.md#publish-only-link-policy) to them.
+
+See [Default per-guide outputs](#default-per-guide-outputs).
+
+<!-- mdcp-shard: end ../../docs/glossary/publish-output.md -->
+
 <!-- mdcp-shard: start ../../docs/glossary/guide.md -->
 
 ## guide
@@ -786,18 +800,6 @@ Derived catalog of [heading slugs](#heading-slug) from compile output, typically
 The registry is **generated state**, not authored shards. `mdcp compile`, `mdcp refs-gen` and `mdcp check` rewrite it from their own compile. `mdcp refs-check` compiles without writing and fails when the file on disk no longer matches, as [Stale registry check](../../docs/features/refs-registry-path.md#stale-registry-check) says. [Refs registry path](../../docs/features/refs-registry-path.md) gives the path rules, and [registry contents](#registry-contents) lists its fields.
 
 <!-- mdcp-shard: end ../../docs/glossary/refs-registry.md -->
-
-<!-- mdcp-shard: start ../../docs/glossary/publish-output.md -->
-
-## publish output
-
-A **publish output** is the file a [guide](#guide) compiles to when it sets its own `compile.outputFile`, such as a package README or the repository-root `DEVELOPERS.md`. [Path layout](#path-layout) says how compile resolves the path.
-
-Publish outputs stay out of the optional [monolith](#monolith), and link validation applies the [publish-only link policy](../../docs/features/link-validation.md#publish-only-link-policy) to them.
-
-See [Default per-guide outputs](#default-per-guide-outputs).
-
-<!-- mdcp-shard: end ../../docs/glossary/publish-output.md -->
 
 <!-- mdcp-shard: start ../../docs/glossary/manifest.md -->
 

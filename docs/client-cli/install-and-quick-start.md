@@ -85,6 +85,8 @@ Visit [github.com/betsalel-williamson/mdcp](https://github.com/betsalel-williams
 
 5. Run the same compile and check scripts in CI. The [verification checklist](#verification-checklist) lists what to confirm once they pass.
 
+   If your repository commits compiled outputs, such as a package README that is a [publish output](../glossary/publish-output.md), add a CI step that runs `git diff --exit-code` after `mdcp compile`. That step fails when a committed output differs from what its shards compile to. `mdcp check` writes every output again before it checks them, so it passes on a stale one.
+
 ## Verification checklist
 
 After you set up a repository, confirm each item:
