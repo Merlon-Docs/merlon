@@ -14,4 +14,4 @@ A direct `assembleGuide` call that sets `publishOutputFile` now keeps each path 
 
 The exported `rewriteCrossGuideFileLinks` doesn't mark the targets it writes. A caller that runs `rewriteIntraGuideFileLinks` on its output still lets the intra-guide pass read a target such as `glossary.md#term` as a shard link and turn it into `#term`.
 
-The compile hooks section of the core README states the new rule under "Link passes".
+Link passes, `docs/features/compile-pipeline/link-passes.md` in the Features Guide's Compile pipeline group, states the new rule.

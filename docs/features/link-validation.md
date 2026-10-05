@@ -18,11 +18,11 @@ For external URLs, `mdcp links` runs the optional peer `markdown-link-check`.
 
 Every internal link must resolve, so link a planned page in the change that adds it. A placeholder reads as a real reference and leads nowhere.
 
-Link validation reads each inline link written as `[label](target)` on one line, except in a code span or fenced code. So a dead link in an HTML comment or an indented code block still fails `mdcp check`. It reads a label and a target as [Link passes](../client-core/compile-hooks/index.md#link-passes) says, so in a linked image, `[![Diagram](./d.png)](./page.md)`, it checks `./page.md`. It never checks the src of an image, whatever extensions the config lists. Link validation skips reference-style links, HTML `<a>` elements and labels that wrap onto the next line. A title or angle brackets become part of the target, so link validation skips the link or fails it although the target exists.
+Link validation reads each inline link written as `[label](target)` on one line, except in a code span or fenced code. So a dead link in an HTML comment or an indented code block still fails `mdcp check`. It reads a label and a target as [Link passes](./compile-pipeline/link-passes.md) says, so in a linked image, `[![Diagram](./d.png)](./page.md)`, it checks `./page.md`. It never checks the src of an image, whatever extensions the config lists. Link validation skips reference-style links, HTML `<a>` elements and labels that wrap onto the next line. A title or angle brackets become part of the target, so link validation skips the link or fails it although the target exists.
 
 ## BROKEN LINK marker
 
-After the [link passes](../client-core/compile-hooks/index.md#link-passes), compile runs **`markBrokenLinks`** on each assembled guide body. A `#fragment` there passes when it matches a heading of the body or a slug that assembly gave one of its sections, such as a `FIND-*` finding id or a declared `{#id}`. A shard in the guide's directory that the guide doesn't stitch has no section there. Its slug fails, even when another guide stitches the shard. Each compile result keeps that slug set, and link lint checks against the same set.
+After the [link passes](./compile-pipeline/link-passes.md), compile runs **`markBrokenLinks`** on each assembled guide body. A `#fragment` there passes when it matches a heading of the body or a slug that assembly gave one of its sections, such as a `FIND-*` finding id or a declared `{#id}`. A shard in the guide's directory that the guide doesn't stitch has no section there. Its slug fails, even when another guide stitches the shard. Each compile result keeps that slug set, and link lint checks against the same set.
 
 Compile marks a guide's copy in the [monolith](../glossary/monolith.md) after every copy is assembled, against the headings and slugs that [Links in a guide's copy](./monolith-link-lint.md#links-in-a-guides-copy) gives.
 
@@ -54,7 +54,7 @@ A guide with `compile.outputFile` compiles to a [publish output](../glossary/pub
 | Shard `.md` in an unpublished guide (not in `ignoreGuides`)       | **`missing publish path`**                                                     |
 | Shard `.md` for a guide in `compile.crossGuideLinks.ignoreGuides` | Valid when the file exists on disk and any `#fragment` matches a heading in it |
 
-See [publish-relative rewrite](../client-core/compile-hooks/publish-relative-links.md) for how shard paths are rebased before this policy runs.
+See [publish-relative rewrite](./compile-pipeline/publish-relative-links.md) for how shard paths are rebased before this policy runs.
 
 Example: `client-cli` with `ignoreGuides: ["features"]` compiles `../features/feature-catalog.md` to `../../docs/features/feature-catalog.md` in `packages/mdcp-cli/README.md`. The cross-guide pass keeps the shard path, and the publish-relative pass rebases it. Lint accepts it because `features` is in `ignoreGuides`.
 
@@ -66,13 +66,13 @@ Example: `client-cli` with `ignoreGuides: ["features"]` compiles `../features/fe
 | Standalone | `lintLinks` with `scanRoot` (`mdcp check`) | Same checks as shard phase, over every file matched by `standaloneGuides`                                                           |
 | Compiled   | After assemble                             | `#fragment` vs the headings and the slugs broken-link marking used; relative `.md` and source-file paths from output file directory |
 
-Broken-link marking and each phase skip a link in fenced code or a code span, as the [link passes](../client-core/compile-hooks/index.md#link-passes) do. The compiled phase skips a BROKEN LINK marker in fenced code, but reports one in a code span.
+Broken-link marking and each phase skip a link in fenced code or a code span, as the [link passes](./compile-pipeline/link-passes.md) do. The compiled phase skips a BROKEN LINK marker in fenced code, but reports one in a code span.
 
 A `.md` target names another output of the same run only when its resolved path equals that output's path. Its `#fragment` is then checked against the compiled text held in memory, so the output doesn't have to be written yet. This holds in a publish output too. The monolith counts as an output only when at least one guide is stitched into it, because a run where every guide sets `compile.outputFile` never writes it. A link to a monolith that is never written reports `missing publish path`, even when an earlier run left the file on disk. A file that only shares a name with an output, such as a package's `README.md` when the root `README.md` is an output, gets the ordinary check: the file has to exist, and any `#fragment` has to match one of its headings.
 
-The compiled phase reads each output as compile writes it, banner included, so the line in a diagnostic is a line of that file. A `#fragment` in an output has to match one of its headings or a slug from the set that broken-link marking used. A slug that only another guide's compiled guide has is a dead anchor, even when the monolith has that heading. So is the slug of a shard that the output doesn't stitch, even when the shard is in the directory of the output's guide. A fragment on a link to another output of the run has to match a heading of that output. A finding id or a declared `{#id}` doesn't, because the heading there takes its anchor from its text. So `architecture-review.md#find-004` is a dead anchor, though compile writes that link for a link to the finding's shard. [Cross-guide purpose](../client-core/compile-hooks/cross-guide-links.md#cross-guide-purpose) says which slug a link to a shard takes in an output without the shard's section, and when that slug matches another heading there. [Monolith link lint](./monolith-link-lint.md) says how the monolith is checked, and when an issue there repeats one in a compiled guide.
+The compiled phase reads each output as compile writes it, banner included, so the line in a diagnostic is a line of that file. A `#fragment` in an output has to match one of its headings or a slug from the set that broken-link marking used. A slug that only another guide's compiled guide has is a dead anchor, even when the monolith has that heading. So is the slug of a shard that the output doesn't stitch, even when the shard is in the directory of the output's guide. A fragment on a link to another output of the run has to match a heading of that output. A finding id or a declared `{#id}` doesn't, because the heading there takes its anchor from its text. So `architecture-review.md#find-004` is a dead anchor, though compile writes that link for a link to the finding's shard. [Cross-guide purpose](./compile-pipeline/cross-guide-links.md#cross-guide-purpose) says which slug a link to a shard takes in an output without the shard's section, and when that slug matches another heading there. [Monolith link lint](./monolith-link-lint.md) says how the monolith is checked, and when an issue there repeats one in a compiled guide.
 
-Co-compiled transitive targets are the shards in a guide's [`linkedSectionFiles`](./manifest-compile-order.md#linked-shards-and-the-file-name-fallback) outside its directory. A `./` or `../` link to one rewrites like any other cross-guide link, as [Cross-guide resolution](../client-core/compile-hooks/cross-guide-links.md#cross-guide-resolution) describes. [Index ownership](../client-core/compile-hooks/cross-guide-links.md#index-ownership) there assigns each shard to one guide. Validation treats remaining raw `../file.md` (or `./file.md`) to those co-compiled paths as broken when the publish-only link policy requires a compiled target. <!-- mdcp-paths: illustrative -->
+Co-compiled transitive targets are the shards in a guide's [`linkedSectionFiles`](./manifest-compile-order.md#linked-shards-and-the-file-name-fallback) outside its directory. A `./` or `../` link to one rewrites like any other cross-guide link, as [Cross-guide resolution](./compile-pipeline/cross-guide-links.md#cross-guide-resolution) describes. [Index ownership](./compile-pipeline/cross-guide-links.md#index-ownership) there assigns each shard to one guide. Validation treats remaining raw `../file.md` (or `./file.md`) to those co-compiled paths as broken when the publish-only link policy requires a compiled target. <!-- mdcp-paths: illustrative -->
 
 ## Standalone guide validation
 
@@ -188,7 +188,7 @@ link: /repo/docs/_build/a.md:5: dead anchor "#nope" (compiled guide "a")
 
 - [Check gate](./check-gate.md)
 - [Monolith link lint](./monolith-link-lint.md)
-- [Cross-guide link rewriting](../client-core/compile-hooks/cross-guide-links.md)
-- [Publish-relative link rewriting](../client-core/compile-hooks/publish-relative-links.md)
+- [Cross-guide link rewriting](./compile-pipeline/cross-guide-links.md)
+- [Publish-relative link rewriting](./compile-pipeline/publish-relative-links.md)
 - [Optional linters](../client-cli/optional-linters.md)
 - [Commands reference](../client-cli/commands-reference.md)

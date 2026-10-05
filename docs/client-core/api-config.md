@@ -44,7 +44,7 @@ A `shardsGlobs` entry that starts with `../` gets the escaped absolute path of t
 
 Guides with `compile.outputFile` publish outside the shard tree (npm READMEs, `DEVELOPERS.md`, and similar).
 
-After the cross-guide and intra-guide rewrites, compile resolves the `../` links a shard still has and writes them relative to the guide's [link base](./compile-hooks/publish-relative-links.md#when-it-runs). [Publish-relative exclusions](./compile-hooks/publish-relative-links.md#publish-relative-exclusions) lists the links it leaves as written, such as a path that leads to no file. A guide doesn't need path-prefix config for this. [Link passes](./compile-hooks/index.md#link-passes) lists the passes in order, and [Publish-relative link rewriting](./compile-hooks/publish-relative-links.md) has examples from MDCP's own docs.
+After the cross-guide and intra-guide rewrites, compile resolves the `../` links a shard still has and writes them relative to the guide's [link base](../features/compile-pipeline/publish-relative-links.md#when-it-runs). [Publish-relative exclusions](../features/compile-pipeline/publish-relative-links.md#publish-relative-exclusions) lists the links it leaves as written, such as a path that leads to no file. A guide doesn't need path-prefix config for this. [Link passes](../features/compile-pipeline/link-passes.md) lists the passes in order, and [Publish-relative link rewriting](../features/compile-pipeline/publish-relative-links.md) has examples from MDCP's own docs.
 
 ## `compile.hooks`
 
@@ -60,6 +60,6 @@ Optional per-hook settings: `compile.hooksConfig` (`inlineInserts.searchRoots`).
 
 Assembly-time cross-guide link options on the **compiling** guide (not a compile hook):
 
-- **`ignoreGuides`**: `string[]` of guide names. Links from the compiling guide to shards of a listed guide keep source `.md` paths instead of rewriting to `#slug` targets, except in the cases that [its config section](./compile-hooks/cross-guide-links.md#compilecrossguidelinksignoreguides) points to
+- **`ignoreGuides`**: `string[]` of guide names. Links from the compiling guide to shards of a listed guide keep source `.md` paths instead of rewriting to `#slug` targets, except in the cases that [its config section](../features/compile-pipeline/cross-guide-links.md#compilecrossguidelinksignoreguides) points to
 
-See [Cross-guide link rewriting](./compile-hooks/cross-guide-links.md) and [ignoreGuides](../glossary/ignore-guides.md).
+See [Cross-guide link rewriting](../features/compile-pipeline/cross-guide-links.md) and [ignoreGuides](../glossary/ignore-guides.md).

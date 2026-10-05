@@ -20,9 +20,9 @@ When `guides[].compile.hooks` is omitted, mdcp runs these hooks **in order** on 
 
 Hooks are no-ops when shard content does not match (no evidence links, no insert links, etc.).
 
-**Cross-guide link rewriting** is not a compile hook — it runs automatically at assembly time from `compileOrder` and per-guide `compile.outputFile`. Optional per-guide exceptions: `compile.crossGuideLinks.ignoreGuides`. See [Cross-guide link rewriting](../client-core/compile-hooks/cross-guide-links.md).
+**Cross-guide link rewriting** is not a compile hook — it runs automatically at assembly time from `compileOrder` and per-guide `compile.outputFile`. Optional per-guide exceptions: `compile.crossGuideLinks.ignoreGuides`. See [Cross-guide link rewriting](./compile-pipeline/cross-guide-links.md).
 
-Table re-alignment also runs outside the hooks, as the last step of each assembly, after broken-link marking. See [Tables after link rewriting](../client-core/compile-hooks/tables-after-link-rewriting.md).
+Table re-alignment also runs outside the hooks, as the last step of each assembly, after broken-link marking. See [Tables after link rewriting](./compile-pipeline/tables-after-link-rewriting.md).
 
 Custom hooks registered via `registerCompileHook` are **not** included in defaults — only built-in names above.
 
@@ -43,7 +43,7 @@ Omit `compile.hooks`. Optional per-hook config lives under `hooksConfig` (`inlin
 
 ### Cross-guide exceptions (optional)
 
-Cross-guide link rewrite runs at assembly by default. To keep shard `.md` paths in links to specific target guides, set `compile.crossGuideLinks.ignoreGuides` on the compiling guide. [Its config section](../client-core/compile-hooks/cross-guide-links.md#compilecrossguidelinksignoreguides) points to the cases where a link to one of those guides still takes an in-document anchor:
+Cross-guide link rewrite runs at assembly by default. To keep shard `.md` paths in links to specific target guides, set `compile.crossGuideLinks.ignoreGuides` on the compiling guide. [Its config section](./compile-pipeline/cross-guide-links.md#compilecrossguidelinksignoreguides) points to the cases where a link to one of those guides still takes an in-document anchor:
 
 ```json
 {

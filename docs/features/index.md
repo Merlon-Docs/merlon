@@ -16,6 +16,7 @@ Product documentation for **what mdcp is designed to do**: the problems it solve
 
 - [Manifest compile order](./manifest-compile-order.md)
 - [Default compile hooks](./default-compile-hooks.md)
+- [Compile pipeline](./compile-pipeline/index.md)
 - [Source tags and default banner](./source-tags-and-banner.md)
 - [Compile output backup](./compile-output-backup.md)
 - [Check gate](./check-gate.md)

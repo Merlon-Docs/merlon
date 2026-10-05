@@ -11,9 +11,9 @@ Architecture and technical review shards cite **repo source files** as evidence.
 1. Resolves **line ranges** from link text (for example `L6-L8`, `lines 12–15`, `:42`)
 2. Resolves **symbols** from the URL fragment (`file.ts#symbol`) or from the link label when no fragment is present (for example ``[`orgCount`](../../functions/src/foo.ts)``)
 3. Appends GitHub-style **`#L` fragments** (`#L6`, `#L6-L8`) to the link target
-4. Rewrites the target path to be relative to the guide's [link base](./publish-relative-links.md#when-it-runs)
+4. Rewrites the target path to be relative to the guide's [link base](../../features/compile-pipeline/publish-relative-links.md#when-it-runs)
 
-The publish-relative pass then rebases the `../` links whose path the hook leaves as the shard wrote it, against the same link base. Such a link can lead to a Markdown file or to another path the hook doesn't read, like `.nvmrc`. It can also lead to a source file that the hook doesn't find, even when the hook added a line fragment to it. In `DEVELOPERS.md`, the hook rebases `../../package.json` to `package.json`, and the publish-relative pass rebases `../../.nvmrc` to `.nvmrc`. [Publish-relative exclusions](./publish-relative-links.md#publish-relative-exclusions) lists the links that pass leaves alone, a link the hook rebased among them.
+The publish-relative pass then rebases the `../` links whose path the hook leaves as the shard wrote it, against the same link base. Such a link can lead to a Markdown file or to another path the hook doesn't read, like `.nvmrc`. It can also lead to a source file that the hook doesn't find, even when the hook added a line fragment to it. In `DEVELOPERS.md`, the hook rebases `../../package.json` to `package.json`, and the publish-relative pass rebases `../../.nvmrc` to `.nvmrc`. [Publish-relative exclusions](../../features/compile-pipeline/publish-relative-links.md#publish-relative-exclusions) lists the links that pass leaves alone, a link the hook rebased among them.
 
 ## codeEvidence link matching
 
@@ -26,7 +26,7 @@ A link is rewritten when **all** of the following hold:
 
 Markdown (`.md`) links, external URLs, and same-guide shard links are left unchanged.
 
-The hook finds fenced code and code spans as the [link passes](./index.md#link-passes) do, and it reads a label and a target as they do. It reads each run of lines between two fences at once, so a label outside code can still wrap onto the next line, and an unfinished link such as `[x](see` doesn't take in a link on the next line. In a label that contains an image, such as a linked image's, the hook reads a line range or a symbol only from the text outside the image.
+The hook finds fenced code and code spans as the [link passes](../../features/compile-pipeline/link-passes.md) do, and it reads a label and a target as they do. It reads each run of lines between two fences at once, so a label outside code can still wrap onto the next line, and an unfinished link such as `[x](see` doesn't take in a link on the next line. In a label that contains an image, such as a linked image's, the hook reads a line range or a symbol only from the text outside the image.
 
 **Code and data differ in what the hook adds.** A code file can be cited by line, so symbol lookup can give it an `#L` fragment. A data file, such as configuration or records, is resolved and rebased for the output path. It gets an `#L` fragment only from a line range the shard writes in the label, the path or the fragment, and never from symbol lookup, because an identifier found in inert content is an occurrence rather than a declaration. Link validation uses the same code and data extension lists. To look symbols up in a data format, list its extension in `lint.codeExtensions`. See [Built-in link validation](../../features/link-validation.md).
 
@@ -60,7 +60,7 @@ When neither step finds a line, the hook drops the `#fragment`, and the link poi
 
 ## codeEvidence path resolution
 
-The hook finds the source file in the order [Path lookup order](./index.md#path-lookup-order) gives for `codeEvidence`. When a source file is resolved, the hook rewrites the link target to a POSIX path **relative to the rendered output document**, preserving any `#L…` fragment added by the hook. You don't configure the hook for this. It resolves a shard-relative path as written, then rebases it for the location of the compiled file.
+The hook finds the source file in the order [Path lookup order](../../features/compile-pipeline/path-lookup-order.md) gives for `codeEvidence`. When a source file is resolved, the hook rewrites the link target to a POSIX path **relative to the rendered output document**, preserving any `#L…` fragment added by the hook. You don't configure the hook for this. It resolves a shard-relative path as written, then rebases it for the location of the compiled file.
 
 When no directory has the file, the path stays as written, and the [line range](#codeevidence-line-ranges) rules still set the fragment. The hook keeps an existing `#L` fragment, and otherwise adds one from a line range in the label or path. Symbol lookup has no file to scan, so without a line range the hook drops any other `#fragment`.
 

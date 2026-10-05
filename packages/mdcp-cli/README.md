@@ -136,7 +136,7 @@ After you set up a repository, confirm each item:
 1. **`mdcp compile`**: per-guide outputs under `_build/` (or explicit `compile.outputFile` targets); optional monolith when `outputFile` is set
 2. **`mdcp check --require-lint`**: passes the [check gate](../../docs/features/check-gate.md) with markdownlint-cli2 required for each configured markdownlint stage
 3. **`mdcp check --require-vale`**: when Vale is configured
-4. **Hook output**: diagram tables inlined (`inlineInserts`), code evidence blocks resolved (`codeEvidence`), cross-guide links rewritten to `#slug` targets in compiled output (a link to a guide in `compile.crossGuideLinks.ignoreGuides` keeps its shard `.md` path, except in the cases that [its config section](../mdcp-core/README.md#compilecrossguidelinksignoreguides) points to)
+4. **Hook output**: diagram tables inlined (`inlineInserts`), code evidence blocks resolved (`codeEvidence`), cross-guide links rewritten to `#slug` targets in compiled output (a link to a guide in `compile.crossGuideLinks.ignoreGuides` keeps its shard `.md` path, except in the cases that [its config section](../../docs/features/compile-pipeline/cross-guide-links.md#compilecrossguidelinksignoreguides) points to)
 
 <!-- mdcp-shard: end ../../docs/client-cli/install-and-quick-start.md -->
 
@@ -313,7 +313,7 @@ This table links the page that documents each key:
 | `compile.title`                                                                                                        | [Compile API](../mdcp-core/README.md#api--compile)                                                                                                                    |
 | `compile.hooks`, `compile.hooksConfig`                                                                                 | [Default compile hooks](../../docs/features/default-compile-hooks.md), and the core [Compile hooks](../mdcp-core/README.md#compile-hooks) index for the hook pipeline |
 | `compile.stripAnchors`                                                                                                 | [stripAnchors](../mdcp-core/README.md#stripanchors)                                                                                                                   |
-| `compile.crossGuideLinks`                                                                                              | [Cross-guide link rewriting](../mdcp-core/README.md#cross-guide-link-rewriting)                                                                                       |
+| `compile.crossGuideLinks`                                                                                              | [Cross-guide link rewriting](../../docs/features/compile-pipeline/cross-guide-links.md)                                                                               |
 | `compile.links.*`, `lint.links.enabled`, `lint.links.severity`, `lint.codeExtensions`, `lint.dataExtensions`           | [Built-in link validation](../../docs/features/link-validation.md)                                                                                                    |
 | `lint.paths.*`                                                                                                         | [Path resolution in prose](../../docs/features/path-resolution.md)                                                                                                    |
 | `lint.links.config`, `lint.links.target`, `lint.markdownlint.*`, `vale.*`                                              | [Optional linters](#optional-linters)                                                                                                                                 |
@@ -811,7 +811,7 @@ See [Manifest compile order](../../docs/features/manifest-compile-order.md).
 
 The **monolith** is the optional single file that stitches every [guide](#guide) without `compile.outputFile` into one document, in `compileOrder` order. Compile writes it only when the config sets top-level `outputFile`.
 
-See [What compile actually does](../../docs/features/overview.md#what-compile-actually-does). [Cross-guide resolution](../mdcp-core/README.md#cross-guide-resolution) covers links between two guides in the monolith.
+See [What compile actually does](../../docs/features/overview.md#what-compile-actually-does). [Cross-guide resolution](../../docs/features/compile-pipeline/cross-guide-links.md#cross-guide-resolution) covers links between two guides in the monolith.
 
 <!-- mdcp-shard: end ../../docs/glossary/monolith.md -->
 

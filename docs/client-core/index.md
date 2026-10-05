@@ -20,9 +20,6 @@
 - [stripAnchors](./compile-hooks/strip-anchors.md)
 - [codeEvidence](./compile-hooks/code-evidence.md)
 - [inlineInserts](./compile-hooks/inline-inserts.md)
-- [Cross-guide link rewriting](./compile-hooks/cross-guide-links.md)
-- [Publish-relative link rewriting](./compile-hooks/publish-relative-links.md)
-- [Tables after link rewriting](./compile-hooks/tables-after-link-rewriting.md)
 
 ## See also
 

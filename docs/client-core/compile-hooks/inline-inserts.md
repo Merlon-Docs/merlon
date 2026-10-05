@@ -35,12 +35,12 @@ Shards link with normal markdown — no `<!-- directives -->`.
 
 A link is an insert reference when **all** of the following hold:
 
-- Inline link syntax, `[label](path)`, with the label and target read as the [link passes](./index.md#link-passes) read them. An image, `![alt](path)`, isn't an insert reference.
+- Inline link syntax, `[label](path)`, with the label and target read as the [link passes](../../features/compile-pipeline/link-passes.md) read them. An image, `![alt](path)`, isn't an insert reference.
 - Target starts with an insert library directory and a `/`, after an optional `./` or run of `../`. The directories are `diagram`, `diagrams`, `table`, `tables`, `figure`, `figures`, `media`, `insert` and `inserts`, in any case. No `http://` or `https://` URL starts that way.
 - The path after the directory doesn't start with `#` or whitespace. It ends in `.md` in any case, with at least one character before the `.md`.
 - An optional `#fragment` after the `.md` can't be empty, and file lookup ignores it.
 
-The hook reads the whole shard body, fenced code and code spans included. So it inlines an insert, or writes a back-link, for an insert link in a code example too, where the [link passes](./index.md#link-passes) leave a link as written.
+The hook reads the whole shard body, fenced code and code spans included. So it inlines an insert, or writes a back-link, for an insert link in a code example too, where the [link passes](../../features/compile-pipeline/link-passes.md) leave a link as written.
 
 ## inlineInserts exclusions
 
@@ -69,7 +69,7 @@ The first reference to an insert file (document order across all shards in the g
 
 The label of a linked image, `[![I](./i.png)](../diagrams/d.md)`, contains the image. The heading then reads `#### Diagram 1. ![I](./i.png)`, and a back-link to it uses the slug of that text, `#diagram-1-iipng`.
 
-Output uses GFM headings and back-links for captions. The hook inlines each shard body as written. The assembly passes after the hooks then treat that body as part of the shard, from link rewriting to [table re-alignment](./tables-after-link-rewriting.md). A body can contain markdown tables and `![images](…)`, and HTML `<video>` / `<audio>` when your renderer supports them.
+Output uses GFM headings and back-links for captions. The hook inlines each shard body as written. The assembly passes after the hooks then treat that body as part of the shard, from link rewriting to [table re-alignment](../../features/compile-pipeline/tables-after-link-rewriting.md). A body can contain markdown tables and `![images](…)`, and HTML `<video>` / `<audio>` when your renderer supports them.
 
 The heading and body replace the link, so a first reference in a table cell breaks the table, as the [compile example](#inlineinserts-compile-example) shows. Give the first reference a paragraph of its own, ahead of any table cell that links to the insert.
 
@@ -101,7 +101,7 @@ Within one guide:
 
 ## inlineInserts path resolution
 
-The hook finds each insert shard in the order [Path lookup order](./index.md#path-lookup-order) gives for `inlineInserts`.
+The hook finds each insert shard in the order [Path lookup order](../../features/compile-pipeline/path-lookup-order.md) gives for `inlineInserts`.
 
 ## inlineInserts config
 
@@ -118,7 +118,7 @@ Runs by default. Optional search roots, each the parent of an insert library dir
 }
 ```
 
-A link to `diagrams/flow.md` that no earlier root in the [lookup order](./index.md#path-lookup-order) resolves then finds `shared/diagrams/flow.md`.
+A link to `diagrams/flow.md` that no earlier root in the [lookup order](../../features/compile-pipeline/path-lookup-order.md) resolves then finds `shared/diagrams/flow.md`.
 
 Opt out: `"hooks": { "inlineInserts": false }`. See [Default compile hooks](../../features/default-compile-hooks.md).
 

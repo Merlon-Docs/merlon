@@ -42,4 +42,4 @@ A BROKEN LINK marker in a guide's copy is reported when that guide's compiled gu
 ## Monolith link lint related
 
 - [Link validation](./link-validation.md)
-- [Cross-guide link rewriting](../client-core/compile-hooks/cross-guide-links.md)
+- [Cross-guide link rewriting](./compile-pipeline/cross-guide-links.md)

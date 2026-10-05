@@ -410,7 +410,7 @@ A regex in `packages/mdcp-core/src/` falls under this rule:
 | `compile/link-scan.ts` `mdLinkPaths` | Links and images whose path ends in `.md`, for the manifest walk                                | A whole manifest or shard, code included                      |
 | `compile/hooks/inline-inserts.ts`    | Links into an insert library, but no images                                                     | A whole shard body, code included                             |
 
-Each of these finds links with `scanMarkdownLinks` in `compile/link-scan.ts`, which reads a label and a target as [Link passes](./packages/mdcp-core/README.md#link-passes) says. A `]` closes the nearest `[` or `![` still open, and `\![a](x)` is a link after a literal `!`. Once a link closes, each `[` still open before it turns into text, while an open `![` can still close around it. In `[![Diagram](./d.png)](./page.md)` the scan gives the image and then the link around it, and each reader treats the image as it treats any image.
+Each of these finds links with `scanMarkdownLinks` in `compile/link-scan.ts`, which reads a label and a target as [Link passes](docs/features/compile-pipeline/link-passes.md) says. A `]` closes the nearest `[` or `![` still open, and `\![a](x)` is a link after a literal `!`. Once a link closes, each `[` still open before it turns into text, while an open `![` can still close around it. In `[![Diagram](./d.png)](./page.md)` the scan gives the image and then the link around it, and each reader treats the image as it treats any image.
 
 The scan ends a target at its line, so an unfinished link such as `[x](see` doesn't take in a link on the next line, and a label can wrap onto the next line where a reader reads more than one line at a time. The scan doesn't read reference-style links, code spans, autolinks or inline HTML, so a bracket inside one still counts, and the table says which readers mask code spans first.
 
@@ -708,7 +708,7 @@ Config: [`docs/mdcp.config.json`](docs/mdcp.config.json). Guides with `compile.o
 
 Publish landing style for root README: [Personas and priority tiers](docs/features/personas-and-priority-tiers.md#publish-landing-style).
 
-Compile rebases each shard's `../` links relative to the file being assembled, the guide's [link base](./packages/mdcp-core/README.md#when-it-runs), except the links that [Publish-relative exclusions](./packages/mdcp-core/README.md#publish-relative-exclusions) lists. A publish guide's link base is its output in the table above. `features` is assembled twice: its compiled guide rebases relative to `docs/_build/features.md`, and its copy in the monolith relative to `docs/_build/guides.md`. Repo scripts pass `--config docs/mdcp.config.json --docs-root docs`, and [Config essentials](./packages/mdcp-cli/README.md#--config-vs---docs-root) says how each option resolves.
+Compile rebases each shard's `../` links relative to the file being assembled, the guide's [link base](docs/features/compile-pipeline/publish-relative-links.md#when-it-runs), except the links that [Publish-relative exclusions](docs/features/compile-pipeline/publish-relative-links.md#publish-relative-exclusions) lists. A publish guide's link base is its output in the table above. `features` is assembled twice: its compiled guide rebases relative to `docs/_build/features.md`, and its copy in the monolith relative to `docs/_build/guides.md`. Repo scripts pass `--config docs/mdcp.config.json --docs-root docs`, and [Config essentials](./packages/mdcp-cli/README.md#--config-vs---docs-root) says how each option resolves.
 
 ### Edit workflow
 
@@ -727,7 +727,7 @@ Find a shard under `docs/` with host search and read that one shard, as [refs](#
 - **markdownlint**: the shard preset on the shards, then the repo's own compiled config, [`docs/compiled-lint.markdownlint-cli2.jsonc`](docs/compiled-lint.markdownlint-cli2.jsonc), on the monolith, `DEVELOPERS.md` and the published READMEs. That config turns off fewer rules than the compiled preset in `@bwilliamson/mdcp-presets`, which the examples use.
 - **Vale**: prose lint on the `vale.scanGlobs` directories in the config, which are `glossary/`, `features/`, `developer/`, `client-cli/`, `client-core/` and `repo-readme/`, plus every `standaloneGuides` file. `docs/.vale.ini` opts `CODE_OF_CONDUCT.md` out, because its text is the vendored Contributor Covenant. Vale is not an npm dependency, so install it on `PATH` as [Local setup](#requirements) describes.
 - **Vale `MDCP` / `MDCP-PandocId`**: peer prose rules for unlinked heading mentions and dated claims, plus this repo's local rule against [Pandoc IDs](#headings-and-links). They run in the peer Vale stage of `mdcp check`, and `--require-vale` makes a missing Vale fail the run.
-- **link lint**: built-in validation runs on every `docs:check` at the default `"error"` severity. Each publish guide lists `features` in `compile.crossGuideLinks.ignoreGuides`. A cross-guide link to a features shard then keeps its `docs/features/` path, rebased for the output's location, as [Publish-only link policy](docs/features/link-validation.md#publish-only-link-policy) says. A link to a shard that the guide stitches can take an in-document anchor instead ([Same compiled output preference](./packages/mdcp-core/README.md#same-compiled-output-preference)).
+- **link lint**: built-in validation runs on every `docs:check` at the default `"error"` severity. Each publish guide lists `features` in `compile.crossGuideLinks.ignoreGuides`. A cross-guide link to a features shard then keeps its `docs/features/` path, rebased for the output's location, as [Publish-only link policy](docs/features/link-validation.md#publish-only-link-policy) says. A link to a shard that the guide stitches can take an in-document anchor instead ([Same compiled output preference](docs/features/compile-pipeline/cross-guide-links.md#same-compiled-output-preference)).
 
 [First-time bootstrap](#first-time-bootstrap) syncs the Vale styles and says when to sync them again.
 
@@ -789,7 +789,7 @@ Write each [cross-link](#cross-link) in the form that [No placeholder links](doc
 
 ### Tables
 
-Prettier aligns each GFM table in a shard with the root `.prettierrc.json`, which sets `proseWrap` to `preserve`. Compile re-aligns a table the same way after it rewrites a link in the table, and [Tables after link rewriting](./packages/mdcp-core/README.md#tables-after-link-rewriting) says which tables it leaves out of line. In a shard's tables:
+Prettier aligns each GFM table in a shard with the root `.prettierrc.json`, which sets `proseWrap` to `preserve`. Compile re-aligns a table the same way after it rewrites a link in the table, and [Tables after link rewriting](docs/features/compile-pipeline/tables-after-link-rewriting.md) says which tables it leaves out of line. In a shard's tables:
 
 - When a link changes width in a table whose cells all fill their columns, compile leaves the table as written, and `pnpm format:check` fails on it in a committed output such as `README.md`. Shorten the text of one cell so Prettier pads it. `pnpm format:check` skips `docs/_build/`, which `.gitignore` lists.
 - Keep explicit `{#id}` anchors out of table cells, and keep link syntax to a repository file out of code spans in table cells.
@@ -1698,7 +1698,7 @@ See [Default per-guide outputs](./packages/mdcp-cli/README.md#default-per-guide-
 
 The **monolith** is the optional single file that stitches every [guide](#guide) without `compile.outputFile` into one document, in `compileOrder` order. Compile writes it only when the config sets top-level `outputFile`.
 
-See [What compile actually does](docs/features/overview.md#what-compile-actually-does). [Cross-guide resolution](./packages/mdcp-core/README.md#cross-guide-resolution) covers links between two guides in the monolith.
+See [What compile actually does](docs/features/overview.md#what-compile-actually-does). [Cross-guide resolution](docs/features/compile-pipeline/cross-guide-links.md#cross-guide-resolution) covers links between two guides in the monolith.
 
 <!-- mdcp-shard: end docs/glossary/monolith.md -->
 
@@ -1759,9 +1759,9 @@ The registry is **generated state**, not authored shards. `mdcp compile`, `mdcp 
 
 ## ignoreGuides
 
-**`ignoreGuides`** is a list of guide names on the **compiling** guide, under `compile.crossGuideLinks.ignoreGuides`. Cross-guide links to a listed guide keep pointing at the source shard instead of rewriting to a `#slug` target, except in the cases that [its config section](./packages/mdcp-core/README.md#compilecrossguidelinksignoreguides) points to. [`ignoreGuides` interaction](./packages/mdcp-core/README.md#ignoreguides-interaction) says how compile rebases a kept path, and when a `./` or bare link to a stitched shard takes `#slug`. The listed guide stays in `compileOrder` and in the link index.
+**`ignoreGuides`** is a list of guide names on the **compiling** guide, under `compile.crossGuideLinks.ignoreGuides`. Cross-guide links to a listed guide keep pointing at the source shard instead of rewriting to a `#slug` target, except in the cases that [its config section](docs/features/compile-pipeline/cross-guide-links.md#compilecrossguidelinksignoreguides) points to. [`ignoreGuides` interaction](docs/features/compile-pipeline/publish-relative-links.md#ignoreguides-interaction) says how compile rebases a kept path, and when a `./` or bare link to a stitched shard takes `#slug`. The listed guide stays in `compileOrder` and in the link index.
 
-Read [Cross-guide link rewriting](./packages/mdcp-core/README.md#cross-guide-link-rewriting) for how other links rewrite, and the [publish-only link policy](docs/features/link-validation.md#publish-only-link-policy) for how link validation treats kept shard paths.
+Read [Cross-guide link rewriting](docs/features/compile-pipeline/cross-guide-links.md) for how other links rewrite, and the [publish-only link policy](docs/features/link-validation.md#publish-only-link-policy) for how link validation treats kept shard paths.
 
 <!-- mdcp-shard: end docs/glossary/ignore-guides.md -->
 
