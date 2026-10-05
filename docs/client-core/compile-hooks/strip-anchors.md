@@ -1,7 +1,5 @@
 # stripAnchors
 
-<!-- mdcp-paths: illustrative -->
-
 Specification for the `stripAnchors` compile hook. Tests in `packages/mdcp-core/test/anchors.test.ts` map to the sections below (docs first, then TDD).
 
 ## stripAnchors purpose

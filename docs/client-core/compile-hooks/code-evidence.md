@@ -1,7 +1,5 @@
 # codeEvidence
 
-<!-- mdcp-paths: illustrative -->
-
 Specification for the `codeEvidence` compile hook. Tests in `packages/mdcp-core/test/code-evidence.test.ts` map to the sections below (docs first, then TDD). The fenced code tests in `packages/mdcp-core/test/links.test.ts` also cover [codeEvidence link matching](#codeevidence-link-matching).
 
 ## codeEvidence purpose
@@ -106,7 +104,7 @@ Opt out: `"hooks": { "codeEvidence": false }`. See [Default compile hooks](../..
 
 ## codeEvidence compile example
 
-Shard input (`docs/review/claim.md`):
+Shard input (`docs/review/claim.md`): <!-- mdcp-paths: illustrative -->
 
 ```markdown
 Evidence: [`countItems`](../../src/counts.ts)
@@ -114,7 +112,7 @@ Evidence: [`countItems`](../../src/counts.ts)
 See [access.rules L6-L8](../../config/access.rules).
 ```
 
-Compiled output, when the first line of `src/counts.ts` with the word `countItems` is line 6 and the guide's output is `architecture-review.md` at the repository root:
+Compiled output, when the first line of `src/counts.ts` with the word `countItems` is line 6 and the guide's output is `architecture-review.md` at the repository root: <!-- mdcp-paths: illustrative -->
 
 ```markdown
 Evidence: [`countItems`](src/counts.ts#L6)

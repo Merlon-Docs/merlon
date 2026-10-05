@@ -374,8 +374,6 @@ Assembly also runs the [link passes](../../docs/features/compile-pipeline/link-p
 
 ## stripAnchors
 
-<!-- mdcp-paths: illustrative -->
-
 Specification for the `stripAnchors` compile hook. Tests in `packages/mdcp-core/test/anchors.test.ts` map to the sections below (docs first, then TDD).
 
 ### stripAnchors purpose
@@ -403,8 +401,6 @@ The strip reads an indented code block as prose, as the fence scan does, so a ma
 <!-- mdcp-shard: start ../../docs/client-core/compile-hooks/code-evidence.md -->
 
 ## codeEvidence
-
-<!-- mdcp-paths: illustrative -->
 
 Specification for the `codeEvidence` compile hook. Tests in `packages/mdcp-core/test/code-evidence.test.ts` map to the sections below (docs first, then TDD). The fenced code tests in `packages/mdcp-core/test/links.test.ts` also cover [codeEvidence link matching](#codeevidence-link-matching).
 
@@ -510,7 +506,7 @@ Opt out: `"hooks": { "codeEvidence": false }`. See [Default compile hooks](../..
 
 ### codeEvidence compile example
 
-Shard input (`docs/review/claim.md`):
+Shard input (`docs/review/claim.md`): <!-- mdcp-paths: illustrative -->
 
 ```markdown
 Evidence: [`countItems`](../../src/counts.ts)
@@ -518,7 +514,7 @@ Evidence: [`countItems`](../../src/counts.ts)
 See [access.rules L6-L8](../../config/access.rules).
 ```
 
-Compiled output, when the first line of `src/counts.ts` with the word `countItems` is line 6 and the guide's output is `architecture-review.md` at the repository root:
+Compiled output, when the first line of `src/counts.ts` with the word `countItems` is line 6 and the guide's output is `architecture-review.md` at the repository root: <!-- mdcp-paths: illustrative -->
 
 ```markdown
 Evidence: [`countItems`](src/counts.ts#L6)
@@ -531,8 +527,6 @@ See [access.rules L6-L8](config/access.rules#L6-L8).
 <!-- mdcp-shard: start ../../docs/client-core/compile-hooks/inline-inserts.md -->
 
 ## inlineInserts
-
-<!-- mdcp-paths: illustrative -->
 
 Specification for the `inlineInserts` compile hook. Tests in `packages/mdcp-core/test/inline-inserts.test.ts` map to the sections below (docs first, then TDD).
 
@@ -578,7 +572,7 @@ The hook reads the whole shard body, fenced code and code spans included. So it 
 
 The hook **does not** transform:
 
-- Regular shard links (for example `./intro.md`, `../glossary/term.md`)
+- Regular shard links, such as `./intro.md` or `../glossary/term.md` <!-- mdcp-paths: illustrative -->
 - Direct links to binary assets (for example `../figures/architecture.png`, `../figures/demo.mp4`) — use a captioned `.md` insert shard that embeds the media instead
 - External URLs, even when the path contains `diagrams/`
 - Links to missing insert files (left unchanged)
@@ -629,9 +623,9 @@ Rules:
 
 Within one guide:
 
-- First link to `../diagrams/flow.md` → inline under numbered heading
+- First link to `../diagrams/flow.md` → inline under numbered heading <!-- mdcp-paths: illustrative -->
 - Later links to the same resolved file (any path spelling, with or without `#fragment`) → `` `[label](#diagram-1-…)` ``
-- Same basename in different libraries (`diagrams/overview.md` vs `tables/overview.md`) → separate headings and anchors
+- Same basename in different libraries (`diagrams/overview.md` vs `tables/overview.md`) → separate headings and anchors <!-- mdcp-paths: illustrative -->
 
 ### inlineInserts path resolution
 
@@ -652,7 +646,7 @@ Runs by default. Optional search roots, each the parent of an insert library dir
 }
 ```
 
-A link to `diagrams/flow.md` that no earlier root in the [lookup order](../../docs/features/compile-pipeline/path-lookup-order.md) resolves then finds `shared/diagrams/flow.md`.
+A link to `diagrams/flow.md` that no earlier root in the [lookup order](../../docs/features/compile-pipeline/path-lookup-order.md) resolves then finds `shared/diagrams/flow.md`. <!-- mdcp-paths: illustrative -->
 
 Opt out: `"hooks": { "inlineInserts": false }`. See [Default compile hooks](../../docs/features/default-compile-hooks.md).
 
@@ -688,7 +682,7 @@ See [Request flow](#diagram-1-request-flow) again in prose.
 
 Example fixture: [`examples/sample-guides/inserts-demo/`](../../examples/sample-guides/inserts-demo). Its catalog gives each insert's first reference a paragraph of its own, and its table links to each insert again. Compile turns those table links into back-links and re-aligns the table. See [GitHub media reference](../../examples/sample-guides/inserts-demo/github-media-help.md) for a format matrix (PNG, JPEG, GIF, SVG, MP4, MP3/WAV, Mermaid, tables, lists) and minimal generated sample assets under `figures/` and `media/`.
 
-**Figure with embedded image** — shard `figures/component-map.md`:
+**Figure with embedded image** (shard `figures/component-map.md`): <!-- mdcp-paths: illustrative -->
 
 ```markdown
 ![Component map overview](./component-map.png)
@@ -696,7 +690,7 @@ Example fixture: [`examples/sample-guides/inserts-demo/`](../../examples/sample-
 
 Catalog link `` `[Component map](../figures/component-map.md)` `` compiles to a numbered `#### Figure 1. …` heading followed by that image markdown.
 
-**Media with embedded video** — shard `media/walkthrough.md`:
+**Media with embedded video** (shard `media/walkthrough.md`): <!-- mdcp-paths: illustrative -->
 
 ```markdown
 <video src="./walkthrough.mp4" controls></video>

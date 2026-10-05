@@ -1,15 +1,13 @@
 # Publish-relative link rewriting
 
-<!-- mdcp-paths: illustrative -->
-
 Specification for assembly-time rebasing of shard-relative file links to each guide's [link base](#when-it-runs). Tests in `packages/mdcp-core/test/publish-links.test.ts`, `packages/mdcp-core/test/links.test.ts` and `packages/mdcp-core/test/guide-output-path.test.ts` map to the sections below. Tests for the exclusion of cross-guide links and for [`ignoreGuides` interaction](#ignoreguides-interaction) are also in `packages/mdcp-core/test/cross-guide-links.test.ts`, and tests for the exclusion of links that `codeEvidence` rebased are in `packages/mdcp-core/test/code-evidence.test.ts`.
 
 ## Shard-relative paths
 
 Shards are authored with paths relative to the shard's own directory in the guide tree:
 
-- `../features/foo.md` from `docs/developer/`
-- `../../features/foo.md` from `docs/client-core/compile-hooks/`
+- `../features/foo.md` from `docs/developer/` <!-- mdcp-paths: illustrative -->
+- `../../features/foo.md` from `docs/client-core/compile-hooks/` <!-- mdcp-paths: illustrative -->
 - `../../.nvmrc` from `docs/developer/` (repo root)
 
 Those paths work while readers open shards under `docs/`. They break when the content compiles to a **publish output** in another directory, such as `DEVELOPERS.md` at the repo root or `packages/mdcp-cli/README.md`.
@@ -59,7 +57,7 @@ The pass finds the target in the order [Path lookup order](./path-lookup-order.m
 relative(dirname(linkBase), resolvedAbsolute) + optional #fragment
 ```
 
-An empty relative path means the target is the directory that contains the link base, and the pass writes `./` for it. That covers a `../`-only target and a named one, such as `../../pkg/` from `docs/pkg/` compiled into `pkg/README.md`.
+An empty relative path means the target is the directory that contains the link base, and the pass writes `./` for it. That covers a `../`-only target and a named one, such as `../../pkg/` from `docs/pkg/` compiled into `pkg/README.md`. <!-- mdcp-paths: illustrative -->
 
 `linkBase` is the absolute path of the guide's [link base](#when-it-runs).
 
@@ -71,7 +69,7 @@ The pass **does not** transform:
 - Same-document `#fragment` links
 - Link syntax in fenced code or in a code span
 - `./section.md` and other `./` paths (cross-guide or intra-guide handle `.md`; publish-relative only matches `../`)
-- A link that the cross-guide pass rewrote, whose path is already relative to the link base, such as `../../README.md#setup` in a guide published to `packages/a/README.md`
+- A link that the cross-guide pass rewrote, whose path is already relative to the link base, such as `../../README.md#setup` in a guide published to `packages/a/README.md` <!-- mdcp-paths: illustrative -->
 - A link that [`codeEvidence`](../../client-core/compile-hooks/code-evidence.md) rebased, whose path is relative to the link base too. From the shard's directory, the path can lead to another file with the same name.
 - Unresolvable paths (left unchanged)
 
