@@ -17,12 +17,14 @@ of drifting in chat-only designs.
 
 | Obligation            | As-built expectation                                                                                        |
 | --------------------- | ----------------------------------------------------------------------------------------------------------- |
-| One focused branch    | Branch from updated `main` for a single issue; do not mix unrelated features                                |
+| One focused branch    | Branch for one issue from the updated integration branch; do not mix unrelated features                     |
 | Place by audience     | User-facing work → `docs/features/` + `docs/client/`; maintainer-only → `docs/developer/` only              |
 | Docs first            | Update guide shards and indexes before product code; put contracts in shards, not code dumps                |
 | TDD when code changes | Write failing tests first where the repo uses tests, then implement, then refactor; skip TDD when docs-only |
 | Current docs only     | Align shards to as-built behavior; no superseded-workflow archaeology in durable docs                       |
 | Validate and wrap-up  | Run repo tests + `mdcp check`; changeset/release notes per repo conventions; link `WORK_ITEM`               |
+
+[Required intake](../skill-workflows.md#required-intake) says where the integration branch is named.
 
 ## What this workflow is not
 

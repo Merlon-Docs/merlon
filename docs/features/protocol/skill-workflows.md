@@ -27,7 +27,7 @@ The getting-started workflow **MUST** collect `FEATURE`, `PERSONA`, and `EXPERIE
 
 The doc-review workflow collects `SCOPE` and `WORK_ITEM_LOOKUP` instead of `WORK_ITEM`.
 
-Agents **MUST** load the issue (or equivalent) before editing shards or code. One `WORK_ITEM` per branch.
+Agents **MUST** load the issue (or equivalent) before editing shards or code. One `WORK_ITEM` per branch. The branch starts from the integration branch that the delivery conventions at `WORK_ITEM_LOOKUP` name, or from the default branch when they name none.
 
 ## Atomic commit groups (plan obligation)
 

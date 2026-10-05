@@ -19,12 +19,14 @@ product development stays anchored on what the end user must accomplish.
 
 | Obligation                  | As-built expectation                                                                                             |
 | --------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| One UX scope                | Branch from updated `main` for a single UX issue; do not mix unrelated UX work                                   |
+| One UX scope                | Branch for one UX issue from the updated integration branch; do not mix unrelated UX work                        |
 | User-centric value first    | State the end-user outcome and friction to remove before designing steps or UI                                   |
 | Map processes and workflows | Document the ideal journey under `docs/client/` — steps to accomplish X, decision points, failure/recovery paths |
 | Interface when it serves UX | Implement or revise UI only as needed to support the documented workflow, using this repo’s existing patterns    |
 | Align as-built docs         | Update client-guide shards to match the shipped experience; remove superseded journey or UI references           |
 | Validate and wrap-up        | Run repo tests + docs validation; release notes per repo conventions; link `WORK_ITEM`                           |
+
+[Required intake](../skill-workflows.md#required-intake) says where the integration branch is named.
 
 ## What this workflow is not
 
