@@ -702,6 +702,32 @@ MIT
 
 <!-- mdcp-shard: end ../../docs/client-cli/related-packages.md -->
 
+<!-- mdcp-shard: start ../../docs/client-cli/terms.md -->
+
+## Terms in this guide
+
+Glossary terms stitched into this guide, in alphabetical order:
+
+- [compiled guide](#compiled-guide)
+- [coverage](#coverage)
+- [cross-link](#cross-link)
+- [guide](#guide)
+- [guide tier](#guide-tier)
+- [heading slug](#heading-slug)
+- [idea mitosis](#idea-mitosis)
+- [locale pack](#locale-pack)
+- [manifest](#manifest)
+- [monolith](#monolith)
+- [orphan](#orphan)
+- [publish output](#publish-output)
+- [refs](#refs)
+- [refs registry](#refs-registry)
+- [shard](#shard)
+- [shard single responsibility](#shard-single-responsibility)
+- [standalone guide](#standalone-guide)
+
+<!-- mdcp-shard: end ../../docs/client-cli/terms.md -->
+
 <!-- mdcp-shard: start ../../docs/glossary/guide.md -->
 
 ## guide
@@ -846,34 +872,6 @@ Default `en-US` (one BCP 47 JSON file per locale under `src/locale/locales/`). L
 
 <!-- mdcp-shard: end ../../docs/glossary/locale-pack.md -->
 
-<!-- mdcp-shard: start ../../docs/glossary/shard.md -->
-
-## shard
-
-A **shard** is a small Markdown file that owns one topic. In MDCP, authors edit shards; `compile` stitches them into [compiled guides](#compiled-guide), such as a package README. Shards are the source of truth, so do not hand-edit generated files.
-
-Think “one concern per file” so people and agents can load only what the task needs. Related: [shard single responsibility](#shard-single-responsibility). Deeper model: [Overview](../../docs/features/overview.md).
-
-<!-- mdcp-shard: end ../../docs/glossary/shard.md -->
-
-<!-- mdcp-shard: start ../../docs/glossary/orphan.md -->
-
-## orphan
-
-An **orphan** is a top-level shard in a [guide](#guide) directory that the guide's [manifest](#manifest) does not link. [Orphan check scope](../../docs/features/manifest-compile-order.md#orphan-check-scope) in Manifest compile order specifies the check and which manifest links count, including the `compile.sectionsHeading` rule and the [file-name fallback](../../docs/features/manifest-compile-order.md#linked-shards-and-the-file-name-fallback).
-
-<!-- mdcp-shard: end ../../docs/glossary/orphan.md -->
-
-<!-- mdcp-shard: start ../../docs/glossary/shard-single-responsibility.md -->
-
-## shard single responsibility
-
-**Shard single responsibility** means each durable documentation shard owns one primary concern, for one [guide tier](#guide-tier), serving one job: explain, instruct how-to, or define and look up. A shard should have one main reason to change.
-
-See [Shard single responsibility and idea mitosis](../../docs/features/protocol/shard-srp-and-mitosis.md) and [idea mitosis](#idea-mitosis).
-
-<!-- mdcp-shard: end ../../docs/glossary/shard-single-responsibility.md -->
-
 <!-- mdcp-shard: start ../../docs/glossary/coverage.md -->
 
 ## coverage
@@ -893,3 +891,31 @@ A **guide tier** is one category in an [archetype](../../docs/features/protocol/
 [Default guide layout](../../docs/features/protocol/mdcp-1.0-spec.md#2-default-guide-layout-code-repository-archetype) defines the four tiers. Under its placement test, a shard that consumers need goes in `features/` or `client/`, and a shard that only contributors need goes in `developer/`.
 
 <!-- mdcp-shard: end ../../docs/glossary/guide-tier.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/orphan.md -->
+
+## orphan
+
+An **orphan** is a top-level shard in a [guide](#guide) directory that the guide's [manifest](#manifest) does not link. [Orphan check scope](../../docs/features/manifest-compile-order.md#orphan-check-scope) in Manifest compile order specifies the check and which manifest links count, including the `compile.sectionsHeading` rule and the [file-name fallback](../../docs/features/manifest-compile-order.md#linked-shards-and-the-file-name-fallback).
+
+<!-- mdcp-shard: end ../../docs/glossary/orphan.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/shard.md -->
+
+## shard
+
+A **shard** is a small Markdown file that owns one topic. In MDCP, authors edit shards; `compile` stitches them into [compiled guides](#compiled-guide), such as a package README. Shards are the source of truth, so do not hand-edit generated files.
+
+Think “one concern per file” so people and agents can load only what the task needs. Related: [shard single responsibility](#shard-single-responsibility). Deeper model: [Overview](../../docs/features/overview.md).
+
+<!-- mdcp-shard: end ../../docs/glossary/shard.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/shard-single-responsibility.md -->
+
+## shard single responsibility
+
+**Shard single responsibility** means each durable documentation shard owns one primary concern, for one [guide tier](#guide-tier), serving one job: explain, instruct how-to, or define and look up. A shard should have one main reason to change.
+
+See [Shard single responsibility and idea mitosis](../../docs/features/protocol/shard-srp-and-mitosis.md) and [idea mitosis](#idea-mitosis).
+
+<!-- mdcp-shard: end ../../docs/glossary/shard-single-responsibility.md -->

@@ -25,3 +25,4 @@
 ## See also
 
 - [Related packages](./related-packages.md)
+- [Terms in this guide](./terms.md)
