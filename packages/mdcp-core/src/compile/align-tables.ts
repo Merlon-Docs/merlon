@@ -57,7 +57,7 @@ const CLOSING_TAG = /<\/[A-Za-z][A-Za-z0-9-]* *>/;
  */
 const HTML_BLOCK_START = new RegExp(
   [
-    /^<(?:script|pre|style|textarea)(?:[ >]|$)/.source,
+    /^<(?:script|pre|style|textarea)(?:[\t\n\f\r >]|$)/.source,
     /^<(?:!--|\?|![A-Za-z]|!\[CDATA\[)/.source,
     `^</?(?:${HTML_BLOCK_NAMES})(?:[ >]|/>|$)`,
     `^(?:${OPEN_TAG.source}|${CLOSING_TAG.source}) *$`,
