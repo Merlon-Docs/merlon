@@ -9,18 +9,19 @@ minimumReleaseAge: 10080
 # - nanoid@3.3.18: GHSA-2v37-7h3g-55p8 (slidev → postcss → nanoid)
 # - browserslist@4.28.7: GHSA-c83g-rgw3-j3cx (slidev → @babel → browserslist)
 minimumReleaseAgeExclude:
-  - js-yaml@5.2.2
-  - js-yaml@4.3.2
-  - js-yaml@3.15.2
+  - js-yaml@3.15.2 || 4.3.2 || 5.2.2
   - nanoid@3.3.18
   - browserslist@4.28.7
   - smol-toml@1.7.1
+  - source-map-js@1.2.2
 strictDepBuilds: true
 allowBuilds:
   esbuild: true
 # Pin patched versions to resolve high-severity advisories. Exact/scoped pins keep
 # resolution deterministic and avoid floating to vulnerable or newer-major versions.
 overrides:
+  # https://github.com/advisories/GHSA-68fv-2mgg-jv7q source-map-js allows event-loop denial of service through indexed source-map section offsets patched >=1.2.2.
+  source-map-js: 1.2.2
   # GHSA-7p8r-x3mc-p8w7 + IDN canonicalization: patched >=3.1.6.
   # GHSA-qw65-cvwx-89v3 (<3.1.7) and GHSA-58mr-gqgx-xq4g (=3.1.6): patched >=3.1.7.
   # Pin the patched 3.x line (a bare range can float to vulnerable 4.1.0).
