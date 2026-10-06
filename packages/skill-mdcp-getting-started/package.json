@@ -1,6 +1,0 @@
-{
-  "name": "@bwilliamson/skill-mdcp-getting-started",
-  "version": "0.7.2",
-  "private": true,
-  "description": "Version carrier for skills/mdcp-getting-started (private; CHANGELOG + GitHub Releases; syncs version to SKILL.md). Not published to npm."
-}

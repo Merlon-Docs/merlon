@@ -1,0 +1,29 @@
+---
+// Starlight's default head, plus the Mermaid renderer. Mermaid loads only on
+// pages that have a diagram, and re-renders when the reader switches theme.
+import Default from '@astrojs/starlight/components/Head.astro';
+---
+
+<Default />
+
+<script>
+  const blocks = [...document.querySelectorAll<HTMLElement>('pre.mermaid')];
+  if (blocks.length > 0) {
+    const { default: mermaid } = await import('mermaid');
+    for (const el of blocks) el.dataset.source = el.textContent ?? '';
+    const render = async () => {
+      const dark = document.documentElement.dataset.theme === 'dark';
+      mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', theme: dark ? 'dark' : 'default' });
+      for (const el of blocks) {
+        el.removeAttribute('data-processed');
+        el.textContent = el.dataset.source ?? '';
+      }
+      await mermaid.run({ nodes: blocks });
+    };
+    await render();
+    new MutationObserver(render).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    });
+  }
+</script>

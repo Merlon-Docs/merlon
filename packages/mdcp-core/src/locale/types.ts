@@ -41,6 +41,11 @@ export interface LocaleBrokenLinkCopy {
   formatMarker(label: string, originalTarget: string, brokenTarget: string, reason: string): string;
   /** True when a line already contains a broken-link marker. */
   lineHasMarker(line: string): boolean;
+  /**
+   * Each broken-link marker in a line, as its own text, in line order. Link lint uses it to match a
+   * marker in two files whose lines differ elsewhere. Without it, lint matches whole lines.
+   */
+  findMarkers?(line: string): string[];
 }
 
 /** Broken-link locale messages before formatter helpers are attached. */

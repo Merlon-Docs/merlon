@@ -1,0 +1,87 @@
+name: Sync develop
+
+# After anything lands on main (a release PR, the release commit, a hotfix),
+# merge main back into develop so develop never falls behind the release branch.
+# A clean merge goes through the land gate: it is pushed to land/sync-main and
+# land-develop.yml is dispatched on that branch, which tests it and pushes it to
+# develop like any landing. A conflict opens a PR from main to develop instead.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+# Force JS actions onto Node 24 (Node 20 deprecated on runners).
+# https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions: {}
+
+jobs:
+  sync:
+    name: Merge main into develop
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Push the merge to land/sync-main
+      actions: write # Dispatch the land workflow on land/sync-main
+      pull-requests: write # Open a sync PR when the merge conflicts
+    steps:
+      # Harden-Runner: audit mode only — logs egress; block mode is follow-up (#179).
+      - uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Merge, then land it through the gate, or open a PR on conflict
+        env:
+          # GITHUB_TOKEN: RELEASE_GITHUB_TOKEN is scoped to the release
+          # environment. A push made with GITHUB_TOKEN starts no workflow, so
+          # the land workflow is dispatched by name, which GITHUB_TOKEN may do.
+          PUSH_TOKEN: ${{ github.token }}
+          SYNC_BRANCH: land/sync-main
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          export GH_TOKEN="${PUSH_TOKEN}"
+          git fetch origin main develop
+
+          if git merge-base --is-ancestor origin/main origin/develop; then
+            echo "develop already contains main ($(git rev-parse --short origin/main)). Nothing to do."
+            exit 0
+          fi
+
+          git checkout -B develop origin/develop
+          if git merge --no-edit origin/main -m "chore: sync main into develop"; then
+            # Force: each sync replaces the last one. A land run already queued
+            # keeps the commit it was dispatched on.
+            git push --force origin "HEAD:refs/heads/${SYNC_BRANCH}"
+            gh workflow run land-develop.yml --ref "${SYNC_BRANCH}" --repo "${GITHUB_REPOSITORY}"
+            {
+              echo "Merged main ($(git rev-parse --short origin/main)) with develop as $(git rev-parse --short HEAD) on ${SYNC_BRANCH}."
+              echo ""
+              echo "Dispatched Land on develop for ${SYNC_BRANCH}. develop moves when that run's gate passes."
+            } | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          git merge --abort
+          existing="$(gh pr list --base develop --head main --state open --json number --jq '.[0].number // empty')"
+          if [ -n "$existing" ]; then
+            echo "main conflicts with develop; PR #${existing} is already open." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          gh pr create --base develop --head main \
+            --title "chore: sync main into develop" \
+            --body "main has commits develop lacks and they conflict. This PR's head is main, so it can't take the resolution. Merge main into a land/** branch other than land/sync-main, resolve the conflict there and push it. The land workflow puts the merge on develop, and this PR then closes as merged."
+          echo "main conflicts with develop; opened a sync PR." | tee -a "$GITHUB_STEP_SUMMARY"

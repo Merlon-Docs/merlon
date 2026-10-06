@@ -12,13 +12,13 @@ Install this package when you need the `mdcp` binary: **compile** shards into gu
 
 ### Not the Agent Skill
 
-This npm package is **not** the MDCP Agent Skill.
+This npm package is **not** the MDCP Agent Skill. Each piece of MDCP has its own job:
 
-- **This CLI** — shell/`npx` tool (`mdcp compile`, `mdcp check`, …) via `@bwilliamson/mdcp-cli` on npm
-- **Core** — programmatic library used by the CLI: [`@bwilliamson/mdcp-core`](https://www.npmjs.com/package/@bwilliamson/mdcp-core)
-- **Agent Skill** — host instructions (`SKILL.md`, subagents): [root README](../../README.md) / `npx skills add … --skill mdcp`
+- **This CLI:** the shell command `mdcp` (`mdcp compile`, `mdcp check`, …) from `@bwilliamson/mdcp-cli` on npm
+- **Core:** the programmatic library the CLI is built on, [`@bwilliamson/mdcp-core`](https://www.npmjs.com/package/@bwilliamson/mdcp-core)
+- **Agent Skill:** the host instructions (`SKILL.md` and its workflows) an agent loads for `/mdcp`, which decide when the agent edits docs and which workflow it follows
 
-Slash `/mdcp` in an agent host loads the **skill**. The shell command `mdcp` runs **this CLI**. They are separate installs and separate docs.
+The CLI and the skill are separate installs with separate docs. [Get started](../../README.md#get-started) in the project README shows how to install the skill and start its bootstrap session, and the [skill catalog](../../docs/skills.md) lists its workflows. The skill doesn't include the `mdcp` binary, so a repository that runs `mdcp compile` or `mdcp check` in scripts or CI installs this package as well. [Agent integration](#agent-integration) shows the npm scripts.
 
 <!-- mdcp-shard: end ../../docs/client-cli/about.md -->
 
@@ -28,9 +28,9 @@ Slash `/mdcp` in an agent host loads the **skill**. The shell command `mdcp` run
 
 [![npm version](https://img.shields.io/npm/v/@bwilliamson/mdcp-cli.svg)](https://www.npmjs.com/package/@bwilliamson/mdcp-cli)
 
-This package installs the **`mdcp` CLI** for use in your repo or CI. It works in **any** codebase — language, framework, and repo layout do not matter; mdcp only manages your documentation shards and compile pipeline.
+This package installs the **`mdcp` CLI** (MarkDown Context Protocol) for use in your repo or CI. It works in **any** codebase — language, framework, and repo layout do not matter; mdcp only manages your documentation shards and compile pipeline.
 
-This is **not** the Agent Skill. For skill install (`npx skills add`, `/mdcp help me get started`), see [root README](../../README.md) or [Agent Skill (related)](#agent-skill-related).
+To install the Agent Skill instead, see [Not the Agent Skill](#not-the-agent-skill).
 
 ### Requirements
 
@@ -51,7 +51,7 @@ npm install -g @bwilliamson/mdcp-cli
 
 ### Stability
 
-**Pre-1.0:** Until this package reaches **1.0.0**, there is **no API stability guarantee**. CLI commands, flags, `mdcp.config.json` schema, and compile output may change in any `0.x.y` release. Read the package changelog before upgrading.
+Before **1.0.0**, this package has **no API stability guarantee**. CLI commands, flags, `mdcp.config.json` schema, and compile output may change in any `0.x.y` release. Read the changelog and release notes of each MDCP package you use before upgrading. They hold the upgrade notes for earlier releases, which the feature catalog doesn't repeat.
 
 #### Get involved
 
@@ -73,27 +73,24 @@ For prose lint (`mdcp prose`, `mdcp check --require-vale`), install [Vale](https
 
 3. Run:
 
-```bash
-# When your shell is in the docs directory
-mdcp compile --config mdcp.config.json
-mdcp check --config mdcp.config.json
-```
+   ```bash
+   # When your shell is in the docs directory
+   mdcp compile --config mdcp.config.json
+   mdcp check --config mdcp.config.json
+   ```
 
-From the **repository root** (typical npm scripts), pass both `--config` and `--docs-root`:
+   From the **repository root** (typical npm scripts), pass both `--config` and `--docs-root`:
 
-```bash
-mdcp compile --config docs/mdcp.config.json --docs-root docs
-mdcp check --config docs/mdcp.config.json --docs-root docs
-```
+   ```bash
+   mdcp compile --config docs/mdcp.config.json --docs-root docs
+   mdcp check --config docs/mdcp.config.json --docs-root docs
+   ```
 
-`--config` is resolved from where you run the command; `--docs-root` sets the docs root. Details: [Config essentials](#--config-vs---docs-root).
+   `--config` resolves from the directory you run the command in, and `--docs-root` sets the docs root. [Config essentials](#--config-vs---docs-root) has the details, and [Global options](#global-options) lists the options that every command accepts.
 
-Global options (apply to every command):
+4. Add `docs:compile` and `docs:check` scripts to your repo-root `package.json`, as [Repo-root npm scripts](#repo-root-npm-scripts) shows. The check script runs `mdcp check --require-lint`. Add `--require-vale` to it when Vale is configured.
 
-| Option                | Default            | Purpose                                                                          |
-| --------------------- | ------------------ | -------------------------------------------------------------------------------- |
-| `-c, --config <path>` | `mdcp.config.json` | Config file path, resolved from the **invocation directory** (not `--docs-root`) |
-| `--docs-root <path>`  | current directory  | Docs root — one subdirectory per guide shard tree                                |
+5. Run the same compile and check scripts in CI. The [verification checklist](#verification-checklist) lists what to confirm once they pass.
 
 <!-- mdcp-shard: end ../../docs/client-cli/install-and-quick-start.md -->
 
@@ -103,7 +100,7 @@ Global options (apply to every command):
 
 ### One subdirectory = one guide
 
-Each folder directly under the docs root (`--docs-root`) is a **guide** when its name appears in `compileOrder`. The guide **`name`** in config matches the **directory name**.
+Each folder directly under the docs root (`--docs-root`) is a [guide](#guide) when its name appears in `compileOrder`. The guide **`name`** in config matches the **directory name**.
 
 | Piece                                           | Role                                                             |
 | ----------------------------------------------- | ---------------------------------------------------------------- |
@@ -112,35 +109,11 @@ Each folder directly under the docs root (`--docs-root`) is a **guide** when its
 | `chapter-*.md` (typical)                        | One topic or chapter per file                                    |
 | `about-this-guide.md`                           | Optional preamble shard                                          |
 
-Support directories (for example `styles/` for Vale) are **not** guides unless listed in `compileOrder`.
+Support directories such as `styles/` for Vale are **not** guides unless listed in `compileOrder`. Compile doesn't write output for them. Shard markdownlint and Vale skip them too unless your config names them, as [In-scope guide fileset](#in-scope-guide-fileset) explains. A guide whose `compile.scopeRoot` points into one still stitches the shards it links, as the [shared glossary](#shared-glossary) does.
 
-### Generated output (`outputDir`, default `_build/`)
+Compile writes compiled guides, the optional monolith, the [refs registry](#refs-registry) and opt-in backups under `outputDir`. A [publish output](#publish-output) goes where its `compile.outputFile` points, which can be outside `outputDir`. [Path layout](#path-layout) gives the defaults and path rules.
 
-All generated files live under `outputDir`. Safe to delete the entire directory (like `dist/`).
-
-| Output            | Default location                                    | Notes                                                   |
-| ----------------- | --------------------------------------------------- | ------------------------------------------------------- |
-| Per-guide compile | `_build/{name}.md` or `_build/guide.md` (one guide) | Overridden by `compile.outputFile`                      |
-| Optional monolith | `_build/guides.md`                                  | Only when top-level `outputFile` is set                 |
-| Refs registry     | `_build/.caches/refs.json`                          | Derived — regenerated by `mdcp check` / `mdcp refs gen` |
-| Output backups    | `_build/.caches/backups/`                           | Opt-in only — prior output when `--backup` is used      |
-
-```text
-docs/
-  features/           ← source
-  client-cli/         ← source
-  _build/             ← outputDir (gitignore)
-    features.md
-    client-cli.md
-    guides.md         ← optional monolith
-    .caches/
-      refs.json
-      backups/        ← opt-in (--backup)
-```
-
-Publish outside `_build` (npm READMEs, repo-root docs) via `compile.outputFile` paths relative to `outputDir` (for example `../../packages/mdcp-cli/README.md`).
-
-When a manifest has preamble prose with example links, set `compile.sectionsHeading`. See [Manifest compile order](../../docs/features/manifest-compile-order.md).
+When a [manifest](#manifest) has preamble prose with example links, set `compile.sectionsHeading`. See [Manifest compile order](../../docs/features/manifest-compile-order.md).
 
 <!-- mdcp-shard: end ../../docs/client-cli/project-layout.md -->
 
@@ -154,12 +127,12 @@ When a manifest has preamble prose with example links, set `compile.sectionsHead
 
 These two global options answer different questions:
 
-| Option            | Resolved from                                                                        | Purpose                                                     |
-| ----------------- | ------------------------------------------------------------------------------------ | ----------------------------------------------------------- |
-| **`--config`**    | **Invocation directory** — where you run the command (repo root in most npm scripts) | Locates `mdcp.config.json` on disk                          |
-| **`--docs-root`** | N/A (you pass the shard tree root explicitly)                                        | Root of guide directories — see [Path layout](#path-layout) |
+| Option            | Resolved from                                                                       | Purpose                            |
+| ----------------- | ----------------------------------------------------------------------------------- | ---------------------------------- |
+| **`--config`**    | **Invocation directory**, where you run the command (repo root in most npm scripts) | Locates `mdcp.config.json` on disk |
+| **`--docs-root`** | N/A (you pass the shard tree root explicitly)                                       | Root of guide directories          |
 
-`--config` is never prefixed with `--docs-root`.
+`--config` is never prefixed with `--docs-root`. [Path layout](#path-layout) describes the docs root.
 
 #### Repo-root npm scripts
 
@@ -182,7 +155,33 @@ mdcp compile --config mdcp.config.json --docs-root .
 
 #### Programmatic API
 
-`loadConfig(configPath, configBase)` mirrors the CLI: pass the invocation directory as `configBase`, and the docs root as `docsRoot` when resolving guide paths. See [API — Config](../mdcp-core/README.md#api--config).
+The core library takes the same two bases, and [API Config](../mdcp-core/README.md#api--config) says which one each function needs.
+
+### Minimal config
+
+A minimal `mdcp.config.json` for two guides:
+
+```json
+{
+  "compileOrder": ["overview", "admin-guide"],
+  "guides": [{ "name": "overview" }, { "name": "admin-guide" }]
+}
+```
+
+The fields it leaves out take their defaults, so this config writes `overview.md` and `admin-guide.md` to `_build/` under the docs root and builds no monolith. [Path layout](#path-layout) gives each default.
+
+| Field                | Purpose                                                              |
+| -------------------- | -------------------------------------------------------------------- |
+| `compileOrder`       | Guide directories to compile, in stitch order for optional monolith  |
+| `guides`             | Per-guide options (hooks, manifests, publish paths)                  |
+| `outputDir`          | Generated output root (relative to `--docs-root`)                    |
+| `outputFile`         | Optional stitched monolith (relative to `outputDir`)                 |
+| `refs.registryFile`  | Refs registry file (default `.caches/refs.json`)                     |
+| `sourceTags`         | Wrap shards in HTML comments with relative paths (default `true`)    |
+| `banner`             | Global banner prepended to outputs (has default warning text)        |
+| `compile.outputFile` | Override per-guide output path (relative to `outputDir` or absolute) |
+| `compile.scopeRoot`  | Shared tree (relative to the docs root) that guide links pull from   |
+| `compile.sourceTags` | Per-guide override of the global `sourceTags` setting                |
 
 ### Path layout
 
@@ -201,7 +200,7 @@ docs/                          ← --docs-root
   features/                    ← guide "features" (shards)
   client-cli/                  ← guide "client-cli"
   styles/                      ← support dir (not in compileOrder)
-  _build/                      ← outputDir (generated)
+  _build/                      ← outputDir (generated; gitignore it)
     features.md
     client-cli.md
     guides.md                  ← optional monolith (when outputFile set)
@@ -210,11 +209,9 @@ docs/                          ← --docs-root
       backups/                 ← opt-in prior output (--backup)
 ```
 
-#### Guide = one subdirectory
+#### Resolution bases
 
-Each guide is a **folder** directly under the docs root. The guide **`name`** matches the **directory name**. Omit `guides[].path` unless shards live elsewhere.
-
-Only directories listed in `compileOrder` are compiled and linted. Support folders (for example `styles/`) stay on disk but are out of scope.
+[Project layout](#project-layout) says which directories are guides. Omit `guides[].path` unless a guide's shards live somewhere other than the directory of the same name.
 
 | Config field          | Resolved from | Example (`--docs-root docs`)        |
 | --------------------- | ------------- | ----------------------------------- |
@@ -228,66 +225,6 @@ Only directories listed in `compileOrder` are compiled and linted. Support folde
 
 Delete `_build/` to clean all generated output. `.caches/` holds derived state (refs registry) and, when `--backup` is used, prior compile output under `backups/`. See [Compile output backup](../../docs/features/compile-output-backup.md).
 
-#### Opt-in output backup
-
-Default: compile commands **overwrite** existing files (git is the safety net). Enable backup when working outside version control:
-
-```json
-{
-  "backup": { "enabled": true }
-}
-```
-
-Or pass `--backup` on the CLI (overrides config). Optional `backup.dir` (default `.caches/backups`) and `backup.ext`. Full spec: [Compile output backup](../../docs/features/compile-output-backup.md).
-
-#### Link validation
-
-Built-in internal link validation is on by default. Broken links emit **`BROKEN LINK`** markers in compiled output and fail `mdcp compile` / `mdcp check` (exit **1**). See [Link validation](../../docs/features/link-validation.md).
-
-```json
-{
-  "compile": { "links": { "markBroken": true } },
-  "lint": {
-    "links": {
-      "enabled": true,
-      "severity": "error"
-    }
-  }
-}
-```
-
-| Field                      | Default   | Role                                                  |
-| -------------------------- | --------- | ----------------------------------------------------- |
-| `compile.links.markBroken` | `true`    | Replace broken links with BROKEN LINK prose in output |
-| `lint.links.enabled`       | `true`    | Run built-in link validation                          |
-| `lint.links.severity`      | `"error"` | `"warn"` exits 0; use `--warn-broken-links` on CLI    |
-| `lint.links.config`        | —         | Peer `markdown-link-check` config only                |
-
----
-
-Minimal `mdcp.config.json`:
-
-```json
-{
-  "compileOrder": ["overview", "admin-guide"],
-  "guides": [{ "name": "overview" }, { "name": "admin-guide" }]
-}
-```
-
-Defaults: `outputDir` `_build`, per-guide outputs `overview.md` and `admin-guide.md`, refs at `.caches/refs.json`. No monolith unless you set top-level `outputFile`.
-
-| Field                | Purpose                                                              |
-| -------------------- | -------------------------------------------------------------------- |
-| `compileOrder`       | Guide directories to compile, in stitch order for optional monolith  |
-| `guides`             | Per-guide options (hooks, manifests, publish paths)                  |
-| `outputDir`          | Generated output root (relative to `--docs-root`)                    |
-| `outputFile`         | Optional stitched monolith (relative to `outputDir`)                 |
-| `refs.registryFile`  | Cross-link lookup table (default `.caches/refs.json`)                |
-| `sourceTags`         | Wrap shards in HTML comments with relative paths (default `true`)    |
-| `banner`             | Global banner prepended to outputs (has default warning text)        |
-| `compile.outputFile` | Override per-guide output path (relative to `outputDir` or absolute) |
-| `compile.sourceTags` | Per-guide override of the global `sourceTags` setting                |
-
 #### Default per-guide outputs
 
 When `compile.outputFile` is omitted:
@@ -297,26 +234,74 @@ When `compile.outputFile` is omitted:
 | 1                        | `guide.md`                     |
 | 2+                       | `{name}.md` per guide          |
 
-When `compile.outputFile` is set, that guide writes only to that path (for example npm README publish via `../../packages/foo/README.md`) and is excluded from an optional monolith.
+When `compile.outputFile` is set, that guide writes only to that path (for example npm README publish via `../../packages/foo/README.md`) and is excluded from an optional monolith. <!-- mdcp-paths: illustrative -->
 
 #### Optional monolith
 
-Set top-level `outputFile` (for example `"guides.md"`) to also stitch guides **without** explicit `compile.outputFile` into one file under `outputDir`.
+Set top-level `outputFile` (such as `"guides.md"`) to also stitch guides **without** explicit `compile.outputFile` into one file under `outputDir`. See [monolith](#monolith).
 
-#### `sectionsHeading`
+### Feature settings
 
-When a manifest has preamble prose with example inline links before an ordered `## Sections` list, set `compile.sectionsHeading`. See [Manifest compile order](../../docs/features/manifest-compile-order.md).
+Each feature's spec defines its config keys and what they do. This table gives their defaults, and the paragraphs below it link to the specs.
+
+| Key                        | Default           |
+| -------------------------- | ----------------- |
+| `compile.links.markBroken` | `true`            |
+| `lint.links.enabled`       | `true`            |
+| `lint.links.severity`      | `"error"`         |
+| `lint.links.config`        | none              |
+| `lint.codeExtensions`      | `[]`              |
+| `lint.dataExtensions`      | `[]`              |
+| `lint.paths.severity`      | `"off"`           |
+| `lint.paths.searchRoots`   | `[]`              |
+| `lint.paths.generated`     | `[]`              |
+| `lint.paths.vocabulary`    | `[]`              |
+| `backup.enabled`           | `false`           |
+| `backup.dir`               | `.caches/backups` |
+| `backup.ext`               | `""`              |
+
+[Built-in link validation](../../docs/features/link-validation.md) covers the `compile.links.*` and `lint.links.*` keys and the extension lists. [Path resolution in prose](../../docs/features/path-resolution.md) covers `lint.paths.*`, and [Compile output backup](../../docs/features/compile-output-backup.md) covers `backup.*` and the `--backup` flags.
+
+Other feature keys are documented with their features. `compile.sectionsHeading` is in [Manifest compile order](../../docs/features/manifest-compile-order.md), `compile.hooks` and `compile.hooksConfig` are in [Default compile hooks](../../docs/features/default-compile-hooks.md), and `compile.crossGuideLinks` is in [Cross-guide link rewriting](../mdcp-core/README.md#cross-guide-link-rewriting). [Coverage in check](#coverage-in-check) covers `scan.*` and `standaloneGuides`.
+
+### Shared glossary
+
+A glossary directory can feed several guides without its own entry in `compileOrder`. Set `compile.scopeRoot` on each guide that should include glossary terms. The value is a directory relative to the docs root:
 
 ```json
 {
-  "name": "glossary",
-  "compile": {
-    "title": "Compound glossary",
-    "sectionsHeading": "Sections",
-    "outputFile": "glossary.md"
+  "name": "developer",
+  "compile": { "scopeRoot": "glossary" }
+}
+```
+
+Compile follows `.md` links from that guide's shards into the glossary tree and stitches each linked term shard into the output. Link `../glossary/index.md` from the guide manifest to publish the full glossary table of contents. A lean guide can skip that link and link individual terms. Compile also follows links from term to term. The output contains the linked terms plus every term reachable from them.
+
+A large glossary can move groups of term links into sub-index files that `index.md` links. The `scopeRoot` walk follows those links too.
+
+To publish the glossary as its own file, add `glossary` to `compileOrder` and set `compile.outputFile`. That guide's `index.md` must link every term shard in the directory directly, because the orphan check reports a term that only a sub-index links. The term shards then belong to the glossary guide. Guides that keep `compile.scopeRoot: glossary` still stitch the terms they link, but their term links point at the glossary's output file instead of the copy in their own output.
+
+### Review thresholds
+
+`mdcp review` reads optional thresholds from a top-level `review` object. Each value is a positive integer; omitted keys keep their defaults.
+
+```json
+{
+  "review": {
+    "maxIndexEntries": 12,
+    "maxShardWords": 2500,
+    "minDuplicateWords": 25
   }
 }
 ```
+
+| Field                      | Default | Role                                                                                  |
+| -------------------------- | ------- | ------------------------------------------------------------------------------------- |
+| `review.maxIndexEntries`   | `12`    | Most shard links one index group lists before `index-size` fires                      |
+| `review.maxShardWords`     | `2500`  | Most prose words one shard holds before `long-shard` fires                            |
+| `review.minDuplicateWords` | `25`    | Fewest words a paragraph needs before `duplicate-paragraph` compares it across shards |
+
+`mdcp review` also honors `scan.ignore` and `scan.root`, so paths the coverage scan skips stay out of the review. Signal definitions: [Commands reference](#sprawl-review).
 
 ### Schema-only fields
 
@@ -327,6 +312,45 @@ When a manifest has preamble prose with example inline links before an ordered `
 Full schema and examples: [mdcp.config.json in sample-guides](../../examples/sample-guides/mdcp.config.json).
 
 <!-- mdcp-shard: end ../../docs/client-cli/config-essentials.md -->
+
+<!-- mdcp-shard: start ../../docs/client-cli/consumer-migration.md -->
+
+## Consumer migration
+
+Use these steps to move an existing Markdown document into shards. For a new repo with no docs to migrate, the [Quick start](#quick-start) covers setup.
+
+Add `source` to your config pointing at your existing source document, then:
+
+```bash
+mdcp shard
+mdcp compile
+mdcp check
+```
+
+### Guide manifests and compile order
+
+There is no separate manifest sync step, so rerun `mdcp compile` and `mdcp check` after a manifest change. [Manifest compile order](../../docs/features/manifest-compile-order.md) says how link order in the manifest sets compile order and when to set `compile.sectionsHeading`.
+
+### Compile hooks and multi-guide links
+
+Built-in hooks run by default — omit `compile.hooks` for the common case. Specs and multi-guide / `ignoreGuides` examples live in **core** docs (not duplicated here):
+
+- [Default compile hooks](../../docs/features/default-compile-hooks.md)
+- [Compile hooks](../mdcp-core/README.md#compile-hooks)
+- [Cross-guide links](../mdcp-core/README.md#cross-guide-link-rewriting)
+
+CLI config path rules remain in [Config essentials](#config-essentials).
+
+### Verification checklist
+
+After setting up a consumer repo:
+
+1. **`mdcp compile`**: per-guide outputs under `_build/` (or explicit `compile.outputFile` targets); optional monolith when `outputFile` is set
+2. **`mdcp check --require-lint`**: passes the [check gate](../../docs/features/check-gate.md) with markdownlint-cli2 required for each configured markdownlint stage
+3. **`mdcp check --require-vale`**: when Vale is configured
+4. **Hook output**: diagram tables inlined (`inlineInserts`), code evidence blocks resolved (`codeEvidence`), cross-guide links rewritten to `#slug` targets in compiled output (a link to a guide in `compile.crossGuideLinks.ignoreGuides` keeps its shard `.md` path, except in the cases that [its config section](../mdcp-core/README.md#compilecrossguidelinksignoreguides) points to)
+
+<!-- mdcp-shard: end ../../docs/client-cli/consumer-migration.md -->
 
 <!-- mdcp-shard: start ../../docs/client-cli/commands-reference.md -->
 
@@ -341,6 +365,9 @@ Every command accepts:
 | `-c, --config <path>` | `mdcp.config.json` | Config file path, resolved from the **invocation directory** (not `--docs-root`) |
 | `--docs-root <path>`  | current directory  | Docs root — one subdirectory per guide shard tree                                |
 | `--warn-broken-links` | off                | Report broken internal links but exit 0 (overrides `lint.links.severity`)        |
+| `--backup`            | off                | Move existing output files to the cache before overwriting them                  |
+| `--backup-dir <path>` | from config        | Backup directory, relative to `outputDir`                                        |
+| `--backup-ext <ext>`  | from config        | Suffix for backup file names                                                     |
 
 **Repo-root npm scripts** typically use both flags:
 
@@ -353,51 +380,71 @@ mdcp compile --config docs/mdcp.config.json --docs-root docs
 ### Daily workflow
 
 ```bash
-# Regenerate the monolith from shards (link order from each guide's index.md / shards.md)
+# Compile every guide from its shards (link order from each guide's index.md / shards.md)
 mdcp compile
 
-# Full validation gate (orphans → compile → refs → links; optional peer linters)
+# Run the full validation gate
 mdcp check
 ```
 
 `mdcp compile` and `mdcp check` exit **1** when broken internal links are found (default). Use `--warn-broken-links` to surface `link-warn:` diagnostics without failing CI. See [Link validation](../../docs/features/link-validation.md).
 
-When `mdcp check` fails after continuing through peer linters, it prints a stderr **failure summary** (which steps failed and how to fix them) so CI logs are not only peer “0 errors” lines plus a bare exit code.
+When a continuing stage of `mdcp check` fails, the run ends with a stderr **failure summary** of the failed steps and how to fix each one, unless coverage stops it first under `scan.strict: true`. A CI log then shows why the run failed, even after a peer's own success lines. [Check gate](../../docs/features/check-gate.md) lists the stages in order and says which of them stop the run.
 
 ### Command summary
 
 | Command          | When you need it                                                                                   |
 | ---------------- | -------------------------------------------------------------------------------------------------- |
 | `mdcp compile`   | Regenerate compiled outputs and `refs.json` under `outputDir` (exits 1 on broken links by default) |
-| `mdcp check`     | Full gate: orphans → compile → refs → links; optional peer linters; non-fatal coverage report      |
-| `mdcp shard`     | Split a monolith into shards (requires `config.source`)                                            |
-| `mdcp refs-list` | List heading slugs from `refs.json` as JSON                                                        |
+| `mdcp check`     | Run the full validation gate (exits 1 when any stage fails)                                        |
+| `mdcp review`    | Report documentation sprawl signals across guide shards (report-only; `--strict` to fail)          |
+| `mdcp shard`     | Split a source document into shards (requires `config.source`)                                     |
+| `mdcp refs-list` | List each compiled output's heading slugs and file from `refs.json` as JSON                        |
 | `mdcp lint`      | markdownlint-cli2 on shards and compiled output (peer, if installed)                               |
 | `mdcp prose`     | Vale prose lint (peer, if installed)                                                               |
 | `mdcp links`     | markdown-link-check on compiled output (peer, if installed)                                        |
 | `mdcp fix`       | Prettier + markdownlint `--fix` (install peers in host repo first)                                 |
 
-### Refs subcommands
+### Sprawl review
 
-| Command           | Purpose                                                                    |
-| ----------------- | -------------------------------------------------------------------------- |
-| `mdcp refs gen`   | Generate `refs.json` from compiled output                                  |
-| `mdcp refs check` | Verify `refs.json` matches compiled output                                 |
-| `mdcp refs-list`  | List heading slugs from `refs.json` (run `mdcp check` or `refs gen` first) |
-
-Discover shards with host search (`rg`, IDE search). Validate fragment links with `mdcp check`; use `mdcp refs-list` when you need to inspect registry slugs.
-
-### Agent context
+`mdcp review` reads every shard compile reads for the guides in `compileOrder`, including nested shards and each guide manifest (`index.md` by default), and reports signals that a shard or index needs a human or agent to look at it. It never writes files and skips paths matched by `scan.ignore`. The signals point at [idea mitosis](#idea-mitosis) candidates; deciding whether to split, merge, or regroup stays with the reviewer (see [Shard single responsibility and idea mitosis](../../docs/features/protocol/shard-srp-and-mitosis.md)).
 
 ```bash
-# Full structural gate (includes refs + link validation)
-mdcp check
-
-# Optional: inspect registry headings after compile or check
-mdcp refs list
+mdcp review --config docs/mdcp.config.json --docs-root docs
+mdcp review --config docs/mdcp.config.json --docs-root docs --json
+mdcp review --config docs/mdcp.config.json --docs-root docs --guide client-cli
 ```
 
-Discover shards with host search, then read **one** file. Prefer that over pasting a full compiled monolith.
+| Signal                | Fires when                                                                                                                                                              | Fix                                                                               |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `index-size`          | One group of an index lists more than `review.maxIndexEntries` shard links. A group is the links under one `##` or deeper heading, or the links before any such heading | Group entries under headings named for the reader's task                          |
+| `long-shard`          | A shard holds more than `review.maxShardWords` prose words                                                                                                              | Check whether it serves two audiences or jobs; split it if so (idea mitosis)      |
+| `duplicate-paragraph` | The same paragraph of at least `review.minDuplicateWords` words appears in two or more shards                                                                           | Keep the paragraph in the shard that owns the rule and link to it from the others |
+| `similar-titles`      | Two shards in one guide have the same first `#` heading                                                                                                                 | Merge the shards, or retitle them so each title names its one job                 |
+
+Prose words exclude fenced code, front matter, HTML comments, and link targets. Table cell text and headings count as prose. Paragraphs and titles compare after folding case and whitespace and dropping emphasis markers and link targets; titles also drop punctuation. Each list item is its own paragraph.
+
+Text output groups findings by signal and lists docs-root-relative paths. `--json` prints an array of `{ signal, severity, files, detail, fix }` objects, where `severity` is always `"warning"`. A duplicate paragraph's `detail` names every `path:line` location.
+
+| Option           | Effect                                                                                      |
+| ---------------- | ------------------------------------------------------------------------------------------- |
+| `--json`         | Print findings as a JSON array                                                              |
+| `--strict`       | Exit 1 when there is at least one finding                                                   |
+| `--guide <name>` | Review one guide from `compileOrder`; keep findings that involve at least one of its shards |
+
+With `--guide`, a duplicate paragraph is reported when any copy sits in that guide, so duplication across guides still shows up. The shard count covers that guide only. An unknown guide name exits 1 and lists the guide names.
+
+Without `--strict`, `mdcp review` exits 0. Thresholds live under `review` in config; see [Config essentials](#review-thresholds).
+
+### Refs subcommands
+
+| Command           | Purpose                                                                                                               |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `mdcp refs-gen`   | Generate `refs.json` from compiled output                                                                             |
+| `mdcp refs-check` | Verify `refs.json` matches compiled output                                                                            |
+| `mdcp refs-list`  | List each compiled output's heading slugs and file (`--format json` or `table`; run `mdcp check` or `refs-gen` first) |
+
+Validate fragment links with `mdcp check`. Use `mdcp refs-list` when you need to inspect registry slugs. [Refs](#refs) explains what refs are for.
 
 <!-- mdcp-shard: end ../../docs/client-cli/commands-reference.md -->
 
@@ -409,9 +456,9 @@ Discover shards with host search, then read **one** file. Prefer that over pasti
 
 ### What it reports
 
-- **Uncaptured** — files under the scan root that no guide, `compile.scopeRoot`, or `standaloneGuides[]` entry covers (`uncaptured: <path>`).
-- **Missing standalone** — `standaloneGuides[]` entries that match no file on disk (`missing-standalone: <path>`).
-- **Summary** — when gaps exist, a one-line `coverage:` count.
+- **Uncaptured**: files under the scan root that no guide, `compile.scopeRoot`, or `standaloneGuides[]` entry covers (`uncaptured: <path>`).
+- **Missing standalone**: `standaloneGuides[]` entries that match no file on disk (`missing-standalone: <path>`). The scan does not follow symbolic links, so an entry whose path is a symlink is reported here. Register the file it points to instead.
+- **Summary**: when gaps exist, a one-line `coverage:` count.
 
 ```bash
 mdcp check --config docs/mdcp.config.json --docs-root docs
@@ -433,9 +480,9 @@ When a file is intentionally standalone — a hand-authored README or a top-leve
 }
 ```
 
-`standaloneGuides` accepts file paths or globs. The scan honors your `.gitignore` by default, so version-controlled ignores (for example `node_modules`, `dist`, and build output) are skipped automatically; set `scan.gitignore: false` to turn that off. A built-in default always skips `.git`, `node_modules`, and `.agents`. `scan.ignore` extends what is skipped, and `scan.root` overrides the walk root (default: the invocation directory).
+`standaloneGuides` accepts file paths or globs. The scan honors your `.gitignore` by default, so it skips the paths that version control ignores, such as `node_modules` and `dist`. Set `scan.gitignore: false` to turn that off. A built-in default always skips `.git`, `node_modules`, and `.agents`. `scan.ignore` extends what is skipped, and `scan.root` overrides the walk root (default: the invocation directory). A `standaloneGuides` glob also matches the paths that these ignores skip, so `**/README.md` matches the READMEs under `node_modules` too. Link validation and Vale read every match, so keep the globs narrow.
 
-Standalone files are register-only: compile never rewrites or emits them, but their headings still join the refs registry and their links are validated.
+Standalone files are register-only: compile doesn't write output for them, and their outbound links are validated. `mdcp prose` and `mdcp check` run Vale over them, and a `.vale.ini` section keeps Vale off one file, as [Opt a standalone guide out of Vale](#opt-a-standalone-guide-out-of-vale) shows. A guide still stitches a standalone file like any shard when the guide's manifest or `compile.scopeRoot` walk reaches it.
 
 Do not list a compiled guide's output (a generated file such as `README.md` or `DEVELOPERS.md`) in `standaloneGuides`. Those outputs are already captured as guide output targets and are never flagged as uncaptured, so they stay out of the standalone set.
 
@@ -447,9 +494,9 @@ Do not list a compiled guide's output (a generated file such as `README.md` or `
 
 ### End-user value
 
-When you organize compiled outputs in subdirectories (`compile.outputFile: "compiled/guide-a.md"`), `mdcp compile` still keeps the refs registry at the documented cache path under `outputDir`. You can run `mdcp refs-list` right after compile when writing cross-links — no manual move and no extra `mdcp refs gen` step.
+When you organize compiled outputs in subdirectories (`compile.outputFile: "compiled/guide-a.md"`), `mdcp compile` still keeps the refs registry at the documented cache path under `outputDir`. You can run `mdcp refs-list` right after compile when writing cross-links, without moving the file or running `mdcp refs-gen` first.
 
-### Path layout
+### Registry location
 
 `refs.registryFile` is always relative to `outputDir`, not to each guide's `compile.outputFile`. See [Config essentials — path layout](#path-layout).
 
@@ -468,6 +515,23 @@ Example:
 | Compiled guide | `docs/_build/compiled/guide-a.md` |
 | Refs registry  | `docs/_build/.caches/refs.json`   |
 
+### Registry contents
+
+The registry lists every file compile writes, each slugged on its own. Its `outputs` array has an entry for each compiled guide in `compileOrder`, publish outputs included, then one for the monolith when compile writes it. Each entry has these fields:
+
+| Field       | Holds                                                                 |
+| ----------- | --------------------------------------------------------------------- |
+| `file`      | The output's path relative to the docs root, with `/` separators      |
+| `guideName` | The guide whose compiled guide this is; the monolith's entry has none |
+| `headings`  | The output's headings, each with its slug and its line in that file   |
+| `slugs`     | The semantic key of each slug                                         |
+
+Each output numbers its headings without the others. So when two guides in the monolith both have a Setup heading, each compiled guide lists `setup`, and the monolith lists `setup` and `setup-1`. A heading's `line` counts the banner, so it is a line of the file as compile writes it.
+
+The top-level `headings` and `slugs` hold the headings of one text. That text is the monolith when the config sets top-level `outputFile`, and otherwise every compiled guide joined in `compileOrder`, without banners. So a publish output's headings reach the top level only in a config without a monolith. Read `outputs` to find the slugs of one file.
+
+`mdcp refs-list` prints the headings of every entry in `outputs`, each with its `file`. With `--format table`, it prints one tab-separated line for each heading, which starts with the file and ends with the heading's slug and title. A registry without `outputs`, such as one that `genRefsFromCompiled` writes from one text, has no files to give. `mdcp refs-list` then prints the top-level headings, and on stderr it gives the registry's path and says to run `mdcp refs-gen`.
+
 ### Workflow
 
 ```bash
@@ -476,7 +540,7 @@ mdcp check --config docs/mdcp.config.json --docs-root docs
 mdcp refs-list --config docs/mdcp.config.json --docs-root docs
 ```
 
-Discover shards with host search (`rg`, IDE search). `mdcp check` validates cross-link fragments against compiled slugs; `mdcp refs-list` reads the registry file that `compile` just wrote.
+`mdcp check` validates cross-link fragments against compiled slugs. `mdcp refs-list` reads the registry file that `compile` just wrote. When `mdcp check` reports a dead anchor on a link into a compiled output, look up that file's slugs in `mdcp refs-list --format table`. [Cross-links and refs](#cross-links-and-refs) lists the other targets a `#fragment` may name.
 
 <!-- mdcp-shard: end ../../docs/client-cli/compile-refs-registry.md -->
 
@@ -484,7 +548,7 @@ Discover shards with host search (`rg`, IDE search). `mdcp check` validates cros
 
 ## Cross-links and refs
 
-When writing `` `[link text](#anchor)` `` in a shard, the fragment must match the [heading slug](#heading-slug) in **compiled** output. [Refs](#refs) keep those [cross-links](#cross-link) checkable after stitch — not a doc-search tool.
+When writing `` `[link text](#anchor)` `` in a shard, the fragment must match the [heading slug](#heading-slug) in **compiled** output. [Refs](#refs) keep those [cross-links](#cross-link) checkable after stitch.
 
 ```bash
 mdcp compile --config docs/mdcp.config.json --docs-root docs
@@ -492,7 +556,7 @@ mdcp check --config docs/mdcp.config.json --docs-root docs
 mdcp refs-list
 ```
 
-`mdcp check` fails on dead `#` fragments and bad paths. `mdcp refs-list` shows registry entries from the [refs registry](#refs-registry).
+`mdcp check` fails on dead `#` fragments and bad paths. `mdcp refs-list` lists the heading slugs of each compiled output, with the output's file, from the [refs registry](#refs-registry). A `#fragment` has to match a slug of the file the link points at. For a bare `#fragment` in a shard, that is each output that stitches the shard. Compile stitches a guide's shard into the guide's [compiled guide](#compiled-guide) and, for a guide in the [monolith](#monolith), into the monolith too, where the same heading can take another slug, such as `setup-1` for `setup`. A bare `#fragment` may also point at the id of a section in that output, such as a `FIND-*` finding id or a declared `{#id}`. `mdcp refs-list` doesn't print those ids. Compile doesn't write an output for a [standalone guide](#standalone-guide), so the registry doesn't hold its headings.
 
 ### Heading slugs (GitHub rules)
 
@@ -500,7 +564,7 @@ mdcp refs-list
 
 1. Prefer unique subheadings (duplicate titles get `-1`, `-2` slug suffixes).
 2. Validate with `mdcp check` — do not guess anchors from shard-only titles.
-3. Prefer GitHub auto-slugs over explicit `` overrides.
+3. Prefer GFM auto-slugs over explicit `{#id}` overrides.
 
 Slug algorithm, examples, and programmatic APIs: [Core — heading slugs](../mdcp-core/README.md#heading-slugs-github-slugger).
 
@@ -528,7 +592,7 @@ mdcp check --require-lint --require-vale   # CI gate with markdownlint + Vale
 mdcp check --skip-vale            # structural checks only
 ```
 
-`mdcp check` runs **built-in** internal link validation by default (`lint.links.enabled`). Peer `markdown-link-check` runs only when **`lint.links.config`** is set and the peer is installed. `mdcp links` always skips quietly if the peer is missing.
+`mdcp check` runs **built-in** internal link validation by default (`lint.links.enabled`). Peer `markdown-link-check` runs only when **`lint.links.config`** is set and the peer is installed. `mdcp links` checks the file that `lint.links.target` names, or else the monolith that top-level `outputFile` names, and exits 1 when the config sets neither. When the peer is missing, it prints an info line and exits 0.
 
 Install npm peers with:
 
@@ -540,95 +604,77 @@ Install **Vale** separately so `vale` is on your `PATH` — see [Vale installati
 
 Wire preset paths in `mdcp.config.json` under `lint.markdownlint`. See `@bwilliamson/mdcp-presets` on npm.
 
-A [locale pack](#locale-pack) is MDCP compile-time wording — not a Vale style. Unlinked numbered heading-mention prose ships as the **`MDCP` Vale style** in `@bwilliamson/mdcp-presets` (`vale/MDCP/`); see [Locale and language boundary](../../docs/features/design-constraints/locale-and-language.md).
+A [locale pack](#locale-pack) is MDCP compile-time wording, not a Vale style. The **`MDCP` Vale style** in `@bwilliamson/mdcp-presets` (`vale/MDCP/`) holds the en-US prose cues. Its rules flag a numbered heading mention with no link, and `MDCP.DatedClaim` flags `as of` or `until` before an ISO date. See [Locale and language boundary](../../docs/features/design-constraints/locale-and-language.md).
+
+### Vale alert level
+
+`mdcp prose` passes no alert level to Vale, so the `MinAlertLevel` in your `.vale.ini` sets what it shows. `mdcp prose --strict` and `mdcp check` pass `--minAlertLevel` from `vale.strictMinAlertLevel`, which defaults to `error`. To show warnings in those runs too:
+
+```json
+{
+  "vale": {
+    "strictMinAlertLevel": "warning"
+  }
+}
+```
+
+Of Vale's alerts, only error-level ones fail `mdcp prose` or `mdcp check`, so a lower `vale.strictMinAlertLevel` adds warnings or suggestions to the output and leaves the exit code as it was. A Vale runtime error, such as a missing style, also fails both commands. To make a rule fail the check, set its level to `error` in `.vale.ini`. A rule set to `warning`, such as `MDCP.DatedClaim = warning`, no longer fails `mdcp check`, and `mdcp prose` still shows it when the `.vale.ini` `MinAlertLevel` is `warning` or lower.
 
 ### In-scope guide fileset
 
-MDCP knows the **full fileset** it manages: registered guides in `compileOrder`, resolved via `guides[].path` or `{docsRoot}/{name}/`. Shard markdownlint and Vale prose **only touch documents in that scope** — never legacy flat `.md` files, unregistered sibling folders, or other markdown under `--docs-root` that mdcp does not compile.
+MDCP knows the **full fileset** it manages. The guides in `compileOrder` resolve via `guides[].path` or `{docsRoot}/{name}/`, and `standaloneGuides` registers the [standalone guides](#standalone-guide). Shard markdownlint lints the Markdown files in the guide directories. Vale prose lints the guide directories and the standalone guides, because a file that never compiles still reaches readers as written. Both linters skip markdown that the config does not name, such as legacy flat `.md` files or unregistered sibling folders under `--docs-root`.
 
-| Command                                        | Default scope                                   | Out of scope (skipped)                                  |
-| ---------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------- |
-| Shard markdownlint (`mdcp lint`, `mdcp check`) | `compileOrder` guide directories                | Legacy flat docs, unrelated subdirs under `--docs-root` |
-| Vale prose (`mdcp prose`, `mdcp check`)        | Same guide directories                          | Same                                                    |
-| Compiled markdownlint                          | Monolith and publish outputs (`compiledConfig`) | Separate pass — not shard trees                         |
+| Command                                        | Default scope                                     | Out of scope (skipped)                                  |
+| ---------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------- |
+| Shard markdownlint (`mdcp lint`, `mdcp check`) | Markdown in `compileOrder` guide directories      | Legacy flat docs, unrelated subdirs under `--docs-root` |
+| Vale prose (`mdcp prose`, `mdcp check`)        | Guide directories plus `standaloneGuides` files   | Same                                                    |
+| Compiled markdownlint                          | Compiled outputs listed in `compiledConfig` globs | Shard trees (covered by the shard pass)                 |
 
-Optional overrides **narrow** scope further; they never widen it beyond what you explicitly list:
+Optional overrides replace the guide directories with the paths you list, so scope never reaches past what the config names:
 
-| Config field                    | Purpose                                                                               |
-| ------------------------------- | ------------------------------------------------------------------------------------- |
-| `lint.markdownlint.shardsGlobs` | Shard markdownlint paths relative to `--docs-root` (default: compileOrder guide dirs) |
-| `vale.scanGlobs`                | Vale prose paths relative to `--docs-root` (default: same guide dirs)                 |
+| Config field                    | Purpose                                                                                               |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `lint.markdownlint.shardsGlobs` | Shard markdownlint paths relative to `--docs-root` (default: the Markdown in compileOrder guide dirs) |
+| `vale.scanGlobs`                | Vale prose paths relative to `--docs-root` in place of the guide dirs; standalone guides stay in      |
 
-The `@bwilliamson/mdcp-presets` shard config supplies **rules and exclusions** (`!**/index.md`, `!guides.md`). **Scope always comes from the CLI** — not from preset globs.
+Both markdownlint passes run with the docs root as their cwd. For each guide directory, mdcp passes the shard pass a glob for the `.md` and `.markdown` files in it, such as `features/**/*.{md,markdown}`, so an image or text file beside the shards stays out of the shard pass. For a guide under the docs root, the glob is relative to the docs root and leaves the checkout path out. A relative or absolute `--docs-root` then lints the same shards, even under a directory whose name has glob characters, such as `repo (copy)`. A guide outside the docs root gets an absolute glob. With it, the shard preset's exclusions still apply to the guide, and markdownlint-cli2 still finds the guide under a symlinked docs root. mdcp escapes the glob characters and quotes in each path it puts in a glob.
 
-`mdcp fix` is out of band: it runs unscoped `prettier --write .` and `markdownlint-cli2 --fix` across the repo and is not part of mdcp's guide fileset gate.
+A `lint.markdownlint.shardsGlobs` entry goes to markdownlint-cli2 as written, and markdownlint-cli2 resolves it against the docs root. The exceptions are `.`, which mdcp passes as `**`, and an entry that starts with `../`, negated or not, which mdcp makes absolute for the same reasons as a guide outside the docs root. Given `.` as its only path, markdownlint-cli2 would lint the Markdown files at the top of the docs root and nothing below them. It lints every file under any other directory entry, and an entry that starts with `!` or `#` excludes the files it matches. The compiled pass gets only `--config` from mdcp, and markdownlint-cli2 resolves the `globs` in `compiledConfig` against its cwd, the docs root.
 
-<!-- mdcp-shard: end ../../docs/client-cli/optional-linters.md -->
+Vale lints each standalone guide once, even when it is inside a scanned directory or two `standaloneGuides` entries match it. The exception is a guide that a scanned directory also reaches through a symlinked subdirectory. Vale follows that link when it walks the directory, so it lints the file under both names.
 
-<!-- mdcp-shard: start ../../docs/client-cli/consumer-migration.md -->
+Vale does not expand globs, so each `vale.scanGlobs` entry must be a file or directory that exists. Given more than one path, Vale stops with a runtime error on a missing one, and the `mdcp check` hint then points at the config. When a missing path is the only one Vale gets, Vale reads it as literal text, so that run passes without linting any file.
 
-## Consumer migration
+The shard config in `@bwilliamson/mdcp-presets` supplies **rules and exclusions** (`!**/index.md`, `!guides.md`, `!_build/**`). **Scope always comes from the CLI**, not from preset globs. `!guides.md` and `!_build/**` keep the compiled outputs out of the shard pass when a guide at `.` or a `.` entry in `shardsGlobs` reaches the whole docs root. Any other compiled output, such as one under another `outputDir`, needs its own exclusion in a copy of the preset.
 
-Add `source` to your config pointing at your existing monolith, then:
+The `@bwilliamson/mdcp-presets` compiled config lists `_build/guides.md` and `guides.md`: a monolith named `guides.md` under the default `outputDir` or under `outputDir: "."`. A glob that matches no file is skipped without an error. With no monolith, or a monolith with another name or path, the compiled pass lints 0 files and passes, so copy the preset and point its `globs` at your compiled outputs. The preset also lints a `guides.md` that an earlier `outputDir: "."` layout left at the docs root. Compile doesn't update that file under the default `outputDir`, so delete it when you move to `_build`.
 
-```bash
-mdcp shard
-mdcp compile
-mdcp check
+The compiled config keeps every rule setting of the shard config and also turns on `MD052` and `MD053`, which check reference links and their definitions across the monolith. A rule the shard pass turns off stays off on the monolith, so a heading that two guides share doesn't fail `MD024` there. Link fragments (`MD051`) stay off in both, because the [built-in link validation](../../docs/features/link-validation.md) in `mdcp check` checks them when `lint.links` is enabled, as it is by default.
+
+`mdcp fix` is out of band: it runs `prettier --write .` and `markdownlint-cli2 --fix` from the docs root and is not part of mdcp's guide fileset gate. It reaches a standalone guide only when the file is under `--docs-root`.
+
+#### Opt a standalone guide out of Vale
+
+To keep Vale off one standalone guide, such as vendored text, give it a section at the end of `.vale.ini`, after every section that matches the file, such as `[*.md]` or `[*.{md,mdx}]`:
+
+```ini
+[*.md]
+BasedOnStyles = MDCP
+MDCP.DatedClaim = warning
+
+; Last, after every section that matches the file: the last match wins.
+[**/CODE_OF_CONDUCT.md]
+BasedOnStyles =
+MDCP.DatedClaim = NO
 ```
 
-### Guide manifests and compile order
+Vale matches a section against the path it is given, and `mdcp prose` and `mdcp check` pass absolute paths. Start the section with `**/` to match them. A section such as `[CODE_OF_CONDUCT.md]` never matches. `**/` matches the file name at any depth, and adding parent directories, as in `[**/legal/CODE_OF_CONDUCT.md]`, narrows it.
 
-Compile order comes from link order in each guide's `index.md` or `shards.md`. List shards in the manifest in the order you want them stitched.
+Vale takes `BasedOnStyles` from the last matching section that sets it, and a rule's level from the last matching section that sets that rule. Put the opt-out section last, after every section that matches the file, and its empty `BasedOnStyles` turns every style off. A rule that an earlier section sets by name, such as `MDCP.DatedClaim = warning`, stays on until the opt-out section sets it to `NO`.
 
-When a manifest has preamble prose with example inline links (not section shards), set `compile.sectionsHeading` — see [Manifest compile order](../../docs/features/manifest-compile-order.md).
+The file stays a standalone guide, so coverage and link validation still check it.
 
-After changing a guide's `index.md`, run `mdcp compile` and `mdcp check` — there is no separate manifest sync step.
-
-### Output layout
-
-MDCP uses an NPM-style two-root layout.
-
-| Concept          | Default                            | Notes                                                                    |
-| ---------------- | ---------------------------------- | ------------------------------------------------------------------------ |
-| Docs root        | `--docs-root`                      | One subdirectory per guide; `compileOrder` selects which folders compile |
-| Output root      | `outputDir: "_build"`              | Safe to delete; all generated paths relative here unless absolute        |
-| Per-guide output | `{name}.md` under `_build`         | Or `guide.md` when only one guide                                        |
-| Monolith         | Opt-in via top-level `outputFile`  | Omitted by default                                                       |
-| Refs registry    | `.caches/refs.json` under `_build` | Derived state, not publish-facing                                        |
-
-Path resolution details: [Config essentials — path layout](#path-layout).
-
-### Compile hooks and multi-guide links
-
-Built-in hooks run by default — omit `compile.hooks` for the common case. Specs and multi-guide / `ignoreGuides` examples live in **core** docs (not duplicated here):
-
-- [Default compile hooks](../../docs/features/default-compile-hooks.md)
-- [Compile hooks](../mdcp-core/README.md#compile-hooks)
-- [Cross-guide links](../mdcp-core/README.md#cross-guide-link-rewriting)
-
-CLI config path rules remain in [Config essentials](#config-essentials).
-
-### Steps for a new consumer repo
-
-1. Add `mdcp.config.json` to your docs shard directory
-2. Add repo-root npm scripts, for example `mdcp compile --config docs/mdcp.config.json --docs-root docs` (see [Config essentials](#--config-vs---docs-root))
-3. Add `mdcp check --require-lint` (and `--require-vale` when Vale is configured)
-4. Discover shards with host search; validate cross-link slugs with `mdcp check` (optional `mdcp refs-list`; prefer GitHub auto-slugs over ``)
-5. Update CI to build and invoke `@bwilliamson/mdcp-cli`
-
-Upgrade notes from earlier MDCP releases are in package **CHANGELOGs** (and GitHub Releases), not in the feature catalog.
-
-### Verification checklist
-
-After setting up a consumer repo:
-
-1. **`mdcp compile`** — per-guide outputs under `_build/` (or explicit `compile.outputFile` targets); optional monolith when `outputFile` is set
-2. **`mdcp check --require-lint`** — orphans, refs, links, and markdownlint on in-scope guide shards
-3. **`mdcp check --require-vale`** — when Vale is configured
-4. **Hook output** — diagram tables inlined (`inlineInserts`), code evidence blocks resolved (`codeEvidence`), cross-guide links rewritten to monolith `#slug` targets (or left as shard `.md` paths for guides in `compile.crossGuideLinks.ignoreGuides`)
-
-<!-- mdcp-shard: end ../../docs/client-cli/consumer-migration.md -->
+<!-- mdcp-shard: end ../../docs/client-cli/optional-linters.md -->
 
 <!-- mdcp-shard: start ../../docs/client-cli/why-mdcp-for-agents.md -->
 
@@ -636,17 +682,17 @@ After setting up a consumer repo:
 
 Which **CLI commands** address common docs failures when agents edit the repo:
 
-| Pain                       | What goes wrong                 | Command                                            |
-| -------------------------- | ------------------------------- | -------------------------------------------------- |
-| **Monolithic guides**      | Merge conflicts, stale TOC      | `mdcp compile`; `mdcp check` catches orphans       |
-| **Broken cross-links**     | Agents guess `#anchor` slugs    | `mdcp check` (optional `mdcp refs-list` for slugs) |
-| **Context overload**       | Monolith pasted each agent turn | Host search, then read one shard                   |
-| **Docs drift**             | Shards and output diverge       | `mdcp check` before merge                          |
-| **Custom compile scripts** | Bash/Python glue nobody owns    | `compile`, `check`, `@bwilliamson/mdcp-presets`    |
+| Pain                       | What goes wrong                        | Command                                            |
+| -------------------------- | -------------------------------------- | -------------------------------------------------- |
+| **Single-file docs**       | Merge conflicts, stale TOC             | `mdcp compile`; `mdcp check` catches orphans       |
+| **Broken cross-links**     | Agents guess `#anchor` slugs           | `mdcp check` (optional `mdcp refs-list` for slugs) |
+| **Context overload**       | Whole compiled output pasted each turn | Host search, then read one shard                   |
+| **Docs drift**             | Shards and output diverge              | `mdcp check` before merge                          |
+| **Custom compile scripts** | Bash/Python glue nobody owns           | `compile`, `check`, `@bwilliamson/mdcp-presets`    |
 
 Typical loop: edit shards → `mdcp compile` → `mdcp check` → optional `mdcp refs-list` → read one shard when the next turn needs doc context.
 
-Install and flags: [Install and quick start](#install-and-quick-start). Agent **behavior** (when to edit docs, subagents) is the [Agent Skill](../../README.md), not this package.
+[Install and quick start](#install-and-quick-start) covers install and flags, and the [Agent Skill](#not-the-agent-skill) contains the docs workflows an agent follows.
 
 <!-- mdcp-shard: end ../../docs/client-cli/why-mdcp-for-agents.md -->
 
@@ -654,7 +700,7 @@ Install and flags: [Install and quick start](#install-and-quick-start). Agent **
 
 ## Agent integration
 
-Wire **`@bwilliamson/mdcp-cli`** into CI or coding agents with npm scripts. This is CLI packaging — not the Agent Skill ([root README](../../README.md)).
+Wire **`@bwilliamson/mdcp-cli`** into CI or coding agents with npm scripts.
 
 ```json
 {
@@ -670,63 +716,94 @@ mdcp check --require-lint
 mdcp refs-list
 ```
 
-### Related packages
+<!-- mdcp-shard: end ../../docs/client-cli/agent-integration.md -->
 
-| Package                                                                                | Use                                                         |
-| -------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| [`@bwilliamson/mdcp-core`](https://www.npmjs.com/package/@bwilliamson/mdcp-core)       | Programmatic compile, refs, and validation API              |
-| [`@bwilliamson/mdcp-presets`](https://www.npmjs.com/package/@bwilliamson/mdcp-presets) | Starter markdownlint configs for shards and compiled output |
+<!-- mdcp-shard: start ../../docs/client-cli/related-packages.md -->
+
+## Related packages
+
+- [`@bwilliamson/mdcp-core`](https://www.npmjs.com/package/@bwilliamson/mdcp-core): the programmatic compile, refs, and validation API
+- [`@bwilliamson/mdcp-presets`](https://www.npmjs.com/package/@bwilliamson/mdcp-presets): starter markdownlint configs for shards and compiled output, and the MDCP Vale style
 
 ### Further reading
 
-- [Project README](../../README.md) — Agent Skill landing
-- [Commands reference](#commands-reference) — full `mdcp` command list
-- [Core API](../../docs/client-core/index.md) — programmatic library
-- [Feature catalog](../../docs/features/feature-catalog.md) — maintainer depth
+- [Project README](../../README.md): the Agent Skill landing page
+- [Commands reference](#commands-reference): the full `mdcp` command list
+- [Core API](../../docs/client-core/index.md): the programmatic library
+- [Feature catalog](../../docs/features/feature-catalog.md): maintainer depth
 - [Sample guides](../../examples/sample-guides)
 
 ### License
 
 MIT
 
-<!-- mdcp-shard: end ../../docs/client-cli/agent-integration.md -->
+<!-- mdcp-shard: end ../../docs/client-cli/related-packages.md -->
 
-<!-- mdcp-shard: start ../../docs/client-cli/llm-collaboration.md -->
+<!-- mdcp-shard: start ../../docs/glossary/guide.md -->
 
-## LLM collaboration
+## guide
 
-Agent workflow (subagents, intake, docs-first turns) lives in the **Agent Skill**, not this CLI package.
+A **guide** is a directory of [shards](#shard) plus its [manifest](#manifest). Compile turns it into one [compiled guide](#compiled-guide). Each name in `compileOrder` is a guide, read from the directory of that name under the docs root unless `guides[].path` points somewhere else. Its output can also include shards that the manifest links from other directories, or that compile reaches under `compile.scopeRoot`.
 
-- Skill landing: [root README](../../README.md)
-- Helper skills catalog and invoke recipes: [`docs/skills.md`](../../docs/skills.md)
+A guide without `compile.outputFile` can also be stitched into the [monolith](#monolith). A [standalone guide](#standalone-guide) is one registered file with no output of its own.
 
-This CLI package covers shell commands only. Wire scripts with [Agent integration](#agent-integration); install with [Install and quick start](#install-and-quick-start).
+See [Project layout](#project-layout).
 
-<!-- mdcp-shard: end ../../docs/client-cli/llm-collaboration.md -->
+<!-- mdcp-shard: end ../../docs/glossary/guide.md -->
 
-<!-- mdcp-shard: start ../../docs/client-cli/agent-skill.md -->
+<!-- mdcp-shard: start ../../docs/glossary/refs-registry.md -->
 
-## Agent Skill (related)
+## refs registry
 
-The **MDCP Agent Skill** is a separate install from `@bwilliamson/mdcp-cli`.
+Derived catalog of [heading slugs](#heading-slug) from compile output, typically written as `refs.json` under `outputDir`. It lists the headings of each file compile writes, slugged file by file. Those files are every [compiled guide](#compiled-guide) and the [monolith](#monolith), and a compiled guide can be a [publish output](#publish-output). Parent concept: [refs](#refs).
 
-- Landing and bootstrap: [root README](../../README.md)
-- Install: `npx skills add betsalel-williamson/mdcp --skill mdcp`
-- Then: `/mdcp help me get started`
+The registry is **generated state**, not authored shards. `mdcp compile` and `mdcp refs-gen` rebuild it, and `mdcp check` and `mdcp refs-check` verify it still matches the latest compile. [Refs registry path](../../docs/features/refs-registry-path.md) gives the path rules, and [registry contents](#registry-contents) lists its fields.
 
-The skill does **not** ship the `mdcp` binary. Keep this package (or [Agent integration](#agent-integration) scripts) for `mdcp compile` / `mdcp check`.
+<!-- mdcp-shard: end ../../docs/glossary/refs-registry.md -->
 
-<!-- mdcp-shard: end ../../docs/client-cli/agent-skill.md -->
+<!-- mdcp-shard: start ../../docs/glossary/publish-output.md -->
 
-<!-- mdcp-shard: start ../../docs/glossary/heading-slug.md -->
+## publish output
 
-## heading slug
+A **publish output** is the file a [guide](#guide) compiles to when it sets its own `compile.outputFile`, such as a package README or the repository-root `DEVELOPERS.md`. The path is relative to `outputDir` unless it is absolute.
 
-GitHub-style fragment id for a heading in **compiled** Markdown (the part after `#` in `[label](#slug)`). Parent concept: [refs](#refs).
+Publish outputs stay out of the optional [monolith](#monolith), and link validation applies the [publish-only link policy](../../docs/features/link-validation.md#publish-only-link-policy) to them.
 
-MDCP computes slugs from final heading text after guides are stitched and demoted — same rules GitHub uses for README anchors (via `github-slugger`). Duplicate titles in one document get `-1`, `-2` suffixes. Authors should not invent fragments from shard-only titles; [cross-links](#cross-link) must match the compiled slug, and `mdcp check` fails when they do not.
+See [Default per-guide outputs](#default-per-guide-outputs).
 
-<!-- mdcp-shard: end ../../docs/glossary/heading-slug.md -->
+<!-- mdcp-shard: end ../../docs/glossary/publish-output.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/manifest.md -->
+
+## manifest
+
+A **manifest** is the file in a [guide](#guide) directory whose Markdown links set compile order. It is `index.md` by default, and `guides[].compile.manifest` can name another file such as `shards.md`. Compile stitches the linked `.md` files in the order the links appear. The [orphan](#orphan) check compares the guide directory against these links.
+
+See [Manifest compile order](../../docs/features/manifest-compile-order.md).
+
+<!-- mdcp-shard: end ../../docs/glossary/manifest.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/monolith.md -->
+
+## monolith
+
+The **monolith** is the optional single file that stitches every [guide](#guide) without `compile.outputFile` into one document, in `compileOrder` order. Compile writes it only when the config sets top-level `outputFile`.
+
+See [What compile actually does](../../docs/features/overview.md#what-compile-actually-does). [Cross-guide resolution](../mdcp-core/README.md#cross-guide-resolution) covers links between two guides in the monolith.
+
+<!-- mdcp-shard: end ../../docs/glossary/monolith.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/idea-mitosis.md -->
+
+## idea mitosis
+
+**Idea mitosis** is splitting a documentation shard when it grows a second responsibility (see [shard single responsibility](#shard-single-responsibility)). Also split it when reading the file alone misleads. After a split, update the guide index and cross-link the daughter shards.
+
+Do not split only because a file is long. Prefer one primary concern per shard.
+
+See [Shard single responsibility and idea mitosis](../../docs/features/protocol/shard-srp-and-mitosis.md).
+
+<!-- mdcp-shard: end ../../docs/glossary/idea-mitosis.md -->
 
 <!-- mdcp-shard: start ../../docs/glossary/refs.md -->
 
@@ -734,7 +811,7 @@ MDCP computes slugs from final heading text after guides are stitched and demote
 
 **Refs** (short for **references**) are the organized set of heading [slugs](#heading-slug) and [cross-links](#cross-link) MDCP derives from compiled guides so authors and CI can keep Markdown links coherent after stitch.
 
-The problem refs solve is structural, not retrieval: shards merge, heading levels shift, and duplicate titles get disambiguated — so a hand-guessed `#anchor` or stale path can break after `compile`. MDCP keeps a [refs registry](#refs-registry) and validates links at `check` time so the **compiled** document still targets the right sections and files.
+The problem refs solve is structural. Stitching shards shifts heading levels and disambiguates duplicate titles, so a hand-guessed `#anchor` or stale path can break after `compile`. MDCP keeps a [refs registry](#refs-registry) and validates links at `check` time so the **compiled** document still targets the right sections and files.
 
 ### Related wording
 
@@ -743,35 +820,53 @@ The problem refs solve is structural, not retrieval: shards merge, heading level
 | **refs** (noun)    | The reference system as a whole (slugs + links + registry)                        |
 | **refs registry**  | Derived catalog (`refs.json`) of compiled heading entries                         |
 | **ref** (informal) | One heading entry or one link target under that system                            |
-| **generate refs**  | Rebuild the registry from compiled output (`mdcp refs gen` / compile side effect) |
-| **list refs**      | Print registry headings (`mdcp refs-list`)                                        |
-| **check refs**     | Confirm registry matches compiled headings (`mdcp refs check` / via `mdcp check`) |
+| **generate refs**  | Rebuild the registry from compiled output (`mdcp refs-gen` / compile side effect) |
+| **list refs**      | Print each compiled output's headings with its file (`mdcp refs-list`)            |
+| **check refs**     | Confirm registry matches compiled headings (`mdcp refs-check` / via `mdcp check`) |
 
-Doc discovery uses host search (`rg`, IDE search, or a future MCP index). Cross-link correctness uses **`mdcp check`** and optionally **`mdcp refs-list`**. Refs are not a retrieval API — see [ADR 0002](../../docs/features/adr/0002-remove-refs-lookup.md).
-
-Not the same as ordinary “search the docs.” Refs are about **correct anchors and paths after compile**.
+Refs check links. They do not find documents. To find a shard, use host search (`rg`, IDE search) or the guide `index.md`, then read that one shard. To check links, run `mdcp check`. To see the registry's slugs, run `mdcp refs-list`. [ADR 0002](../../docs/features/adr/0002-remove-refs-lookup.md) records why MDCP has no lookup command.
 
 <!-- mdcp-shard: end ../../docs/glossary/refs.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/heading-slug.md -->
+
+## heading slug
+
+GitHub-style fragment id for a heading in **compiled** Markdown (the part after `#` in `[label](#slug)`). Parent concept: [refs](#refs).
+
+MDCP computes slugs from final heading text after guides are stitched and demoted, with the same rules GitHub uses for README anchors (via `github-slugger`). Duplicate titles in one document get `-1`, `-2` suffixes. Authors should not invent fragments from shard-only titles; [cross-links](#cross-link) must match the compiled slug, and `mdcp check` fails when they do not.
+
+<!-- mdcp-shard: end ../../docs/glossary/heading-slug.md -->
 
 <!-- mdcp-shard: start ../../docs/glossary/cross-link.md -->
 
 ## cross-link
 
-A **cross-link** (also **cross-ref**) is a Markdown link whose target is another place in the docs set — usually a same-document `[label](#heading-slug)` fragment, or a path to another shard/guide that compile may rewrite.
+A **cross-link** (also **cross-ref**) is a Markdown link whose target is another place in the docs set. It is usually a same-document `[label](#heading-slug)` fragment or a path to another shard that compile may rewrite.
 
-Cross-links are why [refs](#refs) exist: after assemble, the visible heading text and level can change, so the [heading slug](#heading-slug) that works in a shard may differ from the slug in the compiled file. MDCP rewrites and validates these targets so published and monolith outputs keep working links. See [Built-in link validation](../../docs/features/link-validation.md).
+Cross-links are why [refs](#refs) exist. After assemble, the visible heading text and level can change. The [heading slug](#heading-slug) that works in a shard may then differ from the slug in the compiled file. MDCP rewrites these targets and validates the links in each [compiled guide](#compiled-guide). See [Built-in link validation](../../docs/features/link-validation.md).
 
 <!-- mdcp-shard: end ../../docs/glossary/cross-link.md -->
 
-<!-- mdcp-shard: start ../../docs/glossary/refs-registry.md -->
+<!-- mdcp-shard: start ../../docs/glossary/compiled-guide.md -->
 
-## refs registry
+## compiled guide
 
-Derived catalog of [heading slugs](#heading-slug) from compiled guide output, typically written as `refs.json` under `outputDir`. Parent concept: [refs](#refs).
+A **compiled guide** is the file compile writes for one [guide](#guide). A guide that sets `compile.outputFile` writes its compiled guide to that path, and that file is a [publish output](#publish-output).
 
-The registry is **generated state**, not authored shards. `mdcp compile` (and `mdcp refs gen`) rebuild it; `mdcp check` / `mdcp refs check` verify it still matches the latest compile. Path rules: [Refs registry path](../../docs/features/refs-registry-path.md).
+See [Default per-guide outputs](#default-per-guide-outputs) for the default paths.
 
-<!-- mdcp-shard: end ../../docs/glossary/refs-registry.md -->
+<!-- mdcp-shard: end ../../docs/glossary/compiled-guide.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/standalone-guide.md -->
+
+## standalone guide
+
+A **standalone guide** is a hand-authored markdown file listed in `standaloneGuides[]` that is both its source and the file readers open, such as a package `README.md` or a top-level `SECURITY.md`.
+
+Contrast with a [guide](#guide), whose shards compile into one output. Compile doesn't write output for a standalone guide, and listing it marks it as [captured](#coverage). [Standalone guide behavior](../../docs/features/coverage-scan.md#standalone-guide-behavior) covers how compile treats it and which checks read it.
+
+<!-- mdcp-shard: end ../../docs/glossary/standalone-guide.md -->
 
 <!-- mdcp-shard: start ../../docs/glossary/locale-pack.md -->
 
@@ -779,11 +874,61 @@ The registry is **generated state**, not authored shards. `mdcp compile` (and `m
 
 A **locale pack** is MDCP’s compile-time bundle of natural-language data that is **not** GFM protocol shape. It covers:
 
-- **Generated wording** — for example US-English insert captions like `Table 1. …` and `BROKEN LINK` marker copy
-- **Locale-specific patterns** — optional heading-key patterns for semantic refs
-- **Parse-input word cues** — authored words a compile hook may recognize (for example en-US `line` / `lines` for [codeEvidence](../mdcp-core/README.md#codeevidence) line ranges)
-- **Preamble heading title** — for example en-US `About this guide` for strip/promote defaults (`aboutThisGuideTitle`)
+- **Generated wording**: text such as US-English insert captions (`Table 1. …`) and `BROKEN LINK` marker copy
+- **Locale-specific patterns**: optional heading-key patterns for semantic refs
+- **Parse-input word cues**: authored words a compile hook may recognize (such as en-US `line` / `lines` for [codeEvidence](../mdcp-core/README.md#codeevidence) line ranges)
+- **Preamble heading title**: a title such as en-US `About this guide` for strip/promote defaults (`aboutThisGuideTitle`)
 
 Default `en-US` (one BCP 47 JSON file per locale under `src/locale/locales/`). Language-neutral markup forms and GitHub-style `#L…` fragment **output** stay outside the pack.
 
 <!-- mdcp-shard: end ../../docs/glossary/locale-pack.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/shard.md -->
+
+## shard
+
+A **shard** is a small Markdown file that owns one topic. In MDCP, authors edit shards; `compile` stitches them into [compiled guides](#compiled-guide), such as a package README. Shards are the source of truth, so do not hand-edit generated files.
+
+Think “one concern per file” so people and agents can load only what the task needs. Related: [shard single responsibility](#shard-single-responsibility). Deeper model: [Overview](../../docs/features/overview.md).
+
+<!-- mdcp-shard: end ../../docs/glossary/shard.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/orphan.md -->
+
+## orphan
+
+An **orphan** is a top-level shard in a [guide](#guide) directory that the guide's [manifest](#manifest) does not link. [Manifest compile order](../../docs/features/manifest-compile-order.md) explains which manifest links count, including the `compile.sectionsHeading` rule and the [file-name fallback](../../docs/features/manifest-compile-order.md#linked-shards-and-the-file-name-fallback).
+
+Unlinked shards in a guide subdirectory or under a `compile.scopeRoot` are out of scope for this check. See [Relationship to the orphan check](../../docs/features/coverage-scan.md#relationship-to-the-orphan-check).
+
+<!-- mdcp-shard: end ../../docs/glossary/orphan.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/shard-single-responsibility.md -->
+
+## shard single responsibility
+
+**Shard single responsibility** means each durable documentation shard owns one primary concern, for one [guide tier](#guide-tier), serving one job: explain, instruct how-to, or define and look up. A shard should have one main reason to change.
+
+See [Shard single responsibility and idea mitosis](../../docs/features/protocol/shard-srp-and-mitosis.md) and [idea mitosis](#idea-mitosis).
+
+<!-- mdcp-shard: end ../../docs/glossary/shard-single-responsibility.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/coverage.md -->
+
+## coverage
+
+Documentation **coverage** is the set of markdown files MDCP can account for, and a file in that set is **captured**. [Coverage and the captured set](../../docs/features/coverage-scan.md#coverage-and-the-captured-set) lists which files count.
+
+The coverage scan walks the repository for markdown files, skips vendored paths, and reports any file that is not captured so authors either fold it into a guide or register it in `standaloneGuides[]`. With `scan.strict: true`, gaps fail `mdcp check`.
+
+<!-- mdcp-shard: end ../../docs/glossary/coverage.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/guide-tier.md -->
+
+## guide tier
+
+A **guide tier** is one category in an [archetype](../../docs/features/protocol/extensions-and-archetypes.md#archetypes-battery-types)'s guide layout. Each tier specifies what its shards contain and what they keep out. The default archetype, the Code Repository Archetype, defines four tiers: `features/`, `client/`, `developer/`, and `glossary/`. A tier can include more than one [guide](#guide).
+
+[Default guide layout](../../docs/features/protocol/mdcp-1.0-spec.md#2-default-guide-layout-code-repository-archetype) defines the four tiers. Under its placement test, a shard that consumers need goes in `features/` or `client/`, and a shard that only contributors need goes in `developer/`.
+
+<!-- mdcp-shard: end ../../docs/glossary/guide-tier.md -->

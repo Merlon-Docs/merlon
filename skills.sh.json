@@ -4,15 +4,8 @@
   "groupings": [
     {
       "title": "Documentation system",
-      "description": "MDCP parent skill plus helpers for getting started, docs-only, design, feature delivery, and UX.",
-      "skills": [
-        "mdcp",
-        "mdcp-getting-started",
-        "mdcp-doc-only",
-        "mdcp-design-architecture",
-        "mdcp-feature-level",
-        "mdcp-ux"
-      ]
+      "description": "MDCP: one skill that picks its workflow for bootstrap, docs-only, design, feature, UX, and doc review.",
+      "skills": ["mdcp"]
     }
   ]
 }

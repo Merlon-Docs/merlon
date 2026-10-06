@@ -26,22 +26,35 @@ Regenerate after compile:
 pnpm build && pnpm docs:compile:repo && pnpm bench:context-size
 ```
 
+### Tokens are a rough estimate
+
+The CSV reports every size in characters and in tokens. Token counts come from an open-source tokenizer, [gpt-tokenizer](https://github.com/niieani/gpt-tokenizer) with the `o200k_base` encoding by default. Every model family tokenizes differently, so treat a token count as a rough estimate and use it to compare sizes, never as a bill for one model.
+
+Switch the tokenizer to match your own stack:
+
+```bash
+pnpm bench:context-size -- --tokenizer cl100k_base         # another gpt-tokenizer encoding
+pnpm bench:context-size -- --tokenizer chars4              # characters ÷ 4, no tokenizer
+pnpm bench:context-size -- --tokenizer-module ./count.mjs  # your counter: export countTokens(text)
+```
+
+`MDCP_TOKENIZER` and `MDCP_TOKENIZER_MODULE` set the same choices from the environment, and `--no-write` prints the table without touching the CSV.
+
 ### How to read the numbers
 
-- **Sharding** can reduce per-turn context **when agents read one feature shard instead of the full features monolith** — see `median_shard_pct_of_monolith` in the CSV.
-- MDCP does **not** stop an agent from reading the whole monolith — discipline and Agent Skill instructions matter.
+- **Whole guide versus one shard.** The `guide_*` rows are what an agent loads when it reads a compiled guide in full, the same order of size as pasting a large docs excerpt into a prompt. The `shard_*` rows are what it loads when it reads one shard. The ratio between them is the useful number.
+- **Sharding** can reduce per-turn context **when agents read one shard instead of the whole [monolith](../../glossary/monolith.md)**. See `median_shard_pct_of_monolith` and `median_shard_token_pct_of_monolith` in the CSV.
+- MDCP does **not** stop an agent from reading the whole monolith or a whole compiled guide. Discipline and Agent Skill instructions matter.
 
-### Tier B wording (dogfood measurement, 2026-06-25)
+### Tier B wording (dogfood measurement)
 
-On this repository, the median `docs/features/` shard is **~4.4%** of the compiled features monolith by character count (median ~4.6k chars vs ~105k chars). When agents read one shard instead of the full monolith, per-turn context can be smaller — if they follow the [usage model](./usage-model.md). MDCP does not enforce that discipline; the Agent Skill and your workflow do.
+On this repository, the median `docs/features/` shard is about **1.5%** of the monolith `docs/_build/guides.md`, by characters and by estimated tokens (about 850 tokens against about 60,000). Here the monolith contains the features guide and the glossary terms it links. When agents follow the [usage model](./usage-model.md) and read one shard instead of the whole monolith, per-turn context can be smaller. MDCP does not enforce that discipline. The Agent Skill and your workflow do.
 
 ## Evidence elsewhere
 
-- **`mdcp check` catches orphans and broken refs** — Feature catalog; core tests
-- **OpenAPI analogy** — Design intent in [Vision and roadmap](./00-vision-and-roadmap.md); not LF membership
+- **`mdcp check` catches orphans and broken links**: the [Check gate](../check-gate.md) spec and the CLI smoke tests
+- **OpenAPI analogy**: the design intent is in [Scope and positioning](./01-scope-and-positioning.md#openapi-analogy). MDCP doesn't claim membership in a standards body.
 
 ## Adoption anecdotes
 
 Qualitative outcomes belong in [GitHub adoption stories](https://github.com/betsalel-williamson/mdcp/issues/new?template=adoption-story.yml) — not unverified bullets on the README.
-
-**First external Champion validation (2026-06, anonymous):** A technical evaluator with no prior MDCP use reported that [Vision and roadmap](./00-vision-and-roadmap.md) explained what the tool is and why well enough to proceed; the README landing one-liner alone was not sufficient. This backs the P0 adoption onboarding work in [Personas and priority tiers](../personas-and-priority-tiers.md#p0-adoption--evaluator-onboarding-validated-2026-06) — vision link on landing and Champion eval path in get-started.

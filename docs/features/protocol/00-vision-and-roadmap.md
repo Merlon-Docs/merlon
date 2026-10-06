@@ -1,10 +1,10 @@
 # Vision and roadmap
 
-MDCP (**MarkDown Context Protocol**) is an [Agent Skill](../../glossary/agent-skills.md) and practice for **system context** — intent, design, and terminology in Markdown shards, with compile and check so the same docs serve people and agents. Think of [OpenAPI](https://www.openapis.org/) as a useful analogy for _contracts_, not as claiming MDCP is an industry standards body.
+MDCP (**MarkDown Context Protocol**) is an [Agent Skill](../../glossary/agent-skills.md) and practice for **system context**: intent, design, and terminology in Markdown shards, with compile and check so the same docs serve people and agents.
 
 ## Problem
 
-Large documentation dumps (monolithic README, site-wide `llms.txt`, crawled corpora like Context7) overload agent context windows. Teams also lack a shared, reviewable place for **what documentation means** — especially when legacy projects reuse the same terms for different concepts. Mind maps, arch docs, and specs scatter across tools and never compound in the repo.
+Large documentation dumps (single-file README, site-wide `llms.txt`, crawled corpora like Context7) overload agents' context windows. Teams also lack a shared, reviewable place for **what documentation means**, especially when legacy projects reuse the same terms for different concepts. Mind maps, arch docs, and specs scatter across tools and never compound in the repo.
 
 MDCP does not magically erase documentation debt. It helps head it off by putting durable context in the right place: **small shards** are the source of truth; agents and humans pull **one section at a time** (host search is enough to find it). That scale works for a team of one or a full product, engineering, and marketing org.
 
@@ -15,7 +15,7 @@ MDCP does not magically erase documentation debt. It helps head it off by puttin
 | High level over implementation | Shards hold plan, constraints, acceptance criteria; implementation and procedures live in code or source systems |
 | Glossary as first-class        | Domain terms and legacy disambiguation live in dedicated shards                                                  |
 | Document before build/migrate  | Capture context in shards before greenfield work or migrations                                                   |
-| Granular, safe context         | Read one shard; compiled monolith only when a broader read is intentional                                        |
+| Granular, safe context         | Read one shard; compiled output only when a broader read is intentional                                          |
 | Direct value only              | Ship capabilities that close a unique gap                                                                        |
 | Skill + open toolchain         | Delivered as an Agent Skill; CLI/`mdcp-core` implement compile and check without locking you into a host         |
 | Extensions over core           | `docs/extensions/` locally; shared packs in complementary skills                                                 |
@@ -24,11 +24,11 @@ Filter for new capabilities: [Direct value bar](../design-constraints/direct-val
 
 ## Phased delivery
 
-| Phase  | Surface                                                                                            | Access model                                                                                              |
-| ------ | -------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| **V1** | **Agent Skills** pack (`skills/mdcp` via `npx skills add`) + `mdcp compile`/`check` + task helpers | **V1 transport:** repo access (git clone, SSH, IDE) — delivery surface for shards, not the content domain |
-| **V2** | MDCP MCP server (shard read, glossary search)                                                      | Repo access                                                                                               |
-| **V3** | Hosted context API (OpenAPI spec, API keys, polyglot clients)                                      | Opt-in publish                                                                                            |
+| Phase  | Surface                                                                                              | Access model                                                                                              |
+| ------ | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| **V1** | **Agent Skills** pack (`skills/mdcp` via `npx skills add`) + `mdcp compile`/`check` + task workflows | **V1 transport:** repo access (git clone, SSH, IDE) — delivery surface for shards, not the content domain |
+| **V2** | MDCP MCP server (shard read, glossary search)                                                        | Repo access                                                                                               |
+| **V3** | Hosted context API (OpenAPI spec, API keys, polyglot clients)                                        | Opt-in publish                                                                                            |
 
 ```text
   V1 authoring     shards → compile → check → Agent Skill (/mdcp)
@@ -42,31 +42,10 @@ Filter for new capabilities: [Direct value bar](../design-constraints/direct-val
 
 Later phases (MCP, hosted API) are alternate **delivery** surfaces; they do not redefine the documentation domain.
 
-## Positioning
+The V1 authoring profile includes the [Skill workflows](./skill-workflows.md).
 
-| Approach                         | MDCP relationship                                       |
-| -------------------------------- | ------------------------------------------------------- |
-| Monolithic `llms.txt` dump       | Replaced by Agent Skills pack + on-demand shards        |
-| Context7 / large crawled corpora | Author-controlled, deterministic, PR-reviewable         |
-| OpenAPI                          | Analogy: contract for documentation context             |
-| MCP                              | Complementary delivery on top of MDCP artifacts         |
-| Pandoc / static-site generators  | Downstream publish; MDCP owns authoring and query layer |
+[Scope and positioning](./01-scope-and-positioning.md) explains how MDCP relates to MCP and to OpenAPI. [Alternatives and adoption](./02-alternatives-and-adoption.md) compares MDCP with other doc stacks and says how they coexist.
 
-MDCP is **not** an MCP server. MCP delivers runtime access; MDCP enforces shard discipline, compile invariants, and CI validation gates.
+## Governance
 
-## Coexistence with other doc stacks
-
-MDCP authoring is [GFM-only](../design-constraints/gfm-scope.md). Compiled GFM output can feed Pandoc, MkDocs, Docusaurus, or other publish pipelines. Agent-only guides and publish-only guides may differ in scope.
-
-Helper skills are part of the V1 authoring profile — [Agent helper skills](./agent-task-prompts.md).
-
-## Related issues
-
-- Protocol formalization epic: [GitHub #44](https://github.com/betsalel-williamson/mdcp/issues/44)
-- V1 bootstrap: [#58](https://github.com/betsalel-williamson/mdcp/issues/58) (shipped)
-- V2 MCP server: [#59](https://github.com/betsalel-williamson/mdcp/issues/59)
-- V3 hosted API: [#60](https://github.com/betsalel-williamson/mdcp/issues/60)
-- Scope ADR: [#46](https://github.com/betsalel-williamson/mdcp/issues/46)
-- Usage model: [#45](https://github.com/betsalel-williamson/mdcp/issues/45)
-- Normative spec: [#48](https://github.com/betsalel-williamson/mdcp/issues/48)
-- Performance SLOs and benchmarks: [#64](https://github.com/betsalel-williamson/mdcp/issues/64) — [Performance goals and review](./performance.md)
+MDCP is designed to outgrow one vendor's tooling, and the long-term goal is sponsorship under a **neutral foundation** that gives protocol artifacts, extension catalogs and conformance vectors a trusted home. The mdcp repository hosts the reference toolchain.

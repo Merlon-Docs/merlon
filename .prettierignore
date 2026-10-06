@@ -13,3 +13,8 @@ docs/guides.md
 docs/refs.json
 .agents/
 .worktrees/
+# Docs site: Astro cache and content generated from docs/ shards
+packages/mdcp-site/.astro/
+packages/mdcp-site/.generated/
+packages/mdcp-site/src/content/docs/*
+!packages/mdcp-site/src/content/docs/index.mdx

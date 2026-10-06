@@ -34,5 +34,6 @@ The core packages are:
 | `mdcp check`   | Validate the docs tree                           |
 | `mdcp fix`     | Format shards (Prettier / markdownlint auto-fix) |
 | `mdcp prose`   | Vale prose lint                                  |
+| `mdcp review`  | Report doc sprawl signals (`--json`, `--strict`) |
 
 Invoke these commands directly in your repository after installing the CLI.

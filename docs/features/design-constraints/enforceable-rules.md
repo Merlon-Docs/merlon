@@ -17,32 +17,36 @@ Both kinds are legitimate. What is not legitimate is a rule that reads as gated 
 
 In a repository with a human in the commit path, an ungated rule degrades slowly: reviewers catch some violations and the rest accumulate at a survivable rate. In a repository where agents author every commit, an ungated rule does not degrade — it is simply absent. Agents stop when the gate is green, so a green gate is the whole definition of done that the corpus can express.
 
-Measured evidence for this, including a rule that held structurally while failing semantically for two weeks: [Field report: a fully automated repository](../protocol/field-report-automated-repository.md).
+Measured evidence for this, including a rule that held structurally while failing semantically for two weeks: [Field report: a fully automated repository](../protocol/research/field-report-automated-repository.md).
 
-This constraint is why MDCP invests in the [check gate](../feature-catalog.md#check-gate-p04) rather than in longer skill prose. Prose that no check enforces competes for an agent's context without changing its behavior.
+Because of this constraint, MDCP invests in the [check gate](../check-gate.md) more than in skill prose. Prose that no check enforces competes for an agent's context without changing its behavior.
 
 ## Current status of MDCP's own rules
 
-| Rule                                          | Status                               | Gate                                           |
-| --------------------------------------------- | ------------------------------------ | ---------------------------------------------- |
-| A shard in a guide directory is in a manifest | Gated                                | Orphan check                                   |
-| Internal links and anchors resolve            | Gated                                | Built-in link validation                       |
-| Compiled output matches the shards            | Gated                                | `mdcp check` compile diff in CI                |
-| The refs registry is current                  | Gated                                | `mdcp check` refs step                         |
-| Every markdown file is accounted for          | Gated when `scan.strict: true`       | Coverage scan                                  |
-| Markdown structure and en-US prose cues       | Gated when peer linters are required | Peer linters                                   |
-| Shards describe the product as it works now   | **Advisory**                         | None                                           |
-| One primary concern per shard                 | **Advisory**                         | None                                           |
-| No implementation detail in durable docs      | **Advisory**                         | None                                           |
-| No temporary information or backlogs in docs  | **Advisory**                         | Partial: pending changeset links fail the gate |
+| Rule                                          | Status                               | Gate                                                |
+| --------------------------------------------- | ------------------------------------ | --------------------------------------------------- |
+| A shard in a guide directory is in a manifest | Gated                                | Orphan check                                        |
+| Internal links and anchors resolve            | Gated                                | Built-in link validation                            |
+| Compiled output matches the shards            | Gated                                | CI runs `docs:compile`, then `git diff --exit-code` |
+| The refs registry is current                  | Gated                                | `mdcp check` refs step                              |
+| Every markdown file is accounted for          | Gated when `scan.strict: true`       | Coverage scan                                       |
+| Markdown structure and en-US prose cues       | Gated when peer linters are required | Peer linters                                        |
+| Shards describe the product as it works now   | **Advisory**                         | Partial: source-file links, `lint.paths`, Vale      |
+| One primary concern per shard                 | **Advisory**                         | None                                                |
+| No implementation detail in durable docs      | **Advisory**                         | None                                                |
+| No temporary information or backlogs in docs  | **Advisory**                         | Partial: pending changeset links, Vale              |
+| Current docs drop a removed or old name       | **Advisory**                         | Partial: `lint.paths`, link validation              |
+| A review routine states trigger and evidence  | **Advisory**                         | None                                                |
 
-Where the gated rows are specified: [orphan check](../feature-catalog.md#orphan-check-p13), [link validation](../link-validation.md), [documentation coverage scan](../coverage-scan.md), [peer linters](./peer-linters.md).
+The [check gate](../check-gate.md) lists the `mdcp check` stages behind most gated rows. Their own specs are the [orphan check](../feature-catalog.md#orphan-check), [link validation](../link-validation.md), the [documentation coverage scan](../coverage-scan.md) and the [peer linters](./peer-linters.md) page.
+
+A partial gate checks one fragment of an advisory rule. Link validation fails on a link to a missing source file. With `lint.paths.severity` set to `error`, `mdcp check` also fails on a backtick path that resolves nowhere. With peer Vale required, the `MDCP.DatedClaim` rule fails on `as of <date>`, a claim pinned to its date, and on `until <date>`, a temporary note. The rule checks the files Vale scans, which are the standalone guides and either the guide directories or the `vale.scanGlobs` paths that replace them. A shard outside those paths, such as a glossary that only `compile.scopeRoot` reaches, is not checked. The path probe is specified in [path resolution](../path-resolution.md), and the Vale rule in [Locale and language boundary](./locale-and-language.md).
 
 The advisory rows are stated in the [Agent Skill](../agent-skill.md#quality-assurance-qa-principles). They are the rows worth moving, in whole or in fragments, as checks become possible.
 
 ## Applies to
 
-- Rules stated in the MDCP Agent Skill and helper skills
+- Rules stated in the MDCP Agent Skill and its workflows
 - Rules a consuming repository layers on top of MDCP in its own skills or contributor docs
 - Proposed CLI verbs and checks: a proposal that makes an advisory rule partly gated clears the [direct value bar](./direct-value-bar.md) more easily than one that restates the rule
 

@@ -2,10 +2,16 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
     # Any target branch (stacked feature PRs, not only main).
     # Changeset checks use github.event.pull_request.base.sha — never a hardcoded branch name.
+    # `edited` fires when a PR's base changes, so a PR moved to another base is
+    # tested against that base before it can merge. It also fires on title and
+    # body edits. No job-level `if` skips those: a skipped run counts as passing
+    # for a required check and would replace an earlier failed run. The
+    # concurrency group below cancels the run an edit makes stale.
+    types: [opened, synchronize, reopened, edited]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -177,3 +183,28 @@ jobs:
           echo "Changeset since PR base: $CHANGESET_SINCE ($PR_BASE_REF)"
           pnpm changeset:reject-major
           pnpm changeset:status
+
+  formal:
+    name: Formal models
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      # Harden-Runner: audit mode only — logs egress; block mode is follow-up (#179).
+      - uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 24
+
+      # Runner images ship Java 17 or later; the script downloads and verifies the pinned Alloy jar.
+      - name: Check the Alloy models
+        run: |
+          java -version
+          node scripts/formal-check.mjs

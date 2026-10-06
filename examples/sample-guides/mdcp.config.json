@@ -57,9 +57,6 @@
     "markdownlint": {
       "shardsConfig": "../../packages/mdcp-presets/markdownlint-shards.markdownlint-cli2.jsonc",
       "compiledConfig": "../../packages/mdcp-presets/markdownlint-compiled.markdownlint-cli2.jsonc"
-    },
-    "links": {
-      "enabled": false
     }
   },
   "vale": {

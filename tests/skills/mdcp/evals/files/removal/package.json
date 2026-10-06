@@ -1,0 +1,8 @@
+{
+  "name": "digestly",
+  "version": "1.4.0",
+  "private": true,
+  "scripts": {
+    "docs:check": "mdcp check --config docs/mdcp.config.json --docs-root docs --skip-vale"
+  }
+}

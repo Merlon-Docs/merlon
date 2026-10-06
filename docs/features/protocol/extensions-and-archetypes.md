@@ -4,7 +4,7 @@ How MDCP stays **broadly applicable** while allowing **project-specific** (and p
 
 ## Problem
 
-A single monolithic agent index cannot serve every documentation culture — open-source libraries with Javadoc-style API surfaces, SaaS products with Docusaurus sites, regulated industries with fixed templates, or teams that want **pointer shards** into source files instead of duplicating implementation detail.
+One agent index cannot serve every documentation culture: open-source libraries with Javadoc-style API surfaces, SaaS products with Docusaurus sites, regulated industries with fixed templates, or teams that want **pointer shards** into source files instead of duplicating implementation detail.
 
 MDCP separates:
 
@@ -14,16 +14,7 @@ MDCP separates:
 | **Repo shards**   | `features/`, `client/`, `developer/`, `glossary/`             | Your team in git                              |
 | **Extensions**    | Complementary skills, local overlays under `docs/extensions/` | Your team; **MAY** be proprietary             |
 
-## Do not hand-edit agent entrypoints for repo-specific guidance
-
-The parent **Agent Skill** (`skills/mdcp/` → your agent's skills directory after `npx skills add`) is the portable agent entrypoint.
-
-| Rule                                                                       | Detail                                                  |
-| -------------------------------------------------------------------------- | ------------------------------------------------------- |
-| Agents **MUST NOT** hand-edit vendored skill files for one-off repo advice | Changes belong in shards or `docs/extensions/`          |
-| Broadly applicable improvements                                            | Propose upstream to `skills/mdcp/` via PR               |
-| Project-specific guidance                                                  | `docs/extensions/` or complementary skills you maintain |
-| Refresh local dogfood                                                      | `pnpm skill:update` (alias: `pnpm skill:install`)       |
+Agents don't hand-edit the vendored skill with repo-specific guidance, which goes in repo shards or the extensions layer ([MDCP 1.0 §4](./mdcp-1.0-spec.md#4-skills-and-immutability)).
 
 ## SOLID principles for MDCP
 
@@ -39,7 +30,7 @@ Design constraints for the protocol and its ecosystem — analogous to SOLID in 
 
 ## Extensions directory
 
-Published and community extensions live as complementary skills under `skills/mdcp-arch-*` (WIP) or local `docs/extensions/`.
+Extensions are complementary skills. mdcp's own are the internal archetypes under `skills/mdcp-arch-*`, and a project can add its own in a local `docs/extensions/`.
 
 | Kind                | Purpose                                                            | Example                                   |
 | ------------------- | ------------------------------------------------------------------ | ----------------------------------------- |
@@ -50,42 +41,35 @@ Published and community extensions live as complementary skills under `skills/md
 ### Fork, use locally, or contribute back
 
 - **Fork** complementary skills into your repo under `docs/extensions/` when you need proprietary or experimental packs.
-- **Contribute back** via PR when an extension is broadly useful — we want shared archetypes to grow.
+- **Contribute back** via PR when an extension or a change to `skills/mdcp/` is broadly useful. We want shared archetypes to grow.
 - **No obligation** — mdcp uses **MIT**; local-only proprietary extensions are explicitly encouraged when they encode competitive or regulated workflow detail.
 
-**Bootstrap:** Install the parent skill with `npx skills add betsalel-williamson/mdcp --skill mdcp`. Commit the vendored skill in your agent's skills directory so agents share the same instructions.
+**Security:** A skill runs with the same permissions as the user. Treat third-party skills as untrusted.
 
-**Security:** Agent Skills operate with identical permissions to the user. Treat third-party Agent Skills as untrusted. Future work: trusted-source allowlist and sandboxed execution.
-
-Built-in subagents (such as the `mdcp` feature and doc-only subagents) resolve via the skills directory your host discovers. Each Agent Skill is an isolated, independent entity.
+Each Agent Skill is an isolated, independent entity.
 
 ## Archetypes ("Battery Types")
 
 An **archetype** (or "battery type") is a documented bundle: guide layout, glossary seeds, optional prompts, and extension pointers for one project class. The goal is to enforce useful structure for human/AI collaboration.
 
-The default MDCP installation provides the **Code Repository Archetype** (`features/`, `client/`, `developer/`, `glossary/`). This is the "batteries-included" pack for software engineering that keeps developer workflows out of client usage and separates high-level feature specs from low-level code.
+The default MDCP installation provides the **Code Repository Archetype** (`features/`, `client/`, `developer/`, `glossary/`), the "batteries-included" pack for software engineering. [Default guide layout](./mdcp-1.0-spec.md#2-default-guide-layout-code-repository-archetype) defines its tiers.
 
 Because the underlying MDCP engine (`mdcp compile`, `mdcp check`) is domain-agnostic, teams can define alternative archetypes for other documentation systems — for example factory SOPs, equipment manuals, training curricula, Legal Operations, or HR Policies — that use completely different guide tiers.
 
-Current public archetypes:
+Archetype extensions in this repository (internal, `metadata.internal: true`, not yet published to skills.sh):
 
-| Archetype          | Extension id                  | When to use                            | Shard emphasis                                              |
-| ------------------ | ----------------------------- | -------------------------------------- | ----------------------------------------------------------- |
-| OSS library        | `mdcp-arch-oss-library`       | npm/crates publishable API             | Pointer shards to `src/`; minimal duplication of signatures |
-| Product docs site  | `mdcp-arch-product-docs-site` | MkDocs, Docusaurus, VitePress          | `format-*` extension + client guide tier                    |
-| Go-to-market / GTM | `mdcp-arch-gtm`               | Marketing, sales, awareness, messaging | `awareness/`, `messaging/`, `audience/` guide tiers         |
+| Archetype          | Extension id                  | When to use                            | Shard emphasis                                                 |
+| ------------------ | ----------------------------- | -------------------------------------- | -------------------------------------------------------------- |
+| OSS library        | `mdcp-arch-oss-library`       | npm/crates publishable API             | Pointer shards to `src/`; minimal duplication of signatures    |
+| Product docs site  | `mdcp-arch-product-docs-site` | MkDocs, Docusaurus, VitePress          | `format-*` extension + client guide tier                       |
+| Go-to-market / GTM | `mdcp-arch-gtm`               | Marketing, sales, awareness, messaging | `awareness/`, `messaging/`, `audience/` guide tiers            |
+| Research project   | `mdcp-arch-research`          | Studies, field reports, benchmarks     | `research/` tier of dated records beside `design-constraints/` |
 
-Archetype READMEs live under complementary skills — for example `mdcp-arch-oss-library/`, `mdcp-arch-product-docs-site/`, and `mdcp-arch-gtm/`.
-
-Formatting packs use the `mdcp-format-*` prefix.
+Archetype READMEs live under complementary skills — for example `mdcp-arch-oss-library/`, `mdcp-arch-product-docs-site/`, `mdcp-arch-gtm/`, and `mdcp-arch-research/`.
 
 Start from an archetype README, copy patterns into `docs/`, then customize under `docs/extensions/`.
-
-## Governance vision
-
-MDCP is designed to outgrow a single vendor implementation. The long-term goal is sponsorship under a **neutral foundation** (for example Linux Foundation or similar) so protocol artifacts, extension catalogs, and conformance vectors have a trusted home. Until then, the mdcp repository hosts the reference implementation.
 
 ## Related
 
 - [Vision and roadmap](./00-vision-and-roadmap.md)
-- [Agent helper skills](./agent-task-prompts.md)
+- [Skill workflows](./skill-workflows.md)

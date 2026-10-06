@@ -2,4 +2,4 @@
 
 Technical reference for integrators and theme developers.
 
-See [Admin Chapter 1](#admin-chapter-1-getting-started) for staff workflows.
+See [Admin Chapter 1](../admin-guide/chapter-1-getting-started.md) for staff workflows.

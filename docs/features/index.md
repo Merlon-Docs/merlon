@@ -1,48 +1,54 @@
-# MDCP Feature Catalog
+# Features Guide
 
-Product documentation for **what mdcp is designed to do** — the problems it solves, how commands connect, and where to read implementation details.
+Product documentation for **what mdcp is designed to do**: the problems it solves and how commands connect.
 
-**Start here:** [Overview](./overview.md) explains the mental model (shards → compile → validate → Agent Skill), package roles, and a code map. The sections below go deeper on specific topics.
-
-- [MDCP Feature Catalog](#table-of-contents)
+- [Features Guide](#table-of-contents)
   - [About this guide](./about-this-guide.md)
-  - [Overview](./overview.md)
-  - [Glossary](../glossary/index.md)
-  - [Personas and priority tiers](./personas-and-priority-tiers.md)
-  - [Feature catalog](./feature-catalog.md)
-  - [Agent Skill](./agent-skill.md)
-  - [Manifest compile order](./manifest-compile-order.md)
-  - [Default compile hooks](./default-compile-hooks.md)
-  - [Source tags and default banner](./source-tags-and-banner.md)
-  - [Compile output backup](./compile-output-backup.md)
+
+## Start here
+
+- [Overview](./overview.md)
+- [Glossary](../glossary/index.md)
+- [Personas and priority tiers](./personas-and-priority-tiers.md)
+- [Feature catalog](./feature-catalog.md)
+
+## Compile and validate
+
+- [Manifest compile order](./manifest-compile-order.md)
+- [Default compile hooks](./default-compile-hooks.md)
+- [Source tags and default banner](./source-tags-and-banner.md)
+- [Compile output backup](./compile-output-backup.md)
+- [Check gate](./check-gate.md)
 - [Link validation](./link-validation.md)
+- [Monolith link lint](./monolith-link-lint.md)
+- [Path resolution in prose](./path-resolution.md)
 - [Documentation coverage scan](./coverage-scan.md)
 - [Refs registry path](./refs-registry-path.md)
-- [Architecture decision records](./adr/index.md)
-  - [ADR 0001 — Remove `mdcp export` profiles](./adr/0001-remove-export-profiles.md)
-  - [ADR 0002 — Remove `mdcp refs lookup`](./adr/0002-remove-refs-lookup.md)
-  - [ADR 0003 — Do not adopt OKF](./adr/0003-do-not-adopt-okf.md)
-  - [ADR 0004 — Decline a hard-gated branch-before-edit skill rule](./adr/0004-decline-branch-before-edit-hard-gate.md)
-  - [ADR 0005 — Keep linear TypeScript scanners over rg, Peggy, or Rust](./adr/0005-keep-ts-scanners-over-rg-peggy-rust.md)
-- [Design constraints](./design-constraints/index.md)
-  - [Protocol](./protocol/00-vision-and-roadmap.md)
 
-    - [Vision and roadmap](./protocol/00-vision-and-roadmap.md)
-    - [Scope and positioning](./protocol/01-scope-and-positioning.md)
-    - [Alternatives and adoption](./protocol/02-alternatives-and-adoption.md)
-    - [Benefit claims and evidence](./protocol/benefit-claims-and-evidence.md)
-    - [Field report: a fully automated repository](./protocol/field-report-automated-repository.md)
-    - [Usage model](./protocol/usage-model.md)
-    - [Shard single responsibility and idea mitosis](./protocol/shard-srp-and-mitosis.md)
-    - [Acknowledgments](./protocol/acknowledgments.md)
-    - [Performance goals and review](./protocol/performance.md)
-    - [MDCP 1.0 spec (draft)](./protocol/mdcp-1.0-spec.md)
-    - [Agent task subagents](./protocol/agent-task-prompts.md)
-    - [Helper skill boundaries](./protocol/skills/mdcp-getting-started.md)
-      - [Getting-started helper](./protocol/skills/mdcp-getting-started.md)
-      - [Feature-level helper](./protocol/skills/mdcp-feature-level.md)
-      - [Doc-only helper](./protocol/skills/mdcp-doc-only.md)
-      - [Design-architecture helper](./protocol/skills/mdcp-design-architecture.md)
-      - [UX helper](./protocol/skills/mdcp-ux.md)
-    - [Extensions and archetypes](./protocol/extensions-and-archetypes.md)
-    - [Format specification](./protocol/format-specification.md)
+## Agent Skill and its workflows
+
+- [Agent Skill](./agent-skill.md)
+- [Skill workflows](./protocol/skill-workflows.md)
+
+## Decisions and constraints
+
+- [Architecture decision records](./adr/index.md)
+- [Design constraints](./design-constraints/index.md)
+
+## Protocol
+
+- [Vision and roadmap](./protocol/00-vision-and-roadmap.md)
+- [Scope and positioning](./protocol/01-scope-and-positioning.md)
+- [Alternatives and adoption](./protocol/02-alternatives-and-adoption.md)
+- [Usage model](./protocol/usage-model.md)
+- [Shard single responsibility and idea mitosis](./protocol/shard-srp-and-mitosis.md)
+- [Extensions and archetypes](./protocol/extensions-and-archetypes.md)
+- [MDCP 1.0 spec (draft)](./protocol/mdcp-1.0-spec.md)
+- [Acknowledgments](./protocol/acknowledgments.md)
+
+## Evidence and research
+
+- [Documentation and software reliability](./protocol/documentation-and-reliability.md)
+- [Benefit claims and evidence](./protocol/benefit-claims-and-evidence.md)
+- [Performance goals](./protocol/performance.md)
+- [Research records](./protocol/research/about-research-records.md)

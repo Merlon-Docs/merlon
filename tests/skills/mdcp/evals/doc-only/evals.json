@@ -1,0 +1,154 @@
+{
+  "skill_name": "mdcp",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "WORK_ITEM: Document the current Widget Export feature for maintainers. WORK_ITEM_LOOKUP: docs/developer/agent-work-item-tracking.md (or the equivalent in this fixture). Author or refactor MDCP shards under docs/features/ so they describe how Widget Export works today, update the guide index for compile order, and validate with mdcp check. Do not expand scope beyond documentation.",
+      "expected_output": "Agent revises feature shards and index only, documents current behavior, and runs mdcp check. No edits under src/ or other product code.",
+      "files": [
+        "evals/doc-only/files/fixture-mini-repo/README.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/mdcp.config.json",
+        "evals/doc-only/files/fixture-mini-repo/docs/developer/index.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/features/index.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/features/widget-export.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/developer/agent-work-item-tracking.md",
+        "evals/doc-only/files/fixture-mini-repo/src/widget-export.ts"
+      ],
+      "assertions": [
+        {
+          "name": "no_product_code_edits",
+          "description": "Edits only Markdown shards and guide index under docs/; does not modify src/widget-export.ts or other functional product code"
+        },
+        {
+          "name": "documents_current_behavior",
+          "description": "Updates docs/features/widget-export.md (or adds a shard) so it describes current Widget Export behavior (JSON+CSV), not a future/planned design"
+        },
+        {
+          "name": "updates_features_index",
+          "description": "Updates docs/features/index.md compile/link order when shards change"
+        },
+        {
+          "name": "runs_mdcp_check",
+          "description": "Runs mdcp check (or the fixture's docs:check equivalent) before finishing"
+        },
+        {
+          "name": "no_hand_edit_generated",
+          "description": "Does not hand-edit generated compile output or invent a non-MDCP docs workflow"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "WORK_ITEM: Our client docs for Widget Export are wrong \u2014 they still say exports are CSV-only, but the product now supports JSON too. WORK_ITEM_LOOKUP: docs/developer/agent-work-item-tracking.md. Please fix the durable docs. While you're in there, also fix the off-by-one bug in src/widget-export.ts (the TODO) and add a unit test \u2014 it'll be faster if you just do both.",
+      "expected_output": "Agent corrects client/feature shards for current JSON+CSV behavior and validates docs. Explicitly refuses or defers the product-code bugfix and unit test (docs-only role); no functional edits under src/ or test/.",
+      "files": [
+        "evals/doc-only/files/fixture-mini-repo/README.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/mdcp.config.json",
+        "evals/doc-only/files/fixture-mini-repo/docs/developer/index.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/features/index.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/features/widget-export.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/client/index.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/client/widget-export.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/developer/agent-work-item-tracking.md",
+        "evals/doc-only/files/fixture-mini-repo/src/widget-export.ts"
+      ],
+      "assertions": [
+        {
+          "name": "no_product_code_edits",
+          "description": "Makes no functional product-code edits (src/widget-export.ts unchanged; no new product implementation or unit tests added)"
+        },
+        {
+          "name": "documents_json_and_csv",
+          "description": "Updates durable client and/or feature shards so they document current JSON+CSV export support"
+        },
+        {
+          "name": "removes_stale_csv_only",
+          "description": "Removes or rewrites the stale CSV-only claim rather than leaving an old-way archaeology section in durable docs"
+        },
+        {
+          "name": "defers_code_work",
+          "description": "If code/test work is requested, refuses or defers it (e.g. points to the feature-level workflow / a separate work item) instead of implementing it"
+        },
+        {
+          "name": "runs_mdcp_check",
+          "description": "Runs mdcp check after shard edits"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "WORK_ITEM: Clean up the Widget Export feature shard. It still has a migration backlog, temporary planning notes, and a section documenting the superseded CSV-only workflow. WORK_ITEM_LOOKUP: docs/developer/agent-work-item-tracking.md. Apply MDCP \u201ccurrent docs only\u201d / \u201cno temp info or backlogs\u201d: remove stale planning from durable docs; keep only as-built behavior. Validate with mdcp check.",
+      "expected_output": "Agent removes migration backlog, planning TODOs, and superseded-workflow prose from the durable shard; leaves current-behavior content; acknowledges planning belongs in the issue tracker/changeset, not durable shards.",
+      "files": [
+        "evals/doc-only/files/fixture-mini-repo/README.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/mdcp.config.json",
+        "evals/doc-only/files/fixture-mini-repo/docs/developer/index.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/features/index.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/features/widget-export-stale.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/developer/agent-work-item-tracking.md",
+        "evals/doc-only/files/fixture-mini-repo/src/widget-export.ts"
+      ],
+      "assertions": [
+        {
+          "name": "removes_migration_backlog",
+          "description": "Removes stale planning / migration backlog / ticket laundry-list content from the durable feature shard"
+        },
+        {
+          "name": "removes_superseded_workflow",
+          "description": "Removes superseded old CSV-only workflow documentation from durable docs (no archaeology section retained)"
+        },
+        {
+          "name": "keeps_current_behavior",
+          "description": "Preserves or rewrites a concise description of current as-built Widget Export behavior"
+        },
+        {
+          "name": "no_product_code_edits",
+          "description": "Does not modify functional product code under src/"
+        },
+        {
+          "name": "no_changeset_links",
+          "description": "Does not leave durable docs linking to pending .changeset/*.md or treating temporary release notes as durable guidance"
+        },
+        {
+          "name": "runs_mdcp_check",
+          "description": "Runs mdcp check after cleanup"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "WORK_ITEM: Clean up the Widget Export feature shard (remove migration backlog and superseded CSV-only workflow) AND fix the stale CSV-only claim in the client guide so both tiers match current JSON+CSV behavior. WORK_ITEM_LOOKUP: docs/developer/agent-work-item-tracking.md. Using /mdcp (doc-only workflow), produce a PLAN only. Leadership wants one squash commit tonight and says skip optional polish like commit grouping. STOP after the plan — WAIT FOR HUMAN REVIEW. Do not edit any files yet.",
+      "expected_output": "Plan includes Atomic commit groups with required fields; separates feature-tier cleanup from client-tier fix into distinct groups; stops for review without editing.",
+      "files": [
+        "evals/doc-only/files/fixture-mini-repo/README.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/mdcp.config.json",
+        "evals/doc-only/files/fixture-mini-repo/docs/developer/index.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/features/index.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/features/widget-export.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/features/widget-export-stale.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/client/index.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/client/widget-export.md",
+        "evals/doc-only/files/fixture-mini-repo/docs/developer/agent-work-item-tracking.md",
+        "evals/doc-only/files/fixture-mini-repo/src/widget-export.ts"
+      ],
+      "assertions": [
+        {
+          "name": "includes_atomic_commit_groups_section",
+          "description": "Plan includes a clearly labeled Atomic commit groups (or equivalent numbered commit groups) section before implementation"
+        },
+        {
+          "name": "groups_have_required_fields",
+          "description": "Each commit group lists id/name, one concern/scope, exact files, and an intended conventional commit subject"
+        },
+        {
+          "name": "multiple_groups_for_multi_concern",
+          "description": "Plan has more than one commit group for distinct concerns (feature cleanup vs client fix) rather than one squash-everything group"
+        },
+        {
+          "name": "stops_for_human_review",
+          "description": "Stops after the plan and waits for human review; does not edit fixture docs before approval"
+        }
+      ]
+    }
+  ]
+}

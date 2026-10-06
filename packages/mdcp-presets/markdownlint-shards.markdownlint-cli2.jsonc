@@ -18,5 +18,13 @@
     "MD052": false,
     "MD053": false,
   },
-  "globs": ["!guides.md", "!**/index.md", "!node_modules", "!**/*.png", "!**/*.svg", "!**/*.mmd"],
+  "globs": [
+    "!guides.md",
+    "!_build/**",
+    "!**/index.md",
+    "!node_modules",
+    "!**/*.png",
+    "!**/*.svg",
+    "!**/*.mmd",
+  ],
 }

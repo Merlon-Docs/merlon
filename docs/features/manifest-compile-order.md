@@ -1,6 +1,6 @@
 # Manifest compile order
 
-Each guide's **compile order** comes from markdown links in its manifest file — `index.md` by default, or `shards.md` when configured under `guides[].compile.manifest`. mdcp collects every link to a `.md` file in **document order** and stitches those shards in that sequence.
+Each guide's **compile order** comes from markdown links in its manifest file: `index.md` by default, or `shards.md` when configured under `guides[].compile.manifest`. mdcp collects every link to a `.md` file in **document order** and stitches those shards in that sequence. A same-document `#slug` link also adds `slug.md` when that file exists in the guide directory. Those shards compile after the shards the manifest links by path.
 
 Guide directories are **human source only** (`index.md`, shard files). Generated outputs (per-guide `{name}.md`, optional monolith, `.caches/refs.json`, explicit `compile.outputFile`) live under `outputDir`.
 
@@ -75,10 +75,26 @@ mdcp only considers links **at or after** `## Sections`. Preamble example links 
 | Situation                                                                                                                        | `sectionsHeading`            |
 | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
 | Manifest is a TOC — every `.md` link is a section                                                                                | Omit                         |
-| `shards.md` lists cross-tree shards only (review monoliths)                                                                      | Usually omit                 |
+| `shards.md` lists cross-tree shards only (compiled review guides)                                                                | Usually omit                 |
 | Preamble has inline `.md` links that are examples or cross-references, plus a separate ordered section list under a `##` heading | **Set** to that heading text |
 
 The heading match is exact: `sectionsHeading` `"Sections"` matches a line that starts with `##` followed by `Sections`, not `## Section list`.
+
+## Linked shards and the file-name fallback
+
+Compile also follows inline `.md` links inside the shards it stitches. A guide compiles its manifest's shards plus every shard it finds by following links from shard to shard, a set the code calls `linkedSectionFiles`. Each link resolves from the directory that contains its shard, and the walk keeps a target that exists in the guide directory or under `compile.scopeRoot`. Those shards compile after the manifest's shards, in the order the walk finds them. [Cross-guide purpose](../client-core/compile-hooks/cross-guide-links.md#cross-guide-purpose) says which shards in the set get an entry in the guide link index.
+
+| Authoring form                                                | Walk follows it |
+| ------------------------------------------------------------- | --------------- |
+| Inline link `[label](path.md)` or `[label](path.md#fragment)` | Yes             |
+| Reference-style link `[label][ref]` with `[ref]: path.md`     | No              |
+| File path in backticks, such as `` `path.md` ``               | No              |
+
+The walk reads each shard's raw text. It also follows an inline link written in a code span or a fenced code block. The walk skips a reference-style link and a path in backticks, so either one can refer to a shard that the guide doesn't compile. No link pass rewrites either form, and the path stays as written in the compiled output.
+
+That walk serves shards in guide subdirectories and under `compile.scopeRoot`. The manifest must link every top-level shard in the guide directory directly, because the [orphan check](./feature-catalog.md#orphan-check) reads only the manifest. A top-level shard that only another shard links still compiles, and `mdcp check` reports it as an orphan.
+
+When the manifest links no shards, compile takes the other top-level `.md` files in the guide directory in file-name order, leaving out any `shards.md`, and the orphan check reports nothing for that guide.
 
 ## Workflow
 
@@ -86,4 +102,4 @@ The heading match is exact: `sectionsHeading` `"Sections"` matches a line that s
 2. Run `mdcp compile` — there is no separate manifest sync step.
 3. Run `mdcp check` — orphan validation uses the same manifest rules as compile.
 
-Config field and example: [Config essentials — `sectionsHeading`](../client-cli/config-essentials.md#sectionsheading). Implementation: `manifestTextForSections` and `sectionFiles` in `packages/mdcp-core/src/compile/assemble.ts`.
+Code: `manifestTextForSections` and `sectionFiles` in `packages/mdcp-core/src/compile/section-manifest.ts`.

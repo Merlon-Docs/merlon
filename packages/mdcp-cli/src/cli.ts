@@ -9,7 +9,6 @@ import {
   resolveDocsRoot,
   resolveGuideDir,
   getGuideConfig,
-  guideScanDirs,
   shardLintPaths,
   checkOrphansForGuides,
   computeCoverage,
@@ -22,11 +21,20 @@ import {
   readRefsRegistry,
   findPeerBinary,
   runPeer,
+  probeDocumentPaths,
+  formatPathProbeIssue,
+  pathProbeInputs,
   shardFromMonolith,
   formatLinkIssue,
+  reviewDocs,
+  formatReviewReport,
+  refsOutputTexts,
+  type HeadingEntry,
   type LinkIssue,
   type LinkSeverity,
   type MdcpConfig,
+  type RefsOutputText,
+  ILLUSTRATIVE_MARKER,
 } from '@bwilliamson/mdcp-core';
 import {
   compileWorkspace,
@@ -34,6 +42,7 @@ import {
   runBuiltInLinkLintFromWorkspace,
   resolveLinkSeverity,
 } from './compile-workspace.js';
+import { valeArgs, valeCheckHints, valeScanPaths } from './vale-args.js';
 
 interface GlobalOpts {
   config: string;
@@ -87,12 +96,6 @@ function coverageInputs(config: MdcpConfig, opts: GlobalOpts): CoverageOptions {
   };
 }
 
-function valeScanPaths(config: MdcpConfig, docsRoot: string): string[] {
-  return (
-    config.vale?.scanGlobs?.map((g) => resolve(docsRoot, g)) ?? guideScanDirs(config, docsRoot)
-  );
-}
-
 function guideEntries(config: MdcpConfig, docsRoot: string) {
   return config.compileOrder.map((name) => {
     const cfg = getGuideConfig(config, name);
@@ -104,11 +107,6 @@ function guideEntries(config: MdcpConfig, docsRoot: string) {
       scopeRoot: cfg?.compile?.scopeRoot ? resolve(docsRoot, cfg.compile.scopeRoot) : undefined,
     };
   });
-}
-
-function valeMinAlertLevel(config: MdcpConfig, strictFlag?: boolean): string | undefined {
-  if (strictFlag) return 'error';
-  return config.vale?.strictMinAlertLevel;
 }
 
 function resolveLinkTarget(config: MdcpConfig, docsRoot: string): string | undefined {
@@ -137,8 +135,9 @@ function collectBuiltInLinkIssues(
   docsRoot: string,
   globalOpts: GlobalOpts,
   workspace: ReturnType<typeof compileWorkspace>,
+  scanRoot?: string,
 ): { issues: LinkIssue[]; severity: LinkSeverity } {
-  const issues = runBuiltInLinkLintFromWorkspace(config, docsRoot, workspace);
+  const issues = runBuiltInLinkLintFromWorkspace(config, docsRoot, workspace, scanRoot);
   const severity = resolveLinkSeverity(globalOpts.warnBrokenLinks, config);
   return { issues, severity };
 }
@@ -161,7 +160,7 @@ interface CheckFailure {
 
 const LINK_KIND_HINTS: Record<LinkIssue['kind'], string> = {
   'dead anchor':
-    'dead anchor: update the #fragment to a slug from compiled output (`mdcp refs list`).',
+    "dead anchor: change the #fragment to a slug of the file the link points at, which for a bare #fragment is the file that holds it. A bare #fragment may also point at a section's id there, such as a FIND-* id or a declared {#id}. For a compiled output, `mdcp refs-list --format table` lists its slugs by file, relative to the docs root. A standalone guide's headings aren't in the registry.",
   'missing file': 'missing file: create the target file or fix the relative path in the shard.',
   'missing publish path':
     'missing publish path: link a published guide outputFile, or list the target guide in compile.crossGuideLinks.ignoreGuides when shard paths are intentional. Do not link durable docs to pending .changeset/*.md files.',
@@ -185,10 +184,6 @@ function reportCheckFailures(failures: CheckFailure[]): void {
   console.error('Resolve the diagnostics above, then re-run: mdcp check');
 }
 
-function compileToString(config: MdcpConfig, docsRoot: string, globalOpts: GlobalOpts): string {
-  return compileWorkspace(config, docsRoot, cliBackupFlags(globalOpts)).compiled;
-}
-
 function logWritten(results: { path: string; lines: number; backupPath?: string }[]): void {
   for (const r of results) {
     if (r.backupPath) console.log(`backed up → ${r.backupPath}`);
@@ -196,11 +191,43 @@ function logWritten(results: { path: string; lines: number; backupPath?: string 
   }
 }
 
-function writeCompiled(config: MdcpConfig, docsRoot: string, globalOpts: GlobalOpts): string {
+function writeCompiled(
+  config: MdcpConfig,
+  docsRoot: string,
+  globalOpts: GlobalOpts,
+): ReturnType<typeof compileWorkspace> {
   const workspace = compileWorkspace(config, docsRoot, cliBackupFlags(globalOpts));
   const written = writeCompiledFromWorkspace(config, docsRoot, workspace);
   logWritten(written);
-  return workspace.compiled;
+  return workspace;
+}
+
+/**
+ * Every file a compile writes, as the refs registry records it. Only the commands that write or
+ * check the registry build this list, since it stitches the monolith text again.
+ */
+function refsOutputsOf(workspace: ReturnType<typeof compileWorkspace>): RefsOutputText[] {
+  return refsOutputTexts(workspace.results, workspace.opts);
+}
+
+/**
+ * Write the refs registry for a compile: the top-level headings of `workspace.compiled`, and the
+ * headings of each file the compile writes.
+ */
+function genRefs(
+  workspace: ReturnType<typeof compileWorkspace>,
+  refsPath: string,
+  outputs = refsOutputsOf(workspace),
+): void {
+  genRefsFromCompiled(workspace.compiled, refsPath, outputs);
+}
+
+function checkRefs(
+  workspace: ReturnType<typeof compileWorkspace>,
+  refsPath: string,
+  outputs = refsOutputsOf(workspace),
+): { ok: boolean; message: string } {
+  return checkRefsRegistry(workspace.compiled, refsPath, outputs);
 }
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -222,47 +249,57 @@ cli
   .option('--backup-ext <ext>', 'Suffix for backup filenames')
   .option('--warn-broken-links', 'Report broken links but exit 0');
 
-cli.command('compile', 'Compile shards to monolith').action((opts: GlobalOpts) => {
+cli.command('compile', 'Stitch shards into compiled guides').action((opts: GlobalOpts) => {
   const config = getConfig(opts);
   const docsRoot = getDocsRoot(opts);
   const workspace = compileWorkspace(config, docsRoot, cliBackupFlags(opts));
   const written = writeCompiledFromWorkspace(config, docsRoot, workspace);
   logWritten(written);
   const refsPath = resolveRefsPath(docsRoot, config.outputDir, config.refs.registryFile);
-  genRefsFromCompiled(workspace.compiled, refsPath);
+  genRefs(workspace, refsPath);
   if (runBuiltInLinkLint(config, docsRoot, opts, workspace)) process.exit(1);
 });
 
 cli.command('refs-gen', 'Generate refs.json from compiled output').action((opts: GlobalOpts) => {
   const config = getConfig(opts);
-  const compiled = writeCompiled(config, getDocsRoot(opts), opts);
+  const workspace = writeCompiled(config, getDocsRoot(opts), opts);
   const refsPath = resolveRefsPath(getDocsRoot(opts), config.outputDir, config.refs.registryFile);
-  genRefsFromCompiled(compiled, refsPath);
+  genRefs(workspace, refsPath);
   console.log(`Wrote ${refsPath}`);
 });
 
 cli.command('refs-check', 'Verify refs.json matches compiled output').action((opts: GlobalOpts) => {
   const config = getConfig(opts);
-  const compiled = compileToString(config, getDocsRoot(opts), opts);
+  const workspace = compileWorkspace(config, getDocsRoot(opts), cliBackupFlags(opts));
   const refsPath = resolveRefsPath(getDocsRoot(opts), config.outputDir, config.refs.registryFile);
-  const result = checkRefsRegistry(compiled, refsPath);
+  const result = checkRefs(workspace, refsPath);
   console.log(result.message);
   if (!result.ok) process.exit(1);
 });
 
 cli
-  .command('refs-list', 'List heading slugs as JSON')
+  .command('refs-list', 'List the heading slugs of each compiled output as JSON')
   .option('--format <fmt>', 'json or table', { default: 'json' })
   .action((opts: GlobalOpts & { format: string }) => {
     const config = getConfig(opts);
     const refsPath = resolveRefsPath(getDocsRoot(opts), config.outputDir, config.refs.registryFile);
     const registry = readRefsRegistry(refsPath);
+    // A registry from an earlier mdcp has only the top-level headings, which name no file.
+    if (!registry.outputs) {
+      console.error(
+        `${refsPath} lists no compiled outputs; run \`mdcp refs-gen\` to list each heading with its file.`,
+      );
+    }
+    const headings: (HeadingEntry & { file?: string })[] = registry.outputs
+      ? registry.outputs.flatMap((o) => o.headings.map((h) => ({ file: o.file, ...h })))
+      : registry.headings;
     if (opts.format === 'table') {
-      for (const h of registry.headings) {
-        console.log(`${h.slug}\t${h.title}`);
+      for (const h of headings) {
+        const row = [h.slug, h.title];
+        console.log((h.file === undefined ? row : [h.file, ...row]).join('\t'));
       }
     } else {
-      console.log(JSON.stringify(registry.headings, null, 2));
+      console.log(JSON.stringify(headings, null, 2));
     }
   });
 
@@ -306,17 +343,13 @@ cli
 
 cli
   .command('prose', 'Run Vale prose lint (peer)')
-  .option('--strict', 'Errors only')
+  .option('--strict', 'Show alerts at vale.strictMinAlertLevel and above (default error)')
   .option('--require-vale', 'Fail if Vale not installed')
   .action((opts: GlobalOpts & { strict?: boolean; requireVale?: boolean }) => {
     const config = getConfig(opts);
     const tool = findPeerBinary('vale', getDocsRoot(opts));
-    const scanPaths = valeScanPaths(config, getDocsRoot(opts));
-    const valeConfig = config.vale?.config ?? '.vale.ini';
-    const minLevel = valeMinAlertLevel(config, opts.strict);
-    const args = minLevel
-      ? ['--config', valeConfig, `--minAlertLevel=${minLevel}`, ...scanPaths]
-      : ['--config', valeConfig, ...scanPaths];
+    const scanPaths = valeScanPaths(config, getDocsRoot(opts), getScanRoot(config));
+    const args = valeArgs(config, scanPaths, opts.strict === true);
     const r = runPeer(tool, { require: opts.requireVale, cwd: getDocsRoot(opts), args });
     if (r.exitCode !== 0) process.exit(r.exitCode);
   });
@@ -343,7 +376,7 @@ cli.command('fix', 'Auto-fix with Prettier + markdownlint (peer)').action((opts:
   runPeer(mdlint, { cwd: getDocsRoot(opts), args: ['--fix'] });
 });
 
-cli.command('shard', 'Split monolith into shards (md-tree)').action((opts: GlobalOpts) => {
+cli.command('shard', 'Split a source document into shards (md-tree)').action((opts: GlobalOpts) => {
   const config = getConfig(opts);
   if (!config.source) {
     console.error('Config requires "source" for shard command');
@@ -413,8 +446,9 @@ cli
       logWritten(written);
 
       const refsPath = resolveRefsPath(docsRoot, config.outputDir, config.refs.registryFile);
-      genRefsFromCompiled(workspace.compiled, refsPath);
-      const refsResult = checkRefsRegistry(workspace.compiled, refsPath);
+      const refsOutputs = refsOutputsOf(workspace);
+      genRefs(workspace, refsPath, refsOutputs);
+      const refsResult = checkRefs(workspace, refsPath, refsOutputs);
       console.log(refsResult.message);
       if (!refsResult.ok) {
         console.error('');
@@ -429,6 +463,7 @@ cli
         docsRoot,
         opts,
         workspace,
+        getScanRoot(config),
       );
       if (reportLinkIssues(linkIssues, linkSeverity)) {
         failures.push({
@@ -494,20 +529,38 @@ cli
 
       if (!opts.skipVale) {
         const vale = findPeerBinary('vale', getDocsRoot(opts));
-        const scanPaths = valeScanPaths(config, getDocsRoot(opts));
-        const valeConfig = config.vale?.config ?? '.vale.ini';
-        const minLevel = valeMinAlertLevel(config, true) ?? 'error';
+        const scanPaths = valeScanPaths(config, getDocsRoot(opts), getScanRoot(config));
         const r = runPeer(vale, {
           require: opts.requireVale,
           cwd: getDocsRoot(opts),
-          args: ['--config', valeConfig, `--minAlertLevel=${minLevel}`, ...scanPaths],
+          args: valeArgs(config, scanPaths, true),
         });
         if (r.exitCode !== 0) {
           failures.push({
             step: 'vale',
             detail: 'peer exited non-zero (see Vale output above)',
+            hints: valeCheckHints(r),
+          });
+        }
+      }
+
+      const pathSeverity = config.lint?.paths?.severity ?? 'off';
+      if (pathSeverity !== 'off') {
+        const pathIssues = probeDocumentPaths(
+          pathProbeInputs(config, getDocsRoot(opts), getScanRoot(config)),
+        );
+        for (const issue of pathIssues) {
+          console.error(formatPathProbeIssue(issue, pathSeverity));
+        }
+        if (pathIssues.length > 0 && pathSeverity === 'error') {
+          failures.push({
+            step: 'path resolution',
+            detail: `${pathIssues.length} unresolved path(s) in prose (see \`path:\` lines above)`,
             hints: [
-              'Fix prose style alerts, or use `--skip-vale` only when prose is intentionally out of scope.',
+              'Update the path to what the repository now contains, or delete the claim when the thing it names is gone.',
+              `Add ${ILLUSTRATIVE_MARKER} on its own line when a file's paths teach syntax instead of describing this repository.`,
+              'Add lint.paths.generated for paths that only exist after a build or install.',
+              'Add lint.paths.vocabulary for a name this repository documents without having.',
             ],
           });
         }
@@ -539,6 +592,30 @@ cli
       console.log('mdcp check passed');
     },
   );
+
+cli
+  .command('review', 'Report documentation sprawl signals (report-only)')
+  .option('--json', 'Print findings as a JSON array')
+  .option('--strict', 'Exit 1 when there is any finding')
+  .option('--guide <name>', 'Review one guide from compileOrder (cross-guide duplicates included)')
+  .action((opts: GlobalOpts & { json?: boolean; strict?: boolean; guide?: string }) => {
+    const config = getConfig(opts);
+    const docsRoot = getDocsRoot(opts);
+    const result = reviewDocs({
+      guide: opts.guide,
+      guides: guideEntries(config, docsRoot),
+      docsRoot,
+      scanRoot: getScanRoot(config),
+      ignore: config.scan?.ignore ?? [],
+      thresholds: config.review,
+    });
+    if (opts.json) {
+      console.log(JSON.stringify(result.findings, null, 2));
+    } else {
+      console.log(formatReviewReport(result));
+    }
+    if (opts.strict && result.findings.length > 0) process.exitCode = 1;
+  });
 
 try {
   // Backwards compatibility for `refs <subcommand>` -> `refs-<subcommand>`

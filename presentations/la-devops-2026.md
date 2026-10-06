@@ -77,7 +77,7 @@ When problems are solved in code but never make it back to the PRD, we lose **tr
 
 ### Context Overload
 
-- Large documentation dumps (monolithic READMEs, site-wide `llms.txt`) pollute agent reasoning.
+- Large documentation dumps (single-file READMEs, site-wide `llms.txt`) pollute agent reasoning.
 - Massive context dumps increase latency, drive up inference costs, and trigger hallucinations.
 - Teams lack a shared, reviewable contract for **what documentation means**.
 
@@ -261,7 +261,7 @@ graph TD
 
     MDCP("MDCP Context Layer")
 
-    %% Agent Skills
+    %% Skills
     ArchSkill["Arch Skill"]
     FeatureSkill["Feature Skill"]
     TestSkill["Test Skill"]
@@ -290,7 +290,7 @@ graph TD
 
 ---
 
-### SDLC Agent Skills at a Glance
+### SDLC Skills at a Glance
 
 | Phase       | Agent Skill         | Action                                            |
 | ----------- | ------------------- | ------------------------------------------------- |
@@ -364,7 +364,7 @@ Your docs must capture:
 - **High level over implementation:** Shards hold plan, constraints, and acceptance criteria; code holds _how_.
 - **Glossary as first-class:** Domain terms and legacy disambiguation live in dedicated shards.
 - **Document before build/migrate:** Capture context in shards before greenfield work.
-- **Granular, safe context:** Read one shard at a time; skip monolith dumps.
+- **Granular, safe context:** Read one shard at a time instead of whole compiled output.
 - **Extensible doc skill:** MDCP is the foundational “go-to” documentation skill. Teams can extend it locally (e.g., `docs/extensions/`) to integrate custom workflows and proprietary systems.
 
 ---
@@ -460,14 +460,14 @@ Common objections for Q&A — skip during the main talk:
 - We're not replacing Docusaurus, MkDocs, or CI doc generators.
 - MDCP is an **Agent Skill** (plus compile/check tooling) that organizes **documentation context** the way OpenAPI organizes API contracts — as a useful analogy, not a standards-body claim.
 - Doc sites weren't built for granular, PR-reviewable, agent-first **shard** workflows.
-- The missing piece is a **shared, validated place** for intent that agents and humans consume the same way — so docs scale without becoming monolith dumps.
+- The missing piece is a **shared, validated place** for intent that agents and humans consume the same way, so docs scale without becoming one oversized file.
 
 ---
 
 ### How does this integrate with my existing doc tools?
 
 - **Integration, not replacement:** MDCP works alongside Docusaurus, MkDocs, Confluence exports.
-- Shards are the source of truth. If you need monolithic files, `mdcp compile` generates them.
+- Shards are the source of truth. If you need compiled guide files, `mdcp compile` generates them.
 - **Why try it?** Docs that work for humans often fail agents (context dumps, conflicting terms).
 - MDCP gives agents a **validated, granular contract** without throwing away your existing toolchain.
 

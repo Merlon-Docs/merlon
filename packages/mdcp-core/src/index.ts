@@ -63,6 +63,11 @@ export {
   type CompileGuideResultsContext,
 } from './compile/assemble.js';
 export {
+  compiledOutputDocuments,
+  type CompiledOutputDocument,
+  type MonolithCopy,
+} from './compile/output-documents.js';
+export {
   type ShardCache,
   type ShardSnapshot,
   createShardCache,
@@ -88,13 +93,17 @@ export {
   headingTextToPlain,
   buildSlugRegistry,
   type HeadingEntry,
+  type RefsOutput,
   type RefsRegistry,
 } from './refs/slugs.js';
 export {
+  buildRefsRegistry,
   writeRefsRegistry,
   readRefsRegistry,
   checkRefsRegistry,
   genRefsFromCompiled,
+  refsOutputTexts,
+  type RefsOutputText,
 } from './refs/registry.js';
 export {
   lintLinks,
@@ -111,14 +120,48 @@ export {
   type LintLinksOptions,
 } from './links/lint.js';
 export { checkOrphansForGuides, type OrphanIssue, type GuideDirEntry } from './validate/orphans.js';
-export { computeCoverage, type CoverageResult, type CoverageOptions } from './validate/coverage.js';
 export {
-  abbreviateProtocolVersion,
-  expandProtocolVersion,
-  parseLlmsIndexFilename,
-  isLlmsIndexDraftFilename,
-  protocolVersionToReleaseRef,
-} from './export/protocol-version.js';
+  computeCoverage,
+  filterScanIgnored,
+  resolveStandaloneGuides,
+  type CoverageResult,
+  type CoverageOptions,
+} from './validate/coverage.js';
+export {
+  reviewDocs,
+  formatReviewReport,
+  DEFAULT_REVIEW_THRESHOLDS,
+  REVIEW_SIGNALS,
+  REVIEW_FIXES,
+  type ReviewFinding,
+  type ReviewOptions,
+  type ReviewResult,
+  type ReviewSignal,
+  type ReviewThresholds,
+} from './validate/review.js';
+export {
+  DEFAULT_CODE_EXTENSIONS,
+  DEFAULT_DATA_EXTENSIONS,
+  codeExtensionSet,
+  dataExtensionSet,
+  fileExtensionSet,
+  hasCodeExtension,
+  hasFileExtension,
+  type ExtensionConfig,
+} from './compile/hooks/path-resolve.js';
+export {
+  probeDocumentPaths,
+  pathProbeInputs,
+  probePathClaims,
+  isPathClaim,
+  pathClaimExtensions,
+  hasIllustrativeMarker,
+  lineOptsOut,
+  formatPathProbeIssue,
+  ILLUSTRATIVE_MARKER,
+  type PathProbeIssue,
+  type PathProbeOptions,
+} from './validate/path-probe.js';
 export { findPeerBinary, runPeer, type PeerTool } from './peers/resolve.js';
 export { shardFromMonolith, runMdTree, type ShardGuideMapping } from './shard/orchestrator.js';
 export {

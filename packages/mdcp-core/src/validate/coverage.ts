@@ -36,6 +36,37 @@ function toPosix(p: string): string {
   return p.split(sep).join('/');
 }
 
+/**
+ * Drop absolute paths matched by `scan.ignore` globs (plus the built-in ignores), using the
+ * same fast-glob matching as {@link computeCoverage}. Globs are relative to `root`; paths
+ * outside `root` are kept because no scan glob can name them.
+ */
+export function filterScanIgnored(root: string, absPaths: string[], ignore: string[]): string[] {
+  const base = resolve(root);
+  const inside: string[] = [];
+  const kept = new Set<string>();
+  for (const abs of absPaths) {
+    const rel = toPosix(relative(base, abs));
+    if (rel === '' || rel.startsWith('..')) kept.add(abs);
+    else inside.push(rel);
+  }
+  if (inside.length > 0) {
+    // Static (escaped) patterns: fast-glob checks each file and applies `ignore` exactly as the scan does.
+    const visible = fg.sync(
+      inside.map((rel) => fg.escapePath(rel)),
+      {
+        cwd: base,
+        dot: true,
+        onlyFiles: true,
+        followSymbolicLinks: false,
+        ignore: [...BUILT_IN_IGNORE, ...ignore],
+      },
+    );
+    for (const rel of visible) kept.add(resolve(base, rel));
+  }
+  return absPaths.filter((p) => kept.has(p));
+}
+
 function sortedUnique(paths: string[]): string[] {
   return [...new Set(paths)].sort();
 }
@@ -96,6 +127,32 @@ function gitignoreFilter(root: string, relPaths: string[]): string[] {
 }
 
 /**
+ * Expand `standaloneGuides` entries (paths or globs, relative to `root`) into
+ * scan-root-relative POSIX paths, alongside the entries that matched nothing.
+ */
+export function resolveStandaloneGuides(
+  root: string,
+  entries: string[],
+): { matched: string[]; missing: string[] } {
+  const matched = new Set<string>();
+  const missing: string[] = [];
+  for (const entry of entries) {
+    const matches = fg.sync(entry, {
+      cwd: resolve(root),
+      dot: true,
+      onlyFiles: true,
+      followSymbolicLinks: false,
+    });
+    if (matches.length === 0) {
+      missing.push(entry);
+      continue;
+    }
+    for (const m of matches) matched.add(toPosix(m));
+  }
+  return { matched: sortedUnique([...matched]), missing };
+}
+
+/**
  * Compute documentation coverage for the scan root.
  *
  * A markdown file is **captured** when it lives inside a guide directory subtree,
@@ -120,21 +177,11 @@ export function computeCoverage(opts: CoverageOptions): CoverageResult {
   const guideDirs = opts.guideDirs.map((d) => resolve(d));
   const outputFiles = new Set(opts.outputFiles.map((f) => resolve(f)));
 
-  const standaloneMatches = new Set<string>();
-  const missingStandalone: string[] = [];
-  for (const entry of opts.standaloneGuides) {
-    const matches = fg.sync(entry, {
-      cwd: root,
-      dot: true,
-      onlyFiles: true,
-      followSymbolicLinks: false,
-    });
-    if (matches.length === 0) {
-      missingStandalone.push(entry);
-      continue;
-    }
-    for (const m of matches) standaloneMatches.add(toPosix(m));
-  }
+  const { matched, missing: missingStandalone } = resolveStandaloneGuides(
+    root,
+    opts.standaloneGuides,
+  );
+  const standaloneMatches = new Set<string>(matched);
 
   const captured: string[] = [];
   const uncaptured: string[] = [];

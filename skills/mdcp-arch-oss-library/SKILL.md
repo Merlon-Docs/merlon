@@ -47,7 +47,7 @@ Public API: `packages/core/src/session/store.ts` — read implementation on dema
 Acceptance: sessions expire after 24h; see [feature shard](../../../features/session-store.md).
 ```
 
-Agents use host search and the [refs](../../../docs/glossary/refs.md) registry / `mdcp check` for compiled anchors, then open the linked source file for types and methods.
+Agents use host search and the `docs/glossary/refs.md` registry / `mdcp check` for compiled anchors, then open the linked source file for types and methods.
 
 ## When to shard vs when to point
 
@@ -60,5 +60,5 @@ Agents use host search and the [refs](../../../docs/glossary/refs.md) registry /
 
 ## Extension hooks
 
-- Add `docs/extensions/api-pointer-conventions.md` for language-specific path rules.
+- Add an `api-pointer-conventions.md` shard under `docs/extensions/` for language-specific path rules.
 - Optional formatting pack under `skills/mdcp-format-*` for JavaDoc-style cross-links in compiled README output (future).

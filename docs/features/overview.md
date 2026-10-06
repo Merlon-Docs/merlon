@@ -10,42 +10,25 @@ Large Markdown guides are hard to edit, diff, and link correctly. A single `READ
 
 MDCP inverts the workflow:
 
-1. **Authors edit shards** — one file per section, listed in the guide manifest (`index.md` or `shards.md`).
-2. **Compile stitches shards** — heading levels are normalized, preambles stripped, links rewritten.
-3. **Validation catches drift** — orphans, stale refs, broken internal links, optional prose/style linters.
-4. **Compiled output serves consumers** — monolith and publish files for humans, agents, and CI.
+1. **Authors edit shards**: one file per section, listed in the [manifest](../glossary/manifest.md) (`index.md` or `shards.md`) of their [guide](../glossary/guide.md).
+2. **Compile stitches shards**: it normalizes heading levels, strips preambles, and rewrites links.
+3. **Validation catches drift**: [orphans](../glossary/orphan.md), stale refs, broken internal links, optional prose/style linters.
+4. **Compiled output serves consumers**: compiled guides (some as [publish outputs](../glossary/publish-output.md)) and the optional [monolith](../glossary/monolith.md).
 
-You never hand-maintain the compiled file. Shards are the source of truth; `guides.md` (or a publish target like `README.md`) is generated.
+You never hand-maintain the compiled file. Shards are the source of truth. Each [compiled guide](../glossary/compiled-guide.md) is generated, whether it is `{name}.md` under `outputDir` or a publish output such as `README.md`.
 
 ## Core vocabulary
 
-| Term               | Meaning                                                                                                              |
-| ------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| **Shard**          | A single `.md` file that becomes part of a guide (for example `01-intro.md`).                                        |
-| **Guide**          | A directory of shards plus a manifest (`index.md` or `shards.md`). Named in `compileOrder`.                          |
-| **Monolith**       | Optional stitched output when top-level `outputFile` is set — combines guides without explicit `compile.outputFile`. |
-| **Publish output** | Per-guide compiled file via `compile.outputFile` (or default `{name}.md` under `outputDir`).                         |
-| **Refs registry**  | `.caches/refs.json` by default — GitHub-style slugs from compiled headings.                                          |
-| **`--docs-root`**  | Root of guide shard directories (one subfolder = one guide).                                                         |
-| **`outputDir`**    | Generated output root (default `_build`) — safe to delete. All generated paths are relative here unless absolute.    |
-| **`--config`**     | Config file path, resolved relative to the **invocation** directory (where you run the command), not `--docs-root`.  |
+The glossary defines the core terms:
 
-### Path resolution (`--config` vs `--docs-root`)
+- [Shard](../glossary/shard.md): one `.md` file that becomes part of a guide (such as `01-intro.md`).
+- [Guide](../glossary/guide.md): a directory of shards plus a manifest, named in `compileOrder`.
+- [Compiled guide](../glossary/compiled-guide.md): the file compile writes for one guide.
+- [Publish output](../glossary/publish-output.md): a compiled guide at its own `compile.outputFile`, such as a package README.
+- [Monolith](../glossary/monolith.md): the optional single file that stitches the guides without `compile.outputFile`.
+- [Refs registry](../glossary/refs-registry.md): GitHub-style heading slugs from compile output.
 
-```bash
-mdcp compile --config docs/mdcp.config.json --docs-root docs
-```
-
-| Path                                 | Base          | Resolves to (example)                 |
-| ------------------------------------ | ------------- | ------------------------------------- |
-| `--config docs/mdcp.config.json`     | Invocation    | `/repo/docs/mdcp.config.json`         |
-| Guide `features/`                    | `--docs-root` | `/repo/docs/features/`                |
-| `outputDir: "_build"` (default)      | `--docs-root` | `/repo/docs/_build/`                  |
-| Default per-guide output             | `outputDir`   | `/repo/docs/_build/features.md`       |
-| `refs.registryFile` (default)        | `outputDir`   | `/repo/docs/_build/.caches/refs.json` |
-| `compile.outputFile: "../README.md"` | `outputDir`   | publish path from `_build`            |
-
-Consumer details: [Config essentials](../client-cli/config-essentials.md). API: `loadConfig(path, configBase)` uses the same `configBase` rule as the CLI.
+Paths and config: shards live under the docs root (`--docs-root`), one subdirectory per guide. Generated paths are relative to `outputDir`, which defaults to `_build` and is safe to delete. `--config` resolves from the directory you run the command in, not from the docs root ([`--config` vs `--docs-root`](../client-cli/config-essentials.md#--config-vs---docs-root)). [Path layout](../client-cli/config-essentials.md#path-layout) in Config essentials has every other path rule and default, and `loadConfig(path, configBase)` in the [config API](../client-core/api-config.md) follows the same rules.
 
 ## How the pieces fit together
 
@@ -64,8 +47,9 @@ flowchart TB
   end
 
   subgraph outputs["Generated outputs"]
-    monolith["guides.md monolith"]
-    publish["Per-guide publish files"]
+    compiled["Compiled guides under outputDir"]
+    publish["Publish outputs"]
+    monolith["Optional monolith (outputFile)"]
     refs["refs.json"]
   end
 
@@ -79,9 +63,12 @@ flowchart TB
   presets -.-> peers
   shards --> core
   index --> core
-  core --> monolith
+  core --> compiled
   core --> publish
+  core --> monolith
   core --> refs
+  compiled --> validate
+  publish --> validate
   monolith --> validate
   shards --> validate
 ```
@@ -99,106 +86,55 @@ The CLI is a thin wrapper over core. Integrators (CI, editors, agents) can call 
 Understanding this sequence explains why most commands exist:
 
 ```text
-  [optional] mdcp shard          Split a monolith into guide shards (md-tree)
+  [optional] mdcp shard          Split a source document into guide shards (md-tree)
            ↓
   Edit shards + index.md
            ↓
-  mdcp compile                 Assemble monolith + publish outputs; rewrite links
+  mdcp compile                 Assemble outputs, rewrite links, write refs.json
            ↓
-  mdcp refs generate           Write refs.json from compiled headings
-           ↓
-  mdcp check                   Orphans → compile → refs → links → optional linters
+  mdcp check                   Run the validation gate
 ```
 
-**Split** (`mdcp shard`) is the inverse path — used when bootstrapping shards from an existing monolith, not on every edit cycle.
+**Split** (`mdcp shard`) is the inverse path. Use it to bootstrap shards from an existing source document, not on every edit cycle.
 
 ## What compile actually does
 
 For each guide in `compileOrder`, core:
 
-1. **Reads section files** — from link order in the manifest (`index.md` / `shards.md`). See [Manifest compile order](./manifest-compile-order.md) when the manifest mixes preamble example links with a `## Sections` list (`compile.sectionsHeading`).
-2. **Transforms each shard** — demotes headings to fit the guide level; strips `about-this-guide` preamble; runs **compile hooks** (`stripAnchors`, `codeEvidence`, `inlineInserts`) by default — see [Default compile hooks](./default-compile-hooks.md). Cross-guide link rewrite runs at assembly — see [Cross-guide link rewriting](../client-core/compile-hooks/cross-guide-links.md).
-3. **Assembles the guide body** — injects optional `compile.title` as a `##` heading followed by a blank line, then concatenates sections in order. When the first shard’s top heading matches the title, that duplicate heading is stripped.
-4. **Rewrites links** — cross-guide `.md` → `{outputFile}#slug` (or unchanged shard path when `compile.crossGuideLinks.ignoreGuides` applies); publish outputs rebase remaining `../` paths from resolved absolute targets; same-guide `./section.md` → in-document `#anchor`. See [Publish-relative link rewriting](../client-core/compile-hooks/publish-relative-links.md).
-5. **Writes outputs** — monolith file and/or per-guide `compile.outputFile`.
+1. **Reads section files**: from link order in the manifest (`index.md` / `shards.md`). See [Manifest compile order](./manifest-compile-order.md) when the manifest mixes preamble example links with a `## Sections` list (`compile.sectionsHeading`).
+2. **Transforms each shard**: demotes headings to fit the guide level; strips `about-this-guide` preamble; runs **compile hooks** (`stripAnchors`, `codeEvidence`, `inlineInserts`) by default. See [Default compile hooks](./default-compile-hooks.md). Cross-guide link rewrite runs at assembly. See [Cross-guide link rewriting](../client-core/compile-hooks/cross-guide-links.md).
+3. **Assembles the guide body**: injects optional `compile.title` as a `##` heading followed by a blank line, then concatenates sections in order. When the first shard’s top heading matches the title, that duplicate heading is stripped.
+4. **Rewrites links**: the [link passes](../client-core/compile-hooks/index.md#link-passes) turn a shard's links to other shards into `#slug` targets, in the same document or in another output. They rewrite a `./` or `../` link to any indexed shard, and a bare link to a shard the guide stitches. A link to a guide that `compile.crossGuideLinks.ignoreGuides` names keeps a path to the shard instead, except in the cases that [its config section](../client-core/compile-hooks/cross-guide-links.md#compilecrossguidelinksignoreguides) points to. The passes then rebase the shard's `../` paths, kept ones included, relative to the guide's [link base](../client-core/compile-hooks/publish-relative-links.md#when-it-runs), except the ones [Publish-relative exclusions](../client-core/compile-hooks/publish-relative-links.md#publish-relative-exclusions) lists, such as a path that leads to no file.
+5. **Marks broken links and re-aligns tables**: by default, a [BROKEN LINK marker](./link-validation.md#broken-link-marker) replaces each `#fragment` link that matches no heading or section slug in the compiled guide. A link to a missing file stays a link, and link lint reports it. Then core re-aligns each aligned table whose links changed width. See [Tables after link rewriting](../client-core/compile-hooks/tables-after-link-rewriting.md).
+6. **Writes outputs**: one [compiled guide](../glossary/compiled-guide.md) per guide (at `compile.outputFile` or the default path), plus the [monolith](../glossary/monolith.md) when top-level `outputFile` is set and at least one guide has no `compile.outputFile`.
 
-Guides with `compile.outputFile` are **excluded from the monolith** so you can publish npm READMEs, `DEVELOPERS.md`, or review monoliths side by side.
+Guides with `compile.outputFile` are **excluded from the monolith** so you can publish npm READMEs, `DEVELOPERS.md`, or compiled review guides side by side.
 
 ## What validation checks
 
-`mdcp check` runs a fixed core pipeline, then optional peer tools:
-
-| Stage   | Module                  | Catches                                        |
-| ------- | ----------------------- | ---------------------------------------------- |
-| Orphans | `validate/orphans.ts`   | Shard/manifest mismatches                      |
-| Compile | `compile/`              | Assembly failures                              |
-| Refs    | `refs/registry.ts`      | Stale `refs.json`                              |
-| Linters | `peers/` + host install | markdownlint, Vale, link-check when configured |
-
-Peer linters are **not bundled**. CI uses `--require-lint` / `--require-vale` to fail when tools are missing.
+`mdcp check` runs a fixed order of stages, from the orphan check to the coverage scan. A failure in one of the first three stops the run at once, while most later stages report a failure and let the run go on. [Check gate](./check-gate.md) lists the stages and when each one runs.
 
 ## Config as the wiring layer
 
 `mdcp.config.json` is the single contract between your repo layout and every command:
 
-- **`compileOrder`** — which guides exist and in what order they appear in the monolith.
-- **`guides[].compile`** — per-guide manifest name, hooks, publish path, title, scope root, etc.
-- **`refs`** — `registryFile` and monolith `outputFile` paths (relative to `outputDir`) and slug algorithm.
-- **`lint` / `vale`** — peer linter config paths and scan globs.
+- **`compileOrder`**: which guides exist and in what order they appear in the monolith.
+- **`guides[].compile`**: per-guide manifest name, hooks, publish path, title, scope root, etc.
+- **`outputFile`**: optional monolith path.
+- **`refs`**: registry file path and slug algorithm.
+- **`lint` / `vale`**: peer linter config paths and scan globs.
 
-This repository dogfoods under `docs/`: the features guide compiles into `docs/_build/guides.md`; developer, CLI, and core guides publish to `DEVELOPERS.md` and package READMEs. See `docs/mdcp.config.json` for a multi-output layout.
-
-## Code map (where to read implementation)
-
-| Concern                         | Core path                   | CLI command                     |
-| ------------------------------- | --------------------------- | ------------------------------- |
-| Config load / path resolution   | `src/config/`               | all commands                    |
-| Section list + assemble + write | `src/compile/assemble.ts`   | `compile`                       |
-| Per-shard hooks                 | `src/compile/hooks/`        | (config-driven)                 |
-| Shard split orchestration       | `src/shard/orchestrator.ts` | `shard`                         |
-| Slugs + refs registry           | `src/refs/`                 | `refs`                          |
-| Orphan validation               | `src/validate/orphans.ts`   | `check`                         |
-| Peer binary resolution          | `src/peers/resolve.ts`      | `lint`, `prose`, `links`, `fix` |
-
-Start with `assemble.ts` and `cli.ts` if you are tracing a compile from config to disk.
-
-## Typical workflows
-
-### LLM authoring a new section
-
-Edit a shard (and `index.md` if section membership changed) → insert cross-links carefully → `mdcp check` (catches bad `#` fragments).
-
-### Human PR review
-
-`mdcp check --require-lint` in CI; optional `mdcp prose` locally.
-
-### Agent reading repo docs
-
-Find shards with host search and read **one** file; use compiled output under `outputDir` only when a broader read is intentional.
-
-### Publishing package README from shards
-
-Set `guides[].compile.outputFile` to the README path; run `mdcp compile`; README is generated, not hand-edited.
-
-This repository dogfoods a **publish landing** layout in [`docs/repo-readme/`](../repo-readme/index.md) → root `README.md`. See [Personas and priority tiers](./personas-and-priority-tiers.md) and [Benefit claims and evidence](./protocol/benefit-claims-and-evidence.md).
-
-## Design boundaries (intentional limits)
-
-- **[GFM](../glossary/gfm.md) only** — no Pandoc, wikilinks, or required Pandoc IDs; heading recognition is an ATX subset today ([GFM scope](./design-constraints/gfm-scope.md#headings))
-- **md-tree for split only** — custom compile/assemble; upstream md-tree `assemble` is not used
-- **GitHub slugs** — computed from compiled headings via [github-slugger](https://www.npmjs.com/package/github-slugger) (html-pipeline algorithm); see [Cross-links and refs — heading slugs](../client-cli/cross-links-and-refs.md#heading-slugs-github-rules)
-- **Peer linters opt-in** — host repo installs markdownlint, Vale, etc.
-- **[Locale and language boundary](./design-constraints/locale-and-language.md)** — GFM structure vs Vale prose vs compile-time locale pack
-- **No preprocessor / templating** — see [Preprocessor / templating (out of scope)](./design-constraints/preprocessor-templating.md#preprocessor--templating-out-of-scope)
-
-Details: [Design constraints](./design-constraints/index.md).
+This repository uses MDCP on its own docs under `docs/`. The features guide compiles to `docs/_build/features.md` and is the only guide in the monolith `docs/_build/guides.md`. The other guides compile to publish outputs such as `DEVELOPERS.md` and the package READMEs. See `docs/mdcp.config.json` for a multi-output layout.
 
 ## Where to go next
 
-- **Commands and priority tiers** — [Feature catalog](./feature-catalog.md), [Personas and priority tiers](./personas-and-priority-tiers.md)
-- **Install and daily commands** — [Client CLI guide](../client-cli/index.md)
-- **Programmatic API** — [Client core guide](../client-core/index.md)
-- **Config fields** — [API — Config](../client-core/api-config.md)
-- **Compile hooks** — [Compile hooks overview](../client-core/compile-hooks/index.md)
-- **Contributing to this repo** — [Developer guide](../developer/index.md)
-- **Performance SLOs at scale** — [Performance goals and review](./protocol/performance.md)
+- **Commands and priority tiers**: the [Feature catalog](./feature-catalog.md) and [Personas and priority tiers](./personas-and-priority-tiers.md)
+- **Who runs which command**: the [Actors and obligations](./protocol/usage-model.md#actors-and-obligations) table in the usage model
+- **Intentional limits**: the [Design constraints](./design-constraints/index.md), each with a one-line summary
+- **Install and daily commands**: the [Client CLI guide](../client-cli/index.md)
+- **Programmatic API**: the [Client core guide](../client-core/index.md)
+- **Config fields**: the [config API](../client-core/api-config.md)
+- **Compile hooks**: the [Compile hooks overview](../client-core/compile-hooks/index.md)
+- **Contributing to this repo**: the [Developer guide](../developer/index.md)
+- **Performance SLOs at scale**: the [Performance goals](./protocol/performance.md) page
+- **A publish landing example**: this repository compiles its root `README.md` from [`docs/repo-readme/`](../repo-readme/index.md). Its copy follows the [Publish landing style](./personas-and-priority-tiers.md#publish-landing-style) and the claim tiers in [Benefit claims and evidence](./protocol/benefit-claims-and-evidence.md)

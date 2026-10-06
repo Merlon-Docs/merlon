@@ -86,7 +86,7 @@ graph TD
 
     MDCP("MDCP Context Layer")
 
-    %% Agent Skills
+    %% Skills
     ArchSkill["Arch Skill"]
     FeatureSkill["Feature Skill"]
     TestSkill["Test Skill"]
@@ -115,7 +115,7 @@ graph TD
 
 ---
 
-## SDLC Agent Skills at a Glance
+## SDLC Skills at a Glance
 
 | Phase       | Agent Skill         | Action                                            |
 | ----------- | ------------------- | ------------------------------------------------- |

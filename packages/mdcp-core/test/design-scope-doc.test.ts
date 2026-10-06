@@ -106,7 +106,7 @@ describe('design scope documentation (#26)', () => {
       `./design-constraints/preprocessor-templating.md#${PREPROCESSOR_SLUG}`,
     );
     expect(featureCatalog).toContain('[authored GFM](../glossary/authored-gfm.md)');
-    expect(compileHooks).toContain('[authored GFM](../glossary/authored-gfm.md)');
+    expect(compileHooks).toContain('[authored GFM](../../glossary/authored-gfm.md)');
     expect(compileHooks).toContain(
       `../../features/design-constraints/preprocessor-templating.md#${PREPROCESSOR_SLUG}`,
     );
@@ -131,8 +131,7 @@ describe('design scope documentation (#26)', () => {
     for (const indexPath of GLOSSARY_TOC_GUIDE_INDEXES) {
       expect(readRepoDoc(indexPath)).toContain(GLOSSARY_MANIFEST);
     }
-    expect(glossaryIndex).toContain('index-protocol.md');
-    expect(glossaryIndex).toContain('index-format.md');
+    expect(glossaryIndex).toContain('../client-cli/config-essentials.md#shared-glossary');
     // Lean npm package guides may link individual terms transitively — they must
     // not be required to dump the full glossary TOC into consumer READMEs.
     expect(readRepoDoc('docs/client-cli/index.md')).not.toContain(GLOSSARY_MANIFEST);

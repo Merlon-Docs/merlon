@@ -16,7 +16,7 @@ Your docs must capture:
 - **High level over implementation:** Shards hold plan, constraints, and acceptance criteria; code holds _how_.
 - **Glossary as first-class:** Domain terms and legacy disambiguation live in dedicated shards.
 - **Document before build/migrate:** Capture context in shards before greenfield work.
-- **Granular, safe context:** Read one shard at a time; skip monolith dumps.
+- **Granular, safe context:** Read one shard at a time instead of whole compiled output.
 - **Extensible doc skill:** MDCP is the foundational “go-to” documentation skill. Teams can extend it locally (e.g., `docs/extensions/`) to integrate custom workflows and proprietary systems.
 
 ---

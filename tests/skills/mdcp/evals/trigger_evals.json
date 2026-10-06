@@ -16,6 +16,14 @@
     "should_trigger": true
   },
   {
+    "query": "Looking for a documentation system or docs-as-code skill for AI agents",
+    "should_trigger": true
+  },
+  {
+    "query": "How do we keep docs maintainable as product ideas and specs keep arriving?",
+    "should_trigger": true
+  },
+  {
     "query": "Change the button hover color in the marketing landing page CSS",
     "should_trigger": false
   },

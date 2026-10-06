@@ -1,4 +1,4 @@
 {
   "name": "MDCP",
-  "description": "MDCP en-US prose cues: numbered heading mentions (Chapter/Section/Ch./Sec.) without a GFM markdown link. Prefer links to target shards; MDCP validates link targets separately."
+  "description": "MDCP en-US prose cues: numbered heading mentions (Chapter/Section/Ch./Sec.) without a GFM markdown link, and claims pinned to a date with 'as of' or 'until' before an ISO date. Prefer links to target shards; MDCP validates link targets separately."
 }

@@ -1,0 +1,219 @@
+{
+  "skill_name": "mdcp",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "WORK_ITEM=Add documentation for live skill evals — how maintainers run the optional skill-creator loop to grade helper skills before release. This accompanies our skills feature (see docs/features/skills.md). WORK_ITEM_LOOKUP=docs/developer/agent-work-item-tracking.md. Using /mdcp (feature-level workflow), follow the skill's docs-first process and add the documentation. Keep the docs tree consistent.",
+      "expected_output": "Agent applies an audience placement test before writing: live skill evals are maintainer-only workflow with no end-user surface, so the shard lands under docs/developer/ (index updated). It does NOT create docs/features/live-skill-evals.md (or similar) just because Step 3 mentions features/ or because the topic sits next to the shipped skills feature, and it does NOT invent a docs/client/ shard.",
+      "files": [
+        "evals/feature-level/files/feature-fixture/README.md",
+        "evals/feature-level/files/feature-fixture/docs/mdcp.config.json",
+        "evals/feature-level/files/feature-fixture/docs/developer/agent-work-item-tracking.md",
+        "evals/feature-level/files/feature-fixture/docs/developer/index.md",
+        "evals/feature-level/files/feature-fixture/docs/developer/local-tooling.md",
+        "evals/feature-level/files/feature-fixture/docs/features/index.md",
+        "evals/feature-level/files/feature-fixture/docs/features/skills.md",
+        "evals/feature-level/files/feature-fixture/docs/client/index.md"
+      ],
+      "assertions": [
+        {
+          "name": "lands_in_developer_tier",
+          "description": "Creates or updates a shard under docs/developer/ for the live skill-eval runbook and links it from docs/developer/index.md"
+        },
+        {
+          "name": "no_features_tier_runbook",
+          "description": "Does NOT create a docs/features/ shard for the live skill-eval runbook (e.g. docs/features/live-skill-evals.md) — that is the exact wrong-tier failure under test"
+        },
+        {
+          "name": "no_client_tier_shard",
+          "description": "Does NOT create a docs/client/ shard for a maintainer-only workflow with no end-user surface"
+        },
+        {
+          "name": "states_placement_rationale",
+          "description": "States an explicit audience placement decision (maintainer-only → developer/) rather than blindly following a features/+client/ docs-first step"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "WORK_ITEM=Add a --format=csv option to `example-cli export` so people can open reports in a spreadsheet. WORK_ITEM_LOOKUP=docs/developer/agent-work-item-tracking.md. Using /mdcp (feature-level workflow), ship the feature docs-first, then implement it. Keep the docs tree consistent.",
+      "expected_output": "Agent treats this as a user-facing capability: updates a maintainer capability/contract shard in docs/features/ AND an end-user usage shard in docs/client/ (with both index.md updates), then implements the option in packages/. It does NOT bury a user-facing capability in docs/developer/.",
+      "files": [
+        "evals/feature-level/files/feature-fixture/README.md",
+        "evals/feature-level/files/feature-fixture/docs/mdcp.config.json",
+        "evals/feature-level/files/feature-fixture/docs/developer/agent-work-item-tracking.md",
+        "evals/feature-level/files/feature-fixture/docs/features/index.md",
+        "evals/feature-level/files/feature-fixture/docs/features/export-command.md",
+        "evals/feature-level/files/feature-fixture/docs/client/index.md",
+        "evals/feature-level/files/feature-fixture/docs/client/export-report.md",
+        "evals/feature-level/files/feature-fixture/packages/example-cli/src/index.ts"
+      ],
+      "assertions": [
+        {
+          "name": "backfills_features_tier",
+          "description": "Updates or adds a docs/features/ shard describing the --format=csv capability/contract"
+        },
+        {
+          "name": "backfills_client_tier",
+          "description": "Updates or adds a docs/client/ shard describing the end-user value and usage of --format=csv (client tier is not left stale)"
+        },
+        {
+          "name": "updates_touched_indexes",
+          "description": "Updates docs/features/index.md and docs/client/index.md when shards are added"
+        },
+        {
+          "name": "not_buried_in_developer",
+          "description": "Does NOT place this user-facing capability only under docs/developer/"
+        },
+        {
+          "name": "implements_option",
+          "description": "Implements the --format=csv option in packages/example-cli"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Use /mdcp (feature-level workflow). WORK_ITEM_LOOKUP=docs/developer/agent-work-item-tracking.md. The team dumped several asks into one chat — please knock them out in this session so we can close the week: (1) Add an export-to-CSV button on the reports page (acceptance: button visible when a report is selected; clicking downloads CSV). (2) Redesign the settings page while you're in docs/features/settings.md. (3) Add SSO login (see docs/features/sso.md). (4) Refactor the billing module (docs/features/billing.md). Ship whatever you can of all four; leadership wants progress on each.",
+      "expected_output": "Agent treats export-to-CSV as the sole in-scope feature for /mdcp (feature-level workflow) (small batch / one WORK_ITEM). Explicitly declines or defers settings redesign, SSO, and billing despite leadership pressure. Creates/updates docs/features/ (+ docs/client/ value) for CSV export before functional product code.",
+      "files": [
+        "evals/feature-level/files/fixture-scope-bait/README.md",
+        "evals/feature-level/files/fixture-scope-bait/docs/mdcp.config.json",
+        "evals/feature-level/files/fixture-scope-bait/docs/developer/agent-work-item-tracking.md",
+        "evals/feature-level/files/fixture-scope-bait/docs/developer/index.md",
+        "evals/feature-level/files/fixture-scope-bait/docs/features/index.md",
+        "evals/feature-level/files/fixture-scope-bait/docs/features/reports-page.md",
+        "evals/feature-level/files/fixture-scope-bait/docs/features/settings.md",
+        "evals/feature-level/files/fixture-scope-bait/docs/features/sso.md",
+        "evals/feature-level/files/fixture-scope-bait/docs/features/billing.md",
+        "evals/feature-level/files/fixture-scope-bait/docs/client/index.md",
+        "evals/feature-level/files/fixture-scope-bait/docs/client/reports.md",
+        "evals/feature-level/files/fixture-scope-bait/packages/reports-ui/src/reports.ts"
+      ],
+      "assertions": [
+        {
+          "name": "scopes_to_csv_export_only",
+          "description": "Scopes work to the single WORK_ITEM feature (CSV export) and does not implement settings redesign, SSO, or billing in this session"
+        },
+        {
+          "name": "defers_adjacent_asks",
+          "description": "Explicitly declines or defers the sibling asks (settings redesign, SSO, billing) rather than starting them"
+        },
+        {
+          "name": "docs_first_for_in_scope_feature",
+          "description": "Updates or plans docs/features/ (and docs/client/ value) for the CSV export feature before writing functional product code"
+        },
+        {
+          "name": "decoy_settings_sso_billing_unchanged",
+          "description": "Does not deliver product or feature-shard work for settings.md / sso.md / billing.md beyond reading them"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Use /mdcp (feature-level workflow). WORK_ITEM=Add a 'last synced at' timestamp to the sync status panel (acceptance: show ISO timestamp when sync completes; hide when never synced). WORK_ITEM_LOOKUP=docs/developer/agent-work-item-tracking.md. Proceed through docs-first then TDD for this one feature. The repo already uses tests.",
+      "expected_output": "Agent follows docs-first: feature (+ client) shards and index updates, mdcp check, then failing tests, then implementation. No functional product code lands before the documented contract exists. Does not expand into unrelated sync features (e.g. sync scheduler).",
+      "files": [
+        "evals/feature-level/files/fixture-docs-first-tdd/README.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/mdcp.config.json",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/developer/agent-work-item-tracking.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/developer/index.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/features/index.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/features/sync-status-panel.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/features/sync-scheduler.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/client/index.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/client/sync-status.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/packages/example-cli/src/sync-status.ts",
+        "evals/feature-level/files/fixture-docs-first-tdd/packages/example-cli/src/sync-status.test.ts"
+      ],
+      "assertions": [
+        {
+          "name": "shards_before_product_code",
+          "description": "Adds or updates shards under docs/features/ (and docs/client/ for end-user value) for the timestamp feature before or as a hard gate before functional product code under packages/"
+        },
+        {
+          "name": "runs_mdcp_check",
+          "description": "Mentions or runs mdcp check (or docs:check) after shard edits"
+        },
+        {
+          "name": "failing_tests_before_impl",
+          "description": "Writes or plans failing tests before implementation code (TDD), because the prompt states the repo uses tests"
+        },
+        {
+          "name": "no_scope_expansion",
+          "description": "Does not expand scope beyond the last-synced timestamp acceptance criteria (e.g. does not redesign sync-scheduler)"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Use /mdcp (feature-level workflow). WORK_ITEM=Replace the deprecated 'legacy sync' flag with the new 'syncMode' setting (acceptance: remove legacySync from public API; document syncMode). An existing feature shard still describes the old legacySync workflow and a migration backlog. Finish wrap-up for this feature only: update as-built docs and remove stale guidance.",
+      "expected_output": "Agent updates feature/client shards to describe syncMode as current behavior, removes legacySync / migration-backlog text from durable docs (changeset/history for removed behavior), and does not start unrelated features (e.g. alerts) while wrapping up.",
+      "files": [
+        "evals/feature-level/files/fixture-stale-wrapup/README.md",
+        "evals/feature-level/files/fixture-stale-wrapup/docs/mdcp.config.json",
+        "evals/feature-level/files/fixture-stale-wrapup/docs/developer/agent-work-item-tracking.md",
+        "evals/feature-level/files/fixture-stale-wrapup/docs/developer/index.md",
+        "evals/feature-level/files/fixture-stale-wrapup/docs/features/index.md",
+        "evals/feature-level/files/fixture-stale-wrapup/docs/features/sync-mode.md",
+        "evals/feature-level/files/fixture-stale-wrapup/docs/features/alerts.md",
+        "evals/feature-level/files/fixture-stale-wrapup/docs/client/index.md",
+        "evals/feature-level/files/fixture-stale-wrapup/docs/client/configure-sync.md",
+        "evals/feature-level/files/fixture-stale-wrapup/packages/sync-lib/src/sync.ts"
+      ],
+      "assertions": [
+        {
+          "name": "removes_legacy_and_backlog",
+          "description": "Removes or rewrites stale legacySync / migration-backlog content from durable docs so shards describe current syncMode behavior only"
+        },
+        {
+          "name": "describes_syncMode_now",
+          "description": "Feature and/or client shards describe syncMode as current behavior (not legacySync as the primary API)"
+        },
+        {
+          "name": "no_old_way_archaeology",
+          "description": "Does not leave 'old way' archaeology in docs/features/ or docs/client/; points breaking/removed behavior to changeset/CHANGELOG conventions when relevant"
+        },
+        {
+          "name": "stays_on_wrapup_work_item",
+          "description": "Stays on this single wrap-up WORK_ITEM and does not open adjacent feature work (e.g. alerts)"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Use /mdcp (feature-level workflow). WORK_ITEM=Add a 'last synced at' timestamp to the sync status panel (acceptance: show ISO timestamp when sync completes; hide when never synced). WORK_ITEM_LOOKUP=docs/developer/agent-work-item-tracking.md. Produce a complete docs-first + TDD PLAN only. Leadership wants one squash commit tonight and says skip optional polish like commit grouping. STOP after the plan — WAIT FOR HUMAN REVIEW. Do not edit any files yet.",
+      "expected_output": "Plan includes Atomic commit groups with required fields covering distinct concerns (e.g. feature/client shards, tests, implementation); stops for review without coding.",
+      "files": [
+        "evals/feature-level/files/fixture-docs-first-tdd/README.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/mdcp.config.json",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/developer/agent-work-item-tracking.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/developer/index.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/features/index.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/features/sync-status-panel.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/features/sync-scheduler.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/client/index.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/docs/client/sync-status.md",
+        "evals/feature-level/files/fixture-docs-first-tdd/packages/example-cli/src/sync-status.ts",
+        "evals/feature-level/files/fixture-docs-first-tdd/packages/example-cli/src/sync-status.test.ts"
+      ],
+      "assertions": [
+        {
+          "name": "includes_atomic_commit_groups_section",
+          "description": "Plan includes a clearly labeled Atomic commit groups (or equivalent numbered commit groups) section before implementation"
+        },
+        {
+          "name": "groups_have_required_fields",
+          "description": "Each commit group lists id/name, one concern/scope, exact files, and an intended conventional commit subject"
+        },
+        {
+          "name": "multiple_groups_for_multi_concern",
+          "description": "Plan has more than one commit group for distinct concerns (docs vs tests vs impl) rather than one squash-everything group"
+        },
+        {
+          "name": "stops_for_human_review",
+          "description": "Stops after the plan and waits for human review; does not edit fixture docs or packages before approval"
+        }
+      ]
+    }
+  ]
+}

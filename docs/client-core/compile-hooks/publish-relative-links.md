@@ -1,6 +1,8 @@
 # Publish-relative link rewriting
 
-Specification for assembly-time rebasing of shard-relative file links when a guide publishes outside the shard tree. Tests in `packages/mdcp-core/test/publish-links.test.ts` and `packages/mdcp-core/test/links.test.ts` map to the sections below.
+<!-- mdcp-paths: illustrative -->
+
+Specification for assembly-time rebasing of shard-relative file links to each guide's [link base](#when-it-runs). Tests in `packages/mdcp-core/test/publish-links.test.ts`, `packages/mdcp-core/test/links.test.ts` and `packages/mdcp-core/test/guide-output-path.test.ts` map to the sections below. Tests for the exclusion of cross-guide links and for [`ignoreGuides` interaction](#ignoreguides-interaction) are also in `packages/mdcp-core/test/cross-guide-links.test.ts`, and tests for the exclusion of links that `codeEvidence` rebased are in `packages/mdcp-core/test/code-evidence.test.ts`.
 
 ## Why this pass exists
 
@@ -8,7 +10,7 @@ Shards are authored with paths relative to **where the file lives** in the guide
 
 - `../features/foo.md` from `docs/developer/`
 - `../../features/foo.md` from `docs/client-core/compile-hooks/`
-- `../../package.json` from `docs/developer/` (repo root)
+- `../../.nvmrc` from `docs/developer/` (repo root)
 
 That works while readers open shards under `docs/`. It breaks when the same content compiles to a **publish output** elsewhere — for example `DEVELOPERS.md` at the repo root or `packages/mdcp-cli/README.md`.
 
@@ -16,32 +18,25 @@ That works while readers open shards under `docs/`. It breaks when the same cont
 
 **Solution:** resolve and rebase **per shard**, before stitch:
 
-1. Resolve the link from `dirname(sourceFile)` to an **absolute** target path
+1. Resolve the link to an **absolute** target path, in the order [Path lookup order](./index.md#path-lookup-order) gives for this pass
 2. Emit `relative(dirname(publishOutputFile), absoluteTarget)` in the compiled body
 
-No `stripParentSegments`, `oneLevelPrefix`, or other publish-path config — geometry comes from `sourceFile`, `compile.outputFile`, and the filesystem.
+Rebasing doesn't need path-prefix config. The geometry comes from `sourceFile` and the guide's [link base](#when-it-runs), resolved against the filesystem.
 
 ## When it runs
 
-| Condition                                       | Publish-relative rewrite                                 |
-| ----------------------------------------------- | -------------------------------------------------------- |
-| Guide has `compile.outputFile` set              | **Yes** — per shard, after cross-guide rewrite           |
-| Guide outputs only to `_build/{name}.md`        | **No** — shard-relative paths stay as authored           |
-| Optional monolith (`outputFile` at config root) | **No** for guides without their own `compile.outputFile` |
+A guide's **link base** is the file being assembled, and the guide's paths rebase relative to it. Compile assembles a guide for the files in this table:
 
-Implementation: `rewritePublishRelativeLinks` in `packages/mdcp-core/src/compile/publish-links.ts`, invoked from `assembleGuide` when `publishOutputFile` is set.
+| File being assembled       | Path                                                                                                                                   | Guides it holds                          |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| The guide's compiled guide | `compile.outputFile` when set (a publish output), otherwise `{name}.md` under `outputDir`, or `guide.md` when the config has one guide | Every guide                              |
+| The optional monolith      | Top-level `outputFile` under `outputDir`                                                                                               | Every guide without `compile.outputFile` |
 
-## Division of labor (three link passes)
+So a guide in the monolith is assembled twice. Its own [compiled guide](../../glossary/compiled-guide.md) rebases each path relative to the compiled guide, and its copy in the monolith rebases each path relative to the monolith. Both copies resolve, whichever directory the monolith is in. Source tags and code evidence links follow the same rule. [Cross-guide resolution](./cross-guide-links.md#cross-guide-resolution) says where each copy's links to other guides point.
 
-Assembly applies specialized passes instead of one generic rewriter:
+The pass runs per shard for every guide, after the other per-shard [link passes](./index.md#link-passes). It is named for [publish outputs](../../glossary/publish-output.md), but it rebases links in every compiled guide and in the monolith.
 
-| Pass                 | Scope                                         | Input links                                | Output                                               |
-| -------------------- | --------------------------------------------- | ------------------------------------------ | ---------------------------------------------------- |
-| **Cross-guide**      | Indexed `.md` in another guide                | `../other-guide/shard.md`                  | `{outputFile}#slug` or unchanged when `ignoreGuides` |
-| **Publish-relative** | Remaining `../` file links on publish outputs | `../features/foo.md`, `../../package.json` | Path relative to publish file                        |
-| **Intra-guide**      | Same-guide section shards                     | `./section.md`                             | `#anchor` in assembled body                          |
-
-Cross-guide runs first and uses the **guide link index**. Publish-relative handles everything else that still starts with `../` — config files, `package.json`, and shard paths left unchanged by `ignoreGuides`.
+Code: `rewritePublishRelativeLinks` in `packages/mdcp-core/src/compile/publish-links.ts`, invoked from `assembleGuide` with the guide's link base as `publishOutputFile`.
 
 ## Publish-relative matching
 
@@ -50,25 +45,25 @@ A link is rewritten when **all** of the following hold:
 - Standard markdown link syntax: `[label](path)`
 - Target starts with one or more `../` segments (not `./` — see exclusions)
 - Target is not `http://`, `https://`, `mailto:`, or `#…`
-- Target resolves to an existing file from the shard directory (then guide directory, then `compile.scopeRoot`)
-- Resolved path is **not** a same-guide indexed shard (intra-guide pass owns those)
-- Resolved path is **not** another guide's `compile.outputFile` (cross-guide already rebased)
+- Target resolves to an existing file or directory, or to an output of the run, in the order [Path lookup order](./index.md#path-lookup-order) gives for this pass
+- Resolved path is **not** a same-guide indexed shard (the cross-guide pass rewrites those)
+- The link is outside fenced code and code spans (see [Link passes](./index.md#link-passes))
+
+A target made only of `../` segments, such as `../` or `../../`, points at a directory and rebases in every compiled guide. From `docs/developer/` into `DEVELOPERS.md`, the target `../` compiles to `docs`. The target `../../` resolves to the directory that contains `DEVELOPERS.md`, so it compiles to `./`. The rebased path drops any trailing slash, so `../../skills/` compiles to `skills`.
+
+A link the shard writes to an output of the run, such as `../../README.md`, is a shard-relative path like any other, and the pass rebases it. The rebased path leads to the output from a link base at any depth. [Path lookup order](./index.md#path-lookup-order) says which outputs count as existing before compile writes them, and why the pass treats a path to the monolith as missing when every guide sets `compile.outputFile`.
 
 ## Publish-relative resolution
 
-Path lookup order (same as cross-guide shard resolution):
-
-1. `resolve(dirname(sourceFile), filePart)`
-2. `resolve(guideDir, filePart)`
-3. `compile.scopeRoot` when set
-
-Then:
+The pass finds the target in the order [Path lookup order](./index.md#path-lookup-order) gives for the publish-relative rewrite, then emits:
 
 ```text
 relative(dirname(publishOutputFile), resolvedAbsolute) + optional #fragment
 ```
 
-`publishOutputFile` is the absolute path from `resolveGuideLinkBase` for the guide's `compile.outputFile`.
+An empty relative path means the target is the directory that contains the link base, and the pass writes `./` for it. That covers a `../`-only target and a named one, such as `../../pkg/` from `docs/pkg/` compiled into `pkg/README.md`.
+
+`publishOutputFile` is the absolute path of the file being assembled (see [When it runs](#when-it-runs)).
 
 ## Publish-relative exclusions
 
@@ -76,21 +71,23 @@ The pass **does not** transform:
 
 - External URLs
 - Same-document `#fragment` links
+- Link syntax in fenced code or in a code span
 - `./section.md` and other `./` paths (cross-guide or intra-guide handle `.md`; publish-relative only matches `../`)
-- Links cross-guide already rewrote to `{otherPublishOutput}#slug`
+- A link that the cross-guide pass rewrote, whose path is already relative to the link base, such as `../../README.md#setup` in a guide published to `packages/a/README.md`
+- A link that [`codeEvidence`](./code-evidence.md) rebased, whose path is relative to the link base too. From the shard's directory, the path can lead to another file with the same name.
 - Unresolvable paths (left unchanged)
 
 ## Repo dogfood examples
 
-Config: [`docs/mdcp.config.json`](../../mdcp.config.json) — `developer`, `client-cli`, and `client-core` use `compile.outputFile`.
+Config: [`docs/mdcp.config.json`](../../mdcp.config.json). Every guide except `features` sets `compile.outputFile`, and the examples below show three of them.
 
 **`developer` → `DEVELOPERS.md` (repo root)**
 
 | Shard input (`docs/developer/…`) | Compiled in `DEVELOPERS.md`        |
 | -------------------------------- | ---------------------------------- |
-| `../../package.json`             | `package.json`                     |
+| `../../.nvmrc`                   | `.nvmrc`                           |
 | `../features/feature-catalog.md` | `docs/features/feature-catalog.md` |
-| `../mdcp.config.json`            | `docs/mdcp.config.json`            |
+| `../../packages/mdcp-site/`      | `packages/mdcp-site`               |
 
 **`client-cli` → `packages/mdcp-cli/README.md`**
 
@@ -108,7 +105,11 @@ Nested shards use more `../` segments in source; per-shard resolution still yiel
 
 ## `ignoreGuides` interaction
 
-When `compile.crossGuideLinks.ignoreGuides` keeps a cross-guide link as a shard `.md` path, publish-relative still rebases that path for the publish file. Example: `client-cli` with `ignoreGuides: ["features"]` compiles `../features/feature-catalog.md` to `../../docs/features/feature-catalog.md` in the package README.
+When `compile.crossGuideLinks.ignoreGuides` keeps a cross-guide link as a shard `.md` path, publish-relative still rebases that path relative to the compiling guide's link base. Example: `client-cli` with `ignoreGuides: ["features"]` compiles `../features/feature-catalog.md` to `../../docs/features/feature-catalog.md` in the package README.
+
+The intra-guide run on the stitched body leaves the rebased path alone, even when the compiling guide stitches the shard. So a guide in the monolith links the shard file in both documents, each path relative to its own link base.
+
+A kept `./` link takes another route, because this pass only matches `../`. When the compiling guide stitches the shard, the per-shard intra-guide pass rewrites a `./` or bare link to it as `#slug`. So one compiled guide can link a shard by its path from a `../` link and by its anchor from a `./` link.
 
 Link validation accepts those shard paths when the target guide is listed in `ignoreGuides` on the compiling guide. See [Link validation](../../features/link-validation.md#publish-only-link-policy).
 

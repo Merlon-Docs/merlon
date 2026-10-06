@@ -2,4 +2,4 @@
 
 Operational steps for store administrators.
 
-Cross-link: [Developer Guide Chapter 1](#dev-chapter-1-overview).
+For integration details, see [Developer Guide Chapter 1](../developer-guide/chapter-1-overview.md).

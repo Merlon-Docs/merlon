@@ -26,7 +26,7 @@ When problems are solved in code but never make it back to the PRD, we lose **tr
 
 ## Context Overload
 
-- Large documentation dumps (monolithic READMEs, site-wide `llms.txt`) pollute agent reasoning.
+- Large documentation dumps (single-file READMEs, site-wide `llms.txt`) pollute agent reasoning.
 - Massive context dumps increase latency, drive up inference costs, and trigger hallucinations.
 - Teams lack a shared, reviewable contract for **what documentation means**.
 

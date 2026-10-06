@@ -1,5 +1,7 @@
 # inlineInserts
 
+<!-- mdcp-paths: illustrative -->
+
 Specification for the `inlineInserts` compile hook. Tests in `packages/mdcp-core/test/inline-inserts.test.ts` map to the sections below (docs first, then TDD).
 
 ## inlineInserts purpose
@@ -33,10 +35,12 @@ Shards link with normal markdown — no `<!-- directives -->`.
 
 A link is an insert reference when **all** of the following hold:
 
-- Standard markdown link syntax: `[label](path)`
-- Target path contains `diagram`, `diagrams`, `table`, `tables`, `figure`, `figures`, `media`, `insert`, or `inserts`
-- Target ends in `.md` (optional `#fragment` suffix is ignored for file lookup)
-- Target is not `http://` or `https://`
+- Standard markdown link syntax: `[label](path)`.
+- Target starts with an insert library directory and a `/`, after an optional `./` or run of `../`. The directories are `diagram`, `diagrams`, `table`, `tables`, `figure`, `figures`, `media`, `insert` and `inserts`, in any case. No `http://` or `https://` URL starts that way.
+- The path after the directory doesn't start with `#` or whitespace. It ends in `.md` in any case, with at least one character before the `.md`.
+- An optional `#fragment` after the `.md` can't be empty, and file lookup ignores it.
+
+The hook reads the whole shard body, fenced code and code spans included. So it inlines an insert, or writes a back-link, for an insert link in a code example too, where the [link passes](./index.md#link-passes) leave a link as written.
 
 ## inlineInserts exclusions
 
@@ -63,7 +67,9 @@ The first reference to an insert file (document order across all shards in the g
 - **caption** — link label, or a humanized basename when the label is empty
 - **Anchor slug** — GitHub-style slug of the full heading (for example `Table 1. Status codes` → `#table-1-status-codes`)
 
-Output uses GFM headings and back-links for captions. Inlined shard bodies pass through as written (markdown tables, `![images](…)`, or HTML `<video>` / `<audio>` when your renderer supports them).
+Output uses GFM headings and back-links for captions. The hook inlines each shard body as written. The assembly passes after the hooks then treat that body as part of the shard, from link rewriting to [table re-alignment](./tables-after-link-rewriting.md). A body can contain markdown tables and `![images](…)`, and HTML `<video>` / `<audio>` when your renderer supports them.
+
+The heading and body replace the link, so a first reference in a table cell breaks the table, as the [compile example](#inlineinserts-compile-example) shows. Give the first reference a paragraph of its own, ahead of any table cell that links to the insert.
 
 ## inlineInserts numbered captions
 
@@ -93,27 +99,24 @@ Within one guide:
 
 ## inlineInserts path resolution
 
-Lookup order for insert shard paths:
-
-1. Relative to the current shard directory
-2. Relative to the shard parent directory
-3. `process.cwd()` and its parent
-4. Optional `hooksConfig.inlineInserts.searchRoots`
+The hook finds each insert shard in the order [Path lookup order](./index.md#path-lookup-order) gives for `inlineInserts`.
 
 ## inlineInserts config
 
-Runs by default. Optional search roots:
+Runs by default. Optional search roots, each the parent of an insert library directory such as `diagrams/`:
 
 ```json
 {
   "name": "architecture-review",
   "compile": {
     "hooksConfig": {
-      "inlineInserts": { "searchRoots": ["diagrams"] }
+      "inlineInserts": { "searchRoots": ["shared"] }
     }
   }
 }
 ```
+
+A link to `diagrams/flow.md` that no earlier root in the [lookup order](./index.md#path-lookup-order) resolves then finds `shared/diagrams/flow.md`.
 
 Opt out: `"hooks": { "inlineInserts": false }`. See [Default compile hooks](../../features/default-compile-hooks.md).
 
@@ -129,12 +132,11 @@ Shard input:
 See [Request flow](../diagrams/request-flow.md) again in prose.
 ```
 
-Compiled fragment (first guide mention):
+Compiled fragment (first guide mention), with trailing spaces trimmed. The header and delimiter rows keep the shard's widths, and the insert splits the row with the link:
 
-```markdown
-| Insert | Summary |
-| ------ | ------- |
-
+```text
+| Insert                                      | Summary     |
+| ------------------------------------------- | ----------- |
 |
 
 #### Diagram 1. Request flow
@@ -143,12 +145,12 @@ Compiled fragment (first guide mention):
 | ---- | ------ |
 | 1    | Client |
 
-| Client path |
+ | Client path |
 
 See [Request flow](#diagram-1-request-flow) again in prose.
 ```
 
-Example fixture: [`examples/sample-guides/inserts-demo/`](../../../examples/sample-guides/inserts-demo/). See [GitHub media reference](../../../examples/sample-guides/inserts-demo/github-media-help.md) for a format matrix (PNG, JPEG, GIF, SVG, MP4, MP3/WAV, Mermaid, tables, lists) and minimal generated sample assets under `figures/` and `media/`.
+Example fixture: [`examples/sample-guides/inserts-demo/`](../../../examples/sample-guides/inserts-demo/). Its catalog gives each insert's first reference a paragraph of its own, and its table links to each insert again. Compile turns those table links into back-links and re-aligns the table. See [GitHub media reference](../../../examples/sample-guides/inserts-demo/github-media-help.md) for a format matrix (PNG, JPEG, GIF, SVG, MP4, MP3/WAV, Mermaid, tables, lists) and minimal generated sample assets under `figures/` and `media/`.
 
 **Figure with embedded image** — shard `figures/component-map.md`:
 

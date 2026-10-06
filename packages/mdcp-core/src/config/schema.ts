@@ -52,7 +52,12 @@ const GuideSchema = z.object({
       /** Cross-guide link rewrite options (assembly-time; not a compile hook). */
       crossGuideLinks: z
         .object({
-          /** Guide names whose shards keep source `.md` paths instead of monolith `#slug` targets. */
+          /**
+           * Target guide names: links from this guide to shards of a listed guide keep source `.md`
+           * paths instead of `#slug` targets in the target guide's compiled guide or in the monolith.
+           * A link to a shard this guide stitches can still take its in-document anchor, as the
+           * `compile.crossGuideLinks.ignoreGuides` section of the core README says.
+           */
           ignoreGuides: z.array(z.string()).optional(),
         })
         .optional(),
@@ -91,7 +96,7 @@ export const MdcpConfigSchema = z.object({
   sourceTags: z.boolean().default(true),
   guides: z.array(GuideSchema).optional(),
 
-  /** Files or globs (relative to scan root) registered as standalone guides — captured, never compiled. */
+  /** Files or globs (relative to scan root) registered as standalone guides: captured by the coverage scan, with no compile output of their own. */
   standaloneGuides: z.array(z.string()).default([]),
 
   /** Repository-wide markdown coverage scan options. */
@@ -152,6 +157,40 @@ export const MdcpConfigSchema = z.object({
           config: z.string().optional(),
         })
         .optional(),
+      /**
+       * Extra code extensions, added to the built-in defaults. A link or path
+       * claim carrying one of these names a file that has to exist, and a
+       * symbol in the link label can cite a line in it. Needed by a project on
+       * a stack the defaults do not list, or to have lines cited in a format
+       * shipped as data (workflow YAML, for instance).
+       */
+      codeExtensions: z.array(z.string()).default([]),
+      /**
+       * Extra data extensions, added to the built-in defaults. Validated for
+       * existence like code, never cited by line.
+       */
+      dataExtensions: z.array(z.string()).default([]),
+      /** Backtick-path resolution in documentation prose. Opt-in: default `off`. */
+      paths: z
+        .object({
+          severity: z.enum(['off', 'warn', 'error']).default('off'),
+          /** Extra resolution roots relative to the scan root, tried after it. */
+          searchRoots: z.array(z.string()).default([]),
+          /**
+           * Scan-root-relative prefixes that are real but absent in a clean
+           * checkout: build output, caches, vendor-managed installs. Matched as
+           * a prefix, so everything beneath one is covered.
+           */
+          generated: z.array(z.string()).default([]),
+          /**
+           * Paths this repository documents without having: names the protocol
+           * defines for a consumer repository, or another project's tree.
+           * Matched exactly, so an invented file beneath one still has to
+           * resolve.
+           */
+          vocabulary: z.array(z.string()).default([]),
+        })
+        .optional(),
     })
     .optional(),
 
@@ -162,6 +201,18 @@ export const MdcpConfigSchema = z.object({
       scanGlobs: z.array(z.string()).optional(),
     })
     .optional(),
+
+  /** Thresholds for `mdcp review` sprawl signals. */
+  review: z
+    .object({
+      /** Most shard links one index group may list before `index-size` fires. */
+      maxIndexEntries: z.number().int().positive().default(12),
+      /** Most prose words a shard may hold before `long-shard` fires. */
+      maxShardWords: z.number().int().positive().default(2500),
+      /** Fewest words a paragraph needs before `duplicate-paragraph` compares it. */
+      minDuplicateWords: z.number().int().positive().default(25),
+    })
+    .default({ maxIndexEntries: 12, maxShardWords: 2500, minDuplicateWords: 25 }),
 });
 
 export type MdcpConfig = z.infer<typeof MdcpConfigSchema>;

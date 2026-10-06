@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 /**
- * Measure dogfood docs/ performance and write performance-dogfood.csv.
+ * Measure dogfood docs/ performance and write a dated CSV beside the research
+ * records. A run worth keeping gets its own benchmark record; earlier CSVs stay
+ * as measured.
  * Pre-P0 values are historical baselines from GitHub issue #64 (not re-measured).
  * Post-P0 values are live wall-clock or in-process timings from this run.
  */
@@ -16,7 +18,7 @@ const REPO_ROOT = join(__dirname, '..');
 const DOCS_ROOT = join(REPO_ROOT, 'docs');
 const CONFIG = join(DOCS_ROOT, 'mdcp.config.json');
 const CLI = join(REPO_ROOT, 'packages/mdcp-cli/dist/cli.js');
-const OUT_CSV = join(DOCS_ROOT, 'features/protocol/performance-dogfood.csv');
+const RESEARCH_DIR = join(DOCS_ROOT, 'features/protocol/research');
 
 /** Historical pre-P0 baselines — source: GitHub issue #64 (2026-06-18). */
 const PRE_P0 = {
@@ -142,6 +144,7 @@ function csvEscape(value) {
 async function main() {
   const recordedAt = new Date().toISOString().slice(0, 10);
   const postSource = `scripts/bench-dogfood-performance.mjs (${recordedAt})`;
+  const outCsv = join(RESEARCH_DIR, `benchmark-dogfood-${recordedAt}.csv`);
 
   const { compileMs, lintMs } = await timeCorePhases();
   const compileCliMs = timeCliMedian([
@@ -281,8 +284,8 @@ async function main() {
   const header =
     'operation,tier,slo_target,slo_shards,pre_p0_value,post_p0_value,value_unit,improvement_factor,status,pre_p0_source,post_p0_source,notes,recorded_at';
   const csv = [header, ...rows.map((r) => r.join(','))].join('\n') + '\n';
-  writeFileSync(OUT_CSV, csv, 'utf-8');
-  console.log(`Wrote ${OUT_CSV}`);
+  writeFileSync(outCsv, csv, 'utf-8');
+  console.log(`Wrote ${outCsv}`);
   for (const row of rows) {
     console.log(`  ${row[0]}: ${row[5]} ${row[6]}`);
   }

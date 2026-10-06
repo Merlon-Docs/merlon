@@ -5,9 +5,11 @@
 import { describe, it, expect } from 'vitest';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { compileGuideResults } from '../src/compile/assemble.js';
 import { applyCompileHooks, createCompileHookState } from '../src/compile/hooks.js';
 import '../src/compile/hooks/builtin.js';
 import {
+  findInsertLinks,
   insertAnchorSlug,
   numberedInsertHeading,
   isInsertLibraryPath,
@@ -37,6 +39,67 @@ describe('inlineInserts — link matching', () => {
     expect(isInsertLibraryPath('../glossary/term.md')).toBe(false);
     expect(isInsertLibraryPath('../diagrams/flow.png')).toBe(false);
     expect(isInsertLibraryPath('https://example.com/diagrams/flow.md')).toBe(false);
+  });
+
+  it('reads the library directory and .md in any case, and needs a path after the directory', () => {
+    expect(isInsertLibraryPath('../../Diagrams/Flow.MD')).toBe(true);
+    expect(isInsertLibraryPath('./diagram/flow.md')).toBe(true);
+    expect(isInsertLibraryPath('TABLES/codes.Md')).toBe(true);
+    expect(isInsertLibraryPath('diagrams/flow.md#part.md')).toBe(true);
+    expect(isInsertLibraryPath('medias/clip.md')).toBe(false);
+    expect(isInsertLibraryPath('./../diagrams/flow.md')).toBe(false);
+    expect(isInsertLibraryPath('docs/diagrams/flow.md')).toBe(false);
+    expect(isInsertLibraryPath('diagrams/ flow.md')).toBe(false);
+    expect(isInsertLibraryPath('diagrams/#flow.md')).toBe(false);
+  });
+
+  it('gives the span, label and target of each insert link in a body', () => {
+    const body = [
+      'See [Flow](../../diagrams/flow.md#top).\r',
+      'And [](./Tables/codes.MD) or [x](docs/diagrams/a.md).\r',
+      '[Media\r\nclip](media/clip.md)[y](figures/b.md#)',
+    ].join('\n');
+    const links = findInsertLinks(body);
+    expect(links).toEqual([
+      { start: 4, end: 38, label: 'Flow', relPath: '../../diagrams/flow.md#top' },
+      { start: 45, end: 66, label: '', relPath: './Tables/codes.MD' },
+      { start: 96, end: 124, label: 'Media\r\nclip', relPath: 'media/clip.md' },
+    ]);
+    expect(links.map(({ start, end }) => body.slice(start, end))).toEqual([
+      '[Flow](../../diagrams/flow.md#top)',
+      '[](./Tables/codes.MD)',
+      '[Media\r\nclip](media/clip.md)',
+    ]);
+  });
+
+  // Unlike the link passes, the hook reads fenced code and code spans, as the spec says.
+  describe('in fenced code and code spans', () => {
+    const work = useTmpDir('mdcp-inserts-');
+    const span = 'Inline: `[Flow](./diagrams/flow.md)` here.';
+    const fence = ['~~~md', '[Flow](./diagrams/flow.md)', '~~~'].join('\n');
+
+    function writeFlow(): string {
+      const guideDir = join(work.path, 'review');
+      mkdirSync(join(guideDir, 'diagrams'), { recursive: true });
+      writeFileSync(join(guideDir, 'diagrams', 'flow.md'), '| A | B |\n|---|---|\n| 1 | 2 |\n');
+      return join(guideDir, 'claim.md');
+    }
+
+    it('inlines the insert in a fence of tildes and back-links it from a code span', () => {
+      const out = runInlineInserts(`${fence}\n\n${span}`, writeFlow());
+      expect(out).toBe(
+        '~~~md\n\n\n#### Diagram 1. Flow\n\n| A | B |\n|---|---|\n| 1 | 2 |\n\n\n~~~\n\n' +
+          'Inline: `[Flow](#diagram-1-flow)` here.',
+      );
+    });
+
+    it('inlines the insert in a code span and back-links it from a fence of tildes', () => {
+      const out = runInlineInserts(`${span}\n\n${fence}`, writeFlow());
+      expect(out).toBe(
+        'Inline: `\n\n#### Diagram 1. Flow\n\n| A | B |\n|---|---|\n| 1 | 2 |\n\n` here.\n\n' +
+          '~~~md\n[Flow](#diagram-1-flow)\n~~~',
+      );
+    });
   });
 });
 
@@ -197,6 +260,24 @@ describe('inlineInserts — first inline', () => {
     const out = runInlineInserts(table, join(guideDir, 'catalog.md'));
     expect(out).toContain('| Step | Actor |');
     expect(out).not.toContain('](./diagrams/request-flow.md)');
+  });
+
+  it('inlines links on CRLF lines and in upper case, but not one with an empty #fragment', () => {
+    const guideDir = join(work.path, 'review');
+    mkdirSync(join(work.path, 'diagrams'), { recursive: true });
+    mkdirSync(join(work.path, 'Tables'), { recursive: true });
+    writeFileSync(join(work.path, 'diagrams', 'flow.md'), '| Step | Actor |\n');
+    writeFileSync(join(work.path, 'Tables', 'codes.MD'), '| Code | Meaning |\n');
+    const body = [
+      'See [Flow](../diagrams/flow.md#top).\r',
+      'See [Codes](../Tables/codes.MD).\r',
+      'Again [Flow](../diagrams/flow.md#).\r',
+      '',
+    ].join('\n');
+    const out = runInlineInserts(body, join(guideDir, 'claim.md'));
+    expect(out).toContain('#### Diagram 1. Flow');
+    expect(out).toContain('#### Table 1. Codes');
+    expect(out).toContain('Again [Flow](../diagrams/flow.md#).\r');
   });
 
   it('ignores #fragment for file lookup', () => {
@@ -417,9 +498,10 @@ describe('inlineInserts — config', () => {
   it('resolves short paths via hooksConfig.inlineInserts.searchRoots', () => {
     const guideDir = join(work.path, 'review', 'technical');
     mkdirSync(guideDir, { recursive: true });
-    mkdirSync(join(work.path, 'diagrams'), { recursive: true });
+    // The root holds the diagrams/ library, and the link's whole path resolves against it.
+    mkdirSync(join(work.path, 'shared', 'diagrams'), { recursive: true });
     writeFileSync(
-      join(work.path, 'diagrams', 'shared-flow.md'),
+      join(work.path, 'shared', 'diagrams', 'shared-flow.md'),
       '| Shared | Table |\n|---|---|\n| x | y |\n',
     );
     withCwd(work.path, () => {
@@ -432,7 +514,7 @@ describe('inlineInserts — config', () => {
             guides: [
               {
                 name: 'review',
-                compile: { hooksConfig: { inlineInserts: { searchRoots: ['diagrams'] } } },
+                compile: { hooksConfig: { inlineInserts: { searchRoots: ['shared'] } } },
               },
             ],
           } as never,
@@ -441,6 +523,35 @@ describe('inlineInserts — config', () => {
         ['inlineInserts'],
       );
       expect(out).toContain('| Shared | Table |');
+    });
+  });
+
+  it('reads searchRoots for a guide whose name differs from its directory', () => {
+    mkdirSync(join(work.path, 'review'), { recursive: true });
+    mkdirSync(join(work.path, 'lib', 'diagrams'), { recursive: true });
+    writeFileSync(join(work.path, 'review', 'index.md'), '# Review\n\n- [A](./a.md)\n');
+    writeFileSync(join(work.path, 'review', 'a.md'), '# A\n\nSee [Flow](diagrams/flow.md).\n');
+    writeFileSync(join(work.path, 'lib', 'diagrams', 'flow.md'), 'Flow body.\n');
+    const guides = [
+      {
+        name: 'architecture-review',
+        path: 'review',
+        compile: {
+          outputFile: 'architecture-review.md',
+          hooksConfig: { inlineInserts: { searchRoots: ['lib'] } },
+        },
+      },
+    ];
+    withCwd(work.path, () => {
+      const [result] = compileGuideResults({
+        guidesRoot: work.path,
+        docsRoot: work.path,
+        compileOrder: ['architecture-review'],
+        guides,
+        config: { compileOrder: ['architecture-review'], guides } as never,
+      });
+      expect(result.text).toContain('#### Diagram 1. Flow');
+      expect(result.text).toContain('Flow body.');
     });
   });
 });

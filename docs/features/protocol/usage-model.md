@@ -1,6 +1,6 @@
 # Usage model
 
-Operational roles for Markdown as Context. Parent: [GitHub #45](https://github.com/betsalel-williamson/mdcp/issues/45).
+Operational roles for Markdown as Context.
 
 ## Agent entrypoint
 
@@ -15,13 +15,15 @@ Agents should load the parent **Agent Skill** (`/mdcp`, installed in your agent'
 | Agent (context consumer) | Agent Skill, single shards (`rg`/IDE) | —                | —                                            |
 | Maintainer               | skill pack + conformance              | protocol shards  | `docs:check:repo`                            |
 
+Authors can also run `mdcp prose` locally to see Vale findings before CI does.
+
 **Shards are source of truth; compiled files are generated.**
 
 ## Adoption paths
 
 ### Minimal
 
-One guide, `compile` + `check`, monolith output. Install the parent skill (`npx skills add betsalel-williamson/mdcp --skill mdcp`).
+One guide that compiles to `guide.md` and passes `check`. Install the skill (`npx skills add betsalel-williamson/mdcp --skill mdcp`).
 
 ### Typical
 
@@ -29,21 +31,17 @@ Multi-guide `compileOrder`, publish outputs (`compile.outputFile`).
 
 ### Agent-native
 
-Above plus three-tier shards (`features` / `client` / `developer`), helper skills.
+Above plus the four-tier guide layout (`features` / `client` / `developer` / `glossary`), the `mdcp` skill's workflows.
 
 ## Coexistence
 
-| Incumbent             | Workflow                                                     |
-| --------------------- | ------------------------------------------------------------ |
-| MCP host              | MCP reads compiled artifacts; MDCP validates authoring       |
-| Static site generator | MDCP for in-repo agent context; site may use compiled subset |
-| Cursor rules          | Host behavior in rules; product truth in MDCP shards         |
+[Alternatives and adoption](./02-alternatives-and-adoption.md#alternatives-comparison) says what MDCP adds beside site generators and host rules files. [Scope and positioning](./01-scope-and-positioning.md#why-mdcp-is-not-an-mcp-server) explains why MCP sits on top of MDCP instead of replacing it.
 
 ## Query preference order
 
 1. Activate the parent Agent Skill (`/mdcp`) when available
-2. Load a helper skill; complete intake for `WORK_ITEM` — see [Agent helper skills](./agent-task-prompts.md)
-3. Discover the shard with host tools (`rg`, IDE search, guide `index.md`) and **read one shard**
+2. Invoke `/mdcp` with the task; the skill picks a workflow and runs intake for `WORK_ITEM` — see [Skill workflows](./skill-workflows.md)
+3. Discover the shard with host tools (`rg`, IDE search, guide `index.md`) and **read one shard**; read a compiled guide under `outputDir` only when a broader read is intentional
 4. Rely on `mdcp check` for broken `#` cross-links (optionally inspect `mdcp refs-list`)
 
-Read [`docs/skills.md`](../../../docs/skills.md) for the helper skills catalog and workflow index.
+Read [`docs/skills.md`](../../../docs/skills.md) for the skill and its workflow index.

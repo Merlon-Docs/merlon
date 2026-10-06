@@ -6,29 +6,19 @@
 
 ## About @bwilliamson/mdcp-core
 
-The **programmatic core library** for the [MarkDown Context Protocol (MDCP)](https://github.com/betsalel-williamson/mdcp).
+[![npm version](https://img.shields.io/npm/v/@bwilliamson/mdcp-core.svg)](https://www.npmjs.com/package/@bwilliamson/mdcp-core)
+
+The **programmatic core library** for the [MarkDown Context Protocol (MDCP)](https://github.com/betsalel-williamson/mdcp). It compiles sharded Markdown guides and validates their structure. From the compiled output it also builds the registry of section links (`refs.json`).
 
 Use this package when you need compile, validation, and refs APIs in scripts, CI, editors, or other tools **without** shelling out to the CLI.
 
 ### Not the CLI or the Agent Skill
 
-- **This library** — TypeScript/Node API via `@bwilliamson/mdcp-core` on npm
-- **CLI** — command-line wrapper around this library: [`@bwilliamson/mdcp-cli`](https://www.npmjs.com/package/@bwilliamson/mdcp-cli)
-- **Agent Skill** — host instructions for docs-as-code agents: [root README](../../README.md) / `npx skills add … --skill mdcp`
+- **This library:** the TypeScript/Node API from `@bwilliamson/mdcp-core` on npm
+- **CLI:** the command-line wrapper around this library, [`@bwilliamson/mdcp-cli`](https://www.npmjs.com/package/@bwilliamson/mdcp-cli)
+- **Agent Skill:** the host instructions an agent loads for `/mdcp`, installed as [Get started](../../README.md#get-started) in the project README describes
 
-`@bwilliamson/mdcp-cli` depends on this package. Install `@bwilliamson/mdcp-core` directly only when you need the programmatic API. Agent Skill install does **not** replace this library.
-
-<!-- mdcp-shard: end ../../docs/client-core/about.md -->
-
-<!-- mdcp-shard: start ../../docs/client-core/overview.md -->
-
-## Overview
-
-[![npm version](https://img.shields.io/npm/v/@bwilliamson/mdcp-core.svg)](https://www.npmjs.com/package/@bwilliamson/mdcp-core)
-
-Core library for **mdcp** — compile sharded Markdown guides, build section link registries, and validate structure.
-
-Use this package when you need mdcp behavior in scripts, CI pipelines, editors, or other tools without shelling out to the CLI. For the Agent Skill (host instructions), see [root README](../../README.md) — that is a separate install.
+`@bwilliamson/mdcp-cli` depends on this package, so install `@bwilliamson/mdcp-core` directly only when you need the programmatic API. The Agent Skill is a separate install: this library doesn't depend on it, and installing the skill does **not** install this library.
 
 ### Requirements
 
@@ -40,13 +30,11 @@ Use this package when you need mdcp behavior in scripts, CI pipelines, editors, 
 npm install @bwilliamson/mdcp-core
 ```
 
-The CLI (`@bwilliamson/mdcp-cli`) depends on this package. Install `@bwilliamson/mdcp-core` directly only when you need the programmatic API.
-
 ### Stability
 
-**Pre-1.0:** Until this package reaches **1.0.0**, there is **no API stability guarantee**. Exported functions, types, `mdcp.config.json` schema, and compile output may change in any `0.x.y` release. Read the package changelog before upgrading.
+**Pre-1.0:** there is **no API stability guarantee** before this package reaches **1.0.0**. Exported functions, types, `mdcp.config.json` schema, and compile output may change in any `0.x.y` release. Read the changelog and release notes of each MDCP package you use before upgrading.
 
-<!-- mdcp-shard: end ../../docs/client-core/overview.md -->
+<!-- mdcp-shard: end ../../docs/client-core/about.md -->
 
 <!-- mdcp-shard: start ../../docs/client-core/quick-example.md -->
 
@@ -55,8 +43,10 @@ The CLI (`@bwilliamson/mdcp-cli`) depends on this package. Install `@bwilliamson
 ```typescript
 import {
   loadConfig,
-  compileGuides,
+  compileGuideResults,
+  compileGuidesFromResults,
   resolveDocsRoot,
+  refsOutputTexts,
   genRefsFromCompiled,
   resolveRefsPath,
   checkRefsRegistry,
@@ -65,21 +55,24 @@ import {
 const docsRoot = '/path/to/docs';
 const config = loadConfig('mdcp.config.json', docsRoot);
 
-const compiled = compileGuides({
+const options = {
   guidesRoot: resolveDocsRoot(config, docsRoot),
   compileOrder: config.compileOrder,
   banner: config.banner,
   guides: config.guides,
   docsRoot,
   config,
-});
+};
+const results = compileGuideResults(options);
+const compiled = compileGuidesFromResults(results, options);
+const outputs = refsOutputTexts(results, options);
 
 const refsPath = resolveRefsPath(docsRoot, config.outputDir, config.refs.registryFile);
-genRefsFromCompiled(compiled, refsPath);
-checkRefsRegistry(compiled, refsPath);
+genRefsFromCompiled(compiled, refsPath, outputs);
+checkRefsRegistry(compiled, refsPath, outputs);
 ```
 
-Use `writeCompiledGuides` when you need to write the monolith and per-guide publish outputs to disk.
+Use `writeCompiledGuidesFromResults(results, options, monolithPath)` to write each compiled guide to disk. It also writes the monolith when you pass its path and at least one guide has no `compile.outputFile`. `resolveOutputPath(config, docsRoot)` gives that path.
 
 <!-- mdcp-shard: end ../../docs/client-core/quick-example.md -->
 
@@ -97,12 +90,12 @@ Use `writeCompiledGuides` when you need to write the monolith and per-guide publ
 
 ### Path resolution: `configBase` vs docs root
 
-| Concern                    | Base                          | Example                                                                       |
-| -------------------------- | ----------------------------- | ----------------------------------------------------------------------------- |
-| Finding `mdcp.config.json` | `configBase` (invocation dir) | `--config docs/mdcp.config.json` → `<repo>/docs/mdcp.config.json`             |
-| Guide shards (default)     | Docs root (`--docs-root`)     | `resolveGuideDir('features', config, docsRoot)` → `<docsRoot>/features`       |
-| `outputDir`                | Docs root                     | `_build` → `<docsRoot>/_build`                                                |
-| All generated paths        | `outputDir`                   | `features.md` → `<docsRoot>/_build/features.md`; `.caches/refs.json` for refs |
+| Concern                    | Base                          | Example                                                                          |
+| -------------------------- | ----------------------------- | -------------------------------------------------------------------------------- |
+| Finding `mdcp.config.json` | `configBase` (invocation dir) | `--config docs/mdcp.config.json` → `<repo>/docs/mdcp.config.json`                |
+| Guide shards (default)     | Docs root (`--docs-root`)     | `resolveGuideDir('features', config, docsRoot)` → absolute `<docsRoot>/features` |
+| `outputDir`                | Docs root                     | `_build` → `<docsRoot>/_build`                                                   |
+| All generated paths        | `outputDir`                   | `features.md` → `<docsRoot>/_build/features.md`; `.caches/refs.json` for refs    |
 
 All generated paths use `resolveUnderOutputDir(docsRoot, outputDir, file)` — relative to `outputDir` unless `file` is absolute. Details: [API — Refs](#api--refs-and-validation).
 
@@ -115,24 +108,23 @@ const featuresDir = resolveGuideDir('features', config, join(process.cwd(), 'doc
 
 Pass `process.cwd()` as `configBase` for `loadConfig`. Pass the docs root as `docsRoot` to `resolveGuideDir`, `resolveOutputPath`, and `resolveRefsPath`.
 
-Consumer path table: [Config essentials — path layout](../mdcp-cli/README.md#path-layout).
+`resolveGuideDir` and `guideScanDirs` return absolute paths. A relative `docsRoot` such as `docs` resolves against the process cwd. The CLI runs markdownlint-cli2 and Vale with the docs root as their cwd, where a relative `docs/features` would name `docs/docs/features`, a directory that doesn't exist.
 
-**Defaults:** `outputDir` `_build`; per-guide outputs `{name}.md` (or `guide.md` when one guide); optional monolith when `outputFile` is set; refs at `.caches/refs.json`; `sourceTags` `true`; `banner` `<!-- AUTO-GENERATED by mdcp — edit shards, then run: mdcp compile -->\n\n`.
+`shardLintPaths` returns paths for markdownlint-cli2 running with the docs root as its cwd, as the CLI runs it. Run markdownlint-cli2 from the docs root with them. From any other cwd, markdownlint-cli2 resolves the relative paths against that directory, so it misses the guide shards and lints the wrong files or none. It returns most `lint.markdownlint.shardsGlobs` entries as written, so a negated entry still excludes files. A `.` entry comes back as `**`, so markdownlint-cli2 lints every file under the docs root. Given `.` as its only path, it would lint the Markdown files at the top of the docs root and nothing below them.
 
-`compile.outputFile` overrides a guide's output path (relative to `outputDir` or absolute). Guides with an explicit `compile.outputFile` are excluded from an optional monolith.
+Without `shardsGlobs`, `shardLintPaths` returns a glob for the Markdown files in each guide directory, such as `features/**/*.{md,markdown}`. markdownlint-cli2 expands a bare directory to every file in it, images included. A guide under the docs root gets a glob relative to it, which keeps glob characters in the checkout path, such as the parentheses in `repo (copy)`, out of the pattern. A guide outside the docs root gets an absolute glob. As a `../` glob next to an in-root glob, it would lose the shard preset's `!**/index.md`, because globby rebases a `**/` negation onto `../` only when every pattern starts with the same `../`. Under a symlinked docs root, markdownlint-cli2 runs in the link target, where `../` names another directory. Glob characters and quotes in the path are escaped. Use `guideScanDirs` for the directories themselves.
+
+A `shardsGlobs` entry that starts with `../` gets the escaped absolute path of the directory those segments name in their place, followed by `/**` when the entry is a directory. A negated entry gets `**` in front of the absolute path, because globby reads most absolute negations as relative to its cwd.
+
+`loadConfig` validates the file with `MdcpConfigSchema` and fills the top-level defaults, such as `outputDir`, `banner`, `sourceTags`, `scan`, `backup`, `refs` and `review`. A key inside an omitted optional object, such as `lint`, `lint.links`, `vale` or a guide's `compile`, is `undefined` after loading, and the code that reads it applies the documented default. Config essentials lists the output layout and its defaults under [Path layout](../mdcp-cli/README.md#path-layout). The default banner text is in [Source tags and default banner](../../docs/features/source-tags-and-banner.md).
 
 `compile.includeBanner` controls whether the global banner is prepended (defaults to `true` for all outputs). `compile.sourceTags` overrides the top-level `sourceTags` setting per guide (for example, set `false` on a Slidev deck whose leading frontmatter must stay at the top of the file).
 
 #### Publish outputs and link paths
 
-Guides with `compile.outputFile` publish outside the shard tree (npm READMEs, `DEVELOPERS.md`, and similar). Shard-authored `../` links are rebased automatically:
+Guides with `compile.outputFile` publish outside the shard tree (npm READMEs, `DEVELOPERS.md`, and similar).
 
-- Resolve each link from the **shard file** to an absolute path
-- Emit a path **relative to the publish output file**
-
-No per-guide path-prefix config — output location and shard path supply the geometry. See [Publish-relative link rewriting](#publish-relative-link-rewriting) for intent, pass ordering, and dogfood examples.
-
-Intra-guide `./section.md` links still rewrite to `#anchor` on every compile (post-stitch pass).
+After the cross-guide and intra-guide rewrites, compile resolves the `../` links a shard still has and writes them relative to the guide's [link base](#when-it-runs). [Publish-relative exclusions](#publish-relative-exclusions) lists the links it leaves as written, such as a path that leads to no file. A guide doesn't need path-prefix config for this. [Link passes](#link-passes) lists the passes in order, and [Publish-relative link rewriting](#publish-relative-link-rewriting) has examples from MDCP's own docs.
 
 ### `compile.hooks`
 
@@ -148,7 +140,7 @@ Optional per-hook settings: `compile.hooksConfig` (`inlineInserts.searchRoots`).
 
 Assembly-time cross-guide link options on the **compiling** guide (not a compile hook):
 
-- **`ignoreGuides`** — `string[]` of guide names whose cross-guide shard links keep source `.md` paths instead of rewriting to monolith `#slug` targets
+- **`ignoreGuides`**: `string[]` of guide names. Links from the compiling guide to shards of a listed guide keep source `.md` paths instead of rewriting to `#slug` targets, except in the cases that [its config section](#compilecrossguidelinksignoreguides) points to
 
 See [Cross-guide link rewriting](#cross-guide-link-rewriting) and [ignoreGuides](#ignoreguides).
 
@@ -158,19 +150,26 @@ See [Cross-guide link rewriting](#cross-guide-link-rewriting) and [ignoreGuides]
 
 ## API — Compile
 
-| Export                                            | Purpose                                              |
-| ------------------------------------------------- | ---------------------------------------------------- |
-| `compileGuides`, `compileGuideResults`            | Stitch shards into monolith text                     |
-| `writeCompiledGuides`                             | Write monolith and publish outputs to disk           |
-| `writeOutputFile`, `resolveBackupPath`            | Opt-in backup before overwrite; backup path resolver |
-| `resolveBackupOptions`                            | Merge config and CLI backup settings                 |
-| `WriteOutputBackupOptions`                        | Backup options type                                  |
-| `sectionFiles`, `processSection`, `assembleGuide` | Lower-level assemble pipeline                        |
-| `formatCompileTitle`, `extractFirstHeading`, …    | Optional `compile.title` injection and deduplication |
-| `demoteHeadings`, `stripAboutThisGuideHeading`, … | Heading transforms                                   |
-| `registerCompileHook`, `applyCompileHooks`        | Extension hooks (`stripAnchors`, `inlineInserts`, …) |
+| Export                                            | Purpose                                                 |
+| ------------------------------------------------- | ------------------------------------------------------- |
+| `compileGuides`, `compileGuideResults`            | Stitch shards into compiled guide text                  |
+| `writeCompiledGuides`                             | Write compiled guides and the optional monolith to disk |
+| `compiledOutputDocuments`                         | Each file compile writes, with the text written there   |
+| `writeOutputFile`, `resolveBackupPath`            | Opt-in backup before overwrite; backup path resolver    |
+| `resolveBackupOptions`                            | Merge config and CLI backup settings                    |
+| `WriteOutputBackupOptions`                        | Backup options type                                     |
+| `sectionFiles`, `processSection`, `assembleGuide` | Lower-level assemble pipeline                           |
+| `formatCompileTitle`, `extractFirstHeading`, …    | Optional `compile.title` injection and deduplication    |
+| `demoteHeadings`, `stripAboutThisGuideHeading`, … | Heading transforms                                      |
+| `registerCompileHook`, `applyCompileHooks`        | Extension hooks (`stripAnchors`, `inlineInserts`, …)    |
 
-`compileGuides` returns monolith text only — guides with `compile.outputFile` are excluded. `writeCompiledGuides` writes both the monolith and any publish targets.
+`compileGuideResults` returns one result per guide. Its `text` is the guide's compiled guide, with links and source tags relative to that file. A guide in the monolith is assembled a second time for the monolith, and its result stores that copy in `monolithText`, with paths and section slugs as the monolith has them.
+
+A result's `knownSlugs` lists the slugs a `#fragment` in `text` may name besides its headings: the slug of each section `text` stitches, such as a `FIND-*` finding id or a declared `{#id}`. Broken-link marking took that set, and `lintLinks` checks a fragment in `text` against it. A shard in the guide's directory that the guide doesn't stitch adds none. `monolithKnownSlugs` does the same for `monolithText`, with the section slugs of every copy in the monolith. Each copy there takes that one set. A fragment on a link from another output has to match a heading, so neither set counts there.
+
+`compiledOutputDocuments(results, options)` returns each file that compile writes from the same results and options: every compiled guide in `compileOrder`, then the monolith when the config sets top-level `outputFile` and at least one guide is stitched into it. The monolith's path is the config's `outputFile` under `outputDir`, the path that `resolveOutputPath` gives and the CLI passes to `writeCompiledGuidesFromResults`. Each entry has the absolute `path` and the `text` written there, banner included, so a line number in the text is a line of the file. A compiled guide's entry names its result in `guide`. The monolith's entry lists each guide's copy in `copies`, with the line the copy starts on. `lintLinks` reads the outputs through it, and so does `refsOutputTexts`, which gives the refs registry each output's text.
+
+When top-level `outputFile` is set, `compileGuides` returns the monolith text, which leaves out guides with `compile.outputFile`. Otherwise it returns every compiled guide joined in the order of `compileOrder`. `compileGuidesFromResults` does the same from results, and it stitches the monolith from each result's `monolithText`. `writeCompiledGuides` writes each compiled guide to its output path. It also writes the monolith when you pass its path and at least one guide has no `compile.outputFile`.
 
 `writeOutputFile` writes compile targets. Default: overwrite. When `backup.enabled` is true, moves an existing file to `{outputDir}/{backupDir}/{docsRoot-relative-key}{ext}` before writing. Pass `backup` on `CompileOptions` or resolve via `resolveBackupOptions(config, cliOverrides)`.
 
@@ -186,11 +185,18 @@ Full spec: [Compile output backup](../../docs/features/compile-output-backup.md)
 
 ### Refs (cross-links)
 
-| Export                                                         | Purpose                                 |
-| -------------------------------------------------------------- | --------------------------------------- |
-| `headingTextToPlain`, `githubSlugify`, `buildSlugRegistry`     | GitHub heading slugs via github-slugger |
-| `genRefsFromCompiled`, `readRefsRegistry`, `checkRefsRegistry` | `refs.json` lifecycle                   |
-| `resolveRefsPath`, `writeRefsRegistry`                         | Path and I/O helpers                    |
+| Export                                                         | Purpose                                                                 |
+| -------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `headingTextToPlain`, `githubSlugify`, `buildSlugRegistry`     | GitHub heading slugs via github-slugger                                 |
+| `genRefsFromCompiled`, `readRefsRegistry`, `checkRefsRegistry` | `refs.json` lifecycle                                                   |
+| `refsOutputTexts`, `buildRefsRegistry`                         | Each compiled output for the registry, and the registry built in memory |
+| `resolveRefsPath`, `writeRefsRegistry`                         | Path and I/O helpers                                                    |
+
+#### `refsOutputTexts(results, options)`
+
+Returns each file compile writes from `results`, in the order `compiledOutputDocuments` gives them. Each entry has `file`, the path relative to `options.docsRoot` with `/` separators, and `text`, what compile writes there, banner included. A compiled guide's entry also names its guide in `guideName`. Pass the list as the last argument of `genRefsFromCompiled(compiledText, registryPath, outputs)` and `checkRefsRegistry(compiledText, registryPath, outputs)`. The registry then has an `outputs` entry for each file, with that file's headings slugged on their own and each `line` counted in that file. `buildRefsRegistry(compiledText, outputs)` returns the same registry without writing it.
+
+The registry's top-level `headings` and `slugs` come from `compiledText` alone, the text `compileGuidesFromResults` returns. Without `outputs`, the registry has no `outputs` field. `checkRefsRegistry` compares the file with the registry its own arguments give, so a registry written with `outputs` is stale to a check without them, and the reverse. [Registry contents](../mdcp-cli/README.md#registry-contents) lists the fields.
 
 #### `resolveRefsPath(docsRoot, outputDir, registryFile)`
 
@@ -219,10 +225,12 @@ Prefer outputDir-relative values in config (for example `".caches/refs.json"` wh
 | `githubSlugify`      | Single-heading slug via github-slugger               |
 | `buildSlugRegistry`  | Document-wide slugs; duplicates get numeric suffixes |
 
+`buildSlugRegistry` reads only headings outside fenced code blocks, with the fence scan that [stripAnchors](#stripanchors-code) describes. A `# comment` in a shell example doesn't get a slug, and it doesn't change the guide that later headings belong to. Compile numbers [section slugs](#cross-guide-section-slugs) through the same reader, so a rewritten section link and the registry agree, apart from the limits that section lists. Heading demotion, in compile and in `demoteHeadings`, leaves each line that the same fence scan reads as code as written. It starts a new scan on each text it demotes, such as one shard, while `buildSlugRegistry` reads its whole text with one scan, so a shard that ends inside an open fence can make the two disagree about the shard after it.
+
 ```typescript
 import { githubSlugify, headingTextToPlain } from '@bwilliamson/mdcp-core';
 
-headingTextToPlain('**Authored GFM** ``');
+headingTextToPlain('**Authored GFM** `{#gfm}`');
 // → 'Authored GFM'
 
 githubSlugify('Preprocessor / templating (out of scope)');
@@ -234,7 +242,7 @@ githubSlugify('`--config` vs `--docs-root`');
 
 CLI authoring rules: [Cross-links and refs — heading slugs](../mdcp-cli/README.md#heading-slugs-github-rules).
 
-### Manifest
+### Compile order
 
 | Export                          | Purpose                                        |
 | ------------------------------- | ---------------------------------------------- |
@@ -242,26 +250,27 @@ CLI authoring rules: [Cross-links and refs — heading slugs](../mdcp-cli/README
 
 ### Validation
 
-| Export                  | Purpose                                |
-| ----------------------- | -------------------------------------- |
-| `checkOrphansForGuides` | Detect unlinked or missing shard files |
-| `lintLinks`             | Internal markdown link validation      |
+| Export                  | Purpose                                                                                   |
+| ----------------------- | ----------------------------------------------------------------------------------------- |
+| `checkOrphansForGuides` | Detect unlinked or missing shard files; a relative `dir` resolves against the process cwd |
+| `lintLinks`             | Internal markdown link validation                                                         |
+| `reviewDocs`            | Sprawl signals behind `mdcp review` (`formatReviewReport` renders the text report)        |
+| `computeCoverage`       | Markdown files no guide captures, behind the `check` coverage report                      |
+| `probeDocumentPaths`    | Backtick-path resolution behind `lint.paths` (`ILLUSTRATIVE_MARKER` opts out)             |
 
 <!-- mdcp-shard: end ../../docs/client-core/api-refs-validation.md -->
 
 <!-- mdcp-shard: start ../../docs/client-core/api-export-shard.md -->
 
-## API — Export, shard, and peers
-
-### Export
-
-There is no token-strip LLM export API. Prefer the Agent Skill and one-shard reads.
+## API — Shard and peers
 
 ### Shard (split)
 
-| Export                           | Purpose                                 |
-| -------------------------------- | --------------------------------------- |
-| `shardFromMonolith`, `runMdTree` | Split a monolith into guide directories |
+| Export                           | Purpose                                        |
+| -------------------------------- | ---------------------------------------------- |
+| `shardFromMonolith`, `runMdTree` | Split a source document into guide directories |
+
+`shardFromMonolith` reads a source document such as a legacy README, not the compiled [monolith](#monolith). It splits the source at its H1 headings. Each `mappings` entry either picks H1 sections for one guide (`h1Index` or `mergeH1Indices`) and splits them at `splitLevel`, or copies an existing directory (`directoryPath`). `mdcp shard` builds the mappings from each guide's `source` config.
 
 ### Peer tools
 
@@ -277,29 +286,80 @@ Peer linters are not bundled. Detection order: `node_modules/.bin` → PATH → 
 
 ## Compile hooks
 
-Per-shard transforms run during `assembleGuide` **before** sections are stitched. Hooks receive each shard body after heading demotion and preamble stripping; assembly-time passes (cross-guide rewrite, publish-relative rewrite on `compile.outputFile` outputs, anchor stripping, intra-guide rewrite) run around the hook pipeline.
+Per-shard transforms run during `assembleGuide` **before** sections are stitched. Hooks receive each shard body after heading demotion and preamble stripping. Assembly then runs the [link passes](#link-passes) on the shard and strips anchors after stitching. Its last step [re-aligns tables](#tables-after-link-rewriting), as the diagram below shows.
 
-Hooks assemble [authored GFM](../../docs/glossary/authored-gfm.md) — not variable substitution or template logic. See [Preprocessor / templating (out of scope)](../../docs/features/design-constraints/preprocessor-templating.md#preprocessor--templating-out-of-scope).
+Hooks assemble [authored GFM](#authored-gfm). They don't do variable substitution or template logic. See [Preprocessor / templating (out of scope)](../../docs/features/design-constraints/preprocessor-templating.md#preprocessor--templating-out-of-scope).
 
 ### Architecture
 
 ```text
-assembleGuide (per guide)
+assembleGuide (per guide, once for each document it is written to)
   │
-  ├─ for each manifest shard (in order)
+  ├─ for each shard (manifest order, then linked shards)
   │    ├─ processSection (demote headings, strip about-this-guide)
   │    ├─ applyCompileHooks (named hooks from config, in order)
-  │    ├─ rewriteCrossGuideFileLinks (automatic when link index present)
-  │    └─ rewritePublishRelativeLinks (when compile.outputFile is set)
+  │    ├─ mark the paths codeEvidence rebased
+  │    ├─ cross-guide pass (automatic when link index present, marks what it writes)
+  │    ├─ rewriteIntraGuideFileLinks (same-guide links, from the shard directory)
+  │    └─ rewritePublishRelativeLinks (every guide, relative to its link base, marks what it writes)
   │
-  └─ stitch → stripAnchors (default) → intra-guide .md
+  ├─ stitch → stripAnchors (default) → intra-guide .md → unmark
+  │
+  └─ markBrokenLinks → realignTables (the last step)
 ```
 
-**Guide link index** — built once per `compileGuideResults` from every guide in `compileOrder` (manifest sections plus transitively linked shards). Used by the automatic cross-guide pass. Optional `compile.crossGuideLinks.ignoreGuides` on the compiling guide skips monolith rewrite for listed targets. See [Cross-guide link rewriting](#cross-guide-link-rewriting).
+**Guide link index**: built once per `compileGuideResults` from every guide in `compileOrder` (manifest sections plus [linked shards](../../docs/features/manifest-compile-order.md#linked-shards-and-the-file-name-fallback)). Used by the automatic cross-guide pass. Optional `compile.crossGuideLinks.ignoreGuides` on the compiling guide keeps shard paths in its links to listed guides, except in the cases that [its config section](#compilecrossguidelinksignoreguides) points to.
 
-**Per-guide hook state** — mutable `hookState` on `CompileHookContext` (for example `inlineInserts` counters and first-anchor map) shared across shard invocations within one guide compile.
+**Per-assembly hook state**: mutable `hookState` on `CompileHookContext` (such as `inlineInserts` counters and first-anchor map) shared across shard invocations within one assembly. A guide in the [monolith](#monolith) is assembled twice, once for its compiled guide and once for the monolith. So every hook it runs, a registered custom hook included, sees each shard twice, with fresh `hookState` each time. A hook with side effects beyond its return value repeats them.
 
-**Path resolution** — hooks and assembly passes resolve relative paths from `dirname(sourceFile)` first, then `guideDir`, then `compile.scopeRoot`. Publish outputs rebase remaining `../` file links per shard via absolute-path resolution — see [Publish-relative link rewriting](#publish-relative-link-rewriting). Cross-guide and `codeEvidence` use the same resolve-then-rebase model for their link classes.
+#### Link passes
+
+Assembly rewrites links to files in the passes below. They run on each shard in table order, and the intra-guide pass runs once more on the stitched body. They aren't compile hooks, so `compile.hooks` doesn't turn them off. Every later pass leaves alone a link that `codeEvidence` rebased or that the cross-guide or publish-relative pass rewrote, and that includes the run on the stitched body. Assembly marks each of those targets, and it removes the marks after that run. So a cross-guide target such as `glossary.md#term` stays as the cross-guide pass wrote it, even when the guide stitches a shard named `glossary.md`.
+
+Assembly marks the paths `codeEvidence` rebased once every hook has run, so no hook sees a mark. It finds each of those links by the text the hook wrote and by its place among the links with that text. So a link the shard wrote with the same text, which the hook left as written, doesn't get a mark. When a hook listed after `codeEvidence` changes that text, or adds or removes a link with that text above it, the publish-relative pass can rebase the hook's path again, and leave another link with that text as it is.
+
+The passes leave a link in fenced code or in a code span as written, and so do `codeEvidence` and broken-link marking. They pair code spans within each line, so a code span that wraps onto the next line doesn't hide a link. They find fenced code with the fence scan that [stripAnchors code](#stripanchors-code) describes, which reads fences of backticks or tildes and follows list items. They also run that scan on the text of each blockquote, so a fence in a quote counts up to ten blockquotes deep. The per-shard passes and `codeEvidence` start a new scan on each shard. Broken-link marking and compiled link lint read the whole guide with one scan, as the intra-guide run on the stitched body does. So a shard that ends inside an open fence can make them disagree about the shard after it.
+
+| Pass             | When                                       | Matches                                                                                                     | Output                                         |
+| ---------------- | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| Cross-guide      | Per shard, after the hooks                 | `./` and `../` paths to a shard in the guide link index                                                     | `#slug`, or another output's path plus `#slug` |
+| Intra-guide      | Per shard, then again on the stitched body | Bare and `./` paths to a shard the guide stitches, and after stitch the `../` paths no earlier pass rewrote | `#slug`                                        |
+| Publish-relative | Per shard, after intra-guide               | `../` paths to a file or directory that exists, or to an output of the run                                  | The path relative to the guide's link base     |
+
+A link with a `#fragment` keeps it in place of the slug. [Cross-guide resolution](#cross-guide-resolution) says when a cross-guide link stays in the document and which output it names otherwise. [Publish-relative matching](#publish-relative-matching) says which `../` targets the publish-relative pass skips, and [`ignoreGuides` interaction](#ignoreguides-interaction) covers a cross-guide link that keeps its shard path. The publish-relative shard also defines the [link base](#when-it-runs).
+
+#### Path lookup order
+
+A pass that follows a link to a file first drops any leading `./` and the `#fragment`. It then tries the directories below in order and uses the first one where the path exists. A path found in none of them stays as written. `codeEvidence` can still change the `#fragment` of such a link, as [codeEvidence path resolution](#codeevidence-path-resolution) says.
+
+| Pass                      | Lookup order                                                                                                                                 |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `codeEvidence`            | Shard directory, working directory, parent of the working directory, `compile.scopeRoot`                                                     |
+| `inlineInserts`           | Shard directory, working directory, parent of the working directory, `compile.scopeRoot`, each `hooksConfig.inlineInserts.searchRoots` entry |
+| Cross-guide rewrite       | Shard directory, working directory, parent of the working directory, `compile.scopeRoot`, guide directory                                    |
+| Intra-guide, per shard    | Shard directory, guide directory, then the first stitched shard with that file name                                                          |
+| Intra-guide, after stitch | Guide directory, then the first stitched shard with that file name                                                                           |
+| Publish-relative rewrite  | Shard directory, `compile.scopeRoot`, guide directory                                                                                        |
+
+The shard directory contains the shard being compiled, and the guide directory contains the guide's manifest. `compile.scopeRoot` is resolved from the docs root and skipped when unset. The working directory is `process.cwd()`, where the command runs, and `searchRoots` entries are resolved from it, so the same shard can resolve differently from the repository root and from `docs/`. The intra-guide pass looks paths up among the shards the guide stitches rather than on disk. Its per-shard run skips paths that start with `../`, and the file-name match applies only to a link that is a file name alone, such as `name.md` or `./name.md`.
+
+The publish-relative rewrite also finds a path to an output of the run before compile writes the output. A first compile then rebases a link to an output as later compiles do. The outputs of the run are the ones that [link validation](../../docs/features/link-validation.md#validation-phases) checks in memory: each guide's compiled guide, and the monolith when a guide is stitched into it. When every guide sets `compile.outputFile`, the run never writes the configured monolith. The rewrite then treats a path to the monolith as missing, even when an earlier run left the file on disk, as link validation does.
+
+After lookup, `codeEvidence` and the publish-relative rewrite emit the path relative to the guide's [link base](#when-it-runs), and `inlineInserts` inlines the file. The cross-guide and intra-guide rewrites emit a heading target: `#slug`, after the other output's path when the target is in another file.
+
+#### guideDir misaligned with shard tree
+
+Some guides set `path` to a compiled subdirectory while the shards are elsewhere in the same tree, often one level up from the guide directory:
+
+```text
+guide/
+  compiled/shards.md   ← manifest (guideDir)
+  section-a.md
+  topic/section-b.md
+  assets/diagram.md
+```
+
+The config uses `"path": "guide/compiled"` with `"compile": { "manifest": "shards.md", … }`. The manifest lists each shard with a path that starts with `../`, because a bare path can't step up out of a directory. A bare link between the shards, such as `[Section B](topic/section-b.md)` in section A, still resolves, because the per-shard intra-guide pass tries the shard directory before the guide directory.
 
 ### Extension pattern
 
@@ -328,7 +388,7 @@ Built-in hooks run **by default**. Omit `compile.hooks` for the common case. Opt
     "scopeRoot": ".",
     "outputFile": "glossary.md",
     "hooksConfig": {
-      "inlineInserts": { "searchRoots": ["diagrams"] }
+      "inlineInserts": { "searchRoots": ["shared"] }
     }
   }
 }
@@ -366,21 +426,65 @@ For manifest compile order and `compile.sectionsHeading`, see [Manifest compile 
 
 ### Built-in hooks
 
-- **`stripAnchors`** — per shard (also default post-stitch). Removes explicit anchor markers.
-- **`codeEvidence`** — per shard. [codeEvidence](#codeevidence): repo source links → `#L` fragments.
-- **`inlineInserts`** — per shard. [inlineInserts](#inlineinserts): inline captioned insert libraries.
-- **Cross-guide rewrite** _(assembly)_ — per shard before stitch. [Cross-guide links](#cross-guide-link-rewriting): automatic from `compileOrder`; optional `crossGuideLinks.ignoreGuides`.
-- **Publish-relative rewrite** _(assembly)_ — per shard before stitch when `compile.outputFile` is set. [Publish-relative links](#publish-relative-link-rewriting): resolve shard links to absolute paths, emit paths relative to the publish file.
+- **`stripAnchors`**: per shard (also default post-stitch). [stripAnchors](#stripanchors): removes `{#id}` markers outside code, and every marker on a heading line.
+- **`codeEvidence`**: per shard. [codeEvidence](#codeevidence): repo source links → `#L` fragments.
+- **`inlineInserts`**: per shard. [inlineInserts](#inlineinserts): inline captioned insert libraries.
+
+Assembly also runs the [link passes](#link-passes), which aren't hooks. Its last step, after broken-link marking, is [table re-alignment](#tables-after-link-rewriting), which prints an aligned table again once its links change width.
 
 `stripAnchors` is also controlled by `compile.stripAnchors` (default `true`) after assembly.
 
 <!-- mdcp-shard: end ../../docs/client-core/compile-hooks/index.md -->
 
+<!-- mdcp-shard: start ../../docs/client-core/compile-hooks/strip-anchors.md -->
+
+## stripAnchors
+
+<!-- mdcp-paths: illustrative -->
+
+Specification for the `stripAnchors` compile hook. Tests in `packages/mdcp-core/test/anchors.test.ts` map to the sections below (docs first, then TDD).
+
+### stripAnchors purpose
+
+The hook removes `{#id}` anchor markers from each shard body. With `compile.stripAnchors` (default `true`), the same strip runs once more on the stitched guide.
+
+A marker goes with the whitespace before it on the same line. When a marker opens a line's text, the whitespace after it goes instead, and the line keeps its indent. The strip drops a line that contains only a marker, and when that line opens the text or follows a blank line, the blank line right after it goes too.
+
+### stripAnchors heading lines
+
+A line that mdcp reads as a heading, an ATX heading at column 0, loses every marker, even inside a fenced code block or a code span. Heading slugs drop every marker from a title and skip the lines that the fence scan below reads as code. The scan ignores HTML and can misread a fence there, so stripping every heading line keeps a marker off a rendered heading even then.
+
+To show the syntax on a heading inside a fenced example, start the heading line one to three spaces in. mdcp doesn't read that line as a heading. The strip treats it as fenced text and keeps its marker. Outside a fence the same line is prose, and its marker goes.
+
+### stripAnchors code
+
+On any other line, a `{#id}` inside a fenced code block or an inline code span stays.
+
+The fence scan follows list items. A bullet or numbered list marker followed by one to four columns of whitespace opens an item whose text starts after that whitespace. A marker with no text after it opens an empty item whose text would start one column past the marker, and a blank line right after an empty item ends it. When a marker starts at or past the column where an open item's text starts, it nests in that item. The item ends at the first non-blank line that starts left of its text, unless that line continues a paragraph. Headings, fences, blockquotes, thematic breaks and list items interrupt a paragraph, and any other line continues it. In its own item, a list item interrupts a paragraph only when it has text and, if numbered, starts at 1.
+
+The container of a fence is the column where the innermost open item's text starts, or column 0 outside any item. Three or more backticks or tildes open a fence where they start a line's text less than four columns past the container, or right after a list marker. Tabs advance to the next multiple of four columns, and a backtick fence's info string can't hold a backtick.
+
+A run of the same character, at least as long and with nothing after it, closes the fence when it starts less than four columns past the container. A non-blank line that starts left of the container ends the fence along with its list item. A fence with no closer runs to the end of the text unless its list item ends first.
+
+Code spans are paired within each line. A run of backticks opens a span that the next run of the same length closes.
+
+### stripAnchors limits
+
+The fence scan doesn't read blockquotes or HTML. It misses a fence behind `>`. It also doesn't let a line continue a quoted paragraph, so an unindented line right after a quote in a list item ends the item. A fence line inside an HTML comment or HTML block opens or closes a fence like any other. Indented code blocks aren't fences either. The strip reads their lines as prose, and a marker there goes unless it's inside a code span on its line.
+
+The scan doesn't open an item for a list marker followed by five or more columns of whitespace. CommonMark opens one there whose first line is indented code, so a fence in that item can run past the line where CommonMark ends it.
+
+Because code spans are paired within each line, a span that wraps onto the line, or a backslash-escaped backtick before it, can shift the pairing. A shifted pairing can drop a quoted marker or keep a prose one.
+
+<!-- mdcp-shard: end ../../docs/client-core/compile-hooks/strip-anchors.md -->
+
 <!-- mdcp-shard: start ../../docs/client-core/compile-hooks/code-evidence.md -->
 
 ## codeEvidence
 
-Specification for the `codeEvidence` compile hook. Tests in `packages/mdcp-core/test/code-evidence.test.ts` map to the sections below (docs first, then TDD).
+<!-- mdcp-paths: illustrative -->
+
+Specification for the `codeEvidence` compile hook. Tests in `packages/mdcp-core/test/code-evidence.test.ts` map to the sections below (docs first, then TDD). The fenced code tests in `packages/mdcp-core/test/links.test.ts` also cover [codeEvidence link matching](#codeevidence-link-matching).
 
 ### codeEvidence purpose
 
@@ -389,19 +493,24 @@ Architecture and technical review shards cite **repo source files** as evidence.
 1. Resolves **line ranges** from link text (for example `L6-L8`, `lines 12–15`, `:42`)
 2. Resolves **symbols** from the URL fragment (`file.ts#symbol`) or from the link label when no fragment is present (for example ``[`orgCount`](../../functions/src/foo.ts)``)
 3. Appends GitHub-style **`#L` fragments** (`#L6`, `#L6-L8`) to the link target
-4. Rewrites the target path to be **relative to the rendered output** — the per-guide `compile.outputFile` when set, otherwise the monolith path (`outputDir` + `outputFile` from config)
+4. Rewrites the target path to be relative to the guide's [link base](#when-it-runs)
 
-Publish outputs (`compile.outputFile`) rewrite remaining relative file links automatically (for example `../../package.json` → `package.json` in `DEVELOPERS.md`). Same resolve-then-rebase model as publish-relative assembly; see [Publish-relative link rewriting](#publish-relative-link-rewriting).
+The publish-relative pass then rebases the `../` links whose path the hook leaves as the shard wrote it, against the same link base. Such a link can lead to a Markdown file or to another path the hook doesn't read, like `.nvmrc`. It can also lead to a source file that the hook doesn't find, even when the hook added a line fragment to it. In `DEVELOPERS.md`, the hook rebases `../../package.json` to `package.json`, and the publish-relative pass rebases `../../.nvmrc` to `.nvmrc`. [Publish-relative exclusions](#publish-relative-exclusions) lists the links that pass leaves alone, a link the hook rebased among them.
 
 ### codeEvidence link matching
 
 A link is rewritten when **all** of the following hold:
 
 - Standard markdown link syntax: `[label](path)`
-- Target path is a **source file** (common extensions such as `.ts`, `.py`, `.go`, or extensionless paths like `Makefile`)
+- Target path names a **file in the repository** (a code extension such as `.ts`, `.py`, `.go`, a data extension such as `.yaml` or `.csv`, or an extensionless path like `Makefile`)
 - Target is not `http://`, `https://`, or `#…`
+- The link is outside fenced code and code spans
 
 Markdown (`.md`) links, external URLs, and same-guide shard links are left unchanged.
+
+The hook finds fenced code and code spans as the [link passes](#link-passes) do. A link outside code can still wrap onto the next line.
+
+**Code and data differ in what the hook adds.** A code file can be cited by line, so symbol lookup can give it an `#L` fragment. A data file, such as configuration or records, is resolved and rebased for the output path. It gets an `#L` fragment only from a line range the shard writes in the label, the path or the fragment, and never from symbol lookup, because an identifier found in inert content is an occurrence rather than a declaration. Link validation uses the same code and data extension lists. To look symbols up in a data format, list its extension in `lint.codeExtensions`. See [Built-in link validation](../../docs/features/link-validation.md).
 
 ### codeEvidence line ranges
 
@@ -418,9 +527,7 @@ Line ranges are parsed from the **link label** first, then from the path (before
 
 **Locale word forms** come from the active [locale pack](#locale-pack) (`lineRangeWords`). Default **en-US** recognizes `line` / `lines` (case-insensitive), for example `line 42` → `#L42` and `lines 12–15` → `#L12-L15`. Other locales may supply different authored words; they are not MDCP protocol vocabulary. See [Locale and language boundary](../../docs/features/design-constraints/locale-and-language.md).
 
-**Locale word forms** come from the active [locale pack](#locale-pack) (`lineRangeWords`). Default **en-US** recognizes `line` / `lines` (case-insensitive), for example `line 42` → `#L42` and `lines 12–15` → `#L12-L15`. Other locales may supply different authored words; they are not MDCP protocol vocabulary. See [Locale and language boundary](../../docs/features/design-constraints/locale-and-language.md).
-
-If the URL already has a normalized `#L…` fragment, the hook preserves it (normalizing case to `#L`).
+If the URL already has a line fragment such as `#L6` or `#L6-L8`, the hook keeps it and writes each `l` in it as `L`, so `#l6-l8` becomes `#L6-L8`.
 
 ### codeEvidence symbols
 
@@ -429,18 +536,15 @@ When no line range is found:
 1. If the URL has a `#fragment` that is not already `#L…`, treat the fragment as a **symbol name** and scan the resolved source file for a matching declaration or reference.
 2. Otherwise, treat the **link label** as the symbol (backticks and surrounding whitespace stripped).
 
-Symbol lookup scans for identifier matches and common declaration forms (`function`, `class`, `const`, `export`, call sites).
+Symbol lookup scans for identifier matches and common declaration forms (`function`, `class`, `const`, `export`, call sites). It runs for code files only; a data file skips both steps.
+
+When neither step finds a line, the hook drops the `#fragment`, and the link points at the whole file.
 
 ### codeEvidence path resolution
 
-Source file lookup order:
+The hook finds the source file in the order [Path lookup order](#path-lookup-order) gives for `codeEvidence`. When a source file is resolved, the hook rewrites the link target to a POSIX path **relative to the rendered output document**, preserving any `#L…` fragment added by the hook. You don't configure the hook for this. It resolves a shard-relative path as written, then rebases it for the location of the compiled file.
 
-1. Relative to the current shard directory
-2. Relative to the shard parent directory
-3. `process.cwd()` and its parent
-4. `compile.scopeRoot` (when set on the guide — same field used for manifest scoping)
-
-When a source file is resolved, the hook rewrites the link target to a POSIX path **relative to the rendered output document**, preserving any `#L…` fragment added by the hook. No hook-specific config is required: shard-relative paths in source are resolved as written, then rebased for where the compiled file lands.
+When no directory has the file, the path stays as written, and the [line range](#codeevidence-line-ranges) rules still set the fragment. The hook keeps an existing `#L` fragment, and otherwise adds one from a line range in the label or path. Symbol lookup has no file to scan, so without a line range the hook drops any other `#fragment`.
 
 ### codeEvidence exclusions
 
@@ -448,7 +552,9 @@ The hook **does not** transform:
 
 - Markdown shard links (`.md`)
 - External URLs
-- Source links when the file cannot be resolved and no line range appears in label or path
+- Link syntax in fenced code or in a code span
+- The path of a source link whose file can't be resolved (see [codeEvidence path resolution](#codeevidence-path-resolution) for its fragment)
+- A symbol in a data-file link into an `#L` fragment, unless the extension is listed in `lint.codeExtensions`
 - Body text when `codeEvidence` is disabled via `compile.hooks: { "codeEvidence": false }` or an explicit hook override that omits it
 
 ### codeEvidence config
@@ -462,7 +568,7 @@ Runs by default — no hook list required. Path rewriting uses the monolith or p
 }
 ```
 
-When the guide publishes to its own file instead of the monolith, set `compile.outputFile` (paths are rebased to that file). When shards link across directories outside the guide tree, set `compile.scopeRoot` (typically `"."` for repo root) so manifest scoping and evidence lookup share one root:
+To publish the guide to a path you choose, set `compile.outputFile` (paths are rebased to that file). When shards link across directories outside the guide tree, set `compile.scopeRoot` (typically `"."` for repo root) so manifest scoping and evidence lookup share one root:
 
 ```json
 {
@@ -483,7 +589,7 @@ Shard input (under `review/claim.md`):
 ```markdown
 Evidence: [`orgCount`](../../functions/src/foo.ts)
 
-See [firestore.rules L6-L8](../../firestore.rules#L6-L8).
+See [firestore.rules L6-L8](../../firestore.rules).
 ```
 
 Compiled output (when `functions/src/foo.ts` defines `orgCount` on line 6 and output is `architecture-review.md` at repo root):
@@ -499,6 +605,8 @@ See [firestore.rules L6-L8](firestore.rules#L6-L8).
 <!-- mdcp-shard: start ../../docs/client-core/compile-hooks/inline-inserts.md -->
 
 ## inlineInserts
+
+<!-- mdcp-paths: illustrative -->
 
 Specification for the `inlineInserts` compile hook. Tests in `packages/mdcp-core/test/inline-inserts.test.ts` map to the sections below (docs first, then TDD).
 
@@ -533,10 +641,12 @@ Shards link with normal markdown — no `<!-- directives -->`.
 
 A link is an insert reference when **all** of the following hold:
 
-- Standard markdown link syntax: `[label](path)`
-- Target path contains `diagram`, `diagrams`, `table`, `tables`, `figure`, `figures`, `media`, `insert`, or `inserts`
-- Target ends in `.md` (optional `#fragment` suffix is ignored for file lookup)
-- Target is not `http://` or `https://`
+- Standard markdown link syntax: `[label](path)`.
+- Target starts with an insert library directory and a `/`, after an optional `./` or run of `../`. The directories are `diagram`, `diagrams`, `table`, `tables`, `figure`, `figures`, `media`, `insert` and `inserts`, in any case. No `http://` or `https://` URL starts that way.
+- The path after the directory doesn't start with `#` or whitespace. It ends in `.md` in any case, with at least one character before the `.md`.
+- An optional `#fragment` after the `.md` can't be empty, and file lookup ignores it.
+
+The hook reads the whole shard body, fenced code and code spans included. So it inlines an insert, or writes a back-link, for an insert link in a code example too, where the [link passes](#link-passes) leave a link as written.
 
 ### inlineInserts exclusions
 
@@ -563,7 +673,9 @@ The first reference to an insert file (document order across all shards in the g
 - **caption** — link label, or a humanized basename when the label is empty
 - **Anchor slug** — GitHub-style slug of the full heading (for example `Table 1. Status codes` → `#table-1-status-codes`)
 
-Output uses GFM headings and back-links for captions. Inlined shard bodies pass through as written (markdown tables, `![images](…)`, or HTML `<video>` / `<audio>` when your renderer supports them).
+Output uses GFM headings and back-links for captions. The hook inlines each shard body as written. The assembly passes after the hooks then treat that body as part of the shard, from link rewriting to [table re-alignment](#tables-after-link-rewriting). A body can contain markdown tables and `![images](…)`, and HTML `<video>` / `<audio>` when your renderer supports them.
+
+The heading and body replace the link, so a first reference in a table cell breaks the table, as the [compile example](#inlineinserts-compile-example) shows. Give the first reference a paragraph of its own, ahead of any table cell that links to the insert.
 
 ### inlineInserts numbered captions
 
@@ -593,27 +705,24 @@ Within one guide:
 
 ### inlineInserts path resolution
 
-Lookup order for insert shard paths:
-
-1. Relative to the current shard directory
-2. Relative to the shard parent directory
-3. `process.cwd()` and its parent
-4. Optional `hooksConfig.inlineInserts.searchRoots`
+The hook finds each insert shard in the order [Path lookup order](#path-lookup-order) gives for `inlineInserts`.
 
 ### inlineInserts config
 
-Runs by default. Optional search roots:
+Runs by default. Optional search roots, each the parent of an insert library directory such as `diagrams/`:
 
 ```json
 {
   "name": "architecture-review",
   "compile": {
     "hooksConfig": {
-      "inlineInserts": { "searchRoots": ["diagrams"] }
+      "inlineInserts": { "searchRoots": ["shared"] }
     }
   }
 }
 ```
+
+A link to `diagrams/flow.md` that no earlier root in the [lookup order](#path-lookup-order) resolves then finds `shared/diagrams/flow.md`.
 
 Opt out: `"hooks": { "inlineInserts": false }`. See [Default compile hooks](../../docs/features/default-compile-hooks.md).
 
@@ -629,12 +738,11 @@ Shard input:
 See [Request flow](../diagrams/request-flow.md) again in prose.
 ```
 
-Compiled fragment (first guide mention):
+Compiled fragment (first guide mention), with trailing spaces trimmed. The header and delimiter rows keep the shard's widths, and the insert splits the row with the link:
 
-```markdown
-| Insert | Summary |
-| ------ | ------- |
-
+```text
+| Insert                                      | Summary     |
+| ------------------------------------------- | ----------- |
 |
 
 #### Diagram 1. Request flow
@@ -643,12 +751,12 @@ Compiled fragment (first guide mention):
 | ---- | ------ |
 | 1    | Client |
 
-| Client path |
+ | Client path |
 
 See [Request flow](#diagram-1-request-flow) again in prose.
 ```
 
-Example fixture: [`examples/sample-guides/inserts-demo/`](../../examples/sample-guides/inserts-demo). See [GitHub media reference](../../examples/sample-guides/inserts-demo/github-media-help.md) for a format matrix (PNG, JPEG, GIF, SVG, MP4, MP3/WAV, Mermaid, tables, lists) and minimal generated sample assets under `figures/` and `media/`.
+Example fixture: [`examples/sample-guides/inserts-demo/`](../../examples/sample-guides/inserts-demo). Its catalog gives each insert's first reference a paragraph of its own, and its table links to each insert again. Compile turns those table links into back-links and re-aligns the table. See [GitHub media reference](../../examples/sample-guides/inserts-demo/github-media-help.md) for a format matrix (PNG, JPEG, GIF, SVG, MP4, MP3/WAV, Mermaid, tables, lists) and minimal generated sample assets under `figures/` and `media/`.
 
 **Figure with embedded image** — shard `figures/component-map.md`:
 
@@ -672,20 +780,17 @@ Catalog link `` `[Walkthrough](../media/walkthrough.md)` `` compiles to `#### Me
 
 ## Cross-guide link rewriting
 
-Specification for assembly-time cross-shard and cross-guide link rewriting. Tests in `packages/mdcp-core/test/cross-guide-links.test.ts` map to the sections below (docs first, then TDD).
+<!-- mdcp-paths: illustrative -->
 
-Multi-output consumer repos compile separate monoliths (for example `glossary.md`, `architecture-review.md`, `technical-guide.md`) from shards that span `review/`, `security/`, `features/`, and sibling guide directories. Source shards link with relative `.md` paths; compiled output must use stable in-document or cross-monolith `#slug` targets so link-fragment lint passes.
+Specification for assembly-time cross-shard and cross-guide link rewriting. Tests in `packages/mdcp-core/test/cross-guide-links.test.ts` map to the sections below (docs first, then TDD). The fenced code tests in `packages/mdcp-core/test/links.test.ts` also cover [cross-guide link matching](#cross-guide-link-matching) and [cross-guide exclusions](#cross-guide-exclusions).
+
+Multi-output consumer repos produce separate compiled guides (such as `glossary.md`, `architecture-review.md`, `technical-guide.md`) from shards that span `review/`, `security/`, `features/`, and sibling guide directories. Source shards link with relative `.md` paths. Compiled output must use stable in-document or cross-output `#slug` targets so link-fragment lint passes.
 
 ### Cross-guide purpose
 
-At compile time, MDCP:
+Compile builds a **guide link index** from every guide in `compileOrder`. It has an entry for each shard in a guide's [`linkedSectionFiles`](../../docs/features/manifest-compile-order.md#linked-shards-and-the-file-name-fallback) that opens with a heading, including the shards outside the guide directory. A `FIND-*` finding takes its slug from its file name, so it has an entry without a heading too. Each entry maps its shard to the compiled `{guideName, outputBasename, outputFile, slug}`, where the slug is the one the shard's demoted first heading gets in the owner's compiled guide, numbered with every earlier heading (see [Cross-guide section slugs](#cross-guide-section-slugs)). When the owner doesn't stitch the shard, the slug comes from the first guide in `compileOrder` that does. A link into the owner's compiled guide is then a dead anchor, since that file has no section for the shard. When another heading there has the same slug, such as a Setup heading for a shard titled Setup, the link points at that heading, and no check catches it. When the owner is stitched into the monolith, `outputFile` is the monolith, `monolithSlug` is the slug the heading gets there, and `guideFile` is the owner's compiled guide when the owner stitches the shard. When the owner doesn't stitch it, `monolithSlug` is the slug of the first copy in the monolith that does. When no copy there stitches it, `monolithSlug` is unset, and a link to the shard takes the entry's `slug`. The monolith has no section for it either. Compile marks such a link in the monolith unless another heading or section there has that slug, such as a declared `{#id}`. Link lint reports one from another output as a dead anchor unless a heading of the monolith has that slug.
 
-1. Builds a **guide link index** from every guide in `compileOrder` — each path in that guide's `linkedSectionFiles` (manifest plus transitive inline `.md` links) maps to its compiled `{guideName, outputBasename, slug}` (slug from the demoted first heading, same rules as intra-guide rewrite)
-2. Rewrites **cross-guide** `.md` links per shard (using the shard path for relative resolution) before sections are stitched
-3. Rewrites **publish-relative** `../` file links per shard when the guide has `compile.outputFile` — see [Publish-relative link rewriting](#publish-relative-link-rewriting)
-4. Rewrites **same-guide** section links per shard (intra-guide pass with `sourceFile`), then again on the assembled body (intra-guide pass scoped to `guideDir`)
-
-Cross-guide handles indexed markdown between guides and co-compiled transitive targets. Publish-relative rebases remaining file paths for outputs outside the shard tree (no manual path config). Intra-guide handles same-guide section targets. These are **assembly-time passes**, not compile hooks.
+The cross-guide rewrite then runs per shard, before sections are stitched, as the first of the [link passes](#link-passes).
 
 ### Cross-guide link matching
 
@@ -695,71 +800,40 @@ A link is rewritten when **all** of the following hold:
 - Target path ends in `.md` (optional `#fragment`)
 - Target is not `http://`, `https://`, or `#…`
 - Target resolves to a shard registered in the guide link index
-- Target shard's guide is **not** listed in `compile.crossGuideLinks.ignoreGuides` on the compiling guide
+- Target shard's guide is **not** listed in `compile.crossGuideLinks.ignoreGuides` on the compiling guide, unless [same compiled output preference](#same-compiled-output-preference) keeps the link in the document
+- The link is outside fenced code and code spans (see [Link passes](#link-passes))
 
-Cross-guide rewrite matches only links whose path starts with `./` or `../`. Same-guide section links — bare sibling paths (`topic/section.md`) and optional `./section.md` — are handled by the intra-guide pass, not cross-guide.
+Cross-guide rewrite matches only links whose path starts with `./` or `../`, including links to shards of the same guide. The intra-guide pass handles bare paths, such as `topic/section.md`.
 
-### Link rewrite passes (cross-guide vs intra-guide)
+### Cross-guide section slugs
 
-Assembly splits `.md` link rewriting by link shape and target scope:
+A link to a shard points at the heading that opens the shard's section, so its `#slug` is the anchor that heading gets in the compiled guide. One slugger numbers the heading lines in stitch order, as the refs registry does. A heading line is an ATX heading at column 0, as [stripAnchors heading lines](#stripanchors-heading-lines) defines it. The slugger starts with the heading assembly writes first, `compile.title` or else the manifest's H1, and then reads each section's heading lines, sub-headings included. A heading whose slug an earlier heading already took gets a numeric suffix, starting at `-1`. So a section that follows a sub-heading with the same title gets `#title-1`, and so does a section that repeats the guide's H1.
 
-| Pass            | When                     | Link shapes matched                   | Resolution base                                             |
-| --------------- | ------------------------ | ------------------------------------- | ----------------------------------------------------------- |
-| **Cross-guide** | Per shard, before stitch | `./` and `../` to indexed shards      | `dirname(sourceFile)`, then parent / scopeRoot / cwd        |
-| **Intra-guide** | Per shard; post-assembly | Bare sibling or `./` same-guide paths | Per shard: `dirname(sourceFile)`; post-assembly: `guideDir` |
+A line inside a fenced code block isn't a heading, so a `# comment` in a shell example doesn't take a number. The fence scan follows list items but doesn't read blockquotes or HTML, as [stripAnchors limits](#stripanchors-limits) describes.
 
-Cross-guide does **not** match bare sibling paths — those are intra-guide only. Publish-relative handles remaining `../` file links on publish outputs; see [Publish-relative link rewriting](#publish-relative-link-rewriting).
+A `FIND-*.md` shard keeps its finding id, and a first heading with a `{#id}` marker keeps that id. Both headings still take their number, so later headings count them. Assembly drops the first section's heading when it repeats `compile.title`. Links to that section then point at the title, unless the section declares an id. A link keeps a `{#id}` from the dropped heading, though no heading in the output has that anchor.
 
-#### guideDir misaligned with shard tree
+The slugger reads each title without its markers, since compile strips them from heading lines by default. When `compile.stripAnchors` is `false` and the `stripAnchors` hook doesn't run, the compiled headings keep their markers, and the slugger numbers each heading line by the title it renders, marker included. So `Setup {#custom}` takes `setup-custom`, and a later `Setup` section keeps `#setup`. The refs registry still reads titles without markers. Its slugs for those headings can differ from the rendered anchors.
 
-Some guides set `path` to a **compiled subdirectory** while section shards live elsewhere under the same guide tree (often one level up from `guideDir`). Example:
+The [monolith](#monolith) runs one slugger through every guide it stitches, in `compileOrder`. Each guide starts with its lead heading and continues the numbering of the guides before it. So a section can take `#setup-1` in the monolith and `#setup` in its guide's compiled guide, when an earlier guide in the monolith also has a Setup heading. Compile assembles a guide in the monolith twice, once for each document, and each copy links its sections with that document's slugs.
 
-```text
-guide/
-  compiled/shards.md   ← manifest (guideDir)
-  section-a.md
-  topic/section-b.md
-  assets/diagram.md
-```
+The guide link index takes a shard's slug from its owner's numbering when the owner stitches the shard. [Index ownership](#index-ownership) defines the owner. When a link goes to the owner's output, it points at the heading as that output numbers it, even when the linking guide also stitches the shard. A guide that stitches a shard owned only through the transitive walk links to its own copy, with an in-document anchor that the guide numbers itself, as [Same compiled output preference](#same-compiled-output-preference) describes.
 
-Config uses `"path": "guide/compiled"` with `"compile": { "manifest": "shards.md", … }`.
-
-Bare sibling links authored from shards outside `guideDir` — for example `[Section B](topic/section-b.md)` in `guide/section-a.md` — resolve from **`dirname(sourceFile)`** during the per-shard intra-guide pass, not from `guideDir` alone. The post-assembly intra pass still runs against `guideDir` for any remaining same-guide links on the stitched body.
-
-Links that must step **up and out** of the shard directory still require **`../`**. A manifest under `compiled/shards.md` links to sibling shards with paths like `../section-a.md`; bare paths cannot express parent traversal.
-
-#### Transitive section discovery
-
-For each compiling guide, `linkedSectionFiles` is the manifest closure plus every shard reachable by walking **inline** markdown `.md` links from those files within `guideDir` and `compile.scopeRoot` (when set). The **guide link index** indexes **every** path in that set — including shards outside `guideDir` (not only paths under `guideDir` or `glossary/`).
-
-**Ownership** when the same absolute path appears for more than one guide (first match wins):
-
-1. Manifest owner — the guide that lists the shard in its manifest
-2. Path under `guideDir` — the guide whose directory contains the shard
-3. Compiling guide — the guide whose transitive walk included the shard
-
-#### What the walk follows
-
-| Authoring form                                                | Transitive inclusion                         |
-| ------------------------------------------------------------- | -------------------------------------------- |
-| Inline link `[label](path.md)` or `[label](path.md#fragment)` | **Yes** — followed into `linkedSectionFiles` |
-| Reference-style `[label][ref]` with `[ref]: path.md`          | **No** — not followed for inclusion          |
-| Backtick path `` `path.md` ``                                 | **No** — inline code is not scanned          |
-
-Authors who need a readable path **without** pulling the target into the compile graph can use a reference-style link or a backtick path. Reference-style and backticks skip transitive inclusion; backticks also skip link rewrite.
-
-#### Default `_build` outputs and transitive targets
-
-With the default `outputDir` (`_build`), `./` and `../` links to transitively included shards outside `guideDir` rewrite through the guide link index and [same-output preference](#same-compiled-output-preference). Compiled `_build` output does **not** leave those co-compiled targets as raw `../file.md`.
+Headings that a compile hook adds after numbering, such as [inlineInserts](#inlineinserts) captions, take no number. A caption whose slug matches a later section heading's slug moves that heading to `-1`, and links to the section miss it. A renderer that adds heading anchors also gives one to setext headings and to ATX headings indented one to three spaces or nested in a list item or blockquote, which mdcp doesn't read as headings. Such a heading earlier in the guide with a section's title has the same effect.
 
 ### Cross-guide resolution
 
-Path lookup order (relative to the **current shard** directory):
+The pass finds the target shard in the order [Path lookup order](#path-lookup-order) gives for the cross-guide rewrite.
 
-1. Relative to the shard directory (`dirname(sourceFile)`)
-2. Relative to the shard parent directory
-3. `compile.scopeRoot` when set on the compiling guide
-4. `process.cwd()` and its parent
+#### Index ownership
+
+The index gives each shard one owner guide, the first of these that applies:
+
+1. The guide whose manifest lists the shard, or the last such guide in `compileOrder` when several manifests list it
+2. The first guide in `compileOrder` whose directory contains the shard
+3. The first guide in `compileOrder` that compiles the shard by following a link to it
+
+For the first rule, a manifest that links no shards lists the files that the [file-name fallback](../../docs/features/manifest-compile-order.md#linked-shards-and-the-file-name-fallback) compiles. Ownership by the first or second rule is canonical. [Same compiled output preference](#same-compiled-output-preference) says when a guide links its own copy of a shard whose owner is another guide.
 
 #### Same compiled output preference
 
@@ -771,16 +845,27 @@ When a `./` or `../` link resolves to a path present in the **assembling guide's
 
 Canonical ownership (manifest or path under `guideDir`) still wins for cross-output targets. Example: a glossary hub that transitively reaches a finding under `review/` keeps `architecture-review.md#find-004` even if the finding body was also pulled into the glossary compile graph. Multi-guide repos that only co-include a shared shard outside every `guideDir` keep in-document `#anchor` targets in each assembling output.
 
+Same-output preference comes before `ignoreGuides`. A link to a shard that the assembling guide stitches takes the in-document anchor when the shard's owner is non-canonical, even when the assembling guide lists that owner in `ignoreGuides`. Such an owner is only the first guide in `compileOrder` whose walk reached the shard, so letting `ignoreGuides` win would make the link depend on that order. MDCP's own publish guides rely on it. Each lists `features` in `ignoreGuides`, and `features` is the owner of the glossary term shards only through its walk. A publish guide still links a term to the section it stitches. [`ignoreGuides` interaction](#ignoreguides-interaction) says how a link to a stitched shard whose canonical owner is listed compiles.
+
 When the resolved absolute path is in the guide link index (and same-output preference does not already apply):
 
-| Case                                             | Rewritten target                                                        |
-| ------------------------------------------------ | ----------------------------------------------------------------------- |
-| Same compiled output as the assembling guide     | `#slug` or `#fragment` when the link includes a fragment                |
-| Different compiled output (`compile.outputFile`) | `{outputBasename}#slug` (for example `architecture-review.md#find-004`) |
-| Monolith output (no per-guide `outputFile`)      | `#slug`                                                                 |
-| Target guide in `ignoreGuides`                   | **unchanged** — keep source `.md` path (link to shard, not monolith)    |
+| Case                                                            | Rewritten target                                                                                                                  |
+| --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Same compiled output as the assembling guide                    | `#slug` or `#fragment` when the link includes a fragment                                                                          |
+| Different compiled output                                       | `{outputBasename}#slug` in the same directory (such as `architecture-review.md#find-004`), otherwise a relative path plus `#slug` |
+| Both guides in the monolith (neither sets `compile.outputFile`) | The target guide's compiled guide plus `#slug` in the linking guide's compiled guide, and `#slug` in the monolith                 |
+| Target guide in the monolith, linking guide a publish output    | The monolith plus `#slug`, such as `guides.md#setup-1`                                                                            |
+| Target guide in `ignoreGuides`                                  | **unchanged**: keep source `.md` path (link to shard, not compiled output)                                                        |
 
-Finding shards (`FIND-*.md`) use the finding id from the filename (for example `#find-004`), not the parent outcomes section slug.
+Each `#slug` is the target heading's slug in the document the link points into. A link between two guides in the monolith compiles twice. In the linking guide's compiled guide, it targets the target guide's compiled guide, such as `b.md#topic`, with that guide's own slug, when that guide stitches the shard. Otherwise it targets the monolith, with the slug of the shard's first copy there. In the monolith, it targets the heading in the monolith, with the slug the monolith gives it. A publish output links a guide in the monolith through the monolith, with the monolith's slug.
+
+An explicit `#fragment` is never renumbered. Compile writes it as the shard author wrote it, in every document. Broken-link marking checks an in-document fragment, such as `#details`, against every heading of the document that contains the link and the section slugs its assembly gave. In the monolith, that set is the headings of every guide there and the section slugs of every copy. Link lint checks an in-document fragment against the same set, and a fragment on another file, such as `a.md#details`, against that file's headings. So a fragment that points at a sub-heading of another guide in the monolith, such as `../a/setup.md#details`, stays a link in both documents. A fragment such as `./setup.md#setup` resolves in the target guide's compiled guide. In the monolith, that slug can belong to an earlier guide's heading with the same title. The link then points at that heading. No check catches that, because the slug exists in the monolith. A link without a fragment gets the right slug when the document it points into stitches its shard. [Cross-guide purpose](#cross-guide-purpose) gives the slug it takes otherwise.
+
+Finding shards (`FIND-*.md`) use the finding id from the filename (such as `#find-004`), not the parent outcomes section slug. Broken-link marking and link lint accept the finding id as an in-document target in the output that stitches the finding, though the heading there takes its slug from its text, such as `find-004--example-finding`. On a link from another output, such as `architecture-review.md#find-004`, link lint reports the finding id as a dead anchor, because no heading in the target has it. A declared `{#id}` works the same way.
+
+#### Default `_build` outputs and transitive targets
+
+In `_build`, as in any other output directory, a `./` or `../` link to a shard outside `guideDir` that the walk adds follows the rules above. [Same compiled output preference](#same-compiled-output-preference) says when it becomes an in-document anchor, and [`ignoreGuides` interaction](#ignoreguides-interaction) covers a link that keeps its shard path.
 
 ### Cross-guide exclusions
 
@@ -788,9 +873,10 @@ The pass **does not** transform:
 
 - External URLs
 - Same-document `#fragment` links
+- Link syntax in fenced code or in a code span
 - Markdown links that do not resolve to an indexed shard
 - Non-markdown paths (handled by `codeEvidence` or left unchanged)
-- Links to shards in guides listed in `compile.crossGuideLinks.ignoreGuides` (publish-relative may still rebase the unchanged shard path for publish outputs — see [Publish-relative link rewriting](#publish-relative-link-rewriting))
+- Links to shards in guides listed in `compile.crossGuideLinks.ignoreGuides`, other than a stitched shard that [same compiled output preference](#same-compiled-output-preference) keeps in the document (publish-relative may still rebase the unchanged shard path; see [`ignoreGuides` interaction](#ignoreguides-interaction))
 
 ### Cross-guide config
 
@@ -832,7 +918,7 @@ Minimal multi-output setup — index and rewrite run automatically from `compile
 
 #### `compile.crossGuideLinks.ignoreGuides`
 
-Set on the **guide being compiled**. Guide names in this list keep source `.md` paths for cross-guide links instead of rewriting to that guide's monolith `#slug` target ([ignoreGuides](#ignoreguides)). Use when one compiled guide should link to live shard files for specific guides (for example technical reference docs that are not folded into a review bundle).
+Set on the **guide being compiled**. Links from that guide to shards of a listed guide keep source `.md` paths instead of rewriting to a `#slug` in the target guide's compiled guide or in the monolith ([ignoreGuides](#ignoreguides)). [Same compiled output preference](#same-compiled-output-preference) says when a link to a shard that the guide stitches takes an in-document anchor instead. [`ignoreGuides` interaction](#ignoreguides-interaction) says how compile rebases a kept path, and when a `./` or bare link to a stitched shard takes `#slug`. Use when one compiled guide should link to live shard files for specific guides (such as technical reference docs that are not folded into a review bundle).
 
 ```json
 {
@@ -888,17 +974,17 @@ Compiled `glossary.md` (each target keeps its guide output):
 See [FIND-004](architecture-review.md#find-004) and [Deployment](technical-guide.md#deployment).
 ```
 
-### Cross-guide ignore example (mixed monolith and shard links)
+### Cross-guide ignore example (mixed compiled-output and shard links)
 
-Same hub shard with `ignoreGuides: ["technical-guide"]` on the **glossary** guide:
+Same hub shard with `ignoreGuides: ["technical-guide"]` on the **glossary** guide. Compiled `glossary.md`:
 
 ```markdown
 ## Terms
 
-See [FIND-004](architecture-review.md#find-004) and [Deployment](../technical/deployment.md).
+See [FIND-004](architecture-review.md#find-004) and [Deployment](../../technical/deployment.md).
 ```
 
-Review targets use the compiled monolith; ignored guides keep shard paths. Tests in `packages/mdcp-core/test/cross-guide-links.test.ts` cover index entries, per-link routing, `ignoreGuides`, and end-to-end compile.
+Review targets use the compiled `architecture-review.md`. The ignored guide keeps its shard path, and publish-relative rewrite rebases that path relative to `_build/compiled/glossary.md`. Tests in `packages/mdcp-core/test/cross-guide-links.test.ts` cover index entries, per-link routing, `ignoreGuides`, and end-to-end compile.
 
 <!-- mdcp-shard: end ../../docs/client-core/compile-hooks/cross-guide-links.md -->
 
@@ -906,7 +992,9 @@ Review targets use the compiled monolith; ignored guides keep shard paths. Tests
 
 ## Publish-relative link rewriting
 
-Specification for assembly-time rebasing of shard-relative file links when a guide publishes outside the shard tree. Tests in `packages/mdcp-core/test/publish-links.test.ts` and `packages/mdcp-core/test/links.test.ts` map to the sections below.
+<!-- mdcp-paths: illustrative -->
+
+Specification for assembly-time rebasing of shard-relative file links to each guide's [link base](#when-it-runs). Tests in `packages/mdcp-core/test/publish-links.test.ts`, `packages/mdcp-core/test/links.test.ts` and `packages/mdcp-core/test/guide-output-path.test.ts` map to the sections below. Tests for the exclusion of cross-guide links and for [`ignoreGuides` interaction](#ignoreguides-interaction) are also in `packages/mdcp-core/test/cross-guide-links.test.ts`, and tests for the exclusion of links that `codeEvidence` rebased are in `packages/mdcp-core/test/code-evidence.test.ts`.
 
 ### Why this pass exists
 
@@ -914,7 +1002,7 @@ Shards are authored with paths relative to **where the file lives** in the guide
 
 - `../features/foo.md` from `docs/developer/`
 - `../../features/foo.md` from `docs/client-core/compile-hooks/`
-- `../../package.json` from `docs/developer/` (repo root)
+- `../../.nvmrc` from `docs/developer/` (repo root)
 
 That works while readers open shards under `docs/`. It breaks when the same content compiles to a **publish output** elsewhere — for example `DEVELOPERS.md` at the repo root or `packages/mdcp-cli/README.md`.
 
@@ -922,32 +1010,25 @@ That works while readers open shards under `docs/`. It breaks when the same cont
 
 **Solution:** resolve and rebase **per shard**, before stitch:
 
-1. Resolve the link from `dirname(sourceFile)` to an **absolute** target path
+1. Resolve the link to an **absolute** target path, in the order [Path lookup order](#path-lookup-order) gives for this pass
 2. Emit `relative(dirname(publishOutputFile), absoluteTarget)` in the compiled body
 
-No `stripParentSegments`, `oneLevelPrefix`, or other publish-path config — geometry comes from `sourceFile`, `compile.outputFile`, and the filesystem.
+Rebasing doesn't need path-prefix config. The geometry comes from `sourceFile` and the guide's [link base](#when-it-runs), resolved against the filesystem.
 
 ### When it runs
 
-| Condition                                       | Publish-relative rewrite                                 |
-| ----------------------------------------------- | -------------------------------------------------------- |
-| Guide has `compile.outputFile` set              | **Yes** — per shard, after cross-guide rewrite           |
-| Guide outputs only to `_build/{name}.md`        | **No** — shard-relative paths stay as authored           |
-| Optional monolith (`outputFile` at config root) | **No** for guides without their own `compile.outputFile` |
+A guide's **link base** is the file being assembled, and the guide's paths rebase relative to it. Compile assembles a guide for the files in this table:
 
-Implementation: `rewritePublishRelativeLinks` in `packages/mdcp-core/src/compile/publish-links.ts`, invoked from `assembleGuide` when `publishOutputFile` is set.
+| File being assembled       | Path                                                                                                                                   | Guides it holds                          |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| The guide's compiled guide | `compile.outputFile` when set (a publish output), otherwise `{name}.md` under `outputDir`, or `guide.md` when the config has one guide | Every guide                              |
+| The optional monolith      | Top-level `outputFile` under `outputDir`                                                                                               | Every guide without `compile.outputFile` |
 
-### Division of labor (three link passes)
+So a guide in the monolith is assembled twice. Its own [compiled guide](#compiled-guide) rebases each path relative to the compiled guide, and its copy in the monolith rebases each path relative to the monolith. Both copies resolve, whichever directory the monolith is in. Source tags and code evidence links follow the same rule. [Cross-guide resolution](#cross-guide-resolution) says where each copy's links to other guides point.
 
-Assembly applies specialized passes instead of one generic rewriter:
+The pass runs per shard for every guide, after the other per-shard [link passes](#link-passes). It is named for [publish outputs](#publish-output), but it rebases links in every compiled guide and in the monolith.
 
-| Pass                 | Scope                                         | Input links                                | Output                                               |
-| -------------------- | --------------------------------------------- | ------------------------------------------ | ---------------------------------------------------- |
-| **Cross-guide**      | Indexed `.md` in another guide                | `../other-guide/shard.md`                  | `{outputFile}#slug` or unchanged when `ignoreGuides` |
-| **Publish-relative** | Remaining `../` file links on publish outputs | `../features/foo.md`, `../../package.json` | Path relative to publish file                        |
-| **Intra-guide**      | Same-guide section shards                     | `./section.md`                             | `#anchor` in assembled body                          |
-
-Cross-guide runs first and uses the **guide link index**. Publish-relative handles everything else that still starts with `../` — config files, `package.json`, and shard paths left unchanged by `ignoreGuides`.
+Code: `rewritePublishRelativeLinks` in `packages/mdcp-core/src/compile/publish-links.ts`, invoked from `assembleGuide` with the guide's link base as `publishOutputFile`.
 
 ### Publish-relative matching
 
@@ -956,25 +1037,25 @@ A link is rewritten when **all** of the following hold:
 - Standard markdown link syntax: `[label](path)`
 - Target starts with one or more `../` segments (not `./` — see exclusions)
 - Target is not `http://`, `https://`, `mailto:`, or `#…`
-- Target resolves to an existing file from the shard directory (then guide directory, then `compile.scopeRoot`)
-- Resolved path is **not** a same-guide indexed shard (intra-guide pass owns those)
-- Resolved path is **not** another guide's `compile.outputFile` (cross-guide already rebased)
+- Target resolves to an existing file or directory, or to an output of the run, in the order [Path lookup order](#path-lookup-order) gives for this pass
+- Resolved path is **not** a same-guide indexed shard (the cross-guide pass rewrites those)
+- The link is outside fenced code and code spans (see [Link passes](#link-passes))
+
+A target made only of `../` segments, such as `../` or `../../`, points at a directory and rebases in every compiled guide. From `docs/developer/` into `DEVELOPERS.md`, the target `../` compiles to `docs`. The target `../../` resolves to the directory that contains `DEVELOPERS.md`, so it compiles to `./`. The rebased path drops any trailing slash, so `../../skills/` compiles to `skills`.
+
+A link the shard writes to an output of the run, such as `../../README.md`, is a shard-relative path like any other, and the pass rebases it. The rebased path leads to the output from a link base at any depth. [Path lookup order](#path-lookup-order) says which outputs count as existing before compile writes them, and why the pass treats a path to the monolith as missing when every guide sets `compile.outputFile`.
 
 ### Publish-relative resolution
 
-Path lookup order (same as cross-guide shard resolution):
-
-1. `resolve(dirname(sourceFile), filePart)`
-2. `resolve(guideDir, filePart)`
-3. `compile.scopeRoot` when set
-
-Then:
+The pass finds the target in the order [Path lookup order](#path-lookup-order) gives for the publish-relative rewrite, then emits:
 
 ```text
 relative(dirname(publishOutputFile), resolvedAbsolute) + optional #fragment
 ```
 
-`publishOutputFile` is the absolute path from `resolveGuideLinkBase` for the guide's `compile.outputFile`.
+An empty relative path means the target is the directory that contains the link base, and the pass writes `./` for it. That covers a `../`-only target and a named one, such as `../../pkg/` from `docs/pkg/` compiled into `pkg/README.md`.
+
+`publishOutputFile` is the absolute path of the file being assembled (see [When it runs](#when-it-runs)).
 
 ### Publish-relative exclusions
 
@@ -982,21 +1063,23 @@ The pass **does not** transform:
 
 - External URLs
 - Same-document `#fragment` links
+- Link syntax in fenced code or in a code span
 - `./section.md` and other `./` paths (cross-guide or intra-guide handle `.md`; publish-relative only matches `../`)
-- Links cross-guide already rewrote to `{otherPublishOutput}#slug`
+- A link that the cross-guide pass rewrote, whose path is already relative to the link base, such as `../../README.md#setup` in a guide published to `packages/a/README.md`
+- A link that [`codeEvidence`](#codeevidence) rebased, whose path is relative to the link base too. From the shard's directory, the path can lead to another file with the same name.
 - Unresolvable paths (left unchanged)
 
 ### Repo dogfood examples
 
-Config: [`docs/mdcp.config.json`](../../docs/mdcp.config.json) — `developer`, `client-cli`, and `client-core` use `compile.outputFile`.
+Config: [`docs/mdcp.config.json`](../../docs/mdcp.config.json). Every guide except `features` sets `compile.outputFile`, and the examples below show three of them.
 
 **`developer` → `DEVELOPERS.md` (repo root)**
 
 | Shard input (`docs/developer/…`) | Compiled in `DEVELOPERS.md`        |
 | -------------------------------- | ---------------------------------- |
-| `../../package.json`             | `package.json`                     |
+| `../../.nvmrc`                   | `.nvmrc`                           |
 | `../features/feature-catalog.md` | `docs/features/feature-catalog.md` |
-| `../mdcp.config.json`            | `docs/mdcp.config.json`            |
+| `../../packages/mdcp-site/`      | `packages/mdcp-site`               |
 
 **`client-cli` → `packages/mdcp-cli/README.md`**
 
@@ -1014,7 +1097,11 @@ Nested shards use more `../` segments in source; per-shard resolution still yiel
 
 ### `ignoreGuides` interaction
 
-When `compile.crossGuideLinks.ignoreGuides` keeps a cross-guide link as a shard `.md` path, publish-relative still rebases that path for the publish file. Example: `client-cli` with `ignoreGuides: ["features"]` compiles `../features/feature-catalog.md` to `../../docs/features/feature-catalog.md` in the package README.
+When `compile.crossGuideLinks.ignoreGuides` keeps a cross-guide link as a shard `.md` path, publish-relative still rebases that path relative to the compiling guide's link base. Example: `client-cli` with `ignoreGuides: ["features"]` compiles `../features/feature-catalog.md` to `../../docs/features/feature-catalog.md` in the package README.
+
+The intra-guide run on the stitched body leaves the rebased path alone, even when the compiling guide stitches the shard. So a guide in the monolith links the shard file in both documents, each path relative to its own link base.
+
+A kept `./` link takes another route, because this pass only matches `../`. When the compiling guide stitches the shard, the per-shard intra-guide pass rewrites a `./` or bare link to it as `#slug`. So one compiled guide can link a shard by its path from a `../` link and by its anchor from a `./` link.
 
 Link validation accepts those shard paths when the target guide is listed in `ignoreGuides` on the compiling guide. See [Link validation](../../docs/features/link-validation.md#publish-only-link-policy).
 
@@ -1027,21 +1114,41 @@ Link validation accepts those shard paths when the target guide is listed in `ig
 
 <!-- mdcp-shard: end ../../docs/client-core/compile-hooks/publish-relative-links.md -->
 
+<!-- mdcp-shard: start ../../docs/client-core/compile-hooks/tables-after-link-rewriting.md -->
+
+## Tables after link rewriting
+
+Link rewriting changes the length of a link target, and broken-link marking replaces a link with a longer marker. Either change moves the pipes of the table row with that link. A table that a shard aligns would then fail markdownlint's MD060 rule in the compiled guide. So the last step of each assembly, after broken-link marking, re-aligns that table. It prints the table as Prettier does when `proseWrap` is `preserve`, Prettier's default, or `always`: each column is as wide as its widest cell and three characters at least, and each cell pads to the alignment of its delimiter cell. When `proseWrap` is `never`, Prettier prints a table compact once it outgrows `printWidth`. Compile prints that table aligned, which MD060 accepts and Prettier's check rejects.
+
+Compile measures a cell in display columns. A wide or fullwidth East Asian character takes two columns, and so does an emoji shown as an emoji. A nonspacing or enclosing mark, a control character or a format character takes none. Any other character takes one, a spacing mark included. These widths match Prettier and markdownlint wherever the two tools agree.
+
+Where Prettier and markdownlint disagree, a layout that passes one tool fails the other. Prettier gives one column to each format character, such as a zero-width space or a soft hyphen. It also gives one to each nonspacing mark outside U+0300 to U+036F, such as a Hebrew point or a Thai vowel mark. Markdownlint gives these none. Prettier counts a text-style emoji like ☝ as two columns where markdownlint counts one. Compile follows markdownlint on these. Indic text differs again. Markdownlint counts a grapheme cluster, such as a conjunct with its vowel sign, as one column. Prettier counts each code point, and compile counts each code point except a nonspacing mark, so it matches neither tool.
+
+If a cell without a link contains such text, markdownlint's MD060 rule already flags the table in the shard, and it flags the compiled table too. Where compile and Prettier measure that cell differently, as for a Hebrew point, compile leaves the table out of line where its links changed width. Where they agree, as for Hindi text without a nonspacing mark, compile re-aligns the table to Prettier's layout. If only a cell with a link contains such text, compile re-aligns the table by its own measure. For text other than Indic, the result passes MD060, and Prettier's check fails on it. Indic text fails MD060, and Prettier's check passes only when the text has no nonspacing mark.
+
+Compile re-aligns a table when its cells without a link match the width of their column's delimiter cell and some cell with a link doesn't. The delimiter row has no link, so it keeps the width the shard gave each column. A table qualifies when some cell differs in width from the delimiter cell of its column, and each such cell contains a link or a broken-link marker. That rule also re-aligns a shard table whose link cells were out of line before compile. The table must also pad some cell with more than one space, which a compact table never does. A compact or tight table stays as written, and so does a table whose pipes still line up. When something else changes the width of a cell, the table stays as compile left it. Stripping a `{#id}` anchor from a cell does that, and so does `inlineInserts` when it changes an insert link in a code span. A custom compile hook can do it too.
+
+The padding rule misses an aligned table where each column's cells all have the same width, since no cell then pads past one space. Compile reads that table as compact and doesn't re-align it after a link changes width. MD060 accepts the result as a compact table, but Prettier's check fails on it.
+
+The table ends at a blank line or a fence, and at a line that leaves its blockquote. It also ends at a line indented as far as the rows or less that opens another block, such as a list item, a heading, a blockquote, an HTML block or a thematic break. So a table in a tight list ends at the next list item, or at a nested list right under it. A list item ends a table even where it couldn't interrupt a paragraph, such as an item numbered `10.`, so re-alignment reads a fence in that item as fenced code. Every other line up to the end is a row. Each row must start and end with a pipe after the indentation and blockquote markers of the delimiter row. Compile leaves the whole table as written when any row breaks that rule or has more cells than the delimiter row. A tab anywhere in a row also leaves the table as written. When compile leaves a table, it leaves every row up to the table's end, even a row that looks like a delimiter row.
+
+A table in a list item or a blockquote keeps its indentation and its markers. A table in more than ten nested blockquotes stays as written, since finding the fences of each quote around it takes time that grows with the square of the depth. When a table opens its list item, Prettier prints the header row on the marker's line, such as `- | Page | Purpose |`, and indents the other rows to the item's text. Compile re-aligns that table when the marker is as wide as that indentation, and keeps the marker on the header row. Compile leaves a table whose header row sits in fewer blockquotes than a non-blank line right above it, or in as many and indented less than that line's text, unless the header row opens a list item. That row may continue the paragraph above it, and GFM then doesn't read a table there. Compile doesn't re-align a table in fenced code, in a blockquote or out of one. The link passes, `codeEvidence` and broken-link marking leave the links in fenced code as written. Their fence scan reads a table as a paragraph, though, so a list item that can't interrupt one, such as `10.`, doesn't open a fence for them. A table in that fence can end up out of line. `inlineInserts` still changes an insert link in fenced code, as [inlineInserts link matching](#inlineinserts-link-matching) says, so a fenced table that links to an insert can also end up out of line. Compile reads an indented code block or an HTML block as prose, as link rewriting does, so it re-aligns a table there too. When the line right after the last row closes a comment, such as `-->`, compile reads that line as one more row and leaves the table as written. A pipe escaped as `\|` stays in its cell, in a code span or out of one.
+
+Code: `realignTables` in `packages/mdcp-core/src/compile/align-tables.ts`, which measures cells with `displayWidth` in `packages/mdcp-core/src/markdown/display-width.ts`. Tests in `packages/mdcp-core/test/align-tables.test.ts` and `packages/mdcp-core/test/display-width.test.ts` map to this section.
+
+<!-- mdcp-shard: end ../../docs/client-core/compile-hooks/tables-after-link-rewriting.md -->
+
 <!-- mdcp-shard: start ../../docs/client-core/related-packages.md -->
 
 ## Related packages
 
-| Package                                                                                | Use                           |
-| -------------------------------------------------------------------------------------- | ----------------------------- |
-| [`@bwilliamson/mdcp-cli`](https://www.npmjs.com/package/@bwilliamson/mdcp-cli)         | `mdcp` command-line interface |
-| [`@bwilliamson/mdcp-presets`](https://www.npmjs.com/package/@bwilliamson/mdcp-presets) | Starter markdownlint configs  |
-
-The [Agent Skill](../../README.md) is a separate install (`npx skills add`) — not an npm dependency of this library.
+- [`@bwilliamson/mdcp-cli`](https://www.npmjs.com/package/@bwilliamson/mdcp-cli): the `mdcp` command-line interface
+- [`@bwilliamson/mdcp-presets`](https://www.npmjs.com/package/@bwilliamson/mdcp-presets): starter markdownlint configs and the MDCP Vale style
 
 ### Further reading
 
 - [CLI package docs](https://www.npmjs.com/package/@bwilliamson/mdcp-cli)
-- [Project README](../../README.md) — Agent Skill landing
+- [Project README](../../README.md): the Agent Skill landing page
 - [Design constraints](../../docs/features/design-constraints/index.md)
 
 ### License
@@ -1054,9 +1161,29 @@ MIT
 
 ## ignoreGuides
 
-Guide names listed on the **compiling** guide under `compile.crossGuideLinks.ignoreGuides`. Cross-guide links to those guides keep source shard `.md` paths instead of rewriting to monolith `#slug` targets. Does not exclude the guide from `compileOrder` or the link index — only skips link rewrite for those targets. On publish outputs, [publish-relative rewrite](#publish-relative-link-rewriting) still rebases the shard path for the publish file. Read [Cross-guide link rewriting](#cross-guide-link-rewriting).
+**`ignoreGuides`** is a list of guide names on the **compiling** guide, under `compile.crossGuideLinks.ignoreGuides`. Cross-guide links to a listed guide keep pointing at the source shard instead of rewriting to a `#slug` target, except in the cases that [its config section](#compilecrossguidelinksignoreguides) points to. [`ignoreGuides` interaction](#ignoreguides-interaction) says how compile rebases a kept path, and when a `./` or bare link to a stitched shard takes `#slug`. The listed guide stays in `compileOrder` and in the link index.
+
+Read [Cross-guide link rewriting](#cross-guide-link-rewriting) for how other links rewrite, and the [publish-only link policy](../../docs/features/link-validation.md#publish-only-link-policy) for how link validation treats kept shard paths.
 
 <!-- mdcp-shard: end ../../docs/glossary/ignore-guides.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/monolith.md -->
+
+## monolith
+
+The **monolith** is the optional single file that stitches every [guide](#guide) without `compile.outputFile` into one document, in `compileOrder` order. Compile writes it only when the config sets top-level `outputFile`.
+
+See [What compile actually does](../../docs/features/overview.md#what-compile-actually-does). [Cross-guide resolution](#cross-guide-resolution) covers links between two guides in the monolith.
+
+<!-- mdcp-shard: end ../../docs/glossary/monolith.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/authored-gfm.md -->
+
+## Authored GFM
+
+Shard markdown as written before compile, with no preprocessor substitution or template conditionals. Compile hooks may transform it during assembly. Read [Preprocessor / templating (out of scope)](../../docs/features/design-constraints/preprocessor-templating.md#preprocessor--templating-out-of-scope).
+
+<!-- mdcp-shard: end ../../docs/glossary/authored-gfm.md -->
 
 <!-- mdcp-shard: start ../../docs/glossary/locale-pack.md -->
 
@@ -1064,11 +1191,127 @@ Guide names listed on the **compiling** guide under `compile.crossGuideLinks.ign
 
 A **locale pack** is MDCP’s compile-time bundle of natural-language data that is **not** GFM protocol shape. It covers:
 
-- **Generated wording** — for example US-English insert captions like `Table 1. …` and `BROKEN LINK` marker copy
-- **Locale-specific patterns** — optional heading-key patterns for semantic refs
-- **Parse-input word cues** — authored words a compile hook may recognize (for example en-US `line` / `lines` for [codeEvidence](#codeevidence) line ranges)
-- **Preamble heading title** — for example en-US `About this guide` for strip/promote defaults (`aboutThisGuideTitle`)
+- **Generated wording**: text such as US-English insert captions (`Table 1. …`) and `BROKEN LINK` marker copy
+- **Locale-specific patterns**: optional heading-key patterns for semantic refs
+- **Parse-input word cues**: authored words a compile hook may recognize (such as en-US `line` / `lines` for [codeEvidence](#codeevidence) line ranges)
+- **Preamble heading title**: a title such as en-US `About this guide` for strip/promote defaults (`aboutThisGuideTitle`)
 
 Default `en-US` (one BCP 47 JSON file per locale under `src/locale/locales/`). Language-neutral markup forms and GitHub-style `#L…` fragment **output** stay outside the pack.
 
 <!-- mdcp-shard: end ../../docs/glossary/locale-pack.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/compiled-guide.md -->
+
+## compiled guide
+
+A **compiled guide** is the file compile writes for one [guide](#guide). A guide that sets `compile.outputFile` writes its compiled guide to that path, and that file is a [publish output](#publish-output).
+
+See [Default per-guide outputs](../mdcp-cli/README.md#default-per-guide-outputs) for the default paths.
+
+<!-- mdcp-shard: end ../../docs/glossary/compiled-guide.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/publish-output.md -->
+
+## publish output
+
+A **publish output** is the file a [guide](#guide) compiles to when it sets its own `compile.outputFile`, such as a package README or the repository-root `DEVELOPERS.md`. The path is relative to `outputDir` unless it is absolute.
+
+Publish outputs stay out of the optional [monolith](#monolith), and link validation applies the [publish-only link policy](../../docs/features/link-validation.md#publish-only-link-policy) to them.
+
+See [Default per-guide outputs](../mdcp-cli/README.md#default-per-guide-outputs).
+
+<!-- mdcp-shard: end ../../docs/glossary/publish-output.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/guide.md -->
+
+## guide
+
+A **guide** is a directory of [shards](#shard) plus its [manifest](#manifest). Compile turns it into one [compiled guide](#compiled-guide). Each name in `compileOrder` is a guide, read from the directory of that name under the docs root unless `guides[].path` points somewhere else. Its output can also include shards that the manifest links from other directories, or that compile reaches under `compile.scopeRoot`.
+
+A guide without `compile.outputFile` can also be stitched into the [monolith](#monolith). A [standalone guide](#standalone-guide) is one registered file with no output of its own.
+
+See [Project layout](../mdcp-cli/README.md#project-layout).
+
+<!-- mdcp-shard: end ../../docs/glossary/guide.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/shard.md -->
+
+## shard
+
+A **shard** is a small Markdown file that owns one topic. In MDCP, authors edit shards; `compile` stitches them into [compiled guides](#compiled-guide), such as a package README. Shards are the source of truth, so do not hand-edit generated files.
+
+Think “one concern per file” so people and agents can load only what the task needs. Related: [shard single responsibility](#shard-single-responsibility). Deeper model: [Overview](../../docs/features/overview.md).
+
+<!-- mdcp-shard: end ../../docs/glossary/shard.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/manifest.md -->
+
+## manifest
+
+A **manifest** is the file in a [guide](#guide) directory whose Markdown links set compile order. It is `index.md` by default, and `guides[].compile.manifest` can name another file such as `shards.md`. Compile stitches the linked `.md` files in the order the links appear. The [orphan](#orphan) check compares the guide directory against these links.
+
+See [Manifest compile order](../../docs/features/manifest-compile-order.md).
+
+<!-- mdcp-shard: end ../../docs/glossary/manifest.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/standalone-guide.md -->
+
+## standalone guide
+
+A **standalone guide** is a hand-authored markdown file listed in `standaloneGuides[]` that is both its source and the file readers open, such as a package `README.md` or a top-level `SECURITY.md`.
+
+Contrast with a [guide](#guide), whose shards compile into one output. Compile doesn't write output for a standalone guide, and listing it marks it as [captured](#coverage). [Standalone guide behavior](../../docs/features/coverage-scan.md#standalone-guide-behavior) covers how compile treats it and which checks read it.
+
+<!-- mdcp-shard: end ../../docs/glossary/standalone-guide.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/shard-single-responsibility.md -->
+
+## shard single responsibility
+
+**Shard single responsibility** means each durable documentation shard owns one primary concern, for one [guide tier](#guide-tier), serving one job: explain, instruct how-to, or define and look up. A shard should have one main reason to change.
+
+See [Shard single responsibility and idea mitosis](../../docs/features/protocol/shard-srp-and-mitosis.md) and [idea mitosis](#idea-mitosis).
+
+<!-- mdcp-shard: end ../../docs/glossary/shard-single-responsibility.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/orphan.md -->
+
+## orphan
+
+An **orphan** is a top-level shard in a [guide](#guide) directory that the guide's [manifest](#manifest) does not link. [Manifest compile order](../../docs/features/manifest-compile-order.md) explains which manifest links count, including the `compile.sectionsHeading` rule and the [file-name fallback](../../docs/features/manifest-compile-order.md#linked-shards-and-the-file-name-fallback).
+
+Unlinked shards in a guide subdirectory or under a `compile.scopeRoot` are out of scope for this check. See [Relationship to the orphan check](../../docs/features/coverage-scan.md#relationship-to-the-orphan-check).
+
+<!-- mdcp-shard: end ../../docs/glossary/orphan.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/coverage.md -->
+
+## coverage
+
+Documentation **coverage** is the set of markdown files MDCP can account for, and a file in that set is **captured**. [Coverage and the captured set](../../docs/features/coverage-scan.md#coverage-and-the-captured-set) lists which files count.
+
+The coverage scan walks the repository for markdown files, skips vendored paths, and reports any file that is not captured so authors either fold it into a guide or register it in `standaloneGuides[]`. With `scan.strict: true`, gaps fail `mdcp check`.
+
+<!-- mdcp-shard: end ../../docs/glossary/coverage.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/guide-tier.md -->
+
+## guide tier
+
+A **guide tier** is one category in an [archetype](../../docs/features/protocol/extensions-and-archetypes.md#archetypes-battery-types)'s guide layout. Each tier specifies what its shards contain and what they keep out. The default archetype, the Code Repository Archetype, defines four tiers: `features/`, `client/`, `developer/`, and `glossary/`. A tier can include more than one [guide](#guide).
+
+[Default guide layout](../../docs/features/protocol/mdcp-1.0-spec.md#2-default-guide-layout-code-repository-archetype) defines the four tiers. Under its placement test, a shard that consumers need goes in `features/` or `client/`, and a shard that only contributors need goes in `developer/`.
+
+<!-- mdcp-shard: end ../../docs/glossary/guide-tier.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/idea-mitosis.md -->
+
+## idea mitosis
+
+**Idea mitosis** is splitting a documentation shard when it grows a second responsibility (see [shard single responsibility](#shard-single-responsibility)). Also split it when reading the file alone misleads. After a split, update the guide index and cross-link the daughter shards.
+
+Do not split only because a file is long. Prefer one primary concern per shard.
+
+See [Shard single responsibility and idea mitosis](../../docs/features/protocol/shard-srp-and-mitosis.md).
+
+<!-- mdcp-shard: end ../../docs/glossary/idea-mitosis.md -->

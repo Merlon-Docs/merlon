@@ -1,3 +1,5 @@
+import { createQuotedFenceScanner } from '../markdown/index.js';
+
 /** Match markdown links but not images `![alt](url)`. */
 export const MD_LINK_RE = /(?<!!)\[([^\]]*)\]\(([^)]+)\)/g;
 
@@ -7,6 +9,8 @@ export interface ExtractedLink {
   line: number;
   /** Full markdown link match for replacement. */
   match: string;
+  /** Offset of `match` in the markdown, counted in UTF-16 code units from 0. */
+  offset: number;
 }
 
 /** Mask inline code spans so link regex does not match example syntax inside backticks. */
@@ -37,20 +41,21 @@ export function maskInlineCode(line: string): string {
   return out;
 }
 
-/** Extract markdown links with 1-based line numbers; skip fenced and inline code. */
+/**
+ * Extract markdown links with 1-based line numbers. Skip fenced code, which
+ * `createQuotedFenceScanner` finds in a blockquote too, and code spans.
+ */
 export function extractLinks(markdown: string): ExtractedLink[] {
   const links: ExtractedLink[] = [];
   const lines = markdown.split('\n');
-  let inFence = false;
+  const inFence = createQuotedFenceScanner();
+  let lineStart = 0;
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    const stripped = line.trim();
-    if (stripped.startsWith('```')) {
-      inFence = !inFence;
-      continue;
-    }
-    if (inFence) continue;
+    const lineOffset = lineStart;
+    lineStart += line.length + 1;
+    if (inFence(line)) continue;
 
     const masked = maskInlineCode(line);
     for (const m of masked.matchAll(MD_LINK_RE)) {
@@ -61,6 +66,7 @@ export function extractLinks(markdown: string): ExtractedLink[] {
         target,
         line: i + 1,
         match: m[0],
+        offset: lineOffset + m.index,
       });
     }
   }

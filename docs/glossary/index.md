@@ -4,12 +4,11 @@ Shared acronyms and terms for all mdcp docs. Spell out on first use in a shard a
 
 **Inclusion bar (this repository):** Add entries for MDCP-specific jargon, acronyms, and overloaded words that a new contributor or the stated client persona would not reliably understand from everyday English or general software practice alone (for example protocol terms, compile/refs vocabulary, and skill-verification names). Do **not** add entries for common English, universal programming terms, or words that are unambiguous in context for that audience. When unsure, prefer a short glossary entry over leaving shorthand unexplained. See [domain glossary](./domain-glossary.md).
 
-Each term is its own shard under `docs/glossary/`. For large glossaries, split manifests across sub-index files (for example `index-protocol.md`, `index-format.md`) and set `compile.scopeRoot` to `glossary` so transitive links pull term shards into other guides.
+Each term is its own shard under `docs/glossary/`. [Shared glossary](../client-cli/config-essentials.md#shared-glossary) covers how guides pull term shards in and when to use sub-index files.
 
 ## Protocol terms
 
-- [Agent Skills](./agent-skills.md)
-- [Skill](./skill.md)
+- [Agent Skills (Agent Skill, skill)](./agent-skills.md)
 - [MDCP](./mdcp.md)
 
 ## Skill verification
@@ -20,22 +19,38 @@ Each term is its own shard under `docs/glossary/`. For large glossaries, split m
 ## Documentation structure
 
 - [shard](./shard.md)
+- [guide](./guide.md)
+- [manifest](./manifest.md)
+- [guide tier](./guide-tier.md)
+- [standalone guide](./standalone-guide.md)
 - [idea mitosis](./idea-mitosis.md)
 - [shard single responsibility](./shard-single-responsibility.md)
 
-## Format and compile terms
+## Compile outputs and links
+
+- [compiled guide](./compiled-guide.md)
+- [publish output](./publish-output.md)
+- [monolith](./monolith.md)
+- [cross-link](./cross-link.md)
+- [heading slug](./heading-slug.md)
+- [refs](./refs.md)
+- [refs registry](./refs-registry.md)
+- [ignoreGuides](./ignore-guides.md)
+
+## Validation
 
 - [check](./check.md)
+- [orphan](./orphan.md)
+- [coverage](./coverage.md)
+
+## Format and wording
+
 - [GFM](./gfm.md)
 - [Authored GFM](./authored-gfm.md)
 - [locale pack](./locale-pack.md)
-- [ignoreGuides](./ignore-guides.md)
-- [refs](./refs.md)
-- [refs registry](./refs-registry.md)
-- [heading slug](./heading-slug.md)
-- [cross-link](./cross-link.md)
-- [standalone guide](./standalone-guide.md)
-- [coverage](./coverage.md)
+
+## Security
+
 - [ReDoS](./redos.md)
 
 ## Adoption and messaging

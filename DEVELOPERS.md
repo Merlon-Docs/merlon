@@ -9,13 +9,13 @@
 This is the **developer** guide (`docs/developer/`): how to work on this repository — local setup, package development, sharded documentation in `docs/`, changesets, npm releases, and **Agent Skill authoring** (including [live skill evals](#live-skill-evals)).
 
 **Belongs here:** contributor workflow, validation gates, skill development, optional local eval loops.  
-**Does not belong here:** product capability specs or consumer tutorials (those are [Feature Catalog](docs/features/feature-catalog.md) / client guides).
+**Does not belong here:** product capability specs or consumer tutorials (those belong in the [Features Guide](docs/features/index.md) or the client guides).
 
-For what mdcp **does** as a tool (commands, design, consumer migration), read the [Feature Catalog](docs/features/feature-catalog.md).
+For what mdcp **does** as a tool (commands, design, consumer migration), read the [Features Guide](docs/features/index.md).
 
 Contributors are expected to follow the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md).
 
-Guide placement rules for helpers: [Agent helper skills](docs/features/protocol/agent-task-prompts.md#three-tier-authoring-obligations).
+Which guide a shard belongs in: the placement test in [Default guide layout](docs/features/protocol/mdcp-1.0-spec.md#2-default-guide-layout-code-repository-archetype).
 
 <!-- mdcp-shard: end docs/developer/about-this-guide.md -->
 
@@ -27,12 +27,11 @@ Shared acronyms and terms for all mdcp docs. Spell out on first use in a shard a
 
 **Inclusion bar (this repository):** Add entries for MDCP-specific jargon, acronyms, and overloaded words that a new contributor or the stated client persona would not reliably understand from everyday English or general software practice alone (for example protocol terms, compile/refs vocabulary, and skill-verification names). Do **not** add entries for common English, universal programming terms, or words that are unambiguous in context for that audience. When unsure, prefer a short glossary entry over leaving shorthand unexplained. See [domain glossary](#domain-glossary).
 
-Each term is its own shard under `docs/glossary/`. For large glossaries, split manifests across sub-index files (for example `index-protocol.md`, `index-format.md`) and set `compile.scopeRoot` to `glossary` so transitive links pull term shards into other guides.
+Each term is its own shard under `docs/glossary/`. [Shared glossary](./packages/mdcp-cli/README.md#shared-glossary) covers how guides pull term shards in and when to use sub-index files.
 
 ### Protocol terms
 
-- [Agent Skills](#agent-skills)
-- [Skill](#skill)
+- [Agent Skills (Agent Skill, skill)](#agent-skills)
 - [MDCP](#mdcp)
 
 ### Skill verification
@@ -43,22 +42,38 @@ Each term is its own shard under `docs/glossary/`. For large glossaries, split m
 ### Documentation structure
 
 - [shard](#shard)
+- [guide](#guide)
+- [manifest](#manifest)
+- [guide tier](#guide-tier)
+- [standalone guide](#standalone-guide)
 - [idea mitosis](#idea-mitosis)
 - [shard single responsibility](#shard-single-responsibility)
 
-### Format and compile terms
+### Compile outputs and links
+
+- [compiled guide](#compiled-guide)
+- [publish output](#publish-output)
+- [monolith](#monolith)
+- [cross-link](#cross-link)
+- [heading slug](#heading-slug)
+- [refs](#refs)
+- [refs registry](#refs-registry)
+- [ignoreGuides](#ignoreguides)
+
+### Validation
 
 - [check](#check)
+- [orphan](#orphan)
+- [coverage](#coverage)
+
+### Format and wording
+
 - [GFM](#gfm)
 - [Authored GFM](#authored-gfm)
 - [locale pack](#locale-pack)
-- [ignoreGuides](#ignoreguides)
-- [refs](#refs)
-- [refs registry](#refs-registry)
-- [heading slug](#heading-slug)
-- [cross-link](#cross-link)
-- [standalone guide](#standalone-guide)
-- [coverage](#coverage)
+
+### Security
+
 - [ReDoS](#redos)
 
 ### Adoption and messaging
@@ -74,8 +89,9 @@ Each term is its own shard under `docs/glossary/`. For large glossaries, split m
 ### Requirements
 
 - Node.js **>= 18.0.0** (see `engines` in root [`package.json`](package.json); [`.nvmrc`](.nvmrc) pins major version `18` for `nvm use`)
-- [pnpm](https://pnpm.io/) 9.x (see `packageManager` in root [`package.json`](package.json))
+- [pnpm](https://pnpm.io/) 11.x (see `packageManager` in root [`package.json`](package.json))
 - [Vale](https://vale.sh/docs/vale-cli/installation/) on `PATH` for prose lint (`pnpm docs:check` uses `--require-vale`). macOS: `brew install vale`; Linux: `snap install vale` or a [GitHub release](https://github.com/vale-cli/vale/releases) tarball. CI pins **3.15.1**.
+- Java 17 or later on `PATH` for `pnpm formal:check`, which runs the [formal models](#formal-models).
 
 ### First-time bootstrap
 
@@ -87,22 +103,26 @@ pnpm vale:sync            # once — requires Vale on PATH; syncs styles for doc
 
 ### Work-item tracking setup step
 
-If you use coding agents with helper skills ([helper skills](docs/skills.md)), document how to load tracker issues **once per repo**. This project maintains that in [Agent work-item tracking](#agent-work-item-tracking) — add it to your setup checklist alongside install and build steps. Consumer repos should add a similar shard under `docs/developer/` and link it from local setup.
+If you use coding agents with the MDCP skill ([skills index](docs/skills.md)), document how to load tracker issues **once per repo**. This project maintains that in [Agent work-item tracking](#agent-work-item-tracking) — add it to your setup checklist alongside install and build steps. Consumer repos should add a similar shard under `docs/developer/` and link it from local setup.
 
 ### Daily commands
 
-| Command                  | Purpose                                                                                                                              |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `pnpm build`             | Build all packages (`mdcp-core`, `mdcp-cli`)                                                                                         |
-| `pnpm test`              | Run `vitest` in `mdcp-core`                                                                                                          |
-| `pnpm test:coverage`     | Vitest coverage for `mdcp-core` and `mdcp-cli` (HTML under `packages/*/coverage/`)                                                   |
-| `pnpm run typecheck`     | TypeScript across packages                                                                                                           |
-| `pnpm run lint`          | ESLint on TypeScript sources                                                                                                         |
-| `pnpm run format:check`  | Prettier check                                                                                                                       |
-| `pnpm run check`         | Full gate including skill:validate and docs:check                                                                                    |
-| `pnpm skill:update`      | Refresh vendor-managed dogfood installs under `.agents/skills/` from `skills/` (alias: `skill:install`; do not hand-edit `.agents/`) |
-| `pnpm docs:compile:repo` | Regenerate compiled docs (`guides.md`, `DEVELOPERS.md`, package READMEs)                                                             |
-| `pnpm docs:check`        | Validate repo docs + `examples/sample-guides`                                                                                        |
+| Command                  | Purpose                                                                                                       |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `pnpm build`             | Build all packages (`mdcp-core`, `mdcp-cli`)                                                                  |
+| `pnpm test`              | Run every package's tests, then the repo script tests under `scripts/`                                        |
+| `pnpm test:coverage`     | Vitest coverage for `mdcp-core` and `mdcp-cli` (HTML under `packages/*/coverage/`)                            |
+| `pnpm run typecheck`     | TypeScript across packages                                                                                    |
+| `pnpm run lint`          | ESLint on TypeScript sources                                                                                  |
+| `pnpm run format:check`  | Prettier check                                                                                                |
+| `pnpm run check`         | Full gate including skill:validate and docs:check                                                             |
+| `pnpm skill:update`      | Refresh the local skill installs under `.agents/skills/` from `skills/`                                       |
+| `pnpm skill:dev`         | Install this checkout's `mdcp` skill for Claude Code and Cursor without prompts (cloud session setup runs it) |
+| `pnpm docs:compile:repo` | Regenerate compiled docs (`guides.md`, `DEVELOPERS.md`, package READMEs)                                      |
+| `pnpm docs:check`        | Validate repo docs + `examples/sample-guides`                                                                 |
+| `pnpm formal:check`      | Run the Alloy models under `formal/alloy/` (needs Java 17 or later)                                           |
+
+[Agent Skill development](#do-not-hand-edit-agentsskills) covers refreshing the skill installs and why nobody hand-edits them.
 
 Optional locally: `brew install gitleaks` (CI always scans).
 
@@ -123,55 +143,177 @@ Pre-commit runs in two phases:
 | `docs/**`, `DEVELOPERS.md`, package README shards       | `docs:compile:repo` + `docs:check:repo`                  |
 | Root config (`package.json`, lockfile, eslint/tsconfig) | repo-wide typecheck + `format:check`                     |
 
-CI runs the full gate: `pnpm run check`.
+### CI and the land gate
+
+CI's Check job runs the steps of `pnpm run check`, except that it tests only mdcp-core, mdcp-cli and the repository scripts. The site's tests run in the Pages workflow. Before those steps it runs `pnpm run verify:peers`, which confirms that markdownlint-cli2 and Vale are on `PATH`, and the dependency audit `pnpm audit --audit-level=high`. Before `docs:check` it runs `pnpm run prepare:docs`, which repeats the peer check and syncs the Vale styles. Last, it recompiles every guide and fails if `git diff` shows a change.
+
+The other CI jobs run beside Check. The Coverage job runs `pnpm test:coverage`, as [Test code coverage](#test-code-coverage) describes, and the Formal models job runs `pnpm formal:check`. On pull requests the Changeset job runs the changeset checks that [When to add a changeset](#when-to-add-a-changeset) describes.
+
+The land gate's test step is the full `pnpm test`, so it also runs the site's tests. [Landing on `develop`](#landing-on-develop) says what else it runs and what it pushes.
 
 <!-- mdcp-shard: end docs/developer/local-setup.md -->
 
 <!-- mdcp-shard: start docs/developer/cursor-cloud-environment.md -->
 
-### Cursor Cloud environment
+## Cursor Cloud environment
 
-How this repository behaves inside Cursor cloud agents: how to stand up a new cloud environment, and the platform limitations to plan around. For the standard local toolchain and daily commands, read [Local setup](#local-setup) — this section only adds cloud-specific setup and constraints.
+Cursor cloud agents need a few extra setup steps in this repository, and their platform has limitations to plan around. [Local setup](#local-setup) has the standard local toolchain and daily commands. This section adds only the cloud-specific setup and constraints.
 
-Durable, machine-facing notes for future agents also live in the repository `AGENTS.md` under "Cursor Cloud specific instructions". Keep the two in sync: this guide is the human-facing explanation; `AGENTS.md` is the short agent checklist.
+The repository `AGENTS.md` (with `CLAUDE.md` as a symlink to it) stays short and links here for everything specific to Cursor cloud agents.
 
-#### Setting up a new cloud environment
+### Setting up a new cloud environment
 
 A fresh cloud VM needs the same toolchain as [Local setup](#local-setup), plus a few cloud-specific steps:
 
-1. **Startup update script.** `.cursor/environment.json` holds the `install` command that runs on every VM start: it fetches remote refs, then runs `pnpm install`. That committed file is the source of truth and overrides any dashboard-saved environment. Keep it minimal — dependency refresh only, no service startup or build steps.
+1. **Startup update script.** `.cursor/environment.json` holds the `install` command that runs on every VM start: it fetches remote refs and runs `pnpm install`, then `pnpm skill:dev` so the agent loads this checkout's `mdcp` skill ([Agent Skill development](#agent-skill-development)). That committed file is the source of truth and overrides any dashboard-saved environment. Keep it minimal: no service startup or build steps.
 2. **Vale peer binary.** Vale is a peer binary, not an npm dependency. Install version 3.15.1 to `/usr/local/bin` (it persists in the VM snapshot); the exact release command is in [`.github/workflows/ci.yml`](.github/workflows/ci.yml). `pnpm docs:check` needs Vale on `PATH`.
 3. **gitleaks peer binary.** gitleaks is also a peer binary, not an npm dependency; the pre-commit hook runs `gitleaks protect --staged` when it is on `PATH`. Install version 8.30.1 to `/usr/local/bin` (persists in the VM snapshot). If it goes missing, reinstall from the [gitleaks releases](https://github.com/gitleaks/gitleaks/releases): download `gitleaks_8.30.1_linux_x64.tar.gz` and extract the `gitleaks` binary into `/usr/local/bin` (same pattern as Vale). CI runs its own scan via `gitleaks-action`, so the local install is defense-in-depth.
 4. **Build before docs or CLI.** `dist/` is gitignored and is not produced by the update script. Run `pnpm build` after a fresh checkout before `pnpm docs:check`, `pnpm docs:compile`, or invoking the `mdcp` CLI.
 5. **Sync Vale styles once.** Run `pnpm vale:sync` before the first `docs:check` on a fresh clone (network required); synced styles then persist in the snapshot.
 6. **Node version.** The VM runs Node 22 (satisfies `engines >=18`); CI uses Node 24. Do not switch Node unless a version-specific issue appears.
-7. **Full gate.** `pnpm check` mirrors CI (typecheck, lint, format, build, test, skill:validate, docs:check).
+7. **Local gate.** `pnpm check` runs typecheck, lint, format, build, test, skill:validate and docs:check. [CI and the land gate](#ci-and-the-land-gate) says what they add.
 
-#### Platform limitations and workarounds
+### Platform limitations and workarounds
 
 These are cloud-agent constraints discovered in practice. Plan work around them rather than fighting them.
 
-| Limitation                                                                                      | Workaround                                                                                                                                              |
-| ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The `gh` CLI is **read-only** for the agent; it cannot create or modify issues or pull requests | Use the dedicated pull-request tooling for PRs and PR comments. A human creates GitHub issues from agent-supplied text; add `Closes #N` afterward.      |
-| **No GitHub MCP** is available, and we do not add one in the cloud                              | Accept it. MCP servers load at session start and `.cursor/*` (except `environment.json`) is gitignored, so an agent cannot self-enable one mid-run.     |
-| A GitHub **PAT in Secrets is not wired** to `gh` or any agent tool                              | Do not rely on a PAT to unblock issue creation in the cloud; it does not help. Issue creation stays a human step.                                       |
-| The agent **cannot merge PRs** or push to protected `main`                                      | A human merges. The agent may merge one working branch into another locally to unblock CI (for example, a dependency-fix branch into a feature branch). |
-| CI runs `pnpm audit --audit-level=high` **before** the build and test gates                     | A new advisory on a pre-existing devDependency fails audit and masks otherwise-green gates. Pin patched versions via `pnpm-workspace.yaml` overrides.   |
-| The pre-commit hook runs `pnpm audit` when dependency manifests change                          | Resolve advisories (overrides) before committing manifest changes, rather than bypassing the hook.                                                      |
-| commitlint rejects non-conventional subjects, including merge commits                           | Give merge commits a conventional subject such as `chore: merge …`, not `merge: …`.                                                                     |
+| Limitation                                                                                      | Workaround                                                                                                                                            |
+| ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The `gh` CLI is **read-only** for the agent; it cannot create or modify issues or pull requests | Use the dedicated pull-request tooling for PRs and PR comments. A human creates GitHub issues from agent-supplied text; add `Closes #N` afterward.    |
+| **No GitHub MCP** is available, and we do not add one in the cloud                              | Accept it. MCP servers load at session start and `.cursor/*` (except `environment.json`) is gitignored, so an agent cannot self-enable one mid-run.   |
+| A GitHub **PAT in Secrets is not wired** to `gh` or any agent tool                              | Do not rely on a PAT to unblock issue creation in the cloud; it does not help. Issue creation stays a human step.                                     |
+| The agent **cannot push to protected `main`** or merge the release PR                           | Work reaches `develop` by pushing a `land/**` branch through the land gate. A human merges the release PR into `main`.                                |
+| CI runs `pnpm audit --audit-level=high` **before** the build and test gates                     | A new advisory on a pre-existing devDependency fails audit and masks otherwise-green gates. Pin patched versions via `pnpm-workspace.yaml` overrides. |
+| The pre-commit hook runs `pnpm audit` when dependency manifests change                          | Resolve advisories (overrides) before committing manifest changes, rather than bypassing the hook.                                                    |
+| commitlint rejects non-conventional subjects, including merge commits                           | Give merge commits a conventional subject such as `chore: merge …`, not `merge: …`.                                                                   |
 
-#### Recording issues without issue-creation access
+### Recording issues without issue-creation access
 
-Because the agent cannot open GitHub issues, capture work items as ready-to-paste issue text (title, body with acceptance criteria, labels, and project fields per [Agent work-item tracking](#agent-work-item-tracking)) inside the pull request that delivers the work. A maintainer creates the issue and links it with `Closes #N`.
+Because the agent cannot open GitHub issues, capture work items as ready-to-paste issue text (title, body with acceptance criteria, labels, and project fields per [Agent work-item tracking](#agent-work-item-tracking)) in the commit message of the change that delivers the work. A maintainer creates the issue and links it with `Closes #N`.
 
 <!-- mdcp-shard: end docs/developer/cursor-cloud-environment.md -->
+
+<!-- mdcp-shard: start docs/developer/repository-layout.md -->
+
+## Repository layout
+
+```text
+mdcp/
+├── CODE_OF_CONDUCT.md      # Contributor Covenant (committed)
+├── README.md               # Compiled from docs/repo-readme/ (committed)
+├── DEVELOPERS.md           # Compiled from docs/developer/ (committed)
+├── presentations/          # Compiled from docs/presentation-*/ (committed)
+├── skills/                 # Agent Skills install surface only (npx skills add)
+│   ├── mdcp/               # The MDCP skill + workflows (no package.json / CHANGELOG here)
+│   └── mdcp-arch-*/        # Internal archetypes (metadata.internal)
+├── tests/skills/           # Live eval fixtures (optional; not publishable packs)
+├── skills.sh.json          # skills.sh repo page layout
+├── .agents/skills/         # Dogfood installs (pnpm skill:update) + skill-creator
+├── packages/
+│   ├── mdcp-core/          # @bwilliamson/mdcp-core
+│   ├── mdcp-cli/           # @bwilliamson/mdcp-cli
+│   ├── mdcp-presets/       # @bwilliamson/mdcp-presets
+│   ├── mdcp-site/          # Starlight docs site (private, unversioned)
+│   └── skill-*/            # Private @bwilliamson/skill-* version carriers + CHANGELOGs
+├── docs/                   # Sharded docs (mdcp.config.json) — dogfood target
+│   ├── glossary/           # Shared acronyms and terms (cross-guide, like insert libraries)
+│   ├── features/           # Tool capabilities → docs/_build/features.md (local review, gitignored)
+│   ├── developer/          # This guide → DEVELOPERS.md
+│   ├── client-cli/         # → packages/mdcp-cli/README.md
+│   ├── client-core/        # → packages/mdcp-core/README.md
+│   ├── repo-readme/        # → README.md (publish landing)
+│   ├── presentation-la-devops/ # → presentations/la-devops-2026.md (meetup talk)
+│   ├── vale-local/         # Dogfood-only Vale styles (MDCP-PandocId)
+│   └── .vale.ini           # Peer Vale config
+├── examples/sample-guides/ # Minimal consumer fixture for tests and tutorials
+├── legacy/                 # Original bash/Python reference implementation
+├── .changeset/             # Changesets for semver releases
+└── .github/workflows/      # CI and release automation
+```
+
+### Published packages
+
+Each npm package and each Agent Skill versions independently via Changesets. npm packages ship `dist/` and READMEs. Skill **carriers** live under `packages/skill-*` (private; GitHub Releases + CHANGELOG). The `skills/` tree is install content only.
+
+`mdcp-presets` README is hand-authored for now. Root `README.md`, CLI, and core READMEs are **compiled** from `docs/repo-readme/`, `docs/client-cli/`, and `docs/client-core/` shards.
+
+<!-- mdcp-shard: end docs/developer/repository-layout.md -->
+
+<!-- mdcp-shard: start docs/developer/packages-and-tests.md -->
+
+## Packages and tests
+
+### mdcp-core
+
+Library source: [`packages/mdcp-core/src/`](packages/mdcp-core/src).
+
+| Area                                       | Path                          | CLI command                           |
+| ------------------------------------------ | ----------------------------- | ------------------------------------- |
+| Config schema, loading and path resolution | `src/config/`                 | all except `fix`                      |
+| Compile                                    | `src/compile/`                | `compile`                             |
+| Section list, assembly and write           | `src/compile/assemble.ts`     | `compile`                             |
+| Per-shard compile hooks                    | `src/compile/hooks/`          | config-driven                         |
+| Markdown helpers                           | `src/markdown/`               | shared                                |
+| Locale packs                               | `src/locale/`                 | shared                                |
+| Refs and slugs                             | `src/refs/`                   | `refs-gen`, `refs-check`, `refs-list` |
+| Validation                                 | `src/validate/`, `src/links/` | `check`                               |
+| Orphan validation                          | `src/validate/orphans.ts`     | `check`                               |
+| Sprawl review                              | `src/validate/review.ts`      | `review`                              |
+| Shard split orchestration                  | `src/shard/orchestrator.ts`   | `shard`                               |
+| Peer linter binary resolution              | `src/peers/resolve.ts`        | `lint`, `prose`, `links`, `fix`       |
+
+`mdcp check` runs every area in the table except shard split and sprawl review. The `lint`, `links`, `refs-gen` and `refs-check` commands also compile before they run, so they use the compile rows too. Start with `assemble.ts` and `cli.ts` if you are tracing a compile from config to disk. The `compile` command in `cli.ts` calls the CLI's `compile-workspace.ts`, which calls `assemble.ts`.
+
+Shared heading/link helpers live under `src/markdown/` and `src/refs/` (`parseHeading` with ATX kind today, plain-text cleanup, GitHub-style **slugify**). They stay **language-agnostic**. Heading recognition is an ATX subset of GFM — see [GFM scope](docs/features/design-constraints/gfm-scope.md#headings). Compile-time wording lives under `src/locale/` (one BCP 47 JSON file per locale). Peer Vale owns prose cues and Pandoc ID authoring opinion — see [Locale and language boundary](docs/features/design-constraints/locale-and-language.md).
+
+```bash
+pnpm --filter @bwilliamson/mdcp-core test
+pnpm --filter @bwilliamson/mdcp-core run typecheck
+```
+
+Tests live under `packages/mdcp-core/test/`. Integration tests invoke the built CLI against `examples/sample-guides/`.
+
+`mdcp.config.schema.json` is the editor schema for `mdcp.config.json`, maintained by hand. `test/config-json-schema.test.ts` compares it with the zod schema in `src/config/schema.ts` and fails when they disagree on any key, required key, type, enum or bound, or on a default the JSON declares. A commit that changes a config key has to update both files to pass it.
+
+### mdcp-cli
+
+Thin [CAC](https://github.com/cacjs/cac) wrapper around `mdcp-core`. Source: [`packages/mdcp-cli/src/cli.ts`](packages/mdcp-cli/src/cli.ts).
+
+```bash
+pnpm --filter @bwilliamson/mdcp-cli run build
+node packages/mdcp-cli/dist/cli.js --help
+```
+
+### Test code coverage
+
+Vitest coverage for `@bwilliamson/mdcp-core` and `@bwilliamson/mdcp-cli` (not root `scripts/` tests). This is **test** coverage of TypeScript sources — distinct from the [documentation coverage scan](docs/features/coverage-scan.md). Note that CLI package totals are understated because smoke tests drive the built binary out-of-process (V8 coverage does not follow that subprocess).
+
+```bash
+pnpm test:coverage
+```
+
+Local runs print a text summary and write HTML/lcov under each package’s `coverage/` directory (gitignored). In CI a separate **coverage** job runs the same command. It adds package totals to the Actions job summary and uploads those `coverage/` trees as artifacts. The job is informational: it has no percentage threshold, so lower coverage doesn't fail it. Default `pnpm test` / `pnpm check` don't collect coverage at all, so a threshold can't apply to them either.
+
+### mdcp-presets
+
+JSONC markdownlint configs plus the shippable `MDCP` Vale style (`vale/MDCP/`). Dogfood-only styles live under [`docs/vale-local/`](docs/vale-local/README.md). Edit preset files directly — no TypeScript build.
+
+### Before you push
+
+1. `pnpm run build && pnpm test`
+2. `pnpm run lint && pnpm run format:check`
+3. `pnpm docs:compile:repo && pnpm docs:check` if you touched `docs/` shards or a file that `standaloneGuides` registers, such as `AGENTS.md` or `skills/**/*.md`
+4. `pnpm changeset` when [a changeset is needed](#when-to-add-a-changeset)
+
+CI and the land gate run more checks than these steps. [CI and the land gate](#ci-and-the-land-gate) lists them.
+
+<!-- mdcp-shard: end docs/developer/packages-and-tests.md -->
 
 <!-- mdcp-shard: start docs/developer/agent-work-item-tracking.md -->
 
 ## Agent work-item tracking
 
-How coding agents load tracker issues and delivery conventions **for this repository**. Helper skills in [Helper Skills](docs/skills.md) (installed alongside the MDCP CLI) point here via `WORK_ITEM_LOOKUP`.
+How coding agents load tracker issues and delivery conventions **for this repository**. The work-item workflows of the [MDCP skill](docs/skills.md) (installed alongside the MDCP CLI) point here via `WORK_ITEM_LOOKUP`.
 
 **This repo’s work-item lookup system uses GitHub** for both **issues** (acceptance, discussion, `Closes #N`) and **project planning** (the Project board below — status, track, roadmap grouping). Do not invent a second tracker or stuff tickets / sprint backlogs into durable `docs/` shards; load scope from GitHub via this shard.
 
@@ -191,11 +333,13 @@ All repo issues live on the public [MarkDown Context Protocol project board](htt
 
 #### Project fields
 
-| Field     | Values                                                          | When to set                                     |
-| --------- | --------------------------------------------------------------- | ----------------------------------------------- |
-| Status    | Todo · In Progress · Done                                       | Todo on intake; In Progress on branch start     |
-| Track     | 1.0 Formalization · Maintenance · Performance · Future (V2+)    | On intake ([Track selection](#track-selection)) |
-| Milestone | Current open delivery milestone when the issue is in that scope | When it belongs on the next ship slice          |
+| Field     | Values                                                          | When to set                                 |
+| --------- | --------------------------------------------------------------- | ------------------------------------------- |
+| Status    | Todo · In Progress · Done                                       | Todo on intake; In Progress on branch start |
+| Track     | 1.0 Formalization · Maintenance · Performance · Future (V2+)    | On intake                                   |
+| Milestone | Current open delivery milestone when the issue is in that scope | When it belongs in the next delivery cut    |
+
+Pick the Track value from [Track selection](#track-selection).
 
 #### Track selection
 
@@ -252,7 +396,7 @@ Issue templates live under `.github/ISSUE_TEMPLATE/` (bug report, feedback, adop
 
 ### New issue intake (required)
 
-Whenever you **open** an issue or find a brand-new open issue missing hygiene, finish this checklist before starting implementation. Same rules for humans and coding agents.
+Whenever you **open** an issue or find a brand-new open issue missing hygiene, finish this checklist before you start work on it. Same rules for humans and coding agents. [Weekly issue triage](#weekly-issue-triage) applies the same checks to every open issue.
 
 1. **Priority** — exactly one `priority:*` (from the form dropdown or triage judgment).
 2. **Type (+ component/domain)** — see [Other labels](#other-labels-apply-on-intake).
@@ -299,22 +443,79 @@ gh issue edit <N> --add-label "priority:P1" --add-label "bug" --add-label "compi
 gh issue edit <N> --remove-label "priority:P2" --add-label "priority:P1"
 ```
 
-### Weekly triage run
+### Load scope (pick what your agent has)
 
-Run **about once a week** (maintainer or coding agent with project scope). Goal: board and labels match reality; stale or duplicate tickets get a **human verification prompt** — never silent close-without-action.
+**GitHub CLI** (when `gh` is on `PATH` and authenticated):
 
-#### Checklist
+```bash
+gh issue view <number> --comments
+```
 
-1. **Auth** — `gh auth status` shows `project` (or `read:project` at minimum for reads; writes need `project`). Switch to the owner account if needed.
-2. **Open vs board** — list open issues; add any missing ones (intake steps 3–5). Every open issue must appear on the board.
-3. **Label audit** — every open delivery issue has exactly one `priority:*` and a sensible type label; add component/domain when obvious.
-4. **Milestone hygiene** — keep only active delivery milestones open; attach in-scope issues to the current cut.
-5. **Stale review** — candidates: acceptance already met in the repo, superseded approach, or no remaining adopter value. On each candidate, **comment** asking the human to verify close-without-action ([Human verification comment](#human-verification-comment-stale--close-without-action)). Do **not** close until they reply.
-6. **Duplicate review** — if two issues share the same root cause, comment with the canonical issue and ask which to keep. Do **not** close as duplicate without confirmation (related ≠ duplicate).
-7. **Next work** — confirm the top open `priority:P0`, else `P1`, matches the current milestone intent; note it briefly for maintainers.
-8. **Done clutter** — closed issues may linger on the board as Done; optional cleanup is fine, not required for a green weekly run.
+**GitHub MCP** (when enabled in Cursor or another host): use GitHub issue tools to fetch the issue named in `WORK_ITEM` — title, body, labels, and comments.
 
-#### Human verification comment (stale / close-without-action)
+If none of the above apply, inspect enabled MCP tool descriptors or run `gh --help` / `gh issue view --help` before guessing commands.
+
+### Git and delivery
+
+[Landing on `develop`](#landing-on-develop) owns how a pushed branch reaches `develop`, and [When to add a changeset](#when-to-add-a-changeset) owns release notes. Commit grouping belongs to [Atomic commit groups (plan obligation)](docs/features/protocol/skill-workflows.md#atomic-commit-groups-plan-obligation), and decisions to remove or reject a feature belong to the [architecture decision records](docs/features/adr/index.md). The conventions below tie a landing to its work item:
+
+```text
+Branch names=land/<issue>-<slug> (e.g. land/issue-29-default-compile-hooks); agent sessions use their claude/** branch
+One branch per WORK_ITEM=do not mix unrelated features, designs, or doc scopes in one landing
+Branch before work=branch from an up-to-date develop before shards, tests, or code; never commit on develop or main
+Commits=conventional commit subjects; one concern per commit
+Landing=push the branch; put "Closes #N" in the commit message
+```
+
+### Workflow best practices
+
+1. **Load scope**: fetch WORK_ITEM (title, body, acceptance criteria) before planning or editing.
+2. **Branch first**: follow [Git and delivery](#git-and-delivery).
+3. **Stay focused**: one feature or design at a time. Treat acceptance criteria as the boundary unless WORK_ITEM explicitly expands scope.
+4. **Plan atomic commit groups**: list them in a coding or multi-concern plan before review, as [Atomic commit groups (plan obligation)](docs/features/protocol/skill-workflows.md#atomic-commit-groups-plan-obligation) requires. After approval, commit one group at a time.
+5. **Docs describe now**: update shards to match as-built behavior, and keep consumer notices out of durable shards ([Durable docs vs pending changesets](#durable-docs-vs-pending-changesets)).
+6. **Add a changeset**: see [When to add a changeset](#when-to-add-a-changeset).
+7. **Issue intake**: when opening or first touching an issue, complete [New issue intake](#new-issue-intake-required) (labels, board, Track, Status, milestone).
+8. **Weekly triage**: run the advisory [Weekly issue triage](#weekly-issue-triage). It asks humans to confirm before any stale or duplicate ticket is closed.
+
+### Example intake answers
+
+When a subagent asks for scope, answers can look like:
+
+```text
+WORK_ITEM=70
+WORK_ITEM_LOOKUP=docs/developer/agent-work-item-tracking.md
+```
+
+```text
+WORK_ITEM=bare sibling link rewrite
+WORK_ITEM_LOOKUP=GitHub
+```
+
+`WORK_ITEM` may be an issue number, URL, or a short name/description the agent can resolve. `WORK_ITEM_LOOKUP` may be this shard path or a plain location (e.g. GitHub) that points the agent at the tracker conventions here. For the skill's workflows and how to invoke them, read [`docs/skills.md`](docs/skills.md).
+
+<!-- mdcp-shard: end docs/developer/agent-work-item-tracking.md -->
+
+<!-- mdcp-shard: start docs/developer/weekly-issue-triage.md -->
+
+## Weekly issue triage
+
+This run is **advisory**, because no workflow in this repo schedules it. Run it about once a week (a maintainer, or a coding agent with project scope). Goal: board and labels match reality, and stale or duplicate tickets get a **human verification prompt** instead of a silent close. It checks issues against the conventions in [Agent work-item tracking](#agent-work-item-tracking).
+
+A run that changes something leaves its evidence in the tracker. Step 5 leaves a **Triage** comment on each stale candidate, and step 6 leaves a comment that links the canonical issue. Whatever steps 2 to 4 change shows in each issue's history. A run that finds nothing to change doesn't leave a trace, so in the tracker a quiet week looks the same as a skipped one.
+
+### Checklist
+
+1. **Auth**: `gh auth status` shows `project` (or `read:project` at minimum for reads; writes need `project`). Switch to the owner account if needed ([Auth for board writes](#auth-for-board-writes)).
+2. **Open vs board**: list open issues and add any missing ones ([New issue intake](#new-issue-intake-required) steps 3 to 5). Every open issue must appear on the board.
+3. **Label audit**: every open delivery issue has exactly one `priority:*` and a sensible type label. Add component or domain labels when obvious.
+4. **Milestone hygiene**: keep only active delivery milestones open. Attach in-scope issues to the current cut.
+5. **Stale review**: candidates are issues whose acceptance the repo already meets or whose approach was superseded, plus issues with no remaining adopter value. On each candidate, **comment** asking the human to verify close-without-action ([Human verification comment](#human-verification-comment-stale--close-without-action)). Do **not** close until they reply.
+6. **Duplicate review**: if two issues share the same root cause, comment with the canonical issue and ask which to keep. Do **not** close as duplicate without confirmation (related ≠ duplicate).
+7. **Next work**: check that the top open `priority:P0` issue (or `P1` when no P0 is open) matches the current milestone intent. Note it briefly for maintainers.
+8. **Done clutter**: closed issues may linger on the board as Done. Cleanup is optional, and a green weekly run doesn't need it.
+
+### Human verification comment (stale / close-without-action)
 
 ```markdown
 **Triage (YYYY-MM-DD):** Candidate to close without further action — please verify.
@@ -332,7 +533,7 @@ Options:
 No auto-close until you confirm.
 ```
 
-#### Suggested commands
+### Suggested commands
 
 ```bash
 # Open issues (labels + milestone)
@@ -343,200 +544,31 @@ gh issue list --repo betsalel-williamson/mdcp --state open --limit 100 \
 gh issue list --repo betsalel-williamson/mdcp --state open --label "priority:P0"
 gh issue list --repo betsalel-williamson/mdcp --state open --label "priority:P1"
 
-# Issues on the current delivery milestone (replace title as needed)
-gh issue list --repo betsalel-williamson/mdcp --milestone "v0.7" --state open
+# Issues on the current delivery milestone (replace <milestone> with its title)
+gh issue list --repo betsalel-williamson/mdcp --milestone "<milestone>" --state open
 ```
 
 Compare the open-issue set to the board (Project UI filter, or GraphQL `projectV2.items`) and add gaps via [Add an issue to the board](#add-an-issue-to-the-board-gh).
 
-### Load scope (pick what your agent has)
-
-**GitHub CLI** (when `gh` is on `PATH` and authenticated):
-
-```bash
-gh issue view <number> --comments
-```
-
-**GitHub MCP** (when enabled in Cursor or another host): use GitHub issue tools to fetch the issue named in `WORK_ITEM` — title, body, labels, and comments.
-
-If none of the above apply, inspect enabled MCP tool descriptors or run `gh --help` / `gh issue view --help` before guessing commands.
-
-### Git and delivery
-
-```text
-Integration branch=main (pull before branching)
-Feature branches=descriptive (e.g. feature/issue-29-default-compile-hooks)
-One branch per WORK_ITEM=do not mix unrelated features, designs, or doc scopes in one PR
-Branch before work=create the feature branch before shards, tests, or code
-Commits=conventional; one concern per commit ([Atomic commit groups](../glossary/atomic-commit-groups.md))
-Atomic commit groups=coding and multi-concern plans MUST list numbered groups before “go” (id/name, one concern, exact files, conventional commit subject); after approval, `git commit` one group at a time — do not squash unrelated concerns
-Release notes=changeset in .changeset/ for published package changes (temporary until versioned into CHANGELOGs)
-Docs=describe current behavior only; removed or breaking behavior belongs in changeset → package CHANGELOG, not feature/client shards
-ADRs=docs/features/adr/ (scope/removal decisions; link CHANGELOGs, never pending .changeset/*.md)
-Code review=gh pr create; link WORK_ITEM in PR body (Closes #N when appropriate)
-```
-
-Parent skill QA and day-to-day helpers encode the same rule so plan-only agents inherit it: [Agent Skill](docs/features/agent-skill.md#quality-assurance-qa-principles), [Helper Skills](docs/features/protocol/agent-task-prompts.md).
-
-### Workflow best practices
-
-1. **Load scope** — fetch WORK_ITEM (title, body, acceptance criteria) before planning or editing.
-2. **Branch first** — `git checkout main`, pull, then `git checkout -b feature/...` tied to the issue. Never start on `main`.
-3. **Stay focused** — one feature or design at a time. Treat acceptance criteria as the boundary unless WORK_ITEM explicitly expands scope.
-4. **Plan Atomic commit groups** — before waiting for human review / implementation, include numbered commit groups for multi-concern work (see [Git and delivery](#git-and-delivery)). After approval, land one group per commit.
-5. **Docs describe now** — update shards to match as-built behavior. Do not document superseded workflows in `docs/features/` or `docs/client/`; record consumer notice in the changeset (lands in package CHANGELOGs). Never link durable shards or ADRs to pending `.changeset/*.md` files.
-6. **Add a changeset** — run `pnpm changeset` (or manually create a `.changeset/*.md` file) if you changed published package behavior. This is required for release notes and versioning.
-7. **Issue intake** — when opening or first touching an issue, complete [New issue intake](#new-issue-intake-required) (labels, board, Track, Status, milestone).
-8. **Weekly triage** — once a week, run [Weekly triage run](#weekly-triage-run); prompt humans before closing stale or duplicate tickets.
-
-### Example intake answers
-
-When a subagent asks for scope, answers can look like:
-
-```text
-WORK_ITEM=70
-WORK_ITEM_LOOKUP=docs/developer/agent-work-item-tracking.md
-```
-
-```text
-WORK_ITEM=bare sibling link rewrite
-WORK_ITEM_LOOKUP=GitHub
-```
-
-`WORK_ITEM` may be an issue number, URL, or a short name/description the agent can resolve. `WORK_ITEM_LOOKUP` may be this shard path or a plain location (e.g. GitHub) that points the agent at the tracker conventions here. For the helper skills catalog and invoke recipes, read [`docs/skills.md`](docs/skills.md).
-
-<!-- mdcp-shard: end docs/developer/agent-work-item-tracking.md -->
-
-<!-- mdcp-shard: start docs/developer/repository-layout.md -->
-
-## Repository layout
-
-```text
-mdcp/
-├── CODE_OF_CONDUCT.md      # Contributor Covenant (committed)
-├── README.md               # Compiled from docs/repo-readme/ (committed)
-├── DEVELOPERS.md           # Compiled from docs/developer/ (committed)
-├── skills/                 # Agent Skills install surface only (npx skills add)
-│   ├── mdcp/               # Parent skill (no package.json / CHANGELOG here)
-│   ├── mdcp-*/             # Helper skills
-│   └── mdcp-arch-*/        # WIP archetypes (metadata.internal)
-├── tests/skills/           # Live eval fixtures (optional; not publishable packs)
-├── skills.sh.json          # skills.sh repo page layout
-├── .agents/skills/         # Dogfood installs (pnpm skill:update) + skill-creator
-├── packages/
-│   ├── mdcp-core/          # @bwilliamson/mdcp-core
-│   ├── mdcp-cli/           # @bwilliamson/mdcp-cli
-│   ├── mdcp-presets/       # @bwilliamson/mdcp-presets
-│   └── skill-*/            # Private @bwilliamson/skill-* version carriers + CHANGELOGs
-├── docs/                   # Sharded docs (mdcp.config.json) — dogfood target
-│   ├── glossary/           # Shared acronyms and terms (cross-guide, like insert libraries)
-│   ├── features/           # Tool capabilities → docs/_build/guides.md (local review, gitignored)
-│   ├── developer/          # This guide → DEVELOPERS.md
-│   ├── client-cli/         # → packages/mdcp-cli/README.md
-│   ├── client-core/        # → packages/mdcp-core/README.md
-│   ├── repo-readme/        # → README.md (publish landing)
-│   ├── vale-local/         # Dogfood-only Vale styles (MDCP-PandocId)
-│   └── .vale.ini           # Peer Vale config
-├── examples/sample-guides/ # Minimal consumer fixture for tests and tutorials
-├── legacy/                 # Original bash/Python reference implementation
-├── .changeset/             # Changesets for semver releases
-└── .github/workflows/      # CI and release automation
-```
-
-### Published packages
-
-Each npm package and each Agent Skill versions independently via Changesets. npm packages ship `dist/` and READMEs. Skill **carriers** live under `packages/skill-*` (private; GitHub Releases + CHANGELOG). The `skills/` tree is install content only.
-
-`mdcp-presets` README is hand-authored for now. Root `README.md`, CLI, and core READMEs are **compiled** from `docs/repo-readme/`, `docs/client-cli/`, and `docs/client-core/` shards.
-
-<!-- mdcp-shard: end docs/developer/repository-layout.md -->
-
-<!-- mdcp-shard: start docs/developer/packages-and-tests.md -->
-
-## Packages and tests
-
-### mdcp-core
-
-Library source: [`packages/mdcp-core/src/`](packages/mdcp-core/src).
-
-| Area               | Path                          |
-| ------------------ | ----------------------------- |
-| Config schema      | `src/config/`                 |
-| Compile / assemble | `src/compile/`                |
-| Markdown helpers   | `src/markdown/`               |
-| Locale packs       | `src/locale/`                 |
-| Refs / slugs       | `src/refs/`                   |
-| Validation         | `src/validate/`, `src/links/` |
-| Shard (split)      | `src/shard/`                  |
-| Protocol helpers   | `src/export/`                 |
-| Peer linters       | `src/peers/`                  |
-
-Shared heading/link helpers live under `src/markdown/` and `src/refs/` (`parseHeading` with ATX kind today, plain-text cleanup, GitHub-style **slugify**). They stay **language-agnostic**. Heading recognition is an ATX subset of GFM — see [GFM scope](docs/features/design-constraints/gfm-scope.md#headings). Compile-time wording lives under `src/locale/` (one BCP 47 JSON file per locale). Peer Vale owns prose cues and Pandoc ID authoring opinion — see [Locale and language boundary](docs/features/design-constraints/locale-and-language.md).
-
-```bash
-pnpm --filter @bwilliamson/mdcp-core test
-pnpm --filter @bwilliamson/mdcp-core run typecheck
-```
-
-Tests live under `packages/mdcp-core/test/`. Integration tests invoke the built CLI against `examples/sample-guides/`.
-
-### mdcp-cli
-
-Thin [CAC](https://github.com/cacjs/cac) wrapper around `mdcp-core`. Source: [`packages/mdcp-cli/src/cli.ts`](packages/mdcp-cli/src/cli.ts).
-
-```bash
-pnpm --filter @bwilliamson/mdcp-cli run build
-node packages/mdcp-cli/dist/cli.js --help
-```
-
-### Test code coverage
-
-Vitest coverage for `@bwilliamson/mdcp-core` and `@bwilliamson/mdcp-cli` (not root `scripts/` tests). This is **test** coverage of TypeScript sources — distinct from the [documentation coverage scan](docs/features/coverage-scan.md). Note that CLI package totals are understated because smoke tests drive the built binary out-of-process (V8 coverage does not follow that subprocess).
-
-```bash
-pnpm test:coverage
-```
-
-Local runs print a text summary and write HTML/lcov under each package’s `coverage/` directory (gitignored). CI runs the same command in a separate **coverage** job, appends package totals to the Actions job summary, and uploads those `coverage/` trees as artifacts. Default `pnpm test` / `pnpm check` do not collect coverage and do not enforce percentage thresholds.
-
-### mdcp-presets
-
-JSONC markdownlint configs plus the shippable `MDCP` Vale style (`vale/MDCP/`). Dogfood-only styles live under [`docs/vale-local/`](docs/vale-local/README.md). Edit preset files directly — no TypeScript build.
-
-### Pull request checklist
-
-1. `pnpm run build && pnpm test`
-2. `pnpm run lint && pnpm run format:check`
-3. `pnpm docs:compile:repo && pnpm docs:check` if you touched `docs/` shards
-4. `pnpm changeset` if you changed published package behavior (see [Versioning and releases](#versioning-and-releases))
-
-CI runs the same core gates as `pnpm run check` (typecheck, lint, format, build, test, `docs:check`), plus:
-
-- `pnpm run verify:peers` — confirm markdownlint-cli2 and Vale are on PATH
-- `pnpm audit --audit-level=high` — dependency vulnerability scan
-- `pnpm run prepare:docs` — `verify:peers` + `vale:sync` before `docs:check`
-- a separate **coverage** job runs `pnpm test:coverage`, appends package totals to the Actions job summary, and uploads `coverage/` artifacts (informational; no threshold enforcement)
-
-Pull requests also run the **changeset** job when package sources change.
-
-<!-- mdcp-shard: end docs/developer/packages-and-tests.md -->
+<!-- mdcp-shard: end docs/developer/weekly-issue-triage.md -->
 
 <!-- mdcp-shard: start docs/developer/docs-dogfooding.md -->
 
 ## Docs dogfooding
 
-This repo's documentation is sharded under [`docs/`](../). Shards are the **source of truth**; compiled output is generated.
+This repo's documentation is sharded under [`docs/`](docs). Shards are the **source of truth**. Compiled output is generated.
 
 ### Guide directories
 
-| Directory      | Audience                         | Output                                            |
-| -------------- | -------------------------------- | ------------------------------------------------- |
-| `glossary/`    | Shared terms (cross-guide)       | One shard per term; scoped transitive stitch      |
-| `features/`    | Tool capabilities, migration map | `docs/_build/guides.md` (gitignored local review) |
-| `developer/`   | Contributing to this repo        | `DEVELOPERS.md` at repo root                      |
-| `client-cli/`  | npm CLI consumers                | `packages/mdcp-cli/README.md`                     |
-| `client-core/` | Programmatic API consumers       | `packages/mdcp-core/README.md`                    |
-| `repo-readme/` | GitHub visitors, skill adopters  | `README.md` at repo root                          |
+| Directory                 | Audience                            | Output                                                                                       |
+| ------------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------- |
+| `glossary/`               | Shared terms (cross-guide)          | One shard per term; scoped transitive stitch                                                 |
+| `features/`               | Tool capabilities, migration map    | `docs/_build/features.md` and the monolith `docs/_build/guides.md` (gitignored local review) |
+| `developer/`              | Contributing to this repo           | `DEVELOPERS.md` at repo root                                                                 |
+| `client-cli/`             | npm CLI consumers                   | `packages/mdcp-cli/README.md`                                                                |
+| `client-core/`            | Programmatic API consumers          | `packages/mdcp-core/README.md`                                                               |
+| `repo-readme/`            | Repository visitors, skill adopters | `README.md` at repo root                                                                     |
+| `presentation-la-devops/` | Meetup talk audience                | `presentations/la-devops-2026.md`                                                            |
 
 **Surface ownership:** `repo-readme/` = Agent Skill landing; `client-cli/` = CLI commands/config only; `client-core/` = library API/hooks only. Cross-link the other surfaces instead of duplicating skill, CLI, or API narrative across package READMEs.
 
@@ -544,57 +576,25 @@ Config: [`docs/mdcp.config.json`](docs/mdcp.config.json). Guides with `compile.o
 
 Publish landing style for root README: [Personas and priority tiers](docs/features/personas-and-priority-tiers.md#publish-landing-style).
 
-#### Agent Skill dogfood
-
-Agent guidance for this repo lives under [`skills/`](skills) (source of
-truth). After editing skill files, refresh the vendor-managed dogfood installs:
-
-```bash
-pnpm skill:update
-```
-
-Do **not** hand-edit `.agents/skills/` — see
-[Agent Skill development](#do-not-hand-edit-agentsskills).
-(`pnpm skill:install` is an alias of `skill:update`.)
-Manual invoke: `/mdcp`.
-
-Shard `../` links in publish guides (`developer`, `client-cli`, `client-core`) rebase automatically at compile — resolve from each shard file to an absolute path, then emit a path relative to the publish output. No per-guide path-prefix config. See [Publish-relative link rewriting](./packages/mdcp-core/README.md#publish-relative-link-rewriting).
-
-Repo scripts use `--config docs/mdcp.config.json --docs-root docs`: the config path is resolved from the **repo root** (invocation directory), while `--docs-root docs` sets the shard tree root. See [Config essentials — `--config` vs `--docs-root`](./packages/mdcp-cli/README.md#--config-vs---docs-root).
-
-The **features** compile (`docs/_build/guides.md`) is for reading through the stitched doc during review — edit shards, not the generated file. It is not committed.
+Compile rebases each shard's `../` links relative to the file being assembled, the guide's [link base](./packages/mdcp-core/README.md#when-it-runs), except the links that [Publish-relative exclusions](./packages/mdcp-core/README.md#publish-relative-exclusions) lists. A publish guide's link base is its output in the table above. `features` is assembled twice: its compiled guide rebases relative to `docs/_build/features.md`, and its copy in the monolith relative to `docs/_build/guides.md`. Repo scripts pass `--config docs/mdcp.config.json --docs-root docs`, and [Config essentials](./packages/mdcp-cli/README.md#--config-vs---docs-root) says how each option resolves.
 
 ### Edit workflow
 
 1. Edit shard `.md` files under the relevant guide directory.
 2. If you changed a guide's `index.md` link order, re-run compile — order is read from the manifest. See [Manifest compile order](docs/features/manifest-compile-order.md) when using `compile.sectionsHeading`.
 3. Run `pnpm docs:compile:repo` then `pnpm docs:check:repo`.
-4. Commit shard changes. Regenerated `docs/_build/` (monolith, per-guide outputs, `.caches/refs.json`) is gitignored — CI and `pnpm docs:check` compile locally. Commit [`DEVELOPERS.md`](DEVELOPERS.md) when `developer/` shards change; commit [`README.md`](README.md) when `repo-readme/` shards change; commit package READMEs when `client-cli/` or `client-core/` shards change.
-
-### Comprehensive review when guides are involved
-
-This is the guide-specific application of the [two-level review](docs/features/agent-skill.md#quality-assurance-qa-principles) QA principle (also [shard single responsibility and idea mitosis](docs/features/protocol/shard-srp-and-mitosis.md)). Review at two levels:
-
-1. **In isolation** — review each changed idea or shard on its own for local correctness.
-2. **Comprehensively** — review it against the other ideas, as a whole. This high-level pass catches duplication and surfaces organization improvements (shards to merge, split, or relocate), and — when a change touches a guide (a doc shard, a skill, or code whose behavior a guide documents) — drift between what a guide promises and what the change actually does.
-
-Guides carry the intent behind the code, so a narrow diff review can miss this. Apply the comprehensive pass whenever:
-
-- a shard changes and related code or a skill describes the same behavior,
-- code or a skill changes and a guide documents that behavior, or
-- a review spans more than one surface (for example a feature and its client guide, or a skill and its supporting guides).
-
-Read the related guides alongside the diff and flag any drift (stale guidance, a promise the change breaks, or a guide that should change with it), duplication, or reorganization. A review is complete only when the change and its guides agree.
+4. Review the change at both levels of [two-level review](docs/features/protocol/shard-srp-and-mitosis.md#two-level-review): each shard on its own, then against the guides, skills, and code that describe the same behavior. To review the docs as a set, run the [doc-review workflow](docs/features/protocol/workflows/doc-review.md).
+5. Commit shard changes. Regenerated `docs/_build/` (monolith, per-guide outputs, `refs.json`) is gitignored. CI and `pnpm docs:check` compile it locally. Every other output in the guide table is committed, in the same commit as the shard change that regenerates it.
 
 ### Agent context
 
-Prefer host search then read one shard under `docs/`. Compiled monoliths under `docs/_build/` are available when a broader read is intentional.
+Prefer host search then read one shard under `docs/`. Compiled guides under `docs/_build/` are available when a broader read is intentional.
 
 ### Linting docs
 
-- **markdownlint** — shard preset + compiled preset (includes `DEVELOPERS.md` and published README paths)
-- **Vale** — prose lint on `glossary/`, `features/`, `developer/`, `client-cli/`, `client-core/`, `repo-readme/` (install [Vale](https://vale.sh/docs/vale-cli/installation/) on `PATH`; not an npm dependency)
-- **Vale `MDCP` / `MDCP-PandocId`** — peer prose: unlinked heading mentions; dogfood: remove Pandoc IDs. Not `mdcp check` core steps — enable with `--require-vale`
+- **markdownlint**: the shard preset on the shards, then the repo's own compiled config, [`docs/compiled-lint.markdownlint-cli2.jsonc`](docs/compiled-lint.markdownlint-cli2.jsonc), on the monolith, `DEVELOPERS.md` and the published READMEs. That config turns off fewer rules than the compiled preset in `@bwilliamson/mdcp-presets`, which the examples use.
+- **Vale**: prose lint on the `vale.scanGlobs` directories in the config, which are `glossary/`, `features/`, `developer/`, `client-cli/`, `client-core/`, `repo-readme/` and `presentation-la-devops/`, plus every `standaloneGuides` file. `docs/.vale.ini` opts `CODE_OF_CONDUCT.md` out, because its text is the vendored Contributor Covenant. Vale is not an npm dependency, so install it on `PATH` as [Local setup](#requirements) describes.
+- **Vale `MDCP` / `MDCP-PandocId`**: peer prose rules for unlinked heading mentions and dated claims, plus this repo's local rule against Pandoc IDs. They run in the peer Vale stage of `mdcp check`, and `--require-vale` makes a missing Vale fail the run
 - **link lint** — built-in validation runs on every `docs:check` with default `"error"` severity; publish guides set `compile.crossGuideLinks.ignoreGuides: ["features"]` so cross-guide links keep live `docs/features/` shard paths (publish-relative rebase only); see [Publish-only link policy](docs/features/link-validation.md#publish-only-link-policy)
 
 Run `pnpm vale:sync` after cloning or when `.vale.ini` changes (requires Vale on `PATH`).
@@ -605,28 +605,32 @@ Run `pnpm vale:sync` after cloning or when `.vale.ini` changes (requires Vale on
 
 ## Markdown formatting
 
-### Base Requirement
+Shards in this repository follow these Markdown conventions. Where a feature shard defines the rule behind a convention, the convention links to it.
 
-When contributing documentation, rely on **simple GFM (GitHub Flavored Markdown)** as the standard.
+### Headings and links
 
-### Open Structure
+Shards are GFM, and their headings use the ATX form. [GFM scope](docs/features/design-constraints/gfm-scope.md) sets that authoring contract and the heading subset compile recognizes. Link a heading by the slug of its text, as [Heading references](docs/features/design-constraints/heading-references.md) says. Don't write a Pandoc ID (`{#…}`) after a heading: the local Vale rule `MDCP-PandocId` fails `pnpm docs:check` on one.
 
-We use an unopinionated, flexible document structure. The goal is to keep the authoring experience simple and accessible. You do not need to adhere to complex metadata schemas or strict structural hierarchies when writing documentation shards.
+Write each [cross-link](#cross-link) inline, as `[label](target)` on one line. Keep images and other brackets out of the label, and write the target without a title or angle brackets. In a shard that a compiled output stitches, `pnpm docs:check` fails when such a link points at a missing page or source file, or at a dead `#fragment`, even inside an HTML comment. Link a page in the change that adds it. [No placeholder links](docs/features/link-validation.md#no-placeholder-links) sets that rule and lists the links that link validation skips, and [Link validation purpose](docs/features/link-validation.md#link-validation-purpose) says which targets it checks.
 
-### Strict Link Validity
+`pnpm docs:check` reads a shard's links only where a compiled output stitches the shard, as [Check gate stages](docs/features/check-gate.md#check-gate-stages) says. A new file in a guide subdirectory, or a new glossary entry, isn't stitched until the guide's manifest or a stitched shard links to it. Its dead links pass `pnpm docs:check` until then, and the [site sync](#content-comes-from-shards) in `pnpm site:build` fails on them. So link the new file from its directory's `index.md` or from the manifest in the change that adds it, and list a new glossary entry in `glossary/index.md`.
 
-While we are unopinionated about document structure, we are **strict about links**.
+### Tables
 
-- All [cross-links](#cross-link) must be valid and point to existing files or headings.
-- Prefer GitHub-style heading slugs from heading text. Do not author Pandoc IDs (`{#…}` after a heading).
-- If a link is invalid, the CI and documentation checks will fail.
-- Do not create links to files that do not exist yet. If you need to indicate a placeholder, comment it out or write `(TBD)`.
+A table's cells can contain links, in a list item or a blockquote too. Prettier aligns each GFM table in a shard, and compile can rewrite a link to a target of another length. Compile then re-aligns the table as Prettier prints it with this repo's `proseWrap` setting, `preserve`. The compiled table passes markdownlint's MD060 rule. [Tables after link rewriting](./packages/mdcp-core/README.md#tables-after-link-rewriting) says which tables compile re-aligns.
 
-For more details on the link validation rules, please consult the [Format specification](docs/features/protocol/format-specification.md).
+Compile leaves a table out of line, or MD060 flags it, in these cases:
 
-### Formatting and Linting
+- Each cell of the table fills its column in the shard. Compile treats a table as compact unless some cell pads its text with more than one space, and it leaves a compact table as written when a link in it changes width. Shorten the text of one cell so Prettier pads it. `pnpm format:check` runs Prettier on the compiled outputs that the repo commits, such as `README.md`, and fails on such a table there. It skips `docs/_build/`, which `.gitignore` lists.
+- A cell contains an explicit `{#id}` anchor. Compile strips the anchor and doesn't re-align the table. Keep these anchors out of table cells.
+- A cell shows the link syntax of an [insert](./packages/mdcp-core/README.md#inlineinserts) in a code span. `inlineInserts` rewrites that link as it does outside code, and compile doesn't re-align the table after that change. Keep such examples out of table cells.
+- A cell without a link contains text that Prettier and markdownlint measure differently, such as Hindi or pointed Hebrew. MD060 flags the table in the shard, and it flags the compiled table too, whether or not compile re-aligns it.
 
-To help avoid formatting errors and enforce consistent style, we recommend using `@bwilliamson/mdcp-presets`. These presets configure tools like Prettier and `markdownlint-cli2` to handle whitespace, indentation, and common styling issues automatically. For configuration details, see [Optional Linters](./packages/mdcp-cli/README.md#optional-linters).
+Give the first link to an [insert](./packages/mdcp-core/README.md#inlineinserts) in a guide a paragraph of its own, ahead of any table cell that links to the insert. Compile replaces that link with the insert's heading and body, which breaks a sentence or a table around it. See [inlineInserts first inline](./packages/mdcp-core/README.md#inlineinserts-first-inline).
+
+### Formatting and linting
+
+`pnpm format` runs Prettier on the repository with the settings in the root `.prettierrc.json`, and `pnpm format:check` fails on a file that Prettier would change. `pnpm docs:check` runs markdownlint and Vale on the docs, and [Linting docs](#linting-docs) says which configs and styles it uses. The starter markdownlint configs and the `MDCP` Vale style come from `@bwilliamson/mdcp-presets`, which has no Prettier config.
 
 ---
 
@@ -634,11 +638,89 @@ _Note: GitHub and GitHub Flavored Markdown are trademarks of GitHub, Inc. This p
 
 <!-- mdcp-shard: end docs/developer/markdown-formatting.md -->
 
+<!-- mdcp-shard: start docs/developer/safe-markdown-parsing.md -->
+
+## Safe markdown parsing (heading helpers)
+
+Maintainer note for why `mdcp-core` parses headings and related markup with shared **language-agnostic** helpers instead of ad-hoc regular expressions, and which regexes remain in the package. [ADR 0005](docs/features/adr/0005-keep-ts-scanners-over-rg-peggy-rust.md) records how the rule came about and why the scanners stay in TypeScript.
+
+### Why this is necessary
+
+CodeQL's `js/polynomial-redos` rule flags a regex with overlapping or unbounded quantifiers that runs on library-controlled strings. Typical shapes are `\s*` next to `{#…}`, `\s+` before a greedy remainder, and a non-greedy `.*?` between braces. On a crafted input such a match takes time that grows faster than the input does, which is the [ReDoS](#redos) class of denial-of-service risk.
+
+Everyday docs rarely hit the pathological case, but open alerts block a clean security dashboard. Compile, refs and links all parse headings and strip markers. Fixing those call sites one at a time lets the class come back in the next copy. The shared helpers give each of those jobs one parse path.
+
+### Shared linear helpers
+
+The helpers in `packages/mdcp-core/src/markdown/` run in linear time. They cover these jobs:
+
+- parsing each heading line with `parseHeading` (ATX kind today; see [GFM scope](docs/features/design-constraints/gfm-scope.md#headings)) and writing it back as ATX with `formatHeadingAsAtx`
+- stripping leftover Pandoc IDs (`{#…}`) when cleaning compiled output, as defensive cleanup (the Vale style `MDCP-PandocId` reports an error on a heading that has one)
+- producing plain heading text for language-agnostic [heading slug](#heading-slug) generation
+- tracking fenced code blocks line by line, masking non-prose regions and counting words for prose checks
+
+Heading demotion in `compile/headings.ts` runs `parseHeading` and `formatHeadingAsAtx` on each line outside fenced blocks. It finds those blocks with `createCodeFenceScanner`, the same scan that the slug registry's heading reader runs, and that scan reads a CRLF line too. Demotion starts a new scan on each text it demotes, such as one shard, while the registry reads a whole guide with one scan. A shard that ends inside an open fence can make the two disagree about the shard after it.
+
+The link passes, `codeEvidence`, broken-link marking and link lint find fenced code with `createQuotedFenceScanner` in `markdown/prose.ts`. It runs the scan behind `createCodeFenceScanner` on each line, and another one on the text of each blockquote up to ten deep, in time that grows linearly with the text. A `>` four or more columns past its container doesn't open a quote, since that scan reads the line as indented code or paragraph text.
+
+Link validation finds broken-link markers with `findTemplateMatches`, a scanner in `locale/create-locale-pack.ts`. It splits the locale's `markerTemplate` at each variable but `markerLabel` and finds the parts in order, with no line terminator between two of them. It returns the markers that a pattern with a lazy `.*?` for each variable matches, and its time grows linearly with the length of the line. Compiled link lint asks about a line a fixed number of times, however many links it holds.
+
+The manifest walk and the `inlineInserts` hook find links in a whole manifest or shard body with the scanners in `compile/link-scan.ts`. The walk reads `.md` links and `](#slug)` links with them, and the hook reads links into an insert library. Each scanner returns the matches of a link regex, such as `\[[^\]]*\]\(([^)]+\.md)(?:#[^)]*)?\)` for `.md` links, in time that grows linearly with the text. The regex itself reads a target with `[^)]`, which crosses line breaks, so on a crafted text its time can grow with the cube of the text's length.
+
+`codeEvidence` reads line ranges such as `L6-L8` or `lines 12–15` with `lineRangeFromText`, an imperative scanner in `compile/hooks/line-range.ts`. It takes its words from the locale pack. The hook trims the backticks around a link label with a loop, and `shardLintPaths` uses one too, for the slashes at the end of a `shardsGlobs` entry that starts with `../`. Public package APIs keep their names, and call sites delegate to the helpers. Duration-budget tests in `packages/mdcp-core/test/redos-budget.test.ts` run the helpers and scanners on pump inputs, so a regex that brings the class back fails CI.
+
+### Regex sites that remain
+
+A regex in `packages/mdcp-core/src/` falls under this rule:
+
+- **Keep** a pattern that is clearly linear.
+- **Rewrite** a pattern next to the CodeQL class, such as `\s*` or overlapping optional groups next to digits, as a scanner with a duration-budget test.
+- **Keep** the Markdown link idioms that [Link idioms](#link-idioms) lists as regexes, and fix any `js/polynomial-redos` alert on one with a scanner.
+- Leave prose and language opinion out of core, because it belongs in Vale.
+
+#### Kept (linear)
+
+| Location                                                   | Pattern role                                                                                                                              | Rationale                                                                             |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `compile/section-slug.ts`                                  | `FIND-N.md` and the `.md` suffix                                                                                                          | Anchored, or suffix only                                                              |
+| `compile/section-manifest.ts`                              | The `##` heading that `compile.sectionsHeading` names                                                                                     | Escaped literal; anchored `^##\s+…\s*$`                                               |
+| `links/validate.ts`, `links/validate-shards.ts`            | `https?://` prefix and `.md` suffix                                                                                                       | Anchored, or suffix only                                                              |
+| `compile/hooks/inline-inserts.ts`                          | The `https?://` prefix and `.md` suffix of an insert path, the insert kind that starts a caption title, and the `.` or `:` after the kind | Anchored, or suffix only                                                              |
+| `compile/assemble.ts`                                      | Collapse `\n{3,}`                                                                                                                         | One character with a minimum count; each newline run matches once                     |
+| `shard/orchestrator.ts`                                    | Demote a leading H1 marker                                                                                                                | `#` and a space, at the start of a line                                               |
+| `compile/hooks/code-evidence.ts` symbol search             | An escaped symbol alone, after a declaration keyword, or before `(`                                                                       | Literal words around at most one whitespace run                                       |
+| `compile/hooks/code-evidence.ts` label and fragment checks | An identifier label, or an existing `#L6` or `#L6-L8` fragment                                                                            | Anchored at the start, and the identifier and range checks at the end too             |
+| `validate/path-probe.ts`                                   | Backtick code spans, and tests on each span                                                                                               | One negated class between literal backticks; each test is anchored or one class       |
+| `locale/create-locale-pack.ts`                             | `{name}` placeholders in locale messages, and the en-US heading-key pattern                                                               | A letter and a run of one class between literal braces; the en-US pattern is anchored |
+| `compile/align-tables.ts`                                  | Delimiter cells, lines of spaces and quote markers, the block starts and HTML block starts that end a table                               | Anchored; tag attributes need a space between them, and each other run is one class   |
+| `markdown/display-width.ts`                                | Zero-width, emoji and flag graphemes, and a printable-ASCII check                                                                         | Run on one grapheme, or one class over the text                                       |
+| Path and glob helpers                                      | `./`, `../` and `.` prefixes, a leading `!`, `#` or `:`, and one trailing `/`                                                             | Anchored                                                                              |
+| Adornment, escape and split helpers                        | `**` and emphasis markers, backslashes, regex and glob escaping, letter and number classes, whitespace and separator splits               | Literal or one character class                                                        |
+
+#### Link idioms
+
+| Location                                      | Pattern role                                              | Input                                                         |
+| --------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------- |
+| `links/extract.ts` `MD_LINK_RE`               | Non-image `[label](target)`                               | One line at a time, with code spans masked                    |
+| `compile/publish-links.ts`                    | Cross-guide, intra-guide and publish-relative link shapes | One line at a time, with code spans masked                    |
+| `compile/hooks/code-evidence.ts` `MD_LINK_RE` | `[label](target)` for evidence links                      | Each run of lines between fenced code, with code spans masked |
+
+Each of these matches the `[label](target)` form with negated character classes. They aren't linear. On a crafted input the time grows at least with the square of the input's length. The Input column says which length counts. A negated class such as `[^)]` crosses line breaks, so short lines don't limit a regex that reads the whole text. Phase B kept these idioms as regexes, as [ADR 0005](docs/features/adr/0005-keep-ts-scanners-over-rg-peggy-rust.md) records, and the maintainers decided to keep them. If CodeQL opens `js/polynomial-redos` on one of these sites, fix it with a linear scanner and a duration-budget test. A fix can start from `scanInlineLinks` in `compile/link-scan.ts`, which walks the `[label](target)` shape these regexes match in linear time and lets a callback accept or turn down each target. Its callback doesn't get the index of the `[`, and the scan turns down each link that shares a label end it turned down before, so a caller that skips image links has to extend it first.
+
+### Authoring implications
+
+- Prefer the shared helpers for new heading or slug logic; do not add new polynomial-risk regexes for those jobs.
+- Prefer imperative scanners when adding line-range style matchers (optional whitespace next to digits or overlapping alternatives). Authored **word** cues for line ranges belong in the locale pack; keep `L` / `:` forms and `#L…` output language-neutral in the scanner.
+- Prefer GFM auto-slugs. Don't author Pandoc IDs on headings, since Vale reports an error on one in this repo. Compile still strips them from legacy content.
+- Don't reintroduce `lintXrefs` or chapter-cue regexes in `mdcp-core`. Unlinked chapter and section cues in prose are Vale's job, as [Locale and language boundary](docs/features/design-constraints/locale-and-language.md) describes.
+
+<!-- mdcp-shard: end docs/developer/safe-markdown-parsing.md -->
+
 <!-- mdcp-shard: start docs/developer/agent-skill.md -->
 
 ## Agent Skill development
 
-Zero-friction MDCP delivery for AI agents uses the portable **parent** Agent Skill. Upstream source of truth is [`skills/mdcp/SKILL.md`](skills/mdcp/SKILL.md). After install (or local dogfood in **this** monorepo), agents load it from `.agents/skills/mdcp/` — that path is this repo's vendor-managed dogfood layout, not the universal consumer install path (consumers get an agent-specific directory via `npx skills add`; see [Agent Skill](docs/features/agent-skill.md)). Complementary helper skills under `skills/mdcp-*` (except WIP archetypes) ship in the same pack and are listed in [`skills.sh.json`](skills.sh.json) under **Documentation system**. Archetype skills (`skills/mdcp-arch-*`) are **not ready to release**: they carry `metadata.internal: true` and stay **out** of `skills.sh.json` until intentionally published. Maintainers can surface them locally with `INSTALL_INTERNAL_SKILLS=1`.
+Zero-friction MDCP delivery for AI agents uses one portable Agent Skill. Upstream source of truth is [`skills/mdcp/SKILL.md`](skills/mdcp/SKILL.md). In **this** monorepo, agents load it from `.agents/skills/mdcp/`, a vendor-managed local install. A consumer's `npx skills add` picks an agent-specific directory instead ([Agent Skill](docs/features/agent-skill.md)). Task workflows (bootstrap, doc-only, design-architecture, feature-level, UX, doc review) live inside that skill under `skills/mdcp/references/workflows/`, so consumers install one skill. Archetype skills under `skills/mdcp-arch-*` are internal. [Publishing the skill pack](#publishing-the-skill-pack) says which skills are released.
 
 ### Local dogfood
 
@@ -648,10 +730,12 @@ Author under `skills/`. Then refresh vendor-managed installs for agents:
 pnpm skill:update
 ```
 
-(`pnpm skill:install` is the same task — an alias kept for older docs and habits.)
+(`pnpm skill:update` runs `pnpm skill:install`, and either name does the same task.)
 
 That runs `npx skills add .` and refreshes dogfood installs under `.agents/skills/`
 from the publishable packs in `skills/` (see `skills-lock.json`).
+
+Cloud agent sessions install the skill on their own. The Claude Code session-start hook (`.claude/hooks/session-start.sh`) and the Cursor environment (`.cursor/environment.json`) both run `pnpm skill:dev`, which installs this checkout's `skills/mdcp` for Claude Code and Cursor with telemetry off. An agent working here therefore loads the skill as it stands on the branch, not a published release.
 
 #### Do not hand-edit `.agents/skills/`
 
@@ -662,59 +746,42 @@ agent load path). They are **not** the source of truth.
 | ---------------------------------------------------------------- | ----------------------------------------------------------------- |
 | Edit publishable packs under `skills/<name>/`                    | Hand-edit `.agents/skills/<name>/` to “fix” or tweak guidance     |
 | Run `pnpm skill:update` after skill edits so agents pick them up | Commit one-off edits that only exist under `.agents/`             |
-| Propose lasting skill changes as PRs against `skills/`           | Treat `.agents/skills/mdcp*` as durable docs or authoring surface |
+| Land lasting skill changes in `skills/`                          | Treat `.agents/skills/mdcp*` as durable docs or authoring surface |
 
-Parent and archetype dogfood trees (`.agents/skills/mdcp/`,
-`.agents/skills/mdcp-arch-*`) are gitignored. Helper installs may still appear
-in git when the install tool records them — refresh those with
-`pnpm skill:update` rather than editing files in place. Eval workspaces under
-`.agents/skills/*-workspace/` stay gitignored; see [Live skill evals](#live-skill-evals).
+The skill and archetype dogfood trees (`.agents/skills/mdcp/`,
+`.agents/skills/mdcp-arch-*`) are gitignored, and so are eval workspaces under
+`.agents/skills/*-workspace/` ([Live skill evals](#live-skill-evals)).
 
-Manual invoke (hosts that support slash skills): `/mdcp`. First-time consumer
-bootstrap: `/mdcp help me get started`.
+Manual invoke (hosts that support slash skills): `/mdcp`.
 
 When changing skill instructions:
 
-1. Edit `skills/mdcp/SKILL.md` (and `references/` as needed) — keep the activation body under 500 lines; put depth in `references/`.
+1. Edit `skills/mdcp/SKILL.md` (and `references/` as needed) — keep the activation body under 500 lines; put depth in `references/`. A new kind of task gets a workflow file under `skills/mdcp/references/workflows/` and a row in the skill's workflow table, not a new skill.
 2. Do **not** invent new protocol in the skill — CLI and schemas stay in packages.
-3. For archetypes (WIP), edit `skills/mdcp-arch-*` instead of growing the parent forever — do not highlight them in consumer install docs or `skills.sh.json` yet.
+3. Put archetype guidance in `skills/mdcp-arch-*` instead of growing the parent skill.
 4. Run `pnpm skill:update` after skill edits so local agents pick up changes, then `pnpm skill:validate` and `pnpm docs:check`.
+5. Add a changeset for the skill ([When to add a changeset](#when-to-add-a-changeset)).
 
 ### Verification
+
+The [Agent Skill acceptance criteria](docs/features/agent-skill.md#agent-skill-acceptance-criteria) say what a skill change must keep true.
 
 | Command               | Purpose                                                                                                            |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | `pnpm skill:validate` | Frontmatter fence lint + [skills-ref](https://agentskills.io/specification) validate on all skills under `skills/` |
 | `pnpm docs:check`     | Docs compile + lint gate after shard edits                                                                         |
 
-`pnpm skill:validate` runs in local `pnpm check`, PR CI, and during **`pnpm release:main`** after skill version sync (hard fail before the release commit / publish). It is not a [live skill eval](#live-skill-eval).
+`pnpm skill:validate` runs in local `pnpm check`, the land gate, PR CI, and during **`pnpm release:main`** after skill version sync (hard fail before the release commit / publish). It is not a [live skill eval](#live-skill-eval).
 
-### Live skill evals (optional, local)
-
-Qualitative with/without-skill grading is documented in [Live skill evals](#live-skill-evals) (suite inventory, layout contract, tooling). The glossary term is [live skill eval](#live-skill-eval). That loop is local-only — do **not** require Claude CLI or `skill-creator` in CI.
-
-### Acceptance criteria
-
-1. Parent skill is a valid Agent Skills package (`name: mdcp` matches folder under `skills/`).
-2. Install documents the parent skill via `npx skills add` (complementary archetype skills stay unpublished in consumer docs until ready).
-3. Parent skill encodes bootstrap / smallest-context / hard rules for docs-as-code agents.
-4. Skill is host-agnostic — no Marketplace-only required steps.
-5. `pnpm skill:validate` ([skills-ref](https://github.com/agentskills/agentskills/tree/main/skills-ref)) passes locally and in CI for changes under `skills/`.
-6. [`skills.sh.json`](skills.sh.json) lists the parent and release-ready helpers in the **Documentation system** group — not WIP `mdcp-arch-*` packs.
+[Live skill evals](#live-skill-evals) covers the optional local loop, which grades agent runs with and without the skill and never runs in CI.
 
 ### Publishing the skill pack
 
-Ship `skills/mdcp/` as the consumer entrypoint; helper skills install from the same GitHub repo. Prefer:
+`skills/mdcp/` is the only skill released to consumers. [Get started](README.md#get-started) shows how they install it.
 
-```bash
-npx skills add betsalel-williamson/mdcp --skill mdcp
-```
+Archetype skills (`skills/mdcp-arch-*`) are not ready to release. Until one is released on purpose, its `SKILL.md` sets `metadata.internal: true`, and the skill stays out of [`skills.sh.json`](skills.sh.json) and out of consumer install docs. The `skills` CLI leaves internal skills out of its default discovery, so maintainers install them locally with `INSTALL_INTERNAL_SKILLS=1`. Releasing a skill removes `metadata.internal` and adds the skill's `name:` to the **Documentation system** group in `skills.sh.json`, in the same change.
 
-Complementary `skills/mdcp-arch-*` packs remain WIP (`metadata.internal: true`) — keep them off consumer get-started copy **and** out of [`skills.sh.json`](skills.sh.json) until ready to release. Maintainers can install them with `INSTALL_INTERNAL_SKILLS=1`.
-
-There is no skills.sh submit API. The [repo page](https://skills.sh/betsalel-williamson/mdcp) appears from install telemetry after consumers (or maintainers) run an install without `DISABLE_TELEMETRY=1`. Skill versions sync from private carriers under `packages/skill-<id>/` into `skills/<id>/SKILL.md` `metadata.version` at release — see [Versioning and releases](#versioning-and-releases). Do not put `package.json` or `CHANGELOG.md` under `skills/` (pollutes `npx skills add`). Add a changeset targeting `@bwilliamson/skill-<id>` when `skills/<id>/` changes; release notes land on GitHub Releases.
-
-Documented consumer install path: your agent's skills directory ([Supported Agents](https://github.com/vercel-labs/skills#supported-agents)). Avoid Cursor-only or Marketplace-only packaging for this work.
+Install telemetry refreshes the repo page on skills.sh ([Ecosystem publication](docs/features/agent-skill.md#ecosystem-publication)); an install with `DISABLE_TELEMETRY=1`, such as `pnpm skill:dev`, doesn't count. Skill versions and release notes follow [Versioning and releases](#versioning-and-releases).
 
 ### `skills.sh.json` (repo page layout)
 
@@ -744,25 +811,7 @@ tests/skills/*/evals/       optional live eval fixtures (not on skills.sh)
 pnpm skill:validate         CI/static gate on skills/ (not on skills.sh.json)
 ```
 
-Current policy:
-
-1. **Group release-ready packs** — the **Documentation system** grouping lists
-   parent `mdcp` and helpers (`mdcp-getting-started`, `mdcp-doc-only`,
-   `mdcp-design-architecture`, `mdcp-feature-level`, `mdcp-ux`). Keep parent
-   first; order the rest for scanability.
-2. **Omit WIP archetypes** — `skills/mdcp-arch-*` keep `metadata.internal:
-true` and stay **out** of `skills.sh.json` until intentionally published.
-   Maintainers use `INSTALL_INTERNAL_SKILLS=1` to install them locally.
-3. **When adding a release-ready skill under `skills/`** — add its `name:` to
-   the Documentation system `skills` array in the same PR. Do not add packs
-   that still carry `metadata.internal: true`.
-4. **Live evals are separate** — suite inventory and skill-creator loops live
-   under [Live skill evals](#live-skill-evals). They never belong in
-   `skills.sh.json`.
-
-When changing skill surface area, update this file in the same PR, and follow
-the skills.sh step in the
-[release checklist](#release-checklist-maintainers).
+The **Documentation system** group lists the skills that [Publishing the skill pack](#publishing-the-skill-pack) releases. Live eval suites never belong in this file ([Live skill evals](#live-skill-evals)). When the released skills or their names change, update this file in the same change.
 
 Consumer-facing landing identity (badge, README install commands) stays in
 [Agent Skill](docs/features/agent-skill.md#ecosystem-publication).
@@ -775,7 +824,7 @@ Consumer-facing landing identity (badge, README install commands) stays in
 
 Optional local workflow that runs an agent **with** and **without** a subject
 Agent Skill, grades behavior against named assertions, and reviews results in a
-viewer. Maintainers use it to tune skill instructions and prove helper scope
+viewer. Maintainers use it to tune skill instructions and prove each workflow's scope
 (for example design-only vs product code).
 
 This is **maintainer workflow**, not a product capability — it belongs in the
@@ -814,40 +863,93 @@ Live eval fixtures live under `tests/skills/<skill>/evals/` so publishable packs
 under `skills/` stay eval-free (`npx skills` / `pnpm skill:validate` only touch
 `skills/`).
 
-- [mdcp](tests/skills/mdcp/evals/README.md) — subject `mdcp`; workspace
-  `.agents/skills/mdcp-workspace/`
-- [mdcp-getting-started](tests/skills/mdcp-getting-started/evals/README.md) —
-  subject `mdcp-getting-started`; workspace
-  `.agents/skills/mdcp-getting-started-workspace/`
-- [mdcp-doc-only](tests/skills/mdcp-doc-only/evals/README.md) — subject
-  `mdcp-doc-only`; workspace `.agents/skills/mdcp-doc-only-workspace/`
-- [mdcp-design-architecture](tests/skills/mdcp-design-architecture/evals/README.md) —
-  subject `mdcp-design-architecture`; workspace
-  `.agents/skills/mdcp-design-architecture-workspace/`
-- [mdcp-feature-level](tests/skills/mdcp-feature-level/evals/README.md) —
-  subject `mdcp-feature-level`; workspace
-  `.agents/skills/mdcp-feature-level-workspace/`
-- [mdcp-ux](tests/skills/mdcp-ux/evals/README.md) — subject `mdcp-ux`;
-  workspace `.agents/skills/mdcp-ux-workspace/`
+- [mdcp](tests/skills/mdcp/evals/README.md) — subject `mdcp`; routing and
+  QA principles; workspace `.agents/skills/mdcp-workspace/`
+- One suite per workflow under `tests/skills/mdcp/evals/<workflow>/`, each with
+  subject `mdcp`:
+  [getting-started](tests/skills/mdcp/evals/getting-started/README.md),
+  [doc-only](tests/skills/mdcp/evals/doc-only/README.md),
+  [design-architecture](tests/skills/mdcp/evals/design-architecture/README.md),
+  [feature-level](tests/skills/mdcp/evals/feature-level/README.md),
+  [ux](tests/skills/mdcp/evals/ux/README.md),
+  [doc-review](tests/skills/mdcp/evals/doc-review/README.md); workspace
+  `.agents/skills/mdcp-<workflow>-workspace/`
 
 Each suite README holds operational run steps and discrimination notes. This
 shard is the maintainer index.
 
 ### Layout contract
 
-Shared shape for helper suites:
+Shared shape for workflow suites:
 
-| Path                  | Purpose                                                                 |
-| --------------------- | ----------------------------------------------------------------------- |
-| `evals/evals.json`    | `skill_name`, prompts, `expected_output`, `files[]`, named `assertions` |
-| `evals/files/`        | Isolated fixture trees for run workspaces (not real monorepo `docs/`)   |
-| `evals/triggers.json` | Optional description-trigger tuning (parent suite)                      |
-| `evals/README.md`     | How to run and grade that suite                                         |
+| Path            | Purpose                                                                 |
+| --------------- | ----------------------------------------------------------------------- |
+| `evals.json`    | `skill_name`, prompts, `expected_output`, `files[]`, named `assertions` |
+| `files/`        | Isolated fixture trees for run workspaces (not real monorepo `docs/`)   |
+| `triggers.json` | Optional description-trigger tuning (top-level suite only)              |
+| `README.md`     | How to run and grade that suite                                         |
 
-Helper intake and write obligations stay in
-[Agent helper skills](docs/features/protocol/agent-task-prompts.md).
+An eval may also set `expected_workflow`, the workflow file a routing eval must read. That check
+reads the transcript instead of going to the grader. An eval may set `setup` too, which asks the
+runner to add dated commits after the fixture commit (see the doc-review suite README).
+
+Workflow intake and write obligations stay in
+[Skill workflows](docs/features/protocol/skill-workflows.md).
 
 <!-- mdcp-shard: end docs/developer/live-skill-evals.md -->
+
+<!-- mdcp-shard: start docs/developer/docs-site.md -->
+
+## Documentation site
+
+The public docs site at <https://betsalel-williamson.github.io/mdcp/> is an [Astro Starlight](https://starlight.astro.build/) build in [`packages/mdcp-site/`](packages/mdcp-site). It is a private workspace package with no version. Changesets ignores it, and release tooling never tags or publishes it.
+
+### Content comes from shards
+
+Only the landing page (`packages/mdcp-site/src/content/docs/index.mdx`) is hand-authored. The other pages are generated at build time by [`packages/mdcp-site/scripts/sync-content.mjs`](packages/mdcp-site/scripts/sync-content.mjs) from these guides:
+
+| Shards              | Site section        | Route            |
+| ------------------- | ------------------- | ---------------- |
+| `docs/client-cli/`  | User guide          | `/guide/`        |
+| `docs/features/`    | Concepts & protocol | `/concepts/`     |
+| `docs/client-core/` | Library API         | `/api/`          |
+| `docs/glossary/`    | Glossary            | `/glossary/`     |
+| `docs/developer/`   | Contributing        | `/contributing/` |
+
+The sync script reads `docs/mdcp.config.json` and each guide's `index.md` for sidebar order, and uses each shard's first `#` heading as the page title. These manifest entries become sidebar groups:
+
+- A page entry with nested items, other than a sub-index, groups its page and those items.
+- A sub-index (`index.md`) shows its page as the overview, then the entries nested under it whose pages are in its directory. Nested entries outside its directory follow the group at the same level. When it has no nested entries in its directory, it shows the pages its own list links under its directory that no earlier entry has placed.
+- When the guide's `index.md` lists a page other than an `index.md` from a subdirectory with no nested items, that page groups the pages its own list links the same way. Unlike a sub-index, it skips the pages the guide's `index.md` lists. It also skips pages in a deeper directory where the guide's `index.md` lists some page, so the page listed there can group them.
+
+The first group whose list links a page claims it. A page other than an `index.md` that only a sub-index or another such subdirectory page lists stays a plain sidebar link, and so does an entry whose list leaves nothing to group.
+
+The sync script rewrites links for the site:
+
+- Relative `.md` links between published shards become site routes.
+- Compiled cross-links such as `[text](#slug)` resolve through the refs registry (`docs/_build/refs.json`) and the per-guide compiled outputs. The `mdcp-shard` source markers in each compiled file name the shard that defines the slug.
+- Links to other repository files point at the file on GitHub.
+
+The sync fails on any internal link it cannot resolve, and the build then checks every internal link and anchor in the generated HTML. Generated pages, the sidebar file, and Astro output are gitignored. Edit the shard under `docs/`, never the generated page. Each page's edit link opens the shard.
+
+### Build and preview
+
+```bash
+pnpm site:dev     # build packages, compile docs, sync, then astro dev
+pnpm site:build   # same steps, then astro build and the dist link check
+```
+
+Both commands run `pnpm build` and `pnpm docs:compile:repo` first, because the sync needs the CLI build and the refs registry.
+
+### Deployment
+
+[`.github/workflows/pages.yml`](.github/workflows/pages.yml) builds the site on pull requests that touch `docs/` or the site package, and deploys it to GitHub Pages from `develop`. Landings push `develop` with the workflow's own token, which starts no other workflows, so the [land workflow](.github/workflows/land-develop.yml) dispatches the deploy after each landing. The repository's Pages source must be set to **GitHub Actions**, and the `github-pages` environment must allow deployments from `develop`.
+
+### Coverage scan
+
+The site generates its pages into gitignored paths, and the [coverage](#coverage) scan honors `.gitignore`, so generated pages never show up as uncaptured files. The scan only reads `.md` files, so the hand-authored `index.mdx` landing page is outside `mdcp check`; the post-build link check covers its links instead. No `scan.ignore` entry is needed.
+
+<!-- mdcp-shard: end docs/developer/docs-site.md -->
 
 <!-- mdcp-shard: start docs/developer/versioning-and-releases.md -->
 
@@ -864,23 +966,48 @@ mdcp uses [Semantic Versioning 2.0.0](https://semver.org/) and [Changesets](http
 
 Independent versioning is configured in [`.changeset/config.json`](.changeset/config.json) (`fixed` is empty). Dependents of a bumped workspace package still get a **patch** internal dependency update (`updateInternalDependencies`).
 
-### Release schedule (single step on `main`)
+### Branches
 
-There is **no calendar cadence** and **no Version Packages PR**. Releases are **one CI job** after merge to `main`:
+| Branch     | Role                                                                    | Who merges into it                                     |
+| ---------- | ----------------------------------------------------------------------- | ------------------------------------------------------ |
+| `develop`  | Integration trunk. Work lands here without a PR once it passes the gate | `claude/**` and `land/**` pushes, and Dependabot PRs   |
+| `main`     | Protected release branch. `npx skills add` installs from it             | Release PRs from `develop`, and `hotfix/*` branches    |
+| `hotfix/*` | An urgent fix cut from `main` that can't wait for the next release      | Merged to `main`; the sync job carries it to `develop` |
 
-1. Contributors add a changeset with each PR that affects a published package or skill.
-2. Merging that PR to `main` runs the [release workflow](.github/workflows/release.yml) (`pnpm release:main`).
-3. After the **Release plan** job posts pending changesets (and any **missing GitHub Releases**) to the run summary, approve the **`release` environment**. The version job **resets to the current `origin/main` tip** (so post-approval work includes all merged changesets), then **sequentially**: applies changesets → syncs skill `metadata.version` → builds (so husky can run) → commits `chore: release` → **pushes to `main`** → publishes public packages to npm → **pushes tags** → creates GitHub Releases (including skill carriers).
+#### Landing on `develop`
+
+Pushing to a branch named `claude/**` or `land/**` runs the [land workflow](.github/workflows/land-develop.yml). It merges the current `develop` into the pushed commit and runs the same gate as CI's Check and Changeset jobs on the result. When the gate passes, it pushes that tested merge to `develop`. When the branch changes anything under `formal/` or the formal-check scripts, the gate also runs `pnpm formal:check`, as CI's Formal models job does. There is no PR to open, review or merge.
+
+- **Evidence lives with the work.** Put what was measured or verified in the commit message, or in a research record for larger results. The run summary lists the commits each landing brought in.
+- **A failed gate lands nothing.** Fix the branch and push again, and do the same when it conflicts with `develop`. Only one run waits behind the running one, so a newer landing or sync cancels the waiting run. When that happens, or when `develop` moved during the run, re-run all jobs of the workflow, or push a new commit to the branch. After `develop` moves, re-running only the failed job reuses the old `develop` and fails again. Pushing a branch whose tip hasn't changed doesn't start a run.
+- **Landings run one at a time**, and each one pushes only the tree that passed its gate. A clean sync from `main` goes through the same gate. Other paths move `develop` without the gate. A merged PR, from Dependabot or from the sync when `main` conflicts, does unless a branch rule makes PRs into `develop` up to date, and a maintainer can push directly unless a rule blocks it. When a PR's base changes from `main` to `develop`, CI runs again against `develop`. [Formal models](#landing-and-release) shows which guards close each of those paths.
+- **Some scans wait for the release PR.** Gitleaks scans the pushed branch before it lands. The landing is pushed with the workflow's own `GITHUB_TOKEN`, and GitHub starts no workflows for such pushes, so CodeQL and Zizmor first see landed work on the release PR. A finding there is fixed forward on `develop`.
+- **Review happens once**, on the release PR from `develop` to `main`.
+
+Dependabot still opens PRs against `develop`, because its changes come from outside the project.
+
+`main` stays the repository's default branch because skills.sh installs from it, so GitHub proposes `main` as the base of a new PR. The **Release source** check fails any PR into `main` whose head is not `develop` or `hotfix/*`, and blocks the merge where `main`'s branch rule requires it. It runs from its own [workflow](.github/workflows/release-source.yml), which runs only on PRs into `main`, including a PR whose base changes to `main`.
+
+### Release schedule (release PR from `develop` to `main`)
+
+There is **no calendar cadence** and **no Version Packages PR**. A release is a PR from `develop` to `main`, followed by **one CI job**:
+
+1. Changesets reach `develop` with the landings they describe ([When to add a changeset](#when-to-add-a-changeset)). The release workflow versions and publishes only after a release PR reaches `main`.
+2. When `develop` is tested and ready, confirm that the pending `.changeset/*.md` files list only the packages and skills that should bump, and that each unreleased skill is still internal, as [Publishing the skill pack](#publishing-the-skill-pack) requires. Then open a PR from `develop` to `main` and merge it with a **merge commit**. Squashing would give `main` history that `develop` lacks.
+3. The merge runs the [release workflow](.github/workflows/release.yml) (`pnpm release:main`), which needs the `RELEASE_GITHUB_TOKEN` secret described in [Publishing](#publishing). The **Release plan** job posts the pending changesets (and any **missing GitHub Releases**) to the run summary. Read that summary on the latest run to review the bumps and release notes, then approve the **`release` environment** there. The version job **resets to the current `origin/main` tip** (so post-approval work includes all merged changesets), then **sequentially**: applies changesets → syncs skill `metadata.version` → builds (so husky can run) → commits `chore: release` → **pushes to `main`** → publishes public packages to npm → **pushes tags** → creates GitHub Releases (including skill carriers).
+4. Every push to `main` runs the [sync workflow](.github/workflows/sync-develop.yml), which merges `main`, with the release commit and any hotfix, back into `develop`. A clean merge is pushed to the `land/sync-main` branch, and the sync dispatches the land workflow on it. The merge goes to `develop` only after it passes the gate. If the gate fails, `develop` doesn't get `main`'s commits until someone fixes the failure. They can merge `main` into a `land/**` branch other than `land/sync-main` and fix it there, or land the fix on `develop` and run **Sync develop** again. The next sync overwrites `land/sync-main`, so a fix pushed there is lost. A conflict opens a PR from `main` to `develop` instead. Resolve it the same way, by merging `main` into a `land/**` branch other than `land/sync-main`. The PR itself can't take the fix, because its head is the protected `main`. Once `develop` contains `main`, the PR closes as merged.
+5. Check that each bumped item, skill carriers included, has a GitHub Release and that npm shows the new version of each public package. Then confirm that the land workflow's run on `land/sync-main` put the release commit on `develop`. A landing queued after it can cancel it while it waits, and it fails when `develop` moves during the run. In either case, re-run all of its jobs or run **Sync develop** again.
+6. When a workflow change reached `develop` after the previous sync, check that the sync's push to `land/sync-main` went through. The sync pushes with `GITHUB_TOKEN`, which can't be given the `workflows` permission, and its force-push includes every workflow change `develop` gained since that sync. If the push was refused, reset `land/sync-main` to `develop` with your own access and run **Sync develop** again. Its push then includes only what `main` adds.
 
 **Latest main wins:** concurrency does **not** cancel an in-flight publish (`cancel-in-progress: false`). The Release plan job **cancels** other Release runs on `main` that are still **waiting** (env approval) or **queued**. If `main` moves during the short version window, `pnpm release:main` aborts the push with a superseded message (no force-push).
 
 If a prior run versioned/published but failed before tags/Releases finished, the next Release plan detects **missing** `name@version` git tags and/or GitHub Releases and the release job **heals** them without bumping versions again (tag + `gh release create … --target` at the commit that last changed that package’s `package.json`).
 
-**Agent Skills** live under `skills/` as the install surface (`npx skills add`). Version carriers and CHANGELOGs live under **`packages/skill-<id>/`** only — never under `skills/` (those files would pollute agent context on install). `pnpm release:main` syncs the carrier version into `skills/<id>/SKILL.md` `metadata.version`. Feature PRs must add a changeset targeting `@bwilliamson/skill-<id>` and must **not** hand-bump `metadata.version`. See [Agent Skill](#agent-skill-development).
+**Skills** are under `skills/`, the directory that `npx skills add` installs from. Each skill versions through a private carrier package in `packages/skill-<id>/`, which holds its `package.json` and CHANGELOG. Keep both files out of `skills/`, because every install would copy them into agent context. `pnpm release:main` syncs the carrier version into `skills/<id>/SKILL.md` `metadata.version`, so never edit that field by hand.
 
 ### Pre-1.0 policy (`0.x.y`)
 
-Packages and Agent Skills are **pre-1.0** while on `0.x.y`. Until a given item reaches **1.0.0**, that item has **no API stability guarantee**. **Major bumps are disabled** (`pnpm changeset:reject-major`). Use **patch**, **minor** (including breaking-within-0.x), or **build** via `pnpm release:build`.
+Packages and skills are **pre-1.0** while on `0.x.y`. Until an item reaches **1.0.0**, that item has **no API stability guarantee**. **Major bumps are disabled** (`pnpm changeset:reject-major`). Use **patch**, **minor** (including breaking-within-0.x), or **build** via `pnpm release:build`.
 
 | Bump      | When                                                                       |
 | --------- | -------------------------------------------------------------------------- |
@@ -888,35 +1015,24 @@ Packages and Agent Skills are **pre-1.0** while on `0.x.y`. Until a given item r
 | **minor** | New capabilities, or breaking-within-0.x until majors are opened           |
 | **build** | Republish without API change (`0.1.0-build.1`, …) via `pnpm release:build` |
 
-#### Community feedback
-
-- Visit [github.com/betsalel-williamson/mdcp](https://github.com/betsalel-williamson/mdcp) and **star** the repo
-- **Open an issue** or comment on PRs with bugs, adoption stories, or tooling feedback
-
-### Release checklist (maintainers)
-
-1. Confirm pending `.changeset/*.md` files name only the packages/skills that should bump.
-2. **Skills policy:** parent `mdcp` remains the consumer entrypoint; keep `skills/mdcp-arch-*` as `metadata.internal: true` until intentionally published (see [Agent Skill development](#skillsshjson-repo-page-layout)).
-3. Ensure secret **`RELEASE_GITHUB_TOKEN`** is set (maintainer PAT with Contents + metadata for releases/push) — see [Publishing](#publishing).
-4. Merge feature PRs to `main`. Approve the **`release` environment** deployment when prompted.
-5. Verify GitHub Releases for each bumped item (npm packages and `@bwilliamson/skill-*`) and npm for public packages.
-
 ### Durable docs vs pending changesets
 
-Pending `.changeset/*.md` files are temporary. Point consumers at package CHANGELOGs under `packages/*/` or GitHub Releases — never at pending changesets. Skill CHANGELOGs live under `packages/skill-<id>/CHANGELOG.md`, not under `skills/`.
+Pending `.changeset/*.md` files are temporary. Point consumers at package CHANGELOGs under `packages/*/` or at GitHub Releases, never at pending changesets.
+
+A notice to consumers about removed or breaking behavior goes in the changeset. The release turns it into a package CHANGELOG entry.
 
 ### When to add a changeset
 
-Run `pnpm changeset` when a PR changes:
+Run `pnpm changeset` when a change touches a published item:
 
-- `packages/mdcp-core/src/**` → `@bwilliamson/mdcp-core`
-- `packages/mdcp-cli/src/**` → `@bwilliamson/mdcp-cli`
-- `packages/mdcp-presets/*.jsonc` → `@bwilliamson/mdcp-presets`
-- **`skills/<id>/**`** → `@bwilliamson/skill-<id>` (carrier under `packages/skill-<id>/`)
+- any file under `packages/mdcp-core/` → `@bwilliamson/mdcp-core`
+- any file under `packages/mdcp-cli/` → `@bwilliamson/mdcp-cli`
+- any file under `packages/mdcp-presets/` → `@bwilliamson/mdcp-presets`
+- any file under `skills/<id>/` or `packages/skill-<id>/` → `@bwilliamson/skill-<id>`
 
-**Do not** put `package.json` or `CHANGELOG.md` under `skills/`. **Do not** hand-edit `skills/*/SKILL.md` `metadata.version`.
+Every file in those paths counts, tests and compiled READMEs included, so a shard edit that changes `packages/mdcp-cli/README.md` or `packages/mdcp-core/README.md` needs a changeset for that package. The skill carriers count although they are private, because `.changeset/config.json` sets `privatePackages.version`. A change that edits only `devDependencies` in a package's `package.json` is exempt. `packages/mdcp-site/` is never published, and Changesets ignores it.
 
-CI runs `pnpm changeset:reject-major` and `pnpm changeset:status` on pull requests.
+The land gate and CI on pull requests both run `pnpm changeset:reject-major` and `pnpm changeset:status`. For a package path, the status check fails unless the branch adds or edits a changeset. For `skills/<id>/` it fails only when no changeset is pending, so add one for the skill even when `develop` already has others. The status check passes any branch that consumed a changeset, and then it doesn't check the branch's own package changes either. A branch consumed one when its diff from the base deletes a changeset, as release and sync diffs do, or when its commits since the base include a release commit that deleted one. That release commit counts even when the changeset was never on the base, which happens to a sync when the hotfix sync before it didn't land.
 
 ### Dependabot
 
@@ -935,9 +1051,83 @@ Once the workflow has committed to a PR, Dependabot stops rebasing it on its own
 
 - [Publishing](#publishing)
 - [Agent Skill](#agent-skill-development)
-- [.changeset/README.md](.changeset/README.md)
 
 <!-- mdcp-shard: end docs/developer/versioning-and-releases.md -->
+
+<!-- mdcp-shard: start docs/developer/formal-models.md -->
+
+## Formal models
+
+Some parts of this repository run as state machines: branches that move under rules, and workflows that must run in a set order. Tests and prose cover single runs of them. An [Alloy](https://alloytools.org) model describes every order in which the events can happen, up to a bound. The Alloy Analyzer searches all of those orders for a run that breaks a stated property.
+
+The models live in `formal/alloy/`. Every command in a model declares the result it must produce. `expect 0` means no instance may exist, because a property holds or a scenario is impossible. `expect 1` means one must exist: a counterexample that proves a guard is needed, or a scenario that proves the model can do real work. `pnpm formal:check` runs every model. It fails when a command misses its expectation or does not declare one. CI runs it in the Formal models job. The [land gate](#landing-on-develop) runs it when a branch changes anything under `formal/` or the formal-check scripts.
+
+### Running the models
+
+`pnpm formal:check` needs Java 17 or later on `PATH`. On first use it downloads the pinned Alloy release from Maven Central into `.caches/alloy/` and verifies its SHA-256 checksum. It uses the Glucose solver bundled in the Alloy jar, which is many times faster here than the default. The landing model takes about three minutes on a four-core machine.
+
+To read a counterexample, run one command with the Alloy CLI and open the trace it writes:
+
+```bash
+java -jar .caches/alloy/alloy-6.2.0.jar exec -f -s glucose -c DevelopTestedWithoutGatedSync \
+  -t text -o .caches/alloy/out formal/alloy/landing.als
+```
+
+The trace lists the states in order. In each state, `Step.kind` names the event that comes next, and the rest shows the commit every branch points at and the trees a gate or CI run passed on.
+
+### Landing and release
+
+`formal/alloy/landing.als` models the events that move `develop` or `main`. A landing and the sync from `main` move `develop`, the release commit moves `main`, and a PR merge or a maintainer's direct push can move either branch. It also models CI on pull requests, including a PR whose base branch changes after it opens.
+
+The model checks three properties. Each one is true only while all of its guards are in place, and for each guard a check finds a run that breaks the property without it. A guard is either a branch rule, which is a repository setting that no workflow can enforce, or a choice in a workflow under `.github/workflows/`.
+
+#### `develop` only moves to a tested tree
+
+| Guard                                         | Kind        | What goes wrong without it                                                                      |
+| --------------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------- |
+| People cannot push `develop` directly         | Branch rule | A maintainer's push puts untested work on `develop`                                             |
+| A PR into `develop` must be up to date        | Branch rule | A Dependabot PR merged after `develop` moved puts a merge no CI run tested on `develop`         |
+| CI runs again when a PR's base changes        | Workflow    | A PR tested against `main` and then moved to `develop` merges on that old run                   |
+| The sync from `main` runs through a land gate | Workflow    | The sync puts the release commit, or its merge with newer `develop` work, on `develop` untested |
+
+Both workflow guards are in place. GitHub's up-to-date rule asks only that a PR's head contain the base branch's latest commit. It does not ask which base CI last ran against. GitHub proposes `main` as the base of a new PR, and the Release source check asks its author to move it to `develop`. Without a new run, the PR could then merge on its run against `main`. CI in `.github/workflows/ci.yml` also runs on the `edited` event that a base change sends. Moving the PR starts a run against `develop`. No job in it has an `if` that skips an edit, because a skipped run counts as passing and would replace an earlier failure. A title edit reruns CI too.
+
+The sync in `.github/workflows/sync-develop.yml` pushes a clean merge to the `land/sync-main` branch and dispatches the land workflow on it. A push made with the workflow's own `GITHUB_TOKEN` doesn't start a workflow, but a dispatch does. The land gate then tests the merge like any other landing, and `develop` moves only when the gate passes. Without that gate, an untested merge that broke `develop` would fail every later landing until someone fixed `develop`.
+
+Only the land workflow pushes `develop`, with that `GITHUB_TOKEN`. So both branch rules for `develop` have to exempt the identity it pushes as. Otherwise they block landings along with everyone else. The sync force-pushes `land/sync-main` as the same identity, so a rule that blocks force-push has to leave that branch out.
+
+#### `main` only moves to a tested tree
+
+| Guard                                          | Kind        | What goes wrong without it                                                     |
+| ---------------------------------------------- | ----------- | ------------------------------------------------------------------------------ |
+| People cannot push `main` directly             | Branch rule | A maintainer's push puts untested work on `main`                               |
+| A PR into `main` must be up to date            | Branch rule | A release PR merged after `main` moved puts a merge no CI run tested on `main` |
+| CI runs again when a PR's base changes         | Workflow    | A PR tested against `develop` and then moved to `main` merges on that old run  |
+| The release job runs the gate before it pushes | Workflow    | The version commit reaches `main` with less than a landing's gate behind it    |
+
+The CI guard is in place, as for `develop`, and the release job's gate is not. Before the release job in `.github/workflows/release.yml` pushes the version commit, it builds and validates the skills, and the pre-commit hook checks the packages it bumped, which is less than the gate a landing runs. The job also pushes with a maintainer's personal access token. A rule that blocks direct pushes to `main` would block the release as well. Exempting the maintainer whose token the job uses would let that maintainer push by hand too. Closing that path needs an identity for the release job that the rule can exempt on its own.
+
+#### `main` only merges `develop` or `hotfix/*`
+
+| Guard                                              | Kind        | What goes wrong without it                                              |
+| -------------------------------------------------- | ----------- | ----------------------------------------------------------------------- |
+| People cannot push `main` directly                 | Branch rule | A maintainer's push moves `main` without any PR                         |
+| The Release source check is required on `main`     | Branch rule | A PR from any branch merges once a code owner approves it               |
+| Release source runs again when a PR's base changes | Workflow    | A PR opened against `develop` and then moved to `main` merges unchecked |
+
+The third guard is in place. `.github/workflows/release-source.yml` runs on the `edited` event, which GitHub sends when a PR's base changes.
+
+#### Scenarios and bounds
+
+With every guard on, the model also runs scenarios that show the checks above are not vacuous. A landing is followed by a release PR. The release commit syncs back to `develop`. A Dependabot PR merges into `develop` after a landing moves it, and a hotfix merged into `main` reaches `develop`.
+
+Every check covers traces of up to seven steps over six commits and one pull request. A passing check means no counterexample exists within that bound, which is large enough for each counterexample above to appear. The model assumes merges are clean and that force-push to `develop` and `main` is blocked. A pushed branch may move to any commit, as the sync's force-push of `land/sync-main` does. It also assumes a code owner approves whenever a rule requires it, and that no branch changes the workflow that checks it. A pushed branch runs its own copy of the land workflow, and a PR runs its own copy of CI and Release source. On a PR into `main`, code owner review of `.github/` is what catches such a change. A landing's copy of the land workflow runs before anyone reviews it.
+
+### Adding a model
+
+Model a part of the system when it runs as a sequence of states and a wrong order of events would break it. Start the model with a comment that points to the shard explaining it. Give every command an `expect`, and choose scopes small enough that `pnpm formal:check` finishes within a few minutes.
+
+<!-- mdcp-shard: end docs/developer/formal-models.md -->
 
 <!-- mdcp-shard: start docs/developer/publishing.md -->
 
@@ -945,12 +1135,16 @@ Once the workflow has committed to a PR, Dependabot stops rebasing it on its own
 
 Packages: `@bwilliamson/mdcp-core`, `@bwilliamson/mdcp-cli`, `@bwilliamson/mdcp-presets` (npm). Skill carriers: `@bwilliamson/skill-*` under `packages/skill-*` (GitHub Releases only; not npm).
 
+Consumers install the Agent Skill as [Get started](README.md#get-started) shows. The [CLI](./packages/mdcp-cli/README.md#install) and [core](./packages/mdcp-core/README.md#install) package READMEs give their own install commands.
+
 ### Prerequisites
 
 - npm account **`bwilliamson`** with access to publish `@bwilliamson/*`
 - **2FA enabled** on npm (auth-and-writes)
-- Repository secret **`RELEASE_GITHUB_TOKEN`** — **fine-grained** maintainer PAT with **Contents: Read and write** on this repo only (create commits/tags/releases). Prefer fine-grained over classic `repo`. Required for the single-step release job; do not use a broad classic PAT if avoidable.
+- Repository secret **`RELEASE_GITHUB_TOKEN`**, set up as described below
 - `pnpm install` at repo root
+
+Security reporting and bad-release handling: [SECURITY.md](SECURITY.md) and [Security-incident triage](#security-incident-triage).
 
 ### First-time publish (chicken-and-egg)
 
@@ -964,33 +1158,26 @@ First npm publish must happen from your machine with `npm login` before Trusted 
 2. Repository: `betsalel-williamson/mdcp`
 3. Workflow filename: `release.yml`
 
-Also enable **Settings → Actions → General → Workflow permissions → Allow GitHub Actions to create and approve pull requests** only if you still use other bots that open PRs; the release path no longer opens a Version Packages PR.
+Also enable **Settings → Actions → General → Workflow permissions → Allow GitHub Actions to create and approve pull requests**. The [sync workflow](#release-schedule-release-pr-from-develop-to-main) needs it. When merging `main` back into `develop` conflicts, that workflow opens a pull request from `main` to `develop` with its own `GITHUB_TOKEN`.
 
 #### `RELEASE_GITHUB_TOKEN`
 
 1. Create a **fine-grained** PAT as the maintainer (avoid classic `repo` unless necessary).
-2. Repository access: this repo only. Permissions: **Contents** read/write (commits, tags, releases).
+2. Repository access: this repo only. Give it **Contents** read/write (commits, tags, releases). Every fine-grained token also includes read-only **Metadata** access.
 3. Store as repository secret **`RELEASE_GITHUB_TOKEN`**.
 4. Rotate when maintainers change or on a schedule.
 
 Without it, the Release job fails before versioning (hard requirement).
 
-Before approving the **`release` environment**, open the **Release plan** job summary on the same workflow run and review pending `.changeset` files (release notes / bump intent).
+### Dry run and manual fallback
 
-### Routine releases (one step)
-
-1. Merge feature PRs that include changesets to `main`.
-2. Open the **latest** Release workflow run → read the **Release plan** job summary (pending changesets and/or missing GitHub Releases). Older runs still waiting for approval are cancelled when a newer plan starts.
-3. Approve the **`release` environment** deployment on that latest run.
-4. After approval, CI **resets to `origin/main` tip**, then runs **`pnpm release:main`**: with pending changesets — version → sync skill frontmatter → build → commit → **push to `main`** → `changeset publish` → **push tags** → GitHub Releases (npm packages **and** skill carriers). With no changesets but missing tags/Releases — create those git tags and Releases idempotently at each package’s version-bump commit (`--target`). If `main` moved during versioning, the push aborts as superseded (no force-push).
-
-There is no separate Version Packages PR.
-
-Preview locally (consumes changesets — use a throwaway branch):
+Routine releases run in CI, as [Release schedule](#release-schedule-release-pr-from-develop-to-main) describes. The dry run prints each release command without running it, so it doesn't change any file or push anything:
 
 ```bash
 pnpm release:main --dry-run
 ```
+
+With pending changesets, the dry run lists them and then exits 1 with "changeset version ran but no package versions changed", because it skipped the version step. So it can't preview a versioning release.
 
 Manual fallback:
 
@@ -998,17 +1185,6 @@ Manual fallback:
 pnpm run check
 pnpm release:main
 ```
-
-### Install surfaces
-
-| Use case       | Command                                                    |
-| -------------- | ---------------------------------------------------------- |
-| Dev dependency | `npm i -D @bwilliamson/mdcp-cli @bwilliamson/mdcp-presets` |
-| Global CLI     | `npm i -g @bwilliamson/mdcp-cli`                           |
-| Programmatic   | `import { compileGuides } from '@bwilliamson/mdcp-core'`   |
-| Agent Skills   | `npx skills add betsalel-williamson/mdcp --skill mdcp`     |
-
-See [SECURITY.md](SECURITY.md) and [Security-incident triage](#security-incident-triage).
 
 <!-- mdcp-shard: end docs/developer/publishing.md -->
 
@@ -1035,7 +1211,7 @@ pnpm audit --audit-level=moderate # full tree including presentation tooling
 pnpm why <package>                # which path pulls the vulnerable package
 ```
 
-CI gates on `pnpm audit --audit-level=high` (see [Packages and tests](#packages-and-tests)). Moderate noise in **dev-only** trees is hygiene, not an automatic security release of `@bwilliamson/mdcp-*`.
+CI fails when `pnpm audit --audit-level=high` finds a high or critical advisory (see [CI and the land gate](#ci-and-the-land-gate)). Moderate noise in **dev-only** trees is hygiene, not an automatic security release of `@bwilliamson/mdcp-*`.
 
 Workspace overrides for this monorepo live under `overrides:` in [`pnpm-workspace.yaml`](pnpm-workspace.yaml) (pnpm 11+ no longer reads `package.json` → `pnpm.overrides`).
 
@@ -1081,98 +1257,13 @@ Never unpublish a version that other packages or consumers legitimately depend o
 
 <!-- mdcp-shard: end docs/developer/security-incident-triage.md -->
 
-<!-- mdcp-shard: start docs/developer/safe-markdown-parsing.md -->
-
-## Safe markdown parsing (heading helpers)
-
-Maintainer note for why `mdcp-core` centralizes heading parsing and related cleanup in shared **language-agnostic** helpers instead of ad-hoc regular expressions, and how remaining package regexes were audited for [ReDoS](#redos) risk.
-
-Work is tracked under [#200](https://github.com/betsalel-williamson/mdcp/issues/200) (Phase A, v0.7 release gate) and [#201](https://github.com/betsalel-williamson/mdcp/issues/201) (Phase B follow-up audit), as children of epic [#173 — Repository security posture](https://github.com/betsalel-williamson/mdcp/issues/173). CodeQL setup that surfaces these findings is [#174](https://github.com/betsalel-williamson/mdcp/issues/174). Prose chapter-cue lint moved to Vale in [#230](https://github.com/betsalel-williamson/mdcp/issues/230) / [Locale and language boundary](docs/features/design-constraints/locale-and-language.md).
-
-### Why this is necessary
-
-GitHub CodeQL’s `js/polynomial-redos` rule flagged several `mdcp-core` paths that parse headings and strip leftover `{#…}` markers. The patterns used overlapping or unbounded quantifiers (`\s*` next to `{#…}`, `\s+` with a greedy remainder, non-greedy `.*?` between braces) on library-controlled strings. On adversarial input those matches can take time that grows badly with length — a [ReDoS](#redos) class of denial-of-service risk.
-
-Even when everyday docs never hit the pathological case, the open alerts block a clean security dashboard, and the same regex shapes were copied across compile, refs, and links. Fixing call sites one-by-one without a shared parse path invites the class to return.
-
-### What we do instead (Phase A)
-
-Phase A introduces shared **linear** helpers for:
-
-- recognizing headings via `parseHeading` (ATX kind today; see [GFM scope](docs/features/design-constraints/gfm-scope.md#headings))
-- demoting recognized headings (rewrite emits ATX)
-- stripping leftover Pandoc IDs (`{#…}`) when cleaning compiled output (defensive cleanup — authoring opinion to avoid them is Vale `MDCP-PandocId`)
-- producing plain heading text for language-agnostic [heading slug](#heading-slug) generation
-
-Public package APIs keep their existing names; call sites delegate to the helpers. Duration-budget regression tests exercise the known CodeQL pump classes so a future regex reintroduction fails CI.
-
-See [Packages and tests](#packages-and-tests) for where the helper module lives under `mdcp-core`.
-
-### Phase B inventory (remaining regexes)
-
-Phase B inventories remaining regexes in `packages/mdcp-core/src/` after Phase A **and** after prose chapter-cue lint moved to [Vale](https://vale.sh/) (`@bwilliamson/mdcp-presets` `vale/MDCP`, [#230](https://github.com/betsalel-williamson/mdcp/pull/230)). Decision rule: **keep** when the shape is clearly linear; **rewrite** when polynomial-adjacent (`\s*` / overlapping optional groups next to digits, or the CodeQL class); **dismiss** when a conservative checker flags a standard markdown-link idiom that stays empirically linear; **out of scope** when the concern is language/prose opinion (belongs in Vale, not core).
-
-Duration-budget tests cover rewritten paths. Link extract/rewrite patterns stay as regexes with the dismissals below — not a full parser purge. Alternatives such as ripgrep, Peggy, or Rust for these scanners are declined for now; see [ADR 0005](docs/features/adr/0005-keep-ts-scanners-over-rg-peggy-rust.md).
-
-#### Rewritten (linear scanners)
-
-| Location                         | Former risk shape                                    | Disposition                                                                           |
-| -------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `compile/hooks/code-evidence.ts` | `LINE_RANGE_RE` optional `L`/`lines?` + `\s*` + alts | Imperative `lineRangeFromText`; word cues from the locale pack (not hardcoded)        |
-| `compile/headings.ts` About H1   | `^#\s+About…\s*$` (safe but heading-regex sprawl)    | `parseHeading` + locale `aboutThisGuideTitle` (case-insensitive; not hardcoded en-US) |
-
-#### Moved out of core (Vale)
-
-| Former core concern                       | Home now                                                                    |
-| ----------------------------------------- | --------------------------------------------------------------------------- |
-| Bare / unlinked “See Chapter…” prose cues | `@bwilliamson/mdcp-presets` Vale style `MDCP` ([vale.sh](https://vale.sh/)) |
-| Pandoc heading-ID authoring opinion       | Dogfood Vale `MDCP-PandocId`                                                |
-
-Do **not** reintroduce `lintXrefs` or chapter-cue regexes in `mdcp-core`.
-
-#### Kept (clearly linear)
-
-| Location                         | Pattern role                   | Rationale                                       |
-| -------------------------------- | ------------------------------ | ----------------------------------------------- |
-| `compile/headings.ts` `FENCE_RE` | Fence open/close markers       | Anchored; `` `{3,}` `` / `~{3,}` then remainder |
-| `refs/slugs.ts` slug cleanup     | `[^a-z0-9]+`, trim dashes      | Single character-class replace                  |
-| `export/protocol-version.ts`     | `mdcp.v…llms.txt` filenames    | Anchored filename; `[\d.]+` is linear           |
-| `compile/section-slug.ts`        | `FIND-N.md`, `.md` suffix      | Anchored / suffix only                          |
-| `compile/section-manifest.ts`    | Dynamic `##` sections heading  | Escaped literal; anchored `^##\s+…\s*$`         |
-| `links/validate.ts`              | `https?://`, `.md` suffix      | Anchored / suffix                               |
-| `compile/assemble.ts`            | Collapse `\n{3,}`              | Bounded quantifier on one character             |
-| `shard/orchestrator.ts`          | Demote leading H1 marker       | Fixed two-character `#` + space prefix          |
-| Misc adornment / path trims      | Bold stars, inline ticks, `./` | Literal or single-class                         |
-
-#### Dismissed (link idioms — keep regex)
-
-| Location                                      | Pattern role                      | Rationale                                                                                       |
-| --------------------------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `links/extract.ts` `MD_LINK_RE`               | Non-image `[label](target)`       | Standard GFM link extract; character-class stars; line-scoped; empirically linear at 40k+ chars |
-| `code-evidence.ts` link match                 | `[…](…)` rewrite                  | Same class; simpler `[^)]*` form already passes conservative checkers                           |
-| `compile/section-manifest.ts` file/slug links | Manifest `.md` / `#slug` links    | Same link idiom; used on small manifests                                                        |
-| `compile/publish-links.ts` rewrite REs        | Intra/cross-guide / publish paths | Nested lookarounds + `.md` suffix; conservative checkers may flag; V8 timings stay linear       |
-| `compile/hooks/inline-inserts.ts`             | Insert-library link match         | Same as publish-links; library-dir alternation is fixed                                         |
-
-These dismissals are intentional: Phase B does **not** replace every regex with parsers. If CodeQL later opens `js/polynomial-redos` on a dismissed site, treat that alert as a new fix ticket (same TDD pattern as Phase A).
-
-### Authoring implications
-
-- Prefer the shared helpers for new heading or slug logic; do not add new polynomial-risk regexes for those jobs.
-- Prefer imperative scanners when adding line-range style matchers (optional whitespace next to digits or overlapping alternatives). Authored **word** cues for line ranges belong in the locale pack; keep `L` / `:` forms and `#L…` output language-neutral in the scanner.
-- Prefer GFM auto-slugs; do not author Pandoc IDs on headings (Vale warns in this repo). Compile stripping stays available for legacy content.
-- Unlinked chapter/section prose cues are Vale’s job — not a new `mdcp-core` lint path.
-- After merge to the default branch, confirm CodeQL alerts for the heading/anchor class stay closed on the next scan of `main`.
-
-<!-- mdcp-shard: end docs/developer/safe-markdown-parsing.md -->
-
 <!-- mdcp-shard: start docs/developer/github-actions-security.md -->
 
 ## GitHub Actions security posture
 
 Maintainer guide for tracking **GitHub Actions security posture** in this public OSS monorepo. Vulnerability **reporting** stays in [SECURITY.md](SECURITY.md); dependency and release triage stays in [Security-incident triage](#security-incident-triage). This shard is the audit trail for CI workflow and repository settings against the [OWASP GitHub Actions Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/GitHub_Actions_Security_Cheat_Sheet.html).
 
-Work is tracked under epic [#173 — Repository security posture](https://github.com/betsalel-williamson/mdcp/issues/173). The durable checklist lives in [#168 — OWASP GitHub Actions security checklist docs](https://github.com/betsalel-williamson/mdcp/issues/168); see [GitHub Actions security checklist](#github-actions-security-checklist) for row-by-row status. CodeQL findings on library regexes (heading / `` [ReDoS](#redos)) are tracked separately in [Safe markdown parsing](#safe-markdown-parsing-heading-helpers).
+Work is tracked under epic [#173 — Repository security posture](https://github.com/betsalel-williamson/mdcp/issues/173). The durable checklist lives in [#168 — OWASP GitHub Actions security checklist docs](https://github.com/betsalel-williamson/mdcp/issues/168); see [GitHub Actions security checklist](#github-actions-security-checklist) for row-by-row status. CodeQL findings on library regexes (heading / `{#id}` [ReDoS](#redos)) are tracked separately in [Safe markdown parsing](#safe-markdown-parsing-heading-helpers).
 
 ### Status vocabulary
 
@@ -1188,7 +1279,9 @@ Do not invent alternate labels. When a risk closes, update the row to `reviewed`
 
 ### Re-review cadence
 
-Re-run the checklist when any of the following change:
+This cadence is **advisory**, because no workflow re-runs the checklist. Whoever makes one of the changes below should re-run the rows it affects. When a coding agent makes the change, it should commit the re-run on the same branch. For a Dependabot bump of an action version, the maintainer who merges the PR should re-run those rows. Each re-run leaves its evidence as a new date on those rows in the [checklist](#github-actions-security-checklist).
+
+Re-run the affected rows when any of the following change:
 
 - Workflow files under `.github/workflows/` (triggers, permissions, action versions, secrets usage)
 - Repository or organization **Actions** settings (default `GITHUB_TOKEN` permissions, allowed actions, environments)
@@ -1196,17 +1289,19 @@ Re-run the checklist when any of the following change:
 - Dependabot or secret-scanning configuration
 - Release mechanics ([Publishing](#publishing) — OIDC, environments, npm trust)
 
-Even when nothing changes, schedule a **periodic pass** (for example quarterly) so third-party action advisories and OWASP guidance updates do not drift unnoticed.
+The [Zizmor](#static-analysis) job gates part of the review for workflow-file changes, since it fails on workflow misconfigurations. It scans Dependabot PRs and direct pushes to `develop` as they arrive, but for workflow changes that land through the land workflow, its first scan is on the release PR ([Landing on `develop`](#landing-on-develop)).
+
+Even when nothing changes, a maintainer should run a **periodic pass** by hand about once a quarter so third-party action advisories and OWASP guidance updates do not drift unnoticed. A full pass gives every dated row a new date, so an oldest date more than a quarter old shows that a pass is overdue.
 
 ### CODEOWNERS and external contributor review
 
 OWASP recommends requiring approval from code owners so external contributors cannot merge changes to critical paths without maintainer review. This repo assigns `@betsalel-williamson` in [`.github/CODEOWNERS`](.github/CODEOWNERS) for:
 
 - All paths (`*`) — default owner
-- `.github/` — workflows, Dependabot, and repository automation
-- `packages/` — published npm packages and CLI
-- `docs/` — sharded documentation compiled into READMEs
-- `skills/` and `.agents/skills/` — publishable and committed Agent Skills
+- `.github/`: workflows, Dependabot, and repository automation
+- `packages/`: published npm packages and CLI
+- `docs/`: sharded documentation compiled into READMEs
+- `skills/` and `.agents/skills/`: publishable and committed skills
 
 CODEOWNERS alone does not block merges; branch protection must enforce owner review.
 
@@ -1216,7 +1311,7 @@ After CODEOWNERS is on `main`, a repo admin enables review enforcement:
 
 1. Open **Settings → Branches → Branch protection rules → `main`** (or the active ruleset for `main`).
 2. Under **Require a pull request before merging**, enable **Require review from Code Owners**.
-3. Keep **Dismiss stale pull request approvals when new commits are pushed** enabled (already on as of 2026-07-27).
+3. Keep **Dismiss stale pull request approvals when new commits are pushed** enabled.
 
 A separate `required_approving_review_count` is not needed — only maintainers have merge access, so the maintainer merge itself serves as the approval gate. Re-verify after any branch-protection edits:
 
@@ -1257,44 +1352,44 @@ We run **CodeQL** and **Zizmor** on push and pull request:
 
 This checklist tracks our compliance with the [OWASP GitHub Actions Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/GitHub_Actions_Security_Cheat_Sheet.html). See [GitHub Actions security posture](#github-actions-security-posture) for vocabulary and re-review guidance. All open risks are tracked under epic [#173](https://github.com/betsalel-williamson/mdcp/issues/173).
 
-| OWASP Topic                             | Status                       | Notes                                                                                                                                                              |
-| --------------------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Pipeline Governance**                 |                              |                                                                                                                                                                    |
-| Treat CI/CD as critical production code | `reviewed (2026-07-27)`      | Security posture docs, full `pnpm run check` gate, and checklist tracked under #173.                                                                               |
-| **Authentication & Authorization**      |                              |                                                                                                                                                                    |
-| Default `GITHUB_TOKEN` permissions      | `reviewed (2026-07-27)`      | Repo default is read-only.                                                                                                                                         |
-| Workflow-level `permissions: {}`        | `reviewed (2026-07-27)`      | Empty top-level on ci/gitleaks/release; job-scoped writes.                                                                                                         |
-| `persist-credentials: false`            | `reviewed (2026-07-30)`      | Set on all `actions/checkout` steps; release uses `RELEASE_GITHUB_TOKEN` only in the publish step env (not persisted at checkout).                                 |
-| Eliminate static credentials            | `reviewed (2026-07-30)`      | npm publish remains OIDC. Git push/releases use fine-grained **`RELEASE_GITHUB_TOKEN`** PAT (Contents write) — documented least-privilege; prefer App token later. |
-| OIDC for cloud providers                | `reviewed (2026-07-30)`      | Trusted Publishing on `release.yml` (push to `main` + `workflow_dispatch`).                                                                                        |
-| Secure handling of static credentials   | `reviewed (2026-07-30)`      | Only `RELEASE_GITHUB_TOKEN` for git push/releases; never logged; no classic cloud keys.                                                                            |
-| Secrets: inherit                        | `not a concern (2026-07-27)` | Not used.                                                                                                                                                          |
-| Mask sensitive data                     | `reviewed (2026-07-27)`      | GitHub auto-masks secrets; gitleaks enforces pre-merge scanning.                                                                                                   |
-| **Workflows & Execution**               |                              |                                                                                                                                                                    |
-| Pin actions to commit SHA               | `reviewed (2026-07-27)`      | All third-party actions pinned to full commit SHAs with tag comments in workflows.                                                                                 |
-| Third-party actions caution             | `reviewed (2026-07-27)`      | Documented current set.                                                                                                                                            |
-| Sanitize untrusted context / input      | `reviewed (2026-07-30)`      | Workflow contexts via env; release notes from Changesets CHANGELOGs (review pending `.changeset` in Release plan job before env approval).                         |
-| `pull_request_target` trigger           | `not a concern (2026-07-27)` | Not used.                                                                                                                                                          |
-| `workflow_run` trigger                  | `not a concern (2026-07-27)` | Not used.                                                                                                                                                          |
-| `issue_comment` trigger                 | `not a concern (2026-07-27)` | Not used.                                                                                                                                                          |
-| Curated shared workflows                | `not a concern (2026-07-27)` | Single-repo monorepo; no centralized shared-workflows repository.                                                                                                  |
-| Multi-repo shared workflows             | `not a concern (2026-07-27)` | Not used.                                                                                                                                                          |
-| **Runners & Environments**              |                              |                                                                                                                                                                    |
-| Self-hosted runners                     | `not a concern (2026-07-27)` | Using `ubuntu-latest` GitHub-hosted runners.                                                                                                                       |
-| Runner groups                           | `not a concern (2026-07-27)` | Not applicable to GitHub-hosted runners.                                                                                                                           |
-| Egress monitoring                       | `reviewed (2026-07-27)`      | Harden-Runner in audit mode only (not block).                                                                                                                      |
-| Environment required reviewers          | `reviewed (2026-07-27)`      | Bound to `release` env; required reviewers are maintainer ops.                                                                                                     |
-| **Code & Supply Chain**                 |                              |                                                                                                                                                                    |
-| Branch protection baseline              | `reviewed (2026-07-27)`      | Main branch protected with PR and status checks.                                                                                                                   |
-| Require approval for external           | `reviewed (2026-09-10)`      | CODEOWNERS on `main`; `require_code_owner_reviews` enabled. Separate approval count not required — only maintainers can merge.                                     |
-| Dependabot for Actions                  | `reviewed (2026-07-27)`      | Configured for weekly updates.                                                                                                                                     |
-| Dependabot cooldown                     | `reviewed (2026-07-27)`      | Explicit 7-day cooldown on `npm` and `github-actions`.                                                                                                             |
-| Artifact / cache poisoning              | `reviewed (2026-07-27)`      | Removed `cache: pnpm` from `release.yml`; CI jobs still cache.                                                                                                     |
-| Secret scanning                         | `reviewed (2026-07-27)`      | Gitleaks workflow is active.                                                                                                                                       |
-| Static analysis (CodeQL/Zizmor)         | `reviewed (2026-07-27)`      | CodeQL (`javascript-typescript` + `actions`) + Zizmor; Zizmor fails on findings.                                                                                   |
-| AI-in-CI                                | `not a concern (2026-07-27)` | No AI assistants used in CI.                                                                                                                                       |
-| **Incident Response**                   |                              |                                                                                                                                                                    |
-| Incident response plan                  | `reviewed (2026-07-27)`      | Covered in `SECURITY.md` and triage docs.                                                                                                                          |
+| OWASP Topic                             | Status                       | Notes                                                                                                                                                                                                                                                                                                                      |
+| --------------------------------------- | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Pipeline Governance**                 |                              |                                                                                                                                                                                                                                                                                                                            |
+| Treat CI/CD as critical production code | `reviewed (2026-07-27)`      | Security posture docs, full `pnpm run check` gate, and checklist tracked under #173.                                                                                                                                                                                                                                       |
+| **Authentication & Authorization**      |                              |                                                                                                                                                                                                                                                                                                                            |
+| Default `GITHUB_TOKEN` permissions      | `reviewed (2026-07-27)`      | Repo default is read-only.                                                                                                                                                                                                                                                                                                 |
+| Workflow-level `permissions: {}`        | `reviewed (2026-10-04)`      | Empty top-level on every workflow; job-scoped writes.                                                                                                                                                                                                                                                                      |
+| `persist-credentials: false`            | `reviewed (2026-07-30)`      | Set on all `actions/checkout` steps; release uses `RELEASE_GITHUB_TOKEN` only in the publish step env (not persisted at checkout).                                                                                                                                                                                         |
+| Eliminate static credentials            | `reviewed (2026-10-04)`      | npm publish remains OIDC. Two fine-grained PATs: **`RELEASE_GITHUB_TOKEN`** (release push and GitHub Releases) and **`DEPENDABOT_CHANGESET_TOKEN`** (Dependabot changeset commits). Landings and develop syncs push with `GITHUB_TOKEN`. Prefer an App token later.                                                        |
+| OIDC for cloud providers                | `reviewed (2026-07-30)`      | Trusted Publishing on `release.yml` (push to `main` + `workflow_dispatch`).                                                                                                                                                                                                                                                |
+| Secure handling of static credentials   | `reviewed (2026-10-04)`      | `RELEASE_GITHUB_TOKEN` is scoped to the `release` environment; `DEPENDABOT_CHANGESET_TOKEN` is read only by the Dependabot changeset job. Never logged; no classic cloud keys.                                                                                                                                             |
+| Secrets: inherit                        | `not a concern (2026-07-27)` | Not used.                                                                                                                                                                                                                                                                                                                  |
+| Mask sensitive data                     | `reviewed (2026-07-27)`      | GitHub auto-masks secrets; gitleaks enforces pre-merge scanning.                                                                                                                                                                                                                                                           |
+| **Workflows & Execution**               |                              |                                                                                                                                                                                                                                                                                                                            |
+| Pin actions to commit SHA               | `reviewed (2026-07-27)`      | All third-party actions pinned to full commit SHAs with tag comments in workflows.                                                                                                                                                                                                                                         |
+| Third-party actions caution             | `reviewed (2026-07-27)`      | Documented current set.                                                                                                                                                                                                                                                                                                    |
+| Sanitize untrusted context / input      | `reviewed (2026-10-04)`      | Workflow contexts via env. Release notes come from Changesets CHANGELOGs (review pending `.changeset` in Release plan job before env approval).                                                                                                                                                                            |
+| `pull_request_target` trigger           | `reviewed (2026-10-04)`      | Used only by `dependabot-changeset.yml`: the job runs when the PR author is `dependabot[bot]`, checks out the base branch, and reads PR files as data.                                                                                                                                                                     |
+| `workflow_run` trigger                  | `not a concern (2026-07-27)` | Not used.                                                                                                                                                                                                                                                                                                                  |
+| `issue_comment` trigger                 | `not a concern (2026-07-27)` | Not used.                                                                                                                                                                                                                                                                                                                  |
+| Curated shared workflows                | `not a concern (2026-07-27)` | Single-repo monorepo; no centralized shared-workflows repository.                                                                                                                                                                                                                                                          |
+| Multi-repo shared workflows             | `not a concern (2026-07-27)` | Not used.                                                                                                                                                                                                                                                                                                                  |
+| **Runners & Environments**              |                              |                                                                                                                                                                                                                                                                                                                            |
+| Self-hosted runners                     | `not a concern (2026-07-27)` | Using `ubuntu-latest` GitHub-hosted runners.                                                                                                                                                                                                                                                                               |
+| Runner groups                           | `not a concern (2026-07-27)` | Not applicable to GitHub-hosted runners.                                                                                                                                                                                                                                                                                   |
+| Egress monitoring                       | `reviewed (2026-07-27)`      | Harden-Runner in audit mode only (not block).                                                                                                                                                                                                                                                                              |
+| Environment required reviewers          | `reviewed (2026-07-27)`      | Bound to `release` env; required reviewers are maintainer ops.                                                                                                                                                                                                                                                             |
+| **Code & Supply Chain**                 |                              |                                                                                                                                                                                                                                                                                                                            |
+| Branch protection baseline              | `reviewed (2026-10-04)`      | `main` is protected with PR, code-owner review and status checks. `develop` takes the land workflow's tested merges, a clean sync of `main` among them, plus Dependabot PRs and the sync's PR when `main` conflicts. The Formal models guide names the guards each branch needs to stay tested, and which are missing now. |
+| Require approval for external           | `reviewed (2026-09-10)`      | CODEOWNERS on `main`; `require_code_owner_reviews` enabled. Separate approval count not required — only maintainers can merge.                                                                                                                                                                                             |
+| Dependabot for Actions                  | `reviewed (2026-07-27)`      | Configured for weekly updates.                                                                                                                                                                                                                                                                                             |
+| Dependabot cooldown                     | `reviewed (2026-07-27)`      | Explicit 7-day cooldown on `npm` and `github-actions`.                                                                                                                                                                                                                                                                     |
+| Artifact / cache poisoning              | `reviewed (2026-07-27)`      | Removed `cache: pnpm` from `release.yml`; CI jobs still cache.                                                                                                                                                                                                                                                             |
+| Secret scanning                         | `reviewed (2026-07-27)`      | Gitleaks workflow is active.                                                                                                                                                                                                                                                                                               |
+| Static analysis (CodeQL/Zizmor)         | `reviewed (2026-07-27)`      | CodeQL (`javascript-typescript` + `actions`) + Zizmor; Zizmor fails on findings.                                                                                                                                                                                                                                           |
+| AI-in-CI                                | `not a concern (2026-07-27)` | No AI assistants used in CI.                                                                                                                                                                                                                                                                                               |
+| **Incident Response**                   |                              |                                                                                                                                                                                                                                                                                                                            |
+| Incident response plan                  | `reviewed (2026-07-27)`      | Covered in `SECURITY.md` and triage docs.                                                                                                                                                                                                                                                                                  |
 
 <!-- mdcp-shard: end docs/developer/github-actions-security-checklist.md -->
 
@@ -1308,25 +1403,15 @@ Per-repository glossary shards under `docs/glossary/` for acronyms and product v
 
 Choosing what belongs in the glossary is an art — not every uncommon word deserves an entry, and not every acronym is obvious to the audience. Each repository **MUST** record its own **inclusion bar** in the glossary (typically the preamble of `docs/glossary/index.md`): which kinds of terms to add, which to omit, and whose understanding counts (client persona, contributors, or both).
 
-[Getting-started](docs/features/protocol/skills/mdcp-getting-started.md) establishes that bar with the end user during bootstrap. Day-to-day helpers apply it whenever they introduce non-universal language — see [Helper Skills](docs/features/protocol/agent-task-prompts.md#glossary-obligation-every-helper).
+The [getting-started workflow](docs/features/protocol/workflows/getting-started.md) establishes that bar with the end user during bootstrap. Day-to-day workflows apply it whenever they introduce non-universal language — see [Skill workflows](docs/features/protocol/skill-workflows.md#glossary-obligation-every-workflow).
 
 ### One term per shard
 
 Each definition lives in its own `.md` file with a single `#` heading (the term). Link the term from feature shards on first use, for example `[GFM](./gfm.md)` or `../glossary/gfm.md` from another guide.
 
-### Multiple index files
+### Sub-index files
 
-When a glossary grows beyond a comfortable manifest size, group entries in sub-index manifests:
-
-| File                | Role                                                                                     |
-| ------------------- | ---------------------------------------------------------------------------------------- |
-| `index.md`          | Master index — preamble plus links to every term shard (required for cross-guide stitch) |
-| `index-protocol.md` | Example sub-index — protocol-related terms only                                          |
-| `index-format.md`   | Example sub-index — format and compile terms                                             |
-
-**Stitched into other guides:** link `../glossary/index.md` from each guide that should publish the full glossary TOC (typically maintainer guides). Lean consumer READMEs may omit the TOC and link individual terms instead. Set `compile.scopeRoot` to `glossary` on those guides so transitive `.md` links from the glossary tree pull term shards into compile output without listing every term in the parent manifest.
-
-**Standalone glossary output:** add `glossary` to `compileOrder` with `compile.outputFile` and optionally `compile.manifest: index-protocol.md` (or another sub-index) when you want a separate compiled glossary per group.
+When guides stitch glossary terms through `compile.scopeRoot`, a large glossary can group term links into sub-index files that `index.md` links. See [Shared glossary](./packages/mdcp-cli/README.md#shared-glossary).
 
 <!-- mdcp-shard: end docs/glossary/domain-glossary.md -->
 
@@ -1334,29 +1419,21 @@ When a glossary grows beyond a comfortable manifest size, group entries in sub-i
 
 ## Agent Skills
 
-Portable packages of agent instructions (`SKILL.md` and companions) that hosts discover and load — the delivery model for MDCP’s **documentation system** guardrails. Upstream source in this monorepo is `skills/mdcp/`; consumers vendor via `npx skills add` into the **agent-specific** skills directory the skills CLI chooses so agents learn how to shard, compile, validate, and maintain docs one piece at a time — across Cursor, Copilot, Claude Code, and similar hosts. Per-agent install paths: [Supported Agents](https://github.com/vercel-labs/skills#supported-agents).
+**Agent Skills** is the [open standard](https://agentskills.io) for portable packages of agent instructions. Each package is a directory with a `SKILL.md` file and optional companion files, and agent hosts discover and load it. One package is an **Agent Skill**, usually shortened to **skill**, and several packages are _skills_.
 
-Verification: agentskills.io validation (`pnpm skill:validate` / skills-ref) in CI; [live skill eval](#live-skill-eval) is the optional local skill-creator loop.
+Outside agent tooling, the word skill can mean a person's ability or a general AI capability. In MDCP docs it always means the packaged directory.
+
+MDCP's main skill is `mdcp`, with its source in `skills/mdcp/`. It contains the **documentation system** guardrails that direct agents to shard and maintain docs one piece at a time. Optional [archetype](docs/features/protocol/extensions-and-archetypes.md#archetypes-battery-types) skills are under `skills/mdcp-arch-*`.
+
+Install and validation: [Agent Skill](docs/features/agent-skill.md).
 
 <!-- mdcp-shard: end docs/glossary/agent-skills.md -->
-
-<!-- mdcp-shard: start docs/glossary/skill.md -->
-
-## Skill
-
-An overloaded term that usually refers to an **Agent Skill** — a portable package of agent instructions (like `SKILL.md`) that hosts discover and load. Industry 101: [Agent Skills](https://agentskills.io).
-
-When discussing MDCP, "skill" specifically refers to the MDCP documentation system guardrails shipped via the [Agent Skills](#agent-skills) protocol.
-
-Do not confuse "skill" with human abilities or general AI capabilities. In this repository, it is a technical artifact (a directory containing a `SKILL.md` file) that can be installed via `npx skills add` and loaded by hosts like Cursor, Copilot, or Claude Code.
-
-<!-- mdcp-shard: end docs/glossary/skill.md -->
 
 <!-- mdcp-shard: start docs/glossary/mdcp.md -->
 
 ## MDCP
 
-**MarkDown Context Protocol** — a **documentation system** delivered as an [Agent Skill](#agent-skills) and lightweight toolchain. It helps teams who care about durable docs distill mind maps, architecture notes, specs, and product ideas into small Markdown **shards** so intent stays reviewable in git (the V1 transport), maintainable as ideas keep arriving, and readable one shard at a time by people and agents.
+**MarkDown Context Protocol** — a **documentation system** delivered as an [Agent Skill](#agent-skills) and lightweight toolchain. It helps teams who care about durable docs distill mind maps, architecture notes, specs, and product ideas into small Markdown **shards** so intent stays reviewable in git, maintainable as ideas keep arriving, and readable one shard at a time by people and agents.
 
 MDCP is not a magic bullet for documentation debt. It is a practice and skill that puts system context where it compounds — tracing why the system or process exists, how to use it, and what value it delivers — for a team of one or a full product, engineering, and marketing org.
 
@@ -1368,9 +1445,9 @@ The CLI (`compile`, `check`, and [refs](#refs) registry maintenance) implements 
 
 ## Atomic commit groups
 
-Numbered plan sections that split multi-concern work into one-concern git commits. Each group lists an id/name, one concern, the exact files, and an intended conventional commit subject. After plan approval, agents implement and `git commit` one group at a time instead of squashing unrelated concerns.
+A plan section of numbered groups that splits coding or multi-concern work into commits of one concern each. After the plan is approved, the agent makes one commit per group instead of one commit for everything.
 
-Part of parent `mdcp` [QA Principles](docs/features/agent-skill.md#quality-assurance-qa-principles). Day-to-day helpers require the section in plan / Step 1 ([Helper Skills](docs/features/protocol/agent-task-prompts.md)). This repo’s delivery conventions: [Agent work-item tracking](#agent-work-item-tracking).
+[Atomic commit groups (plan obligation)](docs/features/protocol/skill-workflows.md#atomic-commit-groups-plan-obligation) lists the fields of each group and the workflows that require the section.
 
 <!-- mdcp-shard: end docs/glossary/atomic-commit-groups.md -->
 
@@ -1386,17 +1463,59 @@ Optional local with/without-skill agent grading via vendored [skill-creator](.ag
 
 ## shard
 
-A **shard** is a small Markdown file that owns one topic. In MDCP, authors edit shards; `compile` stitches them into published outputs (for example a README). Shards are the source of truth — do not hand-edit generated files.
+A **shard** is a small Markdown file that owns one topic. In MDCP, authors edit shards; `compile` stitches them into [compiled guides](#compiled-guide), such as a package README. Shards are the source of truth, so do not hand-edit generated files.
 
 Think “one concern per file” so people and agents can load only what the task needs. Related: [shard single responsibility](#shard-single-responsibility). Deeper model: [Overview](docs/features/overview.md).
 
 <!-- mdcp-shard: end docs/glossary/shard.md -->
 
+<!-- mdcp-shard: start docs/glossary/guide.md -->
+
+## guide
+
+A **guide** is a directory of [shards](#shard) plus its [manifest](#manifest). Compile turns it into one [compiled guide](#compiled-guide). Each name in `compileOrder` is a guide, read from the directory of that name under the docs root unless `guides[].path` points somewhere else. Its output can also include shards that the manifest links from other directories, or that compile reaches under `compile.scopeRoot`.
+
+A guide without `compile.outputFile` can also be stitched into the [monolith](#monolith). A [standalone guide](#standalone-guide) is one registered file with no output of its own.
+
+See [Project layout](./packages/mdcp-cli/README.md#project-layout).
+
+<!-- mdcp-shard: end docs/glossary/guide.md -->
+
+<!-- mdcp-shard: start docs/glossary/manifest.md -->
+
+## manifest
+
+A **manifest** is the file in a [guide](#guide) directory whose Markdown links set compile order. It is `index.md` by default, and `guides[].compile.manifest` can name another file such as `shards.md`. Compile stitches the linked `.md` files in the order the links appear. The [orphan](#orphan) check compares the guide directory against these links.
+
+See [Manifest compile order](docs/features/manifest-compile-order.md).
+
+<!-- mdcp-shard: end docs/glossary/manifest.md -->
+
+<!-- mdcp-shard: start docs/glossary/guide-tier.md -->
+
+## guide tier
+
+A **guide tier** is one category in an [archetype](docs/features/protocol/extensions-and-archetypes.md#archetypes-battery-types)'s guide layout. Each tier specifies what its shards contain and what they keep out. The default archetype, the Code Repository Archetype, defines four tiers: `features/`, `client/`, `developer/`, and `glossary/`. A tier can include more than one [guide](#guide).
+
+[Default guide layout](docs/features/protocol/mdcp-1.0-spec.md#2-default-guide-layout-code-repository-archetype) defines the four tiers. Under its placement test, a shard that consumers need goes in `features/` or `client/`, and a shard that only contributors need goes in `developer/`.
+
+<!-- mdcp-shard: end docs/glossary/guide-tier.md -->
+
+<!-- mdcp-shard: start docs/glossary/standalone-guide.md -->
+
+## standalone guide
+
+A **standalone guide** is a hand-authored markdown file listed in `standaloneGuides[]` that is both its source and the file readers open, such as a package `README.md` or a top-level `SECURITY.md`.
+
+Contrast with a [guide](#guide), whose shards compile into one output. Compile doesn't write output for a standalone guide, and listing it marks it as [captured](#coverage). [Standalone guide behavior](docs/features/coverage-scan.md#standalone-guide-behavior) covers how compile treats it and which checks read it.
+
+<!-- mdcp-shard: end docs/glossary/standalone-guide.md -->
+
 <!-- mdcp-shard: start docs/glossary/idea-mitosis.md -->
 
 ## idea mitosis
 
-**Idea mitosis** is splitting a documentation shard when it grows a second responsibility — a second audience, job (explain vs how-to vs look-up), or independent concern — or when reading the file alone misleads. After a split, update the guide index and cross-link the daughter shards.
+**Idea mitosis** is splitting a documentation shard when it grows a second responsibility (see [shard single responsibility](#shard-single-responsibility)). Also split it when reading the file alone misleads. After a split, update the guide index and cross-link the daughter shards.
 
 Do not split only because a file is long. Prefer one primary concern per shard.
 
@@ -1408,29 +1527,142 @@ See [Shard single responsibility and idea mitosis](docs/features/protocol/shard-
 
 ## shard single responsibility
 
-**Shard single responsibility** means each durable documentation shard owns one primary concern, for one audience tier, serving one job (explain, instruct how-to, or define/look up — not several). A shard should have one main reason to change.
+**Shard single responsibility** means each durable documentation shard owns one primary concern, for one [guide tier](#guide-tier), serving one job: explain, instruct how-to, or define and look up. A shard should have one main reason to change.
 
 See [Shard single responsibility and idea mitosis](docs/features/protocol/shard-srp-and-mitosis.md) and [idea mitosis](#idea-mitosis).
 
 <!-- mdcp-shard: end docs/glossary/shard-single-responsibility.md -->
 
+<!-- mdcp-shard: start docs/glossary/compiled-guide.md -->
+
+## compiled guide
+
+A **compiled guide** is the file compile writes for one [guide](#guide). A guide that sets `compile.outputFile` writes its compiled guide to that path, and that file is a [publish output](#publish-output).
+
+See [Default per-guide outputs](./packages/mdcp-cli/README.md#default-per-guide-outputs) for the default paths.
+
+<!-- mdcp-shard: end docs/glossary/compiled-guide.md -->
+
+<!-- mdcp-shard: start docs/glossary/publish-output.md -->
+
+## publish output
+
+A **publish output** is the file a [guide](#guide) compiles to when it sets its own `compile.outputFile`, such as a package README or the repository-root `DEVELOPERS.md`. The path is relative to `outputDir` unless it is absolute.
+
+Publish outputs stay out of the optional [monolith](#monolith), and link validation applies the [publish-only link policy](docs/features/link-validation.md#publish-only-link-policy) to them.
+
+See [Default per-guide outputs](./packages/mdcp-cli/README.md#default-per-guide-outputs).
+
+<!-- mdcp-shard: end docs/glossary/publish-output.md -->
+
+<!-- mdcp-shard: start docs/glossary/monolith.md -->
+
+## monolith
+
+The **monolith** is the optional single file that stitches every [guide](#guide) without `compile.outputFile` into one document, in `compileOrder` order. Compile writes it only when the config sets top-level `outputFile`.
+
+See [What compile actually does](docs/features/overview.md#what-compile-actually-does). [Cross-guide resolution](./packages/mdcp-core/README.md#cross-guide-resolution) covers links between two guides in the monolith.
+
+<!-- mdcp-shard: end docs/glossary/monolith.md -->
+
+<!-- mdcp-shard: start docs/glossary/cross-link.md -->
+
+## cross-link
+
+A **cross-link** (also **cross-ref**) is a Markdown link whose target is another place in the docs set. It is usually a same-document `[label](#heading-slug)` fragment or a path to another shard that compile may rewrite.
+
+Cross-links are why [refs](#refs) exist. After assemble, the visible heading text and level can change. The [heading slug](#heading-slug) that works in a shard may then differ from the slug in the compiled file. MDCP rewrites these targets and validates the links in each [compiled guide](#compiled-guide). See [Built-in link validation](docs/features/link-validation.md).
+
+<!-- mdcp-shard: end docs/glossary/cross-link.md -->
+
+<!-- mdcp-shard: start docs/glossary/heading-slug.md -->
+
+## heading slug
+
+GitHub-style fragment id for a heading in **compiled** Markdown (the part after `#` in `[label](#slug)`). Parent concept: [refs](#refs).
+
+MDCP computes slugs from final heading text after guides are stitched and demoted, with the same rules GitHub uses for README anchors (via `github-slugger`). Duplicate titles in one document get `-1`, `-2` suffixes. Authors should not invent fragments from shard-only titles; [cross-links](#cross-link) must match the compiled slug, and `mdcp check` fails when they do not.
+
+<!-- mdcp-shard: end docs/glossary/heading-slug.md -->
+
+<!-- mdcp-shard: start docs/glossary/refs.md -->
+
+## refs
+
+**Refs** (short for **references**) are the organized set of heading [slugs](#heading-slug) and [cross-links](#cross-link) MDCP derives from compiled guides so authors and CI can keep Markdown links coherent after stitch.
+
+The problem refs solve is structural. Stitching shards shifts heading levels and disambiguates duplicate titles, so a hand-guessed `#anchor` or stale path can break after `compile`. MDCP keeps a [refs registry](#refs-registry) and validates links at `check` time so the **compiled** document still targets the right sections and files.
+
+### Related wording
+
+| Form               | Meaning                                                                           |
+| ------------------ | --------------------------------------------------------------------------------- |
+| **refs** (noun)    | The reference system as a whole (slugs + links + registry)                        |
+| **refs registry**  | Derived catalog (`refs.json`) of compiled heading entries                         |
+| **ref** (informal) | One heading entry or one link target under that system                            |
+| **generate refs**  | Rebuild the registry from compiled output (`mdcp refs-gen` / compile side effect) |
+| **list refs**      | Print each compiled output's headings with its file (`mdcp refs-list`)            |
+| **check refs**     | Confirm registry matches compiled headings (`mdcp refs-check` / via `mdcp check`) |
+
+Refs check links. They do not find documents. To find a shard, use host search (`rg`, IDE search) or the guide `index.md`, then read that one shard. To check links, run `mdcp check`. To see the registry's slugs, run `mdcp refs-list`. [ADR 0002](docs/features/adr/0002-remove-refs-lookup.md) records why MDCP has no lookup command.
+
+<!-- mdcp-shard: end docs/glossary/refs.md -->
+
+<!-- mdcp-shard: start docs/glossary/refs-registry.md -->
+
+## refs registry
+
+Derived catalog of [heading slugs](#heading-slug) from compile output, typically written as `refs.json` under `outputDir`. It lists the headings of each file compile writes, slugged file by file. Those files are every [compiled guide](#compiled-guide) and the [monolith](#monolith), and a compiled guide can be a [publish output](#publish-output). Parent concept: [refs](#refs).
+
+The registry is **generated state**, not authored shards. `mdcp compile` and `mdcp refs-gen` rebuild it, and `mdcp check` and `mdcp refs-check` verify it still matches the latest compile. [Refs registry path](docs/features/refs-registry-path.md) gives the path rules, and [registry contents](./packages/mdcp-cli/README.md#registry-contents) lists its fields.
+
+<!-- mdcp-shard: end docs/glossary/refs-registry.md -->
+
+<!-- mdcp-shard: start docs/glossary/ignore-guides.md -->
+
+## ignoreGuides
+
+**`ignoreGuides`** is a list of guide names on the **compiling** guide, under `compile.crossGuideLinks.ignoreGuides`. Cross-guide links to a listed guide keep pointing at the source shard instead of rewriting to a `#slug` target, except in the cases that [its config section](./packages/mdcp-core/README.md#compilecrossguidelinksignoreguides) points to. [`ignoreGuides` interaction](./packages/mdcp-core/README.md#ignoreguides-interaction) says how compile rebases a kept path, and when a `./` or bare link to a stitched shard takes `#slug`. The listed guide stays in `compileOrder` and in the link index.
+
+Read [Cross-guide link rewriting](./packages/mdcp-core/README.md#cross-guide-link-rewriting) for how other links rewrite, and the [publish-only link policy](docs/features/link-validation.md#publish-only-link-policy) for how link validation treats kept shard paths.
+
+<!-- mdcp-shard: end docs/glossary/ignore-guides.md -->
+
 <!-- mdcp-shard: start docs/glossary/check.md -->
 
 ## check
 
-**`mdcp check`** is MDCP’s validation gate. It compiles docs, refreshes [refs](#refs), and fails when orphans, broken links, or configured linters disagree with the shards — locally or in CI.
-
-Use it before you trust a merge. Command details: [CLI consumer guide](docs/client-cli/index.md).
+**`mdcp check`** is MDCP’s validation gate, run locally and in CI before a merge. See [Check gate](docs/features/check-gate.md) for what it runs.
 
 <!-- mdcp-shard: end docs/glossary/check.md -->
+
+<!-- mdcp-shard: start docs/glossary/orphan.md -->
+
+## orphan
+
+An **orphan** is a top-level shard in a [guide](#guide) directory that the guide's [manifest](#manifest) does not link. [Manifest compile order](docs/features/manifest-compile-order.md) explains which manifest links count, including the `compile.sectionsHeading` rule and the [file-name fallback](docs/features/manifest-compile-order.md#linked-shards-and-the-file-name-fallback).
+
+Unlinked shards in a guide subdirectory or under a `compile.scopeRoot` are out of scope for this check. See [Relationship to the orphan check](docs/features/coverage-scan.md#relationship-to-the-orphan-check).
+
+<!-- mdcp-shard: end docs/glossary/orphan.md -->
+
+<!-- mdcp-shard: start docs/glossary/coverage.md -->
+
+## coverage
+
+Documentation **coverage** is the set of markdown files MDCP can account for, and a file in that set is **captured**. [Coverage and the captured set](docs/features/coverage-scan.md#coverage-and-the-captured-set) lists which files count.
+
+The coverage scan walks the repository for markdown files, skips vendored paths, and reports any file that is not captured so authors either fold it into a guide or register it in `standaloneGuides[]`. With `scan.strict: true`, gaps fail `mdcp check`.
+
+<!-- mdcp-shard: end docs/glossary/coverage.md -->
 
 <!-- mdcp-shard: start docs/glossary/gfm.md -->
 
 ## GFM
 
-**GitHub Flavored Markdown** ([spec](https://github.github.com/gfm/)) — CommonMark plus GitHub extensions (tables, task lists, fenced code). Not Pandoc, LaTeX, or wikilinks.
+**GitHub Flavored Markdown** ([spec](https://github.github.com/gfm/)) is CommonMark plus GitHub extensions (tables, task lists, fenced code). Not Pandoc, LaTeX, or wikilinks.
 
-MDCP’s authored format contract is GFM, but heading recognition is an **ATX subset** today (setext not yet). See [GFM scope](docs/features/design-constraints/gfm-scope.md#headings).
+MDCP’s authored format contract is GFM, but heading recognition is an **ATX subset**: setext headings are not recognized. See [GFM scope](docs/features/design-constraints/gfm-scope.md#headings).
 
 <!-- mdcp-shard: end docs/glossary/gfm.md -->
 
@@ -1438,7 +1670,7 @@ MDCP’s authored format contract is GFM, but heading recognition is an **ATX su
 
 ## Authored GFM
 
-Shard markdown as written before compile — no preprocessor substitution or template conditionals. Compile hooks may transform it during assembly; read [Preprocessor / templating (out of scope)](docs/features/design-constraints/preprocessor-templating.md#preprocessor--templating-out-of-scope).
+Shard markdown as written before compile, with no preprocessor substitution or template conditionals. Compile hooks may transform it during assembly. Read [Preprocessor / templating (out of scope)](docs/features/design-constraints/preprocessor-templating.md#preprocessor--templating-out-of-scope).
 
 <!-- mdcp-shard: end docs/glossary/authored-gfm.md -->
 
@@ -1448,101 +1680,14 @@ Shard markdown as written before compile — no preprocessor substitution or tem
 
 A **locale pack** is MDCP’s compile-time bundle of natural-language data that is **not** GFM protocol shape. It covers:
 
-- **Generated wording** — for example US-English insert captions like `Table 1. …` and `BROKEN LINK` marker copy
-- **Locale-specific patterns** — optional heading-key patterns for semantic refs
-- **Parse-input word cues** — authored words a compile hook may recognize (for example en-US `line` / `lines` for [codeEvidence](./packages/mdcp-core/README.md#codeevidence) line ranges)
-- **Preamble heading title** — for example en-US `About this guide` for strip/promote defaults (`aboutThisGuideTitle`)
+- **Generated wording**: text such as US-English insert captions (`Table 1. …`) and `BROKEN LINK` marker copy
+- **Locale-specific patterns**: optional heading-key patterns for semantic refs
+- **Parse-input word cues**: authored words a compile hook may recognize (such as en-US `line` / `lines` for [codeEvidence](./packages/mdcp-core/README.md#codeevidence) line ranges)
+- **Preamble heading title**: a title such as en-US `About this guide` for strip/promote defaults (`aboutThisGuideTitle`)
 
 Default `en-US` (one BCP 47 JSON file per locale under `src/locale/locales/`). Language-neutral markup forms and GitHub-style `#L…` fragment **output** stay outside the pack.
 
 <!-- mdcp-shard: end docs/glossary/locale-pack.md -->
-
-<!-- mdcp-shard: start docs/glossary/ignore-guides.md -->
-
-## ignoreGuides
-
-Guide names listed on the **compiling** guide under `compile.crossGuideLinks.ignoreGuides`. Cross-guide links to those guides keep source shard `.md` paths instead of rewriting to monolith `#slug` targets. Does not exclude the guide from `compileOrder` or the link index — only skips link rewrite for those targets. On publish outputs, [publish-relative rewrite](./packages/mdcp-core/README.md#publish-relative-link-rewriting) still rebases the shard path for the publish file. Read [Cross-guide link rewriting](./packages/mdcp-core/README.md#cross-guide-link-rewriting).
-
-<!-- mdcp-shard: end docs/glossary/ignore-guides.md -->
-
-<!-- mdcp-shard: start docs/glossary/refs.md -->
-
-## refs
-
-**Refs** (short for **references**) are the organized set of heading [slugs](#heading-slug) and [cross-links](#cross-link) MDCP derives from compiled guides so authors and CI can keep Markdown links coherent after stitch.
-
-The problem refs solve is structural, not retrieval: shards merge, heading levels shift, and duplicate titles get disambiguated — so a hand-guessed `#anchor` or stale path can break after `compile`. MDCP keeps a [refs registry](#refs-registry) and validates links at `check` time so the **compiled** document still targets the right sections and files.
-
-### Related wording
-
-| Form               | Meaning                                                                           |
-| ------------------ | --------------------------------------------------------------------------------- |
-| **refs** (noun)    | The reference system as a whole (slugs + links + registry)                        |
-| **refs registry**  | Derived catalog (`refs.json`) of compiled heading entries                         |
-| **ref** (informal) | One heading entry or one link target under that system                            |
-| **generate refs**  | Rebuild the registry from compiled output (`mdcp refs gen` / compile side effect) |
-| **list refs**      | Print registry headings (`mdcp refs-list`)                                        |
-| **check refs**     | Confirm registry matches compiled headings (`mdcp refs check` / via `mdcp check`) |
-
-Doc discovery uses host search (`rg`, IDE search, or a future MCP index). Cross-link correctness uses **`mdcp check`** and optionally **`mdcp refs-list`**. Refs are not a retrieval API — see [ADR 0002](docs/features/adr/0002-remove-refs-lookup.md).
-
-Not the same as ordinary “search the docs.” Refs are about **correct anchors and paths after compile**.
-
-<!-- mdcp-shard: end docs/glossary/refs.md -->
-
-<!-- mdcp-shard: start docs/glossary/refs-registry.md -->
-
-## refs registry
-
-Derived catalog of [heading slugs](#heading-slug) from compiled guide output, typically written as `refs.json` under `outputDir`. Parent concept: [refs](#refs).
-
-The registry is **generated state**, not authored shards. `mdcp compile` (and `mdcp refs gen`) rebuild it; `mdcp check` / `mdcp refs check` verify it still matches the latest compile. Path rules: [Refs registry path](docs/features/refs-registry-path.md).
-
-<!-- mdcp-shard: end docs/glossary/refs-registry.md -->
-
-<!-- mdcp-shard: start docs/glossary/heading-slug.md -->
-
-## heading slug
-
-GitHub-style fragment id for a heading in **compiled** Markdown (the part after `#` in `[label](#slug)`). Parent concept: [refs](#refs).
-
-MDCP computes slugs from final heading text after guides are stitched and demoted — same rules GitHub uses for README anchors (via `github-slugger`). Duplicate titles in one document get `-1`, `-2` suffixes. Authors should not invent fragments from shard-only titles; [cross-links](#cross-link) must match the compiled slug, and `mdcp check` fails when they do not.
-
-<!-- mdcp-shard: end docs/glossary/heading-slug.md -->
-
-<!-- mdcp-shard: start docs/glossary/cross-link.md -->
-
-## cross-link
-
-A **cross-link** (also **cross-ref**) is a Markdown link whose target is another place in the docs set — usually a same-document `[label](#heading-slug)` fragment, or a path to another shard/guide that compile may rewrite.
-
-Cross-links are why [refs](#refs) exist: after assemble, the visible heading text and level can change, so the [heading slug](#heading-slug) that works in a shard may differ from the slug in the compiled file. MDCP rewrites and validates these targets so published and monolith outputs keep working links. See [Built-in link validation](docs/features/link-validation.md).
-
-<!-- mdcp-shard: end docs/glossary/cross-link.md -->
-
-<!-- mdcp-shard: start docs/glossary/standalone-guide.md -->
-
-## standalone guide
-
-A single markdown file registered as its own guide that is **not** compiled from shards. Declared in `standaloneGuides[]`, it is the source and the published file at once — for example a hand-authored package `README.md` or a top-level `SECURITY.md`.
-
-Contrast with a [guide](#mdcp), which stitches a list of shards into one output. A standalone guide is register-only: compile never stitches, rewrites, or emits it, but its headings still register into [refs](#refs) and its outbound links are validated. Registering a file as standalone marks it as [captured](#coverage) so the coverage scan does not report it.
-
-See [Documentation coverage scan](docs/features/coverage-scan.md).
-
-<!-- mdcp-shard: end docs/glossary/standalone-guide.md -->
-
-<!-- mdcp-shard: start docs/glossary/coverage.md -->
-
-## coverage
-
-Documentation coverage is the set of markdown files MDCP can account for — the **captured** set. A file is captured when it is a shard of a compiled guide (including a guide's `compile.scopeRoot`), a guide output target (`compile.outputFile`), or a [standalone guide](#standalone-guide).
-
-The coverage scan walks the repository for markdown files, skips vendored paths, and reports any file that is not captured so authors either fold it into a guide or register it in `standaloneGuides[]`. With `scan.strict: true`, gaps fail `mdcp check`.
-
-See [Documentation coverage scan](docs/features/coverage-scan.md).
-
-<!-- mdcp-shard: end docs/glossary/coverage.md -->
 
 <!-- mdcp-shard: start docs/glossary/redos.md -->
 
@@ -1550,7 +1695,7 @@ See [Documentation coverage scan](docs/features/coverage-scan.md).
 
 **ReDoS** (Regular expression Denial of Service) is when a regular expression takes far too long on certain inputs — often because overlapping or unbounded quantifiers force the engine to explore many matching paths. Attackers (or accidental pathological strings) can stall a process that runs the pattern on untrusted or library-controlled text.
 
-In this repository, CodeQL’s `js/polynomial-redos` rule flags that class of risk. Heading and Pandoc `{#…}` parsing in `mdcp-core` moved to shared linear helpers so those alerts close and the anti-pattern does not spread. A follow-up audit rewrote the polynomial-adjacent code-evidence line-range scanner, recorded keep/dismiss decisions for remaining core regexes, and left en-US chapter-cue prose lint in Vale ([#230](https://github.com/betsalel-williamson/mdcp/pull/230)). See [Safe markdown parsing](#safe-markdown-parsing-heading-helpers).
+In this repository, CodeQL’s `js/polynomial-redos` rule flags that class of risk. Heading and Pandoc heading-id parsing in `mdcp-core` uses shared linear helpers, so the pattern does not spread. See [Safe markdown parsing](#safe-markdown-parsing-heading-helpers).
 
 <!-- mdcp-shard: end docs/glossary/redos.md -->
 

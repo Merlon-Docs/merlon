@@ -4,9 +4,9 @@ MDCP treats documentation as library science for software product intent: settle
 
 The focal rule is **[shard single responsibility](../../glossary/shard-single-responsibility.md) for a documentation shard**. How shards assemble into guides is secondary. Frameworks that informed this thinking are listed in [Acknowledgments](./acknowledgments.md) — they are provenance, not the instruction set.
 
-## Shard single responsibility
+## Single responsibility rule
 
-A documentation shard has **one primary concern**, for **one audience tier**, serving **one job**:
+A documentation shard has **one primary concern**, for **one [guide tier](../../glossary/guide-tier.md)**, serving **one job**:
 
 | Axis     | Question                                              | Failure mode                                        |
 | -------- | ----------------------------------------------------- | --------------------------------------------------- |
@@ -16,11 +16,11 @@ A documentation shard has **one primary concern**, for **one audience tier**, se
 
 **Reason to change:** a shard should have one main reason to be edited. If product contract language and “run these five commands” must change for different events, they do not belong in the same file.
 
-**Complete for that job:** the shard is finished when a reader can use it for its job without the rest of the monolith _and_ without being misled. Completeness is not a line-count budget. Glossary leaves may be three lines; a single contract may need a longer section and still be one responsibility.
+**Complete for that job:** the shard is finished when a reader can use it for its job without the rest of the compiled guide _and_ without being misled. Completeness is not a line-count budget. Glossary leaves may be three lines; a single contract may need a longer section and still be one responsibility.
 
-## Idea mitosis
+## Splitting a shard (idea mitosis)
 
-When pressure builds along more than one axis, **split** the shard — [idea mitosis](../../glossary/idea-mitosis.md) — instead of growing a mini-monolith.
+When pressure builds along more than one axis, **split** the shard instead of letting it grow. Splitting a shard this way is [idea mitosis](../../glossary/idea-mitosis.md).
 
 ### Split when
 
@@ -48,7 +48,7 @@ A **guide** is an ordered constellation of shards for **one audience job family*
 
 - Each shard still passes single responsibility.
 - Manifest order tells a coherent story for that audience without requiring every reader to load every shard.
-- Placement stays by audience and job, not by topic keyword alone (the same subject may appear in more than one tier with different responsibilities).
+- Each shard passes the [placement test](./mdcp-1.0-spec.md#2-default-guide-layout-code-repository-archetype).
 
 The MDCP engine is domain-agnostic. Other archetypes may use different guide names; the SRP and mitosis rules still apply.
 
@@ -59,7 +59,7 @@ When a change touches documentation (or code whose behavior a guide documents):
 1. **In isolation** — each changed idea or shard is locally correct for its single responsibility.
 2. **Comprehensively** — against related shards and guides: duplication, better splits/merges/relocations, and agreement between what guides promise and what the change does.
 
-A review is complete only when the change and its guides agree. Guide-specific application for this repository: [Comprehensive review when guides are involved](../../developer/docs-dogfooding.md#comprehensive-review-when-guides-are-involved).
+A review is complete only when the change and its guides agree. Guides record the intent behind the code, so a review of the diff alone can miss where they disagree. To review a whole docs root as a set, use the [doc-review workflow](./workflows/doc-review.md).
 
 ## Supporting maps (optional depth)
 
@@ -87,7 +87,7 @@ Mixing two jobs in one shard is a mitosis signal. Named lineage: [Acknowledgment
 
 ## Extensions beyond this archetype
 
-GTM/marketing/sales documentation is a separate WIP archetype (`mdcp-arch-gtm`), not part of the Code Repository Archetype — see [Extensions and archetypes](./extensions-and-archetypes.md).
+Go-to-market documentation, such as marketing and sales docs, belongs to a separate internal archetype (`mdcp-arch-gtm`) outside the Code Repository Archetype. See [Extensions and archetypes](./extensions-and-archetypes.md).
 
 ## Acceptance
 
@@ -100,5 +100,5 @@ GTM/marketing/sales documentation is a separate WIP archetype (`mdcp-arch-gtm`),
 
 - [Agent Skill — QA principles](../agent-skill.md#quality-assurance-qa-principles)
 - [Extensions and archetypes](./extensions-and-archetypes.md)
-- [Helper Skills](./agent-task-prompts.md)
+- [Skill workflows](./skill-workflows.md)
 - [Acknowledgments](./acknowledgments.md)

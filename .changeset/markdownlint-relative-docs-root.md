@@ -1,0 +1,25 @@
+---
+'@bwilliamson/mdcp-core': minor
+'@bwilliamson/mdcp-cli': patch
+'@bwilliamson/mdcp-presets': minor
+---
+
+`resolveGuideDir` and `guideScanDirs` return absolute paths when `docsRoot` is relative. With a relative `--docs-root` such as `docs`, a guide with no `guides[].path` used to reach markdownlint as `docs/<guide>` when `lint.markdownlint.shardsGlobs` is unset. markdownlint-cli2 runs from the docs root, where `docs/<guide>` doesn't exist, so `mdcp lint` and `mdcp check` linted none of those guides' shards and passed. Those shards are linted now, so expect new markdownlint findings from them.
+
+Without `shardsGlobs`, `shardLintPaths` returns a glob for the `.md` and `.markdown` files in each guide directory, such as `<guide>/**/*.{md,markdown}`. It used to return the bare directory, which markdownlint-cli2 expands to every file in it, so an image or text file beside the shards was linted as Markdown. API callers that read the result as a list of directories should call `guideScanDirs` instead.
+
+`shardLintPaths` returns paths for markdownlint-cli2 running with the docs root as its cwd, as `mdcp lint` and `mdcp check` run it. API callers must run markdownlint-cli2 from the docs root with them. From any other cwd, markdownlint-cli2 resolves the relative paths against that directory, so it misses the guide shards and lints the wrong files or none. A guide under the docs root gets a glob relative to the docs root, which keeps the checkout path out of it. An absolute `--docs-root` used to put the checkout path into each guide directory, and each `shardsGlobs` entry was resolved to an absolute path, so under a directory whose name has glob characters, such as `repo (copy)` or `proj {a,b}`, the shard pass linted 0 files and passed.
+
+A guide outside the docs root, such as one at `guides[].path: "../pkg/guide"`, gets an absolute glob, so the shard preset's `!**/index.md` still reaches it next to in-root guides, and a symlinked docs root still finds it. Glob characters and quotes in each path that goes into a glob are escaped.
+
+`shardsGlobs` entries go to markdownlint-cli2 as written, and it resolves them against its cwd, the docs root. A negated entry such as `!legacy/**` excludes files now, where it used to become `<docsRoot>/!legacy/**` and exclude nothing. An entry that starts with `../` gets the escaped absolute directory those segments name in their place, followed by `/**` for a directory. The shard preset's exclusions then apply to it too. A negated `../` entry also gets `**` in front of that path, which lets it exclude files. A `.` entry becomes `**`, so markdownlint-cli2 still lints every file under the docs root.
+
+The same relative paths kept `mdcp check` from reporting an orphan shard at the top of a guide when the manifest linked a nested shard with the same file name, such as `sub/a.md` next to an unlisted `a.md`. That orphan is reported now, and `checkOrphansForGuides` resolves a relative `dir` against the process cwd. A shard that a guide reaches in a sibling directory whose name starts with the guide's name, such as `guide-shared/x.md` from `guide`, no longer counts as listed in a `guide-shared` guide, so an orphan there is reported as it is for a sibling with any other name. The shard counts under its file name in `guide` instead, as a shard in a sibling with any other name does, so an unlisted `x.md` at the top of `guide` passes.
+
+The compiled markdownlint preset lists `_build/guides.md` as well as `guides.md`, so it lints a monolith named `guides.md` under the default `outputDir`. It used to list only `guides.md`, which matches only with `outputDir: "."`, so under the default layout the compiled pass linted 0 files and passed. Expect new findings from the compiled pass under that layout, from the rules both presets leave on, such as `MD022`, and from `MD052` and `MD053`, which check reference links and their definitions. A `guides.md` left at the docs root by an earlier `outputDir: "."` layout is linted too, so delete it. With no monolith, or a monolith with another name or path, copy the preset and point its `globs` at your compiled outputs.
+
+The compiled preset now keeps every rule setting of the shard preset, so a rule the shard pass turns off, such as `MD024` or `MD033`, no longer fails the compiled pass. With `outputDir: "."`, the compiled pass reports fewer findings than before, except from `MD003`, which now requires ATX headings as the shard preset does, so a monolith with setext or closed ATX headings fails it.
+
+The shard preset excludes `_build/**` as well as `guides.md`. A guide at `guides[].path: "."` gets `**/*.{md,markdown}`, and a `.` entry in `shardsGlobs` becomes `**`, so the shard pass also linted the compiled outputs under the default `outputDir`. An absolute `--docs-root` did that before. A relative one linted 0 files, so it shows up there only now. Any other compiled output, such as one under another `outputDir`, needs its own exclusion in a copy of the preset.
+
+The CLI README's in-scope guide fileset section says how both markdownlint passes resolve their paths.

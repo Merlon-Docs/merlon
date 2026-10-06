@@ -3,6 +3,7 @@ import { mkdirSync, writeFileSync, existsSync, readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
+import { slug as githubSlug } from 'github-slugger';
 import {
   compileGuides,
   compileGuideResults,
@@ -10,6 +11,8 @@ import {
   writeCompiledGuides,
   type CompileOptionsInput,
 } from '../src/compile/assemble.js';
+import { resolveCompileHooks } from '../src/config/resolve-compile-hooks.js';
+import { buildSlugRegistry } from '../src/refs/slugs.js';
 import { withTmpDir } from './helpers/tmp-dir.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -90,6 +93,180 @@ describe('compileGuides', () => {
         manifest: 'index.md',
       });
       expect(out).not.toMatch(/\{#[a-z0-9-]+\}/i);
+    });
+  });
+
+  it('keeps brace ids inside code when the default hooks strip anchors', () => {
+    withTmpDir('mdcp-compile-', (work) => {
+      writeFileSync(join(work, 'index.md'), '# Example\n\n- [Section](section.md)\n');
+      writeFileSync(
+        join(work, 'section.md'),
+        [
+          '## Term {#my-anchor}',
+          '',
+          'Write `## Heading {#custom-id}` or `{#custom-id}` after a heading.',
+          '',
+          '```markdown',
+          '::: {#note}',
+          '## Title {#gone}',
+          '```',
+          '',
+        ].join('\n'),
+      );
+
+      const out = assembleGuide(work, {
+        manifest: 'index.md',
+        hooks: resolveCompileHooks(undefined),
+        stripAnchors: true,
+      });
+      expect(out).not.toContain('{#my-anchor}');
+      expect(out).toContain('Write `## Heading {#custom-id}` or `{#custom-id}` after a heading.');
+      // A heading line loses its markers even inside a fence; the fence's other lines keep theirs.
+      expect(out).toContain('```markdown\n::: {#note}\n## Title\n```');
+    });
+  });
+
+  it('gives a heading that quotes {#id} in code the slug its links and refs use', () => {
+    withTmpDir('mdcp-compile-', (work) => {
+      const guideDir = join(work, 'guide');
+      mkdirSync(guideDir, { recursive: true });
+      writeFileSync(join(guideDir, 'index.md'), '# Guide\n\n- [One](one.md)\n- [Two](two.md)\n');
+      writeFileSync(join(guideDir, 'one.md'), '# One\n\nSee [the syntax](./two.md).\n');
+      writeFileSync(join(guideDir, 'two.md'), '# The `{#id}` syntax\n\nText.\n');
+
+      const out = compileGuides({ guidesRoot: work, compileOrder: ['guide'] });
+      const heading = out.split('\n').find((line) => line.startsWith('## The '));
+      expect(heading).toBeDefined();
+      // GitHub drops the code span's backticks from the anchor, and so does github-slugger.
+      const githubAnchor = githubSlug(heading!.replace(/^#+ /, ''));
+
+      const fragment = /\[the syntax\]\(#([^)]*)\)/.exec(out)?.[1];
+      expect(fragment).toBe(githubAnchor);
+      const refs = buildSlugRegistry(out);
+      expect(refs.headings.map((h) => h.slug)).toContain(githubAnchor);
+    });
+  });
+
+  it('strips the marker from a heading after a list item leaves its fence unclosed', () => {
+    withTmpDir('mdcp-compile-', (work) => {
+      const guideDir = join(work, 'guide');
+      mkdirSync(guideDir, { recursive: true });
+      writeFileSync(
+        join(guideDir, 'index.md'),
+        '# Guide\n\n- [Setup](setup.md)\n- [Usage](usage.md)\n',
+      );
+      writeFileSync(
+        join(guideDir, 'setup.md'),
+        '# Setup\n\n- Install the tool:\n\n  ```bash\n  npm i -g mdcp\n\n## Next step {#next}\n\nText.\n',
+      );
+      writeFileSync(
+        join(guideDir, 'usage.md'),
+        '# Usage\n\nSee [next step](./setup.md#next-step).\n',
+      );
+
+      const out = compileGuides({ guidesRoot: work, compileOrder: ['guide'] });
+      const heading = out.split('\n').find((line) => line.startsWith('### Next step'));
+      expect(heading).toBe('### Next step');
+      const githubAnchor = githubSlug(heading!.replace(/^#+ /, ''));
+      expect(/\[next step\]\(#([^)]*)\)/.exec(out)?.[1]).toBe(githubAnchor);
+      expect(buildSlugRegistry(out).headings.map((h) => h.slug)).toContain(githubAnchor);
+    });
+  });
+
+  it('strips heading markers after a nested fence example and after an indented fence line', () => {
+    withTmpDir('mdcp-compile-', (work) => {
+      const guideDir = join(work, 'guide');
+      mkdirSync(guideDir, { recursive: true });
+      writeFileSync(
+        join(guideDir, 'index.md'),
+        '# Guide\n\n- [Setup](setup.md)\n- [Usage](usage.md)\n',
+      );
+      writeFileSync(
+        join(guideDir, 'setup.md'),
+        [
+          '# Setup',
+          '',
+          '```markdown',
+          '1.  Install:',
+          '',
+          '    ```bash',
+          '    npm i -g mdcp {#keep}',
+          '    ```',
+          '```',
+          '',
+          '## Next step {#next}',
+          '',
+          'To open a fence, type:',
+          '',
+          '    ```bash',
+          '',
+          '## Last step {#last}',
+          '',
+        ].join('\n'),
+      );
+      writeFileSync(
+        join(guideDir, 'usage.md'),
+        '# Usage\n\nSee [next step](./setup.md#next-step) and [last step](./setup.md#last-step).\n',
+      );
+
+      const out = compileGuides({ guidesRoot: work, compileOrder: ['guide'] });
+      expect(out).toContain('    npm i -g mdcp {#keep}');
+      const slugs = buildSlugRegistry(out).headings.map((h) => h.slug);
+      for (const [text, title] of [
+        ['next step', 'Next step'],
+        ['last step', 'Last step'],
+      ]) {
+        expect(out.split('\n').find((line) => line.startsWith('### ' + title))).toBe(
+          '### ' + title,
+        );
+        const githubAnchor = githubSlug(title);
+        expect(new RegExp(`\\[${text}\\]\\(#([^)]*)\\)`).exec(out)?.[1]).toBe(githubAnchor);
+        expect(slugs).toContain(githubAnchor);
+      }
+    });
+  });
+
+  it('lands each rewritten section link on the heading that opens the section', () => {
+    withTmpDir('mdcp-section-slugs-', (work) => {
+      const guideDir = join(work, 'guide');
+      mkdirSync(guideDir, { recursive: true });
+      writeFileSync(
+        join(guideDir, 'index.md'),
+        '# Setup\n\n- [Overview](overview.md)\n- [Install](install.md)\n- [Setup](setup.md)\n- [Usage](usage.md)\n',
+      );
+      writeFileSync(
+        join(guideDir, 'overview.md'),
+        '# Overview\n\nSee [install](./install.md), [setup](./setup.md) and [usage](./usage.md).\n\n## Install\n\n```bash\n# usage\n```\n',
+      );
+      writeFileSync(join(guideDir, 'install.md'), '# Install\n\n~~~sh\n# setup\n~~~\n');
+      writeFileSync(join(guideDir, 'setup.md'), '# Setup\n\nBody.\n');
+      writeFileSync(join(guideDir, 'usage.md'), '# Usage\n\nBody.\n');
+
+      const [compiled] = compileGuideResults({
+        guidesRoot: work,
+        compileOrder: ['guide'],
+        docsRoot: work,
+        config: { compileOrder: ['guide'] },
+      });
+      const assembled = assembleGuide(guideDir, { outputFile: join(work, 'out', 'guide.md') });
+
+      for (const out of [compiled.text, assembled]) {
+        const lines = out.split('\n');
+        const headings = buildSlugRegistry(out).headings;
+        const landed: Record<string, number | undefined> = {};
+        const opening: Record<string, number> = {};
+        for (const name of ['install', 'setup', 'usage']) {
+          const fragment = new RegExp(`\\[${name}\\]\\(#([^)]*)\\)`).exec(out)?.[1];
+          landed[name] = headings.find((h) => h.slug === fragment)?.line;
+          // A start tag, a blank line, then the section's opening heading.
+          const tag = lines.findIndex(
+            (l) => l.startsWith('<!-- mdcp-shard: start') && l.endsWith(`/${name}.md -->`),
+          );
+          expect(lines[tag + 2]).toMatch(/^## /);
+          opening[name] = tag + 3;
+        }
+        expect(landed).toEqual(opening);
+      }
     });
   });
 
@@ -251,8 +428,8 @@ describe('compileGuides', () => {
     });
   });
 
-  it('rewrites intra-guide .md links in monolith output without outputFile', () => {
-    withTmpDir('mdcp-monolith-links-', (work) => {
+  it('rewrites intra-guide .md links in compiled guide output', () => {
+    withTmpDir('mdcp-intra-guide-links-', (work) => {
       const guideDir = join(work, 'guide');
       mkdirSync(guideDir, { recursive: true });
 
@@ -307,6 +484,28 @@ describe('compileGuides', () => {
       writeCompiledGuides(opts, join(work, 'guides.md'));
       const text = readFileSync(publishOut, 'utf-8');
       expect(text).toContain('[Config](mdcp.config.json)');
+    });
+  });
+
+  // Without linkIndex no cross-guide pass runs, so publish-relative rebases sub/deep.md's link to
+  // a shard the guide stitches. The run after stitch used to read the rebased path from the guide
+  // directory, which publishOutputFile shares here, and turn it into #intro.
+  it('keeps the rebased path of a ../ link to a stitched shard when assembleGuide gets publishOutputFile without linkIndex', () => {
+    withTmpDir('mdcp-publish-rebased-kept-', (work) => {
+      const guideDir = join(work, 'docs', 'a');
+      mkdirSync(join(guideDir, 'sub'), { recursive: true });
+      writeFileSync(
+        join(guideDir, 'index.md'),
+        '# Guide A\n\n- [Intro](./intro.md)\n- [Deep](./sub/deep.md)\n',
+      );
+      writeFileSync(join(guideDir, 'intro.md'), '# Intro\n\nBody.\n');
+      writeFileSync(join(guideDir, 'sub', 'deep.md'), '# Deep\n\nUp [i](../intro.md).\n');
+
+      const out = assembleGuide(guideDir, {
+        publishOutputFile: join(guideDir, 'out.md'),
+        outputFile: join(guideDir, 'out.md'),
+      });
+      expect(out).toContain('Up [i](intro.md).');
     });
   });
 
@@ -460,6 +659,15 @@ describe('cli e2e', () => {
     expect(output).toContain('![MDCP logo](./logo.svg)');
     expect(output).toContain('<audio src="./chime.mp3" controls></audio>');
     expect(output).toContain('[Request flow](#diagram-1-request-flow)');
+    // The catalog gives each first reference a paragraph of its own, so its table compiles whole,
+    // with its back-links re-aligned.
+    expect(output).toContain(
+      [
+        '| Insert                                     | Summary                         |',
+        '| ------------------------------------------ | ------------------------------- |',
+        '| [Request flow](#diagram-1-request-flow)    | Client to server path (table)   |',
+      ].join('\n'),
+    );
     expect(output).toContain('[Status codes](#table-1-status-codes)');
     expect(output).toContain('#### Media 1. Walkthrough');
     expect(output).toContain('[Walkthrough](#media-1-walkthrough)');

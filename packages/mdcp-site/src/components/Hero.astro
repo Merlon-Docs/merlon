@@ -1,0 +1,136 @@
+---
+// Landing-page hero. Replaces Starlight's default so the splash page can show MDCP's
+// two parts side by side: the AI skill working in an agent, and the CLI checking in CI.
+// Only the splash page sets `hero`, so no other page renders this.
+import { LinkButton } from '@astrojs/starlight/components';
+
+// Starlight's skip link targets this id (PAGE_TITLE_ID, not exported).
+const PAGE_TITLE_ID = '_top';
+
+const { data } = Astro.locals.starlightRoute.entry;
+const { title = data.title, tagline, actions = [] } = data.hero || {};
+
+const installs = [
+  {
+    label: 'AI skill',
+    where: 'in your coding agent',
+    command: 'npx skills add betsalel-williamson/mdcp --skill mdcp',
+  },
+  { label: 'CLI', where: 'in your repo and CI', command: 'npm install -D @bwilliamson/mdcp-cli' },
+];
+---
+
+<div class="mdcp-hero">
+  <div class="mdcp-hero__copy">
+    <p class="mdcp-hero__eyebrow">MDCP · Spec 1.0 draft · MIT</p>
+    <h1 id={PAGE_TITLE_ID} data-page-title set:html={title} />
+    {tagline && <p class="mdcp-hero__tagline" set:html={tagline} />}
+    {
+      actions.length > 0 && (
+        <div class="mdcp-hero__actions">
+          {actions.map(({ attrs: { class: className, ...attrs } = {}, icon, link: href, text, variant }) => (
+            <LinkButton {href} {variant} icon={icon?.name} class:list={[className]} {...attrs}>
+              {text}
+              {icon?.html && <Fragment set:html={icon.html} />}
+            </LinkButton>
+          ))}
+        </div>
+      )
+    }
+    <div class="mdcp-hero__installs">
+      {
+        installs.map(({ label, where, command }) => (
+          <div class="mdcp-hero__install">
+            <p class="mdcp-hero__install-label">
+              {label} <span>{where}</span>
+            </p>
+            <code>
+              <span aria-hidden="true">$ </span>
+              {command.split(' ').map((word, i) => (
+                <Fragment>
+                  {i > 0 && ' '}
+                  <span class="mdcp-hero__word">{word}</span>
+                </Fragment>
+              ))}
+            </code>
+            <button type="button" data-copy={command}>
+              <span data-label>Copy</span>
+              <span class="sr-only"> the {label} install command</span>
+            </button>
+            <span class="sr-only" role="status" data-status />
+          </div>
+        ))
+      }
+    </div>
+  </div>
+
+  <div class="mdcp-hero__panes">
+    <figure class="mdcp-pane">
+      <div class="mdcp-pane__bar">
+        <span class="mdcp-pane__step" aria-hidden="true">1</span>
+        <span class="mdcp-pane__name">AI skill</span>
+        <span class="mdcp-pane__where">in your coding agent</span>
+      </div>
+      <pre
+        class="mdcp-pane__body"><span class="mdcp-pane__ask"><span aria-hidden="true">&gt; </span>Add a --since flag to the export command.</span>
+
+<span class="mdcp-pane__agent">Agent, following the mdcp skill:</span>
+<span class="mdcp-pane__done" aria-hidden="true">✓</span> Read docs/features/export.md
+<span class="mdcp-pane__done" aria-hidden="true">✓</span> Changed src/export.ts
+<span class="mdcp-pane__done" aria-hidden="true">✓</span> Updated docs/features/export.md in the same change
+<span class="mdcp-pane__done" aria-hidden="true">✓</span> Ran mdcp check: passed
+Ready for review: code and docs in one pull request.</pre>
+      <figcaption>
+        An illustrative session. The steps are the ones the skill tells an agent to take.
+      </figcaption>
+    </figure>
+
+    <figure class="mdcp-pane">
+      <div class="mdcp-pane__bar">
+        <span class="mdcp-pane__step" aria-hidden="true">2</span>
+        <span class="mdcp-pane__name">CLI</span>
+        <span class="mdcp-pane__where">in your repo and CI</span>
+      </div>
+      <pre
+        class="mdcp-pane__body"><span class="mdcp-pane__cmd"><span aria-hidden="true">$ </span>mdcp compile</span>
+→ _build/overview.md (38 lines)
+→ _build/admin-guide.md (14 lines)
+→ _build/developer-guide.md (14 lines)
+
+<span class="mdcp-pane__cmd"><span aria-hidden="true">$ </span>mdcp check</span>
+<span class="mdcp-pane__err">orphan:</span> Orphaned shard not in sections manifest: developer-guide/release.md
+<span class="mdcp-pane__err">mdcp check failed:</span> 1 orphan shard(s). Add them to a guide index or remove unused files.
+
+<span class="mdcp-pane__cmd"><span aria-hidden="true">$ </span>mdcp check</span>
+<span class="mdcp-pane__ok">mdcp check passed</span></pre>
+      <figcaption>
+        Real output on the sample guides. Compile writes three guides, and the check fails on a
+        planted unindexed shard until it's fixed.
+      </figcaption>
+    </figure>
+  </div>
+</div>
+
+<script>
+  // The visible label changes for sighted users; the status region announces the
+  // result to screen readers, since a changed button label is not announced.
+  for (const install of document.querySelectorAll<HTMLElement>('.mdcp-hero__install')) {
+    const button = install.querySelector('button')!;
+    const label = button.querySelector<HTMLElement>('[data-label]')!;
+    const status = install.querySelector<HTMLElement>('[data-status]')!;
+    button.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(button.dataset.copy ?? '');
+        label.textContent = 'Copied';
+        status.textContent = 'Install command copied to the clipboard';
+        setTimeout(() => {
+          label.textContent = 'Copy';
+          status.textContent = '';
+        }, 1500);
+      } catch {
+        label.textContent = 'Select and copy';
+        status.textContent = 'Copy failed. Select the command and copy it.';
+      }
+    });
+  }
+</script>

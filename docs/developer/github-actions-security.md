@@ -18,7 +18,9 @@ Do not invent alternate labels. When a risk closes, update the row to `reviewed`
 
 ## Re-review cadence
 
-Re-run the checklist when any of the following change:
+This cadence is **advisory**, because no workflow re-runs the checklist. Whoever makes one of the changes below should re-run the rows it affects. When a coding agent makes the change, it should commit the re-run on the same branch. For a Dependabot bump of an action version, the maintainer who merges the PR should re-run those rows. Each re-run leaves its evidence as a new date on those rows in the [checklist](./github-actions-security-checklist.md).
+
+Re-run the affected rows when any of the following change:
 
 - Workflow files under `.github/workflows/` (triggers, permissions, action versions, secrets usage)
 - Repository or organization **Actions** settings (default `GITHUB_TOKEN` permissions, allowed actions, environments)
@@ -26,17 +28,19 @@ Re-run the checklist when any of the following change:
 - Dependabot or secret-scanning configuration
 - Release mechanics ([Publishing](./publishing.md) — OIDC, environments, npm trust)
 
-Even when nothing changes, schedule a **periodic pass** (for example quarterly) so third-party action advisories and OWASP guidance updates do not drift unnoticed.
+The [Zizmor](#static-analysis) job gates part of the review for workflow-file changes, since it fails on workflow misconfigurations. It scans Dependabot PRs and direct pushes to `develop` as they arrive, but for workflow changes that land through the land workflow, its first scan is on the release PR ([Landing on `develop`](./versioning-and-releases.md#landing-on-develop)).
+
+Even when nothing changes, a maintainer should run a **periodic pass** by hand about once a quarter so third-party action advisories and OWASP guidance updates do not drift unnoticed. A full pass gives every dated row a new date, so an oldest date more than a quarter old shows that a pass is overdue.
 
 ## CODEOWNERS and external contributor review
 
 OWASP recommends requiring approval from code owners so external contributors cannot merge changes to critical paths without maintainer review. This repo assigns `@betsalel-williamson` in [`.github/CODEOWNERS`](../../.github/CODEOWNERS) for:
 
 - All paths (`*`) — default owner
-- `.github/` — workflows, Dependabot, and repository automation
-- `packages/` — published npm packages and CLI
-- `docs/` — sharded documentation compiled into READMEs
-- `skills/` and `.agents/skills/` — publishable and committed Agent Skills
+- `.github/`: workflows, Dependabot, and repository automation
+- `packages/`: published npm packages and CLI
+- `docs/`: sharded documentation compiled into READMEs
+- `skills/` and `.agents/skills/`: publishable and committed skills
 
 CODEOWNERS alone does not block merges; branch protection must enforce owner review.
 
@@ -46,7 +50,7 @@ After CODEOWNERS is on `main`, a repo admin enables review enforcement:
 
 1. Open **Settings → Branches → Branch protection rules → `main`** (or the active ruleset for `main`).
 2. Under **Require a pull request before merging**, enable **Require review from Code Owners**.
-3. Keep **Dismiss stale pull request approvals when new commits are pushed** enabled (already on as of 2026-07-27).
+3. Keep **Dismiss stale pull request approvals when new commits are pushed** enabled.
 
 A separate `required_approving_review_count` is not needed — only maintainers have merge access, so the maintainer merge itself serves as the approval gate. Re-verify after any branch-protection edits:
 
