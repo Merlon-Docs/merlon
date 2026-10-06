@@ -2,6 +2,9 @@ name: gitleaks
 
 on:
   push:
+    branches:
+      - 'claude/**'
+      - 'land/**'
   pull_request:
   workflow_dispatch:
 
