@@ -174,6 +174,7 @@ function escapeGlobPath(path: string): string {
   return path
     .split(sep)
     .join('/')
+    .replace(/\\/g, '\\\\')
     .replace(/[()[\]*?]/g, '\\$&')
     .replace(/[{}|'"`]/g, '[$&]');
 }
