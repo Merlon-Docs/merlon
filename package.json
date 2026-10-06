@@ -94,10 +94,10 @@
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "gpt-tokenizer": "^4.0.0",
     "husky": "^9.1.7",
-    "lint-staged": "^17.5.1",
+    "lint-staged": "^17.6.0",
     "markdownlint-cli2": "^0.23.3",
     "prettier": "^3.9.9",
     "skills-ref": "^0.1.5",
-    "typescript-eslint": "^8.70.1"
+    "typescript-eslint": "^8.71.0"
   }
 }
