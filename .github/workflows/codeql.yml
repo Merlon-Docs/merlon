@@ -2,7 +2,7 @@ name: 'CodeQL'
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
     # Any target branch (stacked feature PRs, not only main).
 

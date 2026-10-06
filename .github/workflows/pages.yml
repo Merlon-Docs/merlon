@@ -1,30 +1,7 @@
 name: Pages
 
-# Docs site (packages/mdcp-site): build on PRs that touch docs or the site;
-# build and deploy to GitHub Pages from develop. Landings push develop with
-# GITHUB_TOKEN, which starts no push workflows, so the land workflow
-# dispatches this one after each landing. Repo settings required:
-# Settings → Pages → Source: GitHub Actions, and the github-pages
-# environment must allow the develop branch.
 on:
-  push:
-    branches: [develop]
-  pull_request:
-    paths:
-      - 'docs/**'
-      - 'packages/mdcp-site/**'
-      - 'packages/mdcp-core/src/**'
-      - 'packages/mdcp-cli/src/**'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
-      - '.github/workflows/pages.yml'
   workflow_dispatch:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  # Cancel superseded PR builds; never cancel an in-flight Pages deployment.
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # Force JS actions onto Node 24 (Node 20 deprecated on runners).
 # https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
@@ -67,7 +44,6 @@ jobs:
       - run: pnpm --filter @bwilliamson/mdcp-site run check:a11y
 
       - name: Upload Pages artifact
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/develop'
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: packages/mdcp-site/dist

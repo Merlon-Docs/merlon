@@ -3,9 +3,11 @@
  * script both read these, so routes, base path and repo links stay in one place.
  */
 
-export const SITE = 'https://betsalel-williamson.github.io';
-export const BASE = '/mdcp';
-export const REPO_SLUG = 'betsalel-williamson/mdcp';
+const DEFAULT_REPO_SLUG = 'merlon-docs/merlon';
+export const REPO_SLUG = process.env.GITHUB_REPOSITORY || DEFAULT_REPO_SLUG;
+const [REPOSITORY_OWNER, REPOSITORY_NAME] = REPO_SLUG.split('/');
+export const SITE = `https://${REPOSITORY_OWNER}.github.io`;
+export const BASE = `/${REPOSITORY_NAME}`;
 export const REPO_URL = `https://github.com/${REPO_SLUG}`;
 export const DEFAULT_BRANCH = 'main';
 
