@@ -2,7 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    # PR updates cover develop, including the release PR from develop to main.
+    # Keeping develop out avoids running CI twice for each release-PR push.
+    branches: [main]
   pull_request:
     # Any target branch (stacked feature PRs, not only main).
     # Changeset checks use github.event.pull_request.base.sha — never a hardcoded branch name.
