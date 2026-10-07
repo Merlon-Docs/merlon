@@ -1,0 +1,383 @@
+{
+  "$schema": "./issues-dag.schema.json",
+  "version": 1,
+  "generated": "2026-08-02",
+  "description": "Machine-readable dependency DAG for all open GitHub issues. Verified by scripts/verify-issue-dag.mjs.",
+  "waves": [
+    {
+      "id": "wave-0",
+      "description": "Land in-flight implementation PRs before new work",
+      "parallel": true
+    },
+    {
+      "id": "wave-1",
+      "description": "P1 feedback and protocol ADR polish",
+      "parallel": true
+    },
+    {
+      "id": "wave-2",
+      "description": "Protocol formalization spine (#48 → #47 → #49)",
+      "parallel": false
+    },
+    {
+      "id": "wave-3",
+      "description": "MDCP 0.5 extension catalog (#78, #76, #81)",
+      "parallel": true
+    },
+    {
+      "id": "wave-4",
+      "description": "P2 product surfaces (diff, MCP, skills, review-bench)",
+      "parallel": true
+    },
+    {
+      "id": "wave-gate",
+      "description": "Defer gate-monitor stubs — plan only until gate fires",
+      "parallel": true
+    },
+    {
+      "id": "wave-epic",
+      "description": "Epic rollup — close when children satisfy acceptance",
+      "parallel": false
+    }
+  ],
+  "nodes": [
+    {
+      "issue": 44,
+      "slug": "protocol-formalization",
+      "title": "Protocol formalization program",
+      "kind": "epic",
+      "mode": "rollup",
+      "priority": "P2",
+      "wave": "wave-epic",
+      "depends_on": [],
+      "closes_when": [46, 45, 48, 47, 49],
+      "mdcp_helper": "mdcp-design-architecture",
+      "plan_file": "docs/superpowers/plans/2026-08-02-issue-44-protocol-formalization.md"
+    },
+    {
+      "issue": 45,
+      "slug": "usage-model",
+      "title": "Markdown-as-context usage model",
+      "kind": "leaf",
+      "mode": "implement",
+      "priority": "P3",
+      "wave": "wave-2",
+      "depends_on": [46],
+      "plan_file": "docs/superpowers/plans/2026-08-02-issue-45-usage-model.md",
+      "mdcp_helper": "mdcp-doc-only"
+    },
+    {
+      "issue": 46,
+      "slug": "scope-positioning-adr",
+      "title": "Protocol scope, positioning, and versioning policy",
+      "kind": "leaf",
+      "mode": "implement",
+      "priority": "P2",
+      "wave": "wave-1",
+      "depends_on": [],
+      "plan_file": "docs/superpowers/plans/2026-08-02-issue-46-scope-positioning-adr.md",
+      "mdcp_helper": "mdcp-design-architecture"
+    },
+    {
+      "issue": 47,
+      "slug": "artifact-schemas",
+      "title": "Versioned artifact schemas",
+      "kind": "leaf",
+      "mode": "implement",
+      "priority": "P2",
+      "wave": "wave-2",
+      "depends_on": [48],
+      "plan_file": "docs/superpowers/plans/2026-08-02-issue-47-artifact-schemas.md",
+      "mdcp_helper": "mdcp-feature-level"
+    },
+    {
+      "issue": 48,
+      "slug": "mdcp-1-0-spec",
+      "title": "MDCP 1.0 normative specification",
+      "kind": "leaf",
+      "mode": "implement",
+      "priority": "P1",
+      "wave": "wave-2",
+      "depends_on": [46],
+      "plan_file": "docs/superpowers/plans/2026-08-02-issue-48-mdcp-1-0-spec.md",
+      "mdcp_helper": "mdcp-design-architecture"
+    },
+    {
+      "issue": 49,
+      "slug": "conformance-suite",
+      "title": "Conformance suite and reference-implementation policy",
+      "kind": "leaf",
+      "mode": "implement",
+      "priority": "P2",
+      "wave": "wave-2",
+      "depends_on": [47, 48],
+      "plan_file": "docs/superpowers/plans/2026-08-02-issue-49-conformance-suite.md",
+      "mdcp_helper": "mdcp-feature-level"
+    },
+    {
+      "issue": 52,
+      "slug": "compile-diff",
+      "title": "Diff checking on compiled output",
+      "kind": "leaf",
+      "mode": "implement",
+      "priority": "P2",
+      "wave": "wave-4",
+      "depends_on": [48],
+      "plan_file": "docs/superpowers/plans/2026-08-02-issue-52-compile-diff.md",
+      "mdcp_helper": "mdcp-feature-level"
+    },
+    {
+      "issue": 59,
+      "slug": "mcp-server",
+      "title": "V2 MDCP MCP server",
+      "kind": "leaf",
+      "mode": "implement",
+      "priority": "P2",
+      "wave": "wave-4",
+      "depends_on": [48],
+      "plan_file": "docs/superpowers/plans/2026-08-02-issue-59-mcp-server.md",
+      "mdcp_helper": "mdcp-feature-level"
+    },
+    {
+      "issue": 60,
+      "slug": "hosted-api",
+      "title": "V3 Hosted context API",
+      "kind": "leaf",
+      "mode": "gate-monitor",
+      "priority": "defer",
+      "wave": "wave-gate",
+      "depends_on": [],
+      "gate": {
+        "blocked_until": [59, 48, 47],
+        "reason": "V3 design blocked on V2 MCP + normative spec + schemas"
+      },
+      "plan_file": "docs/superpowers/plans/2026-08-02-issue-60-hosted-api.md",
+      "mdcp_helper": "mdcp-design-architecture"
+    },
+    {
+      "issue": 66,
+      "slug": "rust-compiler",
+      "title": "Lookout Rust compiler engine spike",
+      "kind": "leaf",
+      "mode": "gate-monitor",
+      "priority": "defer",
+      "wave": "wave-gate",
+      "depends_on": [],
+      "gate": {
+        "blocked_until_issues_resolved": [67],
+        "metrics": ["200-shard fixture SLO miss", "compile+lint > 2s after P3 Node path"],
+        "reason": "Rust ROI negative until P3 Node benchmarks prove SLO miss"
+      },
+      "plan_file": "docs/superpowers/plans/2026-08-02-issue-66-rust-compiler.md",
+      "mdcp_helper": "mdcp-design-architecture"
+    },
+    {
+      "issue": 67,
+      "slug": "performance-deferred",
+      "title": "Performance deferred P2+ roadmap",
+      "kind": "leaf",
+      "mode": "gate-monitor",
+      "priority": "defer",
+      "wave": "wave-gate",
+      "depends_on": [],
+      "gate": {
+        "unpark_when_any": [
+          "200-shard real multi-guide fixture misses Tier 1 or Tier 2 SLO",
+          "refs lookup exceeds 200ms at 500 shards",
+          "product commitment to 500-shard programs"
+        ],
+        "reason": "Dogfood scale (~64 shards) meets SLOs; defer until scale pain"
+      },
+      "plan_file": "docs/superpowers/plans/2026-08-02-issue-67-performance-deferred.md",
+      "mdcp_helper": "mdcp-design-architecture"
+    },
+    {
+      "issue": 74,
+      "slug": "protocol-0-5",
+      "title": "MDCP 0.5.0.0 epic",
+      "kind": "epic",
+      "mode": "rollup",
+      "priority": "P1",
+      "wave": "wave-epic",
+      "depends_on": [],
+      "closes_when": [78, 76, 81],
+      "excludes_defer": [79, 80],
+      "plan_file": "docs/superpowers/plans/2026-08-02-issue-74-protocol-0-5.md",
+      "mdcp_helper": "mdcp-design-architecture"
+    },
+    {
+      "issue": 76,
+      "slug": "modeling-compatibility",
+      "title": "Modeling-framework compatibility matrix",
+      "kind": "leaf",
+      "mode": "implement",
+      "priority": "P3",
+      "wave": "wave-3",
+      "depends_on": [],
+      "plan_file": "docs/superpowers/plans/2026-08-02-issue-76-modeling-compatibility.md",
+      "mdcp_helper": "mdcp-doc-only"
+    },
+    {
+      "issue": 78,
+      "slug": "extension-taxonomy",
+      "title": "Extension taxonomy arch-*, format-*",
+      "kind": "leaf",
+      "mode": "implement",
+      "priority": "P2",
+      "wave": "wave-3",
+      "depends_on": [],
+      "plan_file": "docs/superpowers/plans/2026-08-02-issue-78-extension-taxonomy.md",
+      "mdcp_helper": "mdcp-doc-only"
+    },
+    {
+      "issue": 79,
+      "slug": "arch-manufacturing",
+      "title": "Archetype manufacturing operations",
+      "kind": "leaf",
+      "mode": "gate-monitor",
+      "priority": "defer",
+      "wave": "wave-gate",
+      "depends_on": [],
+      "gate": {
+        "blocked_until": [78, 74],
+        "reason": "Deferred archetype; requires extension taxonomy and 0.5 epic progress"
+      },
+      "plan_file": "docs/superpowers/plans/2026-08-02-issue-79-arch-manufacturing.md",
+      "mdcp_helper": "mdcp-design-architecture"
+    },
+    {
+      "issue": 80,
+      "slug": "arch-learning",
+      "title": "Archetype learning training",
+      "kind": "leaf",
+      "mode": "gate-monitor",
+      "priority": "defer",
+      "wave": "wave-gate",
+      "depends_on": [],
+      "gate": {
+        "blocked_until": [78, 74],
+        "reason": "Deferred archetype; requires extension taxonomy and 0.5 epic progress"
+      },
+      "plan_file": "docs/superpowers/plans/2026-08-02-issue-80-arch-learning.md",
+      "mdcp_helper": "mdcp-design-architecture"
+    },
+    {
+      "issue": 81,
+      "slug": "format-c4",
+      "title": "Format pack C4 model",
+      "kind": "leaf",
+      "mode": "implement",
+      "priority": "P3",
+      "wave": "wave-3",
+      "depends_on": [78],
+      "plan_file": "docs/superpowers/plans/2026-08-02-issue-81-format-c4.md",
+      "mdcp_helper": "mdcp-feature-level"
+    },
+    {
+      "issue": 153,
+      "slug": "skills-audit-sync",
+      "title": "skills.sh security audit sync",
+      "kind": "leaf",
+      "mode": "inflight",
+      "priority": "P1",
+      "wave": "wave-0",
+      "depends_on": [],
+      "inflight_pr": 154,
+      "plan_file": "docs/superpowers/plans/2026-08-02-issue-153-skills-audit-sync.md",
+      "mdcp_helper": "mdcp-feature-level"
+    },
+    {
+      "issue": 157,
+      "slug": "doc-sync-skill",
+      "title": "Skill doc-sync brownfield coverage",
+      "kind": "leaf",
+      "mode": "implement",
+      "priority": "P2",
+      "wave": "wave-4",
+      "depends_on": [],
+      "plan_file": "docs/superpowers/plans/2026-08-02-issue-157-doc-sync-skill.md",
+      "mdcp_helper": "mdcp-feature-level"
+    },
+    {
+      "issue": 160,
+      "slug": "review-bench",
+      "title": "Review-bench MVP",
+      "kind": "leaf",
+      "mode": "implement",
+      "priority": "P2",
+      "wave": "wave-4",
+      "depends_on": [],
+      "plan_file": "docs/superpowers/plans/2026-08-02-issue-160-review-bench.md",
+      "mdcp_helper": "mdcp-design-architecture"
+    },
+    {
+      "issue": 169,
+      "slug": "typescript-7",
+      "title": "Revisit TypeScript 7 upgrade",
+      "kind": "leaf",
+      "mode": "gate-monitor",
+      "priority": "defer",
+      "wave": "wave-gate",
+      "depends_on": [],
+      "gate": {
+        "calendar_after": "2026-10-01",
+        "blocked_until": ["typescript-eslint TS7 support"],
+        "reason": "Parked until Q4 2026; Dependabot ignore active"
+      },
+      "plan_file": "docs/superpowers/plans/2026-08-02-issue-169-typescript-7.md",
+      "mdcp_helper": "mdcp-feature-level"
+    },
+    {
+      "issue": 173,
+      "slug": "security-posture",
+      "title": "Repository security posture epic",
+      "kind": "epic",
+      "mode": "rollup",
+      "priority": "P1",
+      "wave": "wave-epic",
+      "depends_on": [],
+      "closes_when": [],
+      "never_close": true,
+      "active_children": [153, 201],
+      "plan_file": "docs/superpowers/plans/2026-08-02-issue-173-security-posture.md",
+      "mdcp_helper": "mdcp-doc-only"
+    },
+    {
+      "issue": 201,
+      "slug": "redos-phase-b",
+      "title": "Audit mdcp-core regexes ReDoS Phase B",
+      "kind": "leaf",
+      "mode": "inflight",
+      "priority": "P2",
+      "wave": "wave-0",
+      "depends_on": [],
+      "inflight_pr": 229,
+      "plan_file": "docs/superpowers/plans/2026-08-02-issue-201-redos-phase-b.md",
+      "mdcp_helper": "mdcp-feature-level"
+    },
+    {
+      "issue": 232,
+      "slug": "ontology-density",
+      "title": "Ontology condensation and idea density",
+      "kind": "leaf",
+      "mode": "implement",
+      "priority": "P1",
+      "wave": "wave-1",
+      "depends_on": [],
+      "plan_file": "docs/superpowers/plans/2026-08-02-issue-232-ontology-density.md",
+      "mdcp_helper": "mdcp-design-architecture"
+    },
+    {
+      "issue": 233,
+      "slug": "token-cost-measurement",
+      "title": "Measure token context cost",
+      "kind": "leaf",
+      "mode": "implement",
+      "priority": "P1",
+      "wave": "wave-1",
+      "depends_on": [],
+      "plan_file": "docs/superpowers/plans/2026-08-02-issue-233-token-cost-measurement.md",
+      "mdcp_helper": "mdcp-design-architecture"
+    }
+  ]
+}

@@ -29,8 +29,12 @@ coverage/
 .claude/hooks/*
 !.claude/hooks/session-start.sh
 .superpowers/
-# Superpowers agent specs/plans (ephemeral; durable docs live in MDCP shards)
-docs/superpowers/
+# Superpowers agent scratch (ephemeral). Committed orchestration DAG + plans are exceptions below.
+docs/superpowers/*
+!docs/superpowers/dag/
+!docs/superpowers/dag/**
+!docs/superpowers/plans/
+!docs/superpowers/plans/**
 
 # Linked git worktrees (local agent / contributor checkouts)
 .worktrees/

@@ -25,6 +25,8 @@
     "docs:check:repo": "pnpm run docs:lint:changeset-links && node packages/mdcp-cli/dist/cli.js check --config docs/mdcp.config.json --docs-root docs --require-lint --require-vale",
     "bench:dogfood": "node scripts/bench-dogfood-performance.mjs",
     "bench:context-size": "node scripts/bench-context-size.mjs",
+    "dag:verify": "node scripts/verify-issue-dag.mjs",
+    "dag:verify:gh": "node scripts/verify-issue-dag.mjs --check-gh",
     "docs:lint": "node packages/mdcp-cli/dist/cli.js lint --config examples/sample-guides/mdcp.config.json --docs-root examples/sample-guides --require-lint",
     "docs:prose": "node packages/mdcp-cli/dist/cli.js prose --config examples/sample-guides/mdcp.config.json --docs-root examples/sample-guides --require-vale",
     "docs:check:examples": "node packages/mdcp-cli/dist/cli.js check --config examples/sample-guides/mdcp.config.json --docs-root examples/sample-guides --require-lint --require-vale",

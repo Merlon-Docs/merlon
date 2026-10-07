@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/betsalel-williamson/mdcp/issues-dag.schema.json",
+  "title": "MDCP open-issue orchestration DAG",
+  "type": "object",
+  "required": ["version", "waves", "nodes"],
+  "properties": {
+    "version": { "type": "integer", "minimum": 1 },
+    "generated": { "type": "string", "format": "date" },
+    "description": { "type": "string" },
+    "waves": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "description"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^wave-" },
+          "description": { "type": "string" },
+          "parallel": { "type": "boolean" }
+        }
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["issue", "slug", "kind", "mode", "wave", "plan_file"],
+        "properties": {
+          "issue": { "type": "integer", "minimum": 1 },
+          "slug": { "type": "string" },
+          "title": { "type": "string" },
+          "kind": { "enum": ["epic", "leaf"] },
+          "mode": {
+            "enum": ["implement", "rollup", "gate-monitor", "inflight"]
+          },
+          "priority": { "type": "string" },
+          "wave": { "type": "string" },
+          "depends_on": {
+            "type": "array",
+            "items": { "type": "integer" }
+          },
+          "closes_when": {
+            "type": "array",
+            "items": { "type": "integer" }
+          },
+          "plan_file": { "type": "string" },
+          "mdcp_helper": { "type": "string" },
+          "gate": { "type": "object" },
+          "inflight_pr": { "type": "integer" }
+        }
+      }
+    }
+  }
+}
