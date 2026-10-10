@@ -44,22 +44,27 @@ Optional locally: `brew install gitleaks` (CI always scans).
 
 ## Git hooks
 
-Pre-commit runs in two phases:
+The pre-commit hook runs three steps in order, and the commit-msg hook runs one:
 
-| Phase           | What runs                                                                                |
-| --------------- | ---------------------------------------------------------------------------------------- |
-| lint-staged     | Prettier and ESLint on staged files (including `.jsonc`)                                 |
-| affected checks | `scripts/pre-commit-affected.mjs` — build and test only packages touched by staged paths |
+| Hook       | Step            | What runs                                                                           |
+| ---------- | --------------- | ----------------------------------------------------------------------------------- |
+| pre-commit | lint-staged     | Prettier and ESLint on staged files (including `.jsonc`)                            |
+| pre-commit | affected checks | `scripts/pre-commit-affected.mjs`, with the checks the staged paths call for        |
+| pre-commit | gitleaks        | `gitleaks protect --staged` when gitleaks is on `PATH`, and a warning when it isn't |
+| commit-msg | commitlint      | The Conventional Commits rules of `@commitlint/config-conventional`                 |
 
-| Staged paths                                            | Extra checks                                             |
-| ------------------------------------------------------- | -------------------------------------------------------- |
-| `packages/mdcp-core/**`                                 | typecheck, build, `vitest related` on changed files      |
-| `packages/mdcp-cli/**`                                  | core build (dependency), then cli typecheck, build, test |
-| `packages/mdcp-presets/**`                              | JSONC preset validation                                  |
-| `docs/**`, `DEVELOPERS.md`, package README shards       | `docs:compile:repo` + `docs:check:repo`                  |
-| Root config (`package.json`, lockfile, eslint/tsconfig) | repo-wide typecheck + `format:check`                     |
+The affected checks run by staged path:
 
-When a dependency manifest is staged, the pre-commit hook also runs `pnpm audit --audit-level=high`. When the audit fails, resolve the advisory as [Security-incident triage](./security-incident-triage.md) describes before you commit the manifest change. The commit-msg hook runs commitlint. A merge commit passes it with git's default `Merge branch …` subject, and fails with a hand-written `merge: …` subject, because `merge` isn't a commit type.
+| Staged paths                                                                                                 | Extra checks                                                                   |
+| ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
+| `packages/mdcp-core/**`                                                                                      | typecheck, build, `vitest related` on changed files                            |
+| `packages/mdcp-cli/**`                                                                                       | core build (dependency), then cli typecheck, build, test                       |
+| `packages/mdcp-presets/**`                                                                                   | JSONC preset validation                                                        |
+| `docs/**`, `DEVELOPERS.md`, `packages/*/README.md`                                                           | core and CLI build, `docs:compile:repo`, then `mdcp check --warn-broken-links` |
+| Root config (`package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `eslint.config.mjs`, `tsconfig*.json`) | repo-wide typecheck + `format:check`                                           |
+| `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `packages/*/package.json`                           | `pnpm audit --audit-level=high`                                                |
+
+The docs check in the hook skips `docs:lint:changeset-links`, and a broken link only warns there. Run `pnpm docs:check` before you push. When the audit fails, resolve the advisory as [Security-incident triage](./security-incident-triage.md) describes before you commit the manifest change. A merge commit passes commitlint with git's default `Merge branch …` subject, and fails with a hand-written `merge: …` subject, because `merge` isn't a commit type.
 
 ## CI and the land gate
 
