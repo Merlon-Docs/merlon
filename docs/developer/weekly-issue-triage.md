@@ -7,7 +7,7 @@ A run that changes something leaves its evidence in the tracker. Step 5 leaves a
 ## Checklist
 
 1. **Auth**: `gh auth status` shows `project` (or `read:project` at minimum for reads; writes need `project`). Switch to the owner account if needed ([Auth for board writes](./issue-intake-and-labels.md#auth-for-board-writes)).
-2. **Open vs board**: list open issues and add any missing ones ([New issue intake](./issue-intake-and-labels.md#new-issue-intake-required) steps 3 to 5). Every open issue must appear on the board.
+2. **Open vs board**: list open issues and add any missing ones to the board, as [Tracker](./agent-work-item-tracking.md#tracker) requires ([New issue intake](./issue-intake-and-labels.md#new-issue-intake-required) steps 3 to 5).
 3. **Label audit**: every open delivery issue has exactly one `priority:*` and a sensible type label. Add component or domain labels when obvious.
 4. **Milestone hygiene**: keep only active delivery milestones open. Attach in-scope issues to the current cut.
 5. **Stale review**: candidates are issues whose acceptance the repo already meets or whose approach was superseded, plus issues with no remaining adopter value. On each candidate, **comment** asking the human to verify close-without-action ([Human verification comment](#human-verification-comment-stale--close-without-action)). Do **not** close until they reply.

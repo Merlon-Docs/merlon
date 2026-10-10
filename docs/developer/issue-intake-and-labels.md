@@ -4,11 +4,13 @@ This page lists the board fields and labels for issues in this repository's trac
 
 ## Project fields
 
-| Field     | Values                                                          | When to set                                 |
-| --------- | --------------------------------------------------------------- | ------------------------------------------- |
-| Status    | Todo · In Progress · Done                                       | Todo on intake; In Progress on branch start |
-| Track     | 1.0 Formalization · Maintenance · Performance · Future (V2+)    | On intake                                   |
-| Milestone | Current open delivery milestone when the issue is in that scope | When it belongs in the next delivery cut    |
+**Status** tracks delivery, and **Track** groups work by roadmap area.
+
+| Field     | Values                                                          | When to set                                                             |
+| --------- | --------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Status    | Todo · In Progress · Done                                       | Todo on intake; In Progress on branch start; Done when the issue closes |
+| Track     | 1.0 Formalization · Maintenance · Performance · Future (V2+)    | On intake                                                               |
+| Milestone | Current open delivery milestone when the issue is in that scope | When it belongs in the next delivery cut                                |
 
 Pick the Track value from [Track selection](#track-selection).
 

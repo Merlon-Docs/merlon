@@ -317,7 +317,7 @@ CI and the land gate run more checks than these steps. [CI and the land gate](#c
 
 How coding agents load tracker issues and delivery conventions **for this repository**. The work-item workflows of the [MDCP skill](docs/skills.md) (installed alongside the MDCP CLI) point here via `WORK_ITEM_LOOKUP`.
 
-**This repo’s work-item lookup system uses GitHub** for both **issues** (acceptance, discussion, `Closes #N`) and **project planning** (the Project board below — status, track, roadmap grouping). Do not invent a second tracker or stuff tickets / sprint backlogs into durable `docs/` shards; load scope from GitHub via this shard.
+**This repo’s work-item lookup system uses GitHub** for both **issues** (acceptance, discussion, `Closes #N`) and **project planning** (the Project board below). Do not invent a second tracker or stuff tickets / sprint backlogs into durable `docs/` shards. Load scope from GitHub via this shard.
 
 Configure an equivalent shard in consumer repos during [local setup](#local-setup) (point `WORK_ITEM_LOOKUP` at whatever issue tracker and project-planning host that repo uses).
 
@@ -331,7 +331,7 @@ Issue base URL=https://github.com/betsalel-williamson/mdcp/issues/
 WORK_ITEM=enough to resolve the issue — number, URL, or short name/description
 ```
 
-All repo issues live on the public [MarkDown Context Protocol project board](https://github.com/users/betsalel-williamson/projects/4). **Status** tracks delivery (Todo / In Progress / Done); **Track** groups work by roadmap area. Move items to **In Progress** when you start a branch; set **Done** when the issue closes. Every open issue should appear on that board.
+Every open issue must appear on the public [MarkDown Context Protocol project board](https://github.com/users/betsalel-williamson/projects/4).
 
 [Issue intake and labels](#issue-intake-and-labels) gives the board fields and labels each issue gets, and the checklist for a new issue.
 
@@ -395,11 +395,13 @@ This page lists the board fields and labels for issues in this repository's trac
 
 ### Project fields
 
-| Field     | Values                                                          | When to set                                 |
-| --------- | --------------------------------------------------------------- | ------------------------------------------- |
-| Status    | Todo · In Progress · Done                                       | Todo on intake; In Progress on branch start |
-| Track     | 1.0 Formalization · Maintenance · Performance · Future (V2+)    | On intake                                   |
-| Milestone | Current open delivery milestone when the issue is in that scope | When it belongs in the next delivery cut    |
+**Status** tracks delivery, and **Track** groups work by roadmap area.
+
+| Field     | Values                                                          | When to set                                                             |
+| --------- | --------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Status    | Todo · In Progress · Done                                       | Todo on intake; In Progress on branch start; Done when the issue closes |
+| Track     | 1.0 Formalization · Maintenance · Performance · Future (V2+)    | On intake                                                               |
+| Milestone | Current open delivery milestone when the issue is in that scope | When it belongs in the next delivery cut                                |
 
 Pick the Track value from [Track selection](#track-selection).
 
@@ -516,7 +518,7 @@ A run that changes something leaves its evidence in the tracker. Step 5 leaves a
 ### Checklist
 
 1. **Auth**: `gh auth status` shows `project` (or `read:project` at minimum for reads; writes need `project`). Switch to the owner account if needed ([Auth for board writes](#auth-for-board-writes)).
-2. **Open vs board**: list open issues and add any missing ones ([New issue intake](#new-issue-intake-required) steps 3 to 5). Every open issue must appear on the board.
+2. **Open vs board**: list open issues and add any missing ones to the board, as [Tracker](#tracker) requires ([New issue intake](#new-issue-intake-required) steps 3 to 5).
 3. **Label audit**: every open delivery issue has exactly one `priority:*` and a sensible type label. Add component or domain labels when obvious.
 4. **Milestone hygiene**: keep only active delivery milestones open. Attach in-scope issues to the current cut.
 5. **Stale review**: candidates are issues whose acceptance the repo already meets or whose approach was superseded, plus issues with no remaining adopter value. On each candidate, **comment** asking the human to verify close-without-action ([Human verification comment](#human-verification-comment-stale--close-without-action)). Do **not** close until they reply.

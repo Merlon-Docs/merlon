@@ -2,7 +2,7 @@
 
 How coding agents load tracker issues and delivery conventions **for this repository**. The work-item workflows of the [MDCP skill](../../docs/skills.md) (installed alongside the MDCP CLI) point here via `WORK_ITEM_LOOKUP`.
 
-**This repo’s work-item lookup system uses GitHub** for both **issues** (acceptance, discussion, `Closes #N`) and **project planning** (the Project board below — status, track, roadmap grouping). Do not invent a second tracker or stuff tickets / sprint backlogs into durable `docs/` shards; load scope from GitHub via this shard.
+**This repo’s work-item lookup system uses GitHub** for both **issues** (acceptance, discussion, `Closes #N`) and **project planning** (the Project board below). Do not invent a second tracker or stuff tickets / sprint backlogs into durable `docs/` shards. Load scope from GitHub via this shard.
 
 Configure an equivalent shard in consumer repos during [local setup](./local-setup.md) (point `WORK_ITEM_LOOKUP` at whatever issue tracker and project-planning host that repo uses).
 
@@ -16,7 +16,7 @@ Issue base URL=https://github.com/betsalel-williamson/mdcp/issues/
 WORK_ITEM=enough to resolve the issue — number, URL, or short name/description
 ```
 
-All repo issues live on the public [MarkDown Context Protocol project board](https://github.com/users/betsalel-williamson/projects/4). **Status** tracks delivery (Todo / In Progress / Done); **Track** groups work by roadmap area. Move items to **In Progress** when you start a branch; set **Done** when the issue closes. Every open issue should appear on that board.
+Every open issue must appear on the public [MarkDown Context Protocol project board](https://github.com/users/betsalel-williamson/projects/4).
 
 [Issue intake and labels](./issue-intake-and-labels.md) gives the board fields and labels each issue gets, and the checklist for a new issue.
 
