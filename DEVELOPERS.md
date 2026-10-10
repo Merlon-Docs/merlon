@@ -607,7 +607,7 @@ Find a shard under `docs/` with host search and read that one shard, as [refs](#
 
 - **markdownlint**: the shard preset on the shards, then the repo's own compiled config, [`docs/compiled-lint.markdownlint-cli2.jsonc`](docs/compiled-lint.markdownlint-cli2.jsonc), on the monolith, `DEVELOPERS.md` and the published READMEs. That config turns off fewer rules than the compiled preset in `@bwilliamson/mdcp-presets`, which the examples use.
 - **Vale**: prose lint on the `vale.scanGlobs` directories in the config, which are `glossary/`, `features/`, `developer/`, `client-cli/`, `client-core/`, `repo-readme/` and `presentation-la-devops/`, plus every `standaloneGuides` file. `docs/.vale.ini` opts `CODE_OF_CONDUCT.md` out, because its text is the vendored Contributor Covenant. Vale is not an npm dependency, so install it on `PATH` as [Local setup](#requirements) describes.
-- **Vale `MDCP` / `MDCP-PandocId`**: peer prose rules for unlinked heading mentions and dated claims, plus this repo's local rule against Pandoc IDs. They run in the peer Vale stage of `mdcp check`, and `--require-vale` makes a missing Vale fail the run
+- **Vale `MDCP` / `MDCP-PandocId`**: peer prose rules for unlinked heading mentions and dated claims, plus this repo's local rule against [Pandoc IDs](#headings-and-links). They run in the peer Vale stage of `mdcp check`, and `--require-vale` makes a missing Vale fail the run.
 - **link lint** — built-in validation runs on every `docs:check` with default `"error"` severity; publish guides set `compile.crossGuideLinks.ignoreGuides: ["features"]` so cross-guide links keep live `docs/features/` shard paths (publish-relative rebase only); see [Publish-only link policy](docs/features/link-validation.md#publish-only-link-policy)
 
 [First-time bootstrap](#first-time-bootstrap) syncs the Vale styles and says when to sync them again.
@@ -718,7 +718,7 @@ Each of these matches the `[label](target)` form with negated character classes.
 
 - Prefer the shared helpers for new heading or slug logic; do not add new polynomial-risk regexes for those jobs.
 - Prefer imperative scanners when adding line-range style matchers (optional whitespace next to digits or overlapping alternatives). Authored **word** cues for line ranges belong in the locale pack; keep `L` / `:` forms and `#L…` output language-neutral in the scanner.
-- Prefer GFM auto-slugs. Don't author Pandoc IDs on headings, since Vale reports an error on one in this repo. Compile still strips them from legacy content.
+- Prefer GFM auto-slugs, as [Markdown formatting](#headings-and-links) requires.
 - Don't reintroduce `lintXrefs` or chapter-cue regexes in `mdcp-core`. Unlinked chapter and section cues in prose are Vale's job, as [Locale and language boundary](docs/features/design-constraints/locale-and-language.md) describes.
 
 <!-- mdcp-shard: end docs/developer/safe-markdown-parsing.md -->

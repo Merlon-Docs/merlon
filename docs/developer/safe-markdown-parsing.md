@@ -69,5 +69,5 @@ Each of these matches the `[label](target)` form with negated character classes.
 
 - Prefer the shared helpers for new heading or slug logic; do not add new polynomial-risk regexes for those jobs.
 - Prefer imperative scanners when adding line-range style matchers (optional whitespace next to digits or overlapping alternatives). Authored **word** cues for line ranges belong in the locale pack; keep `L` / `:` forms and `#L…` output language-neutral in the scanner.
-- Prefer GFM auto-slugs. Don't author Pandoc IDs on headings, since Vale reports an error on one in this repo. Compile still strips them from legacy content.
+- Prefer GFM auto-slugs, as [Markdown formatting](./markdown-formatting.md#headings-and-links) requires.
 - Don't reintroduce `lintXrefs` or chapter-cue regexes in `mdcp-core`. Unlinked chapter and section cues in prose are Vale's job, as [Locale and language boundary](../features/design-constraints/locale-and-language.md) describes.
