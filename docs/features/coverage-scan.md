@@ -28,7 +28,7 @@ The scan walks the scan root for `*.md`, removes ignored vendor paths, then subt
 
 ### Compiled guides are captured, not standalone
 
-A compiled guide's output file is captured automatically as an output target, so generated files such as `README.md`, `DEVELOPERS.md`, and the package READMEs never appear as uncaptured. **Do not list a compiled guide output in `standaloneGuides[]`** — it is already accounted for, and `standaloneGuides[]` is only for files that no compile step produces.
+A compiled guide's output file is captured automatically as an output target, and generated files such as `README.md`, `DEVELOPERS.md` and the package READMEs don't appear as uncaptured. **Do not list a compiled guide output in `standaloneGuides[]`.** It is already accounted for, and `standaloneGuides[]` is only for files that no compile step produces. This rule is advisory, applied by whoever edits the config, and the `standaloneGuides[]` entries in the config diff are its evidence. A duplicate entry is captured like any other, and `mdcp check` passes with it.
 
 The two sets are distinct: a file compiled from shards belongs to the guide output set, while `standaloneGuides[]` holds hand-authored single files. A compiled guide is never a standalone guide.
 
@@ -45,7 +45,7 @@ A standalone guide is register-only:
 
 `standaloneGuides[]` accepts file paths or globs (for example `packages/*/README.md`), resolved from the scan root. It doubles as the canonical inventory of intentionally isolated shards.
 
-A `standaloneGuides[]` glob can match any file under the scan root, even a path that [the scan skips](#what-the-scan-skips): `**/README.md` also matches the READMEs under `node_modules`. Link validation and Vale read every match, as does the [path probe](./path-resolution.md) when `lint.paths` is on. Keep the globs narrow.
+A `standaloneGuides[]` glob can match any file under the scan root, even a path that [the scan skips](#what-the-scan-skips): `**/README.md` also matches the READMEs under `node_modules`. Link validation and Vale read every match, as does the [path probe](./path-resolution.md) when `lint.paths` is on. Keep the globs narrow. This rule is advisory, since `mdcp check` reads every match, stray or intended. Whoever edits the config applies it, and the globs in the config diff are its evidence.
 
 ## What the scan skips
 

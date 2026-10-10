@@ -12,7 +12,7 @@ Public pages speak first to the people who can make documentation a required pol
 
 ## Adoption archetypes
 
-Four goals — not job titles. Interns and students map to **Learner**; technical writers and domain SMEs map to **Author**; foundation reviewers map to **Champion**. The landing page names the primary audience's roles; archetype tables and WIIFM lines stay goal-based. Each archetype gets one [WIIFM](../glossary/wiifm.md) line (landing-safe):
+Each archetype is a goal. Interns and students map to **Learner**, technical writers and domain SMEs to **Author**, and foundation reviewers to **Champion**. The landing page names the primary audience's roles. Archetype tables and WIIFM lines stay goal-based. This rule is advisory: whoever writes or reviews landing copy applies it, and the landing copy's diff is its evidence. Each archetype gets one [WIIFM](../glossary/wiifm.md) line (landing-safe):
 
 | Archetype    | Goal                                     | WIIFM (landing-safe)                                       | Typical path                                                           |
 | ------------ | ---------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------- |
@@ -27,11 +27,11 @@ Once a pipeline exists, adoption archetypes map to **tool operator personas** be
 
 ### Archetype signals (non-landing)
 
-Anonymous goal patterns — do not copy job titles onto landing pages:
+The signals below help spot each archetype. A job title they name stays off landing pages unless Audience priority above lists it:
 
 - **Champion**: a CPTO/CTO or platform lead who assesses whether MDCP's shard contract fits agentic delivery governance, and who reads the vision and claims shards before CLI setup.
 - **Builder**: wires `mdcp check` into CI after Champion sign-off.
-- **Author / Learner**: unchanged from the table above.
+- **Author / Learner**: the roles mapped to them above, such as a technical writer or a student.
 
 Maintainers dogfooding the mdcp monorepo are **not** an adoption archetype — see [This repository](../repo-readme/this-repository.md) and [DEVELOPERS.md](../../DEVELOPERS.md).
 
