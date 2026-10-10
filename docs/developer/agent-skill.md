@@ -36,7 +36,7 @@ Manual invoke (hosts that support slash skills): `/mdcp`.
 
 When changing skill instructions:
 
-1. Edit `skills/mdcp/SKILL.md` (and `references/` as needed) — keep the activation body under 500 lines; put depth in `references/`. A new kind of task gets a workflow file under `skills/mdcp/references/workflows/` and a row in the skill's workflow table, not a new skill.
+1. Edit `skills/mdcp/SKILL.md` and its `references/`. Keep the activation body under 500 lines and put depth in `references/`. The limit is advisory, because `pnpm skill:validate` doesn't count lines. A new kind of task gets a workflow file under `skills/mdcp/references/workflows/` and a row in the skill's workflow table, not a new skill.
 2. Do **not** invent new protocol in the skill — CLI and schemas stay in packages.
 3. Put archetype guidance in `skills/mdcp-arch-*` instead of growing the parent skill.
 4. Refresh installs ([Vendor-managed installs](#vendor-managed-installs)), then run `pnpm skill:validate` and `pnpm docs:check`.
@@ -59,7 +59,7 @@ The [Agent Skill acceptance criteria](../features/agent-skill.md#agent-skill-acc
 
 `skills/mdcp/` is the only skill released to consumers. [Get started](../repo-readme/get-started.md) shows how they install it.
 
-Archetype skills (`skills/mdcp-arch-*`) are not ready to release. Until one is released on purpose, its `SKILL.md` sets `metadata.internal: true`, and the skill stays out of [`skills.sh.json`](../../skills.sh.json) and out of consumer install docs. The `skills` CLI leaves internal skills out of its default discovery, so maintainers install them locally with `INSTALL_INTERNAL_SKILLS=1`. Releasing a skill removes `metadata.internal` and adds the skill's `name:` to the **Documentation system** group in `skills.sh.json`, in the same change.
+Archetype skills (`skills/mdcp-arch-*`) are not ready to release. Until one is released on purpose, its `SKILL.md` sets `metadata.internal: true`, and the skill stays out of [`skills.sh.json`](../../skills.sh.json) and out of consumer install docs. The `skills` CLI leaves internal skills out of its default discovery, so maintainers install them locally with `INSTALL_INTERNAL_SKILLS=1`. Releasing a skill removes `metadata.internal` and adds the skill's `name:` to the **Documentation system** group in `skills.sh.json`, in the same change. These rules are advisory, because `pnpm skill:validate` doesn't read `skills.sh.json`.
 
 Install telemetry refreshes the repo page on skills.sh ([Ecosystem publication](../features/agent-skill.md#ecosystem-publication)); an install with `DISABLE_TELEMETRY=1`, such as `pnpm skill:dev`, doesn't count. Skill versions and release notes follow [Versioning and releases](./versioning-and-releases.md).
 
