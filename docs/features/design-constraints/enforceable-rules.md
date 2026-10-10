@@ -23,20 +23,22 @@ Because of this constraint, MDCP invests in the [check gate](../check-gate.md) m
 
 ## Current status of MDCP's own rules
 
-| Rule                                          | Status                               | Gate                                                |
-| --------------------------------------------- | ------------------------------------ | --------------------------------------------------- |
-| A shard in a guide directory is in a manifest | Gated                                | Orphan check                                        |
-| Internal links and anchors resolve            | Gated                                | Built-in link validation                            |
-| Compiled output matches the shards            | Gated                                | CI runs `docs:compile`, then `git diff --exit-code` |
-| The refs registry is current                  | Gated                                | `mdcp check` refs step                              |
-| Every markdown file is accounted for          | Gated when `scan.strict: true`       | Coverage scan                                       |
-| Markdown structure and en-US prose cues       | Gated when peer linters are required | Peer linters                                        |
-| Shards describe the product as it works now   | **Advisory**                         | Partial: source-file links, `lint.paths`, Vale      |
-| One primary concern per shard                 | **Advisory**                         | None                                                |
-| No implementation detail in durable docs      | **Advisory**                         | None                                                |
-| No temporary information or backlogs in docs  | **Advisory**                         | Partial: pending changeset links, Vale              |
-| Current docs drop a removed or old name       | **Advisory**                         | Partial: `lint.paths`, link validation              |
-| A review routine states trigger and evidence  | **Advisory**                         | None                                                |
+| Rule                                          | Status                               | Gate                                                                                                                                  |
+| --------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| A shard in a guide directory is in a manifest | Gated                                | Orphan check                                                                                                                          |
+| Internal links and anchors resolve            | Gated                                | Built-in link validation                                                                                                              |
+| Compiled output matches the shards            | Gated                                | CI runs `docs:compile`, then `git diff --exit-code`                                                                                   |
+| The refs registry on disk matches the compile | Gated when `refs.json` is committed  | A CI step that runs `mdcp refs-check` before any compile, or the compile-and-diff gate of the previous row with `refs.json` committed |
+| Every markdown file is accounted for          | Gated when `scan.strict: true`       | Coverage scan                                                                                                                         |
+| Markdown structure and en-US prose cues       | Gated when peer linters are required | Peer linters                                                                                                                          |
+| Shards describe the product as it works now   | **Advisory**                         | Partial: source-file links, `lint.paths`, Vale                                                                                        |
+| One primary concern per shard                 | **Advisory**                         | None                                                                                                                                  |
+| No implementation detail in durable docs      | **Advisory**                         | None                                                                                                                                  |
+| No temporary information or backlogs in docs  | **Advisory**                         | Partial: pending changeset links, Vale                                                                                                |
+| Current docs drop a removed or old name       | **Advisory**                         | Partial: `lint.paths`, link validation                                                                                                |
+| A review routine states trigger and evidence  | **Advisory**                         | None                                                                                                                                  |
+
+[Stale registry check](../refs-registry-path.md#stale-registry-check) says why the refs stage of `mdcp check` can't gate the refs row, and which CI steps catch a stale file.
 
 The [check gate](../check-gate.md) lists the `mdcp check` stages behind most gated rows. Their own specs are the [orphan check](../manifest-compile-order.md#orphan-check-scope), [link validation](../link-validation.md), the [documentation coverage scan](../coverage-scan.md) and the [peer linters](./peer-linters.md) page.
 

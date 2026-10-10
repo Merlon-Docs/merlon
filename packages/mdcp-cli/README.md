@@ -757,7 +757,7 @@ See [Project layout](#project-layout).
 
 Derived catalog of [heading slugs](#heading-slug) from compile output, typically written as `refs.json` under `outputDir`. It lists the headings of each file compile writes, slugged file by file. Those files are every [compiled guide](#compiled-guide) and the [monolith](#monolith), and a compiled guide can be a [publish output](#publish-output). Parent concept: [refs](#refs).
 
-The registry is **generated state**, not authored shards. `mdcp compile` and `mdcp refs-gen` rebuild it, and `mdcp check` and `mdcp refs-check` verify it still matches the latest compile. [Refs registry path](../../docs/features/refs-registry-path.md) gives the path rules, and [registry contents](#registry-contents) lists its fields.
+The registry is **generated state**, not authored shards. `mdcp compile`, `mdcp refs-gen` and `mdcp check` rewrite it from their own compile. `mdcp refs-check` compiles without writing and fails when the file on disk no longer matches, as [Stale registry check](../../docs/features/refs-registry-path.md#stale-registry-check) says. [Refs registry path](../../docs/features/refs-registry-path.md) gives the path rules, and [registry contents](#registry-contents) lists its fields.
 
 <!-- mdcp-shard: end ../../docs/glossary/refs-registry.md -->
 
@@ -815,14 +815,14 @@ The problem refs solve is structural. Stitching shards shifts heading levels and
 
 ### Related wording
 
-| Form               | Meaning                                                                           |
-| ------------------ | --------------------------------------------------------------------------------- |
-| **refs** (noun)    | The reference system as a whole (slugs + links + registry)                        |
-| **refs registry**  | Derived catalog (`refs.json`) of compiled heading entries                         |
-| **ref** (informal) | One heading entry or one link target under that system                            |
-| **generate refs**  | Rebuild the registry from compiled output (`mdcp refs-gen` / compile side effect) |
-| **list refs**      | Print each compiled output's headings with its file (`mdcp refs-list`)            |
-| **check refs**     | Confirm registry matches compiled headings (`mdcp refs-check` / via `mdcp check`) |
+| Form                                | Meaning                                                                           |
+| ----------------------------------- | --------------------------------------------------------------------------------- |
+| **refs** (noun)                     | The reference system as a whole (slugs + links + registry)                        |
+| **[refs registry](#refs-registry)** | The derived catalog of compiled headings, `refs.json`                             |
+| **ref** (informal)                  | One heading entry or one link target under that system                            |
+| **generate refs**                   | Rebuild the registry from compiled output (`mdcp refs-gen` / compile side effect) |
+| **list refs**                       | Print each compiled output's headings with its file (`mdcp refs-list`)            |
+| **check refs**                      | Confirm the registry on disk matches compiled headings (`mdcp refs-check`)        |
 
 Refs check links. They do not find documents. To find a shard, use host search (`rg`, IDE search) or the guide `index.md`, then read that one shard. To check links, run `mdcp check`. To see the registry's slugs, run `mdcp refs-list`. [ADR 0002](../../docs/features/adr/0002-remove-refs-lookup.md) records why MDCP has no lookup command.
 

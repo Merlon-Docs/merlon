@@ -19,6 +19,10 @@ The refs registry is derived state under `outputDir`, not co-located with per-gu
 
 `mdcp compile` regenerates the refs registry after writing compiled guide outputs, from the same compile as `mdcp check` and `mdcp refs gen`. The registry lists the headings of every file compile writes, each output slugged on its own under its `file`. Publish outputs and the monolith are both in it. [Registry contents](../client-cli/compile-refs-registry.md#registry-contents) lists the fields.
 
+## Stale registry check
+
+`mdcp check` rewrites `refs.json` before its refs stage verifies the file, so that stage can't fail on a stale one. `mdcp refs-check` compiles without writing and compares the result with the file on disk. It fails when the file no longer matches the current shards, and when the file is missing. As a CI gate, it catches a stale registry only when `refs.json` is committed and the check runs before anything compiles. With `refs.json` committed, a CI step that compiles and then runs `git diff --exit-code` also fails on a stale registry, because compile writes the same file for the same shards. Of the mdcp commands, only `mdcp refs-check` fails on a stale file.
+
 ## Acceptance criteria
 
 1. After `mdcp compile` with nested `compile.outputFile` paths, `refs.json` exists at `{docsRoot}/{outputDir}/{registryFile}`.

@@ -12,7 +12,7 @@ MDCP inverts the workflow:
 
 1. **Authors edit shards**: one file per section, listed in the [manifest](../glossary/manifest.md) (`index.md` or `shards.md`) of their [guide](../glossary/guide.md).
 2. **Compile stitches shards**: it normalizes heading levels, strips preambles, and rewrites links.
-3. **Validation catches drift**: [orphans](../glossary/orphan.md), stale refs, broken internal links, optional prose/style linters.
+3. **Validation catches drift**: [orphans](../glossary/orphan.md) and broken internal links or `#` anchors, plus optional prose and style linters.
 4. **Compiled output serves consumers**: compiled guides (some as [publish outputs](../glossary/publish-output.md)) and the optional [monolith](../glossary/monolith.md).
 
 You never hand-maintain the compiled file. Shards are the source of truth. Each [compiled guide](../glossary/compiled-guide.md) is generated, whether it is `{name}.md` under `outputDir` or a publish output such as `README.md`.
