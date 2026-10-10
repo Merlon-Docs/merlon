@@ -31,8 +31,8 @@ Issue CRUD needs the usual `repo` scope. **Adding or updating Project items need
 gh auth status
 # If Project GraphQL fails with INSUFFICIENT_SCOPES / missing read:project|project:
 gh auth refresh -s project
-# Multi-account: use the owner account that has project scope
-gh auth switch --user betsalel-williamson
+# Multi-account: switch to the repository owner's account, which has project scope
+gh auth switch --user <owner>
 ```
 
 Without `project` scope you can still triage labels and milestones. Note the board gaps in an issue comment and stop. Don't start a second tracker.
