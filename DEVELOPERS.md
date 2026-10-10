@@ -1146,7 +1146,7 @@ Consumers install the Agent Skill as [Get started](README.md#get-started) shows.
 
 - npm account **`bwilliamson`** with access to publish `@bwilliamson/*`
 - **2FA enabled** on npm (auth-and-writes)
-- Repository secret **`RELEASE_GITHUB_TOKEN`**, as [Release token](#release-token) describes
+- **`RELEASE_GITHUB_TOKEN`**, a secret of the `release` environment, as [Release token](#release-token) describes
 - `pnpm install` at repo root
 
 Security reporting and bad-release handling: [SECURITY.md](SECURITY.md) and [Security-incident triage](#security-incident-triage).
@@ -1165,7 +1165,7 @@ The release job in `release.yml` runs in the `release` environment. [Repository 
 
 ### Tokens
 
-The release job and the Dependabot changeset workflow each push with a fine-grained personal access token instead of the default `GITHUB_TOKEN`. Each token needs access to this repository only.
+The release job and the Dependabot changeset workflow each push with a fine-grained personal access token instead of the default `GITHUB_TOKEN`. The copy of a workflow that any pushed branch runs can read a repository secret. Only the jobs that run in an environment get that environment's secrets, and the `release` environment's deployment branches and reviewer keep other branches' jobs out of it, as [Repository settings](#repository-settings) lists.
 
 #### Release token
 
@@ -1173,7 +1173,7 @@ The release job pushes the release commit and tags and creates GitHub Releases w
 
 1. Create a **fine-grained** PAT as the maintainer (avoid classic `repo` unless necessary).
 2. Repository access: this repo only. Give it **Contents** read/write (commits, tags, releases). Every fine-grained token also includes read-only **Metadata** access.
-3. Store as repository secret **`RELEASE_GITHUB_TOKEN`**.
+3. Store it as **`RELEASE_GITHUB_TOKEN`** under **Settings → Environments → `release`** → **Environment secrets**.
 
 Without it, the Release job fails before versioning (hard requirement).
 
@@ -1183,6 +1183,8 @@ The [Dependabot changeset workflow](#dependabot) pushes its changeset commit to 
 
 1. Create a **fine-grained** PAT with **Contents: read and write** on this repository only.
 2. Store it as the repository secret **`DEPENDABOT_CHANGESET_TOKEN`**.
+
+The [GitHub Actions security checklist](#github-actions-security-checklist) lists the exposure of this repository secret as an open risk.
 
 Without the secret, the workflow logs a warning and doesn't add a changeset. On a pull request that changes a package's runtime dependencies, the Changeset check then fails.
 
@@ -1296,7 +1298,7 @@ Some controls in this repository live in its settings on the hosting platform, a
 | `release` environment reviewers                     | The repository owner                                                                                                                                                           | `infra/github/environments.tf`                                                     |
 | `release` environment admin bypass                  | On, so a repository admin can deploy without a reviewer's approval                                                                                                             | `infra/github/environments.tf`                                                     |
 | `release` environment deployment branches           | `main` and `v*` tags                                                                                                                                                           | **Settings → Environments → `release`**                                            |
-| `RELEASE_GITHUB_TOKEN`                              | A repository secret                                                                                                                                                            | [Release token](#release-token)                                                    |
+| `RELEASE_GITHUB_TOKEN`                              | A secret of the `release` environment                                                                                                                                          | [Release token](#release-token)                                                    |
 | `DEPENDABOT_CHANGESET_TOKEN`                        | A repository secret                                                                                                                                                            | [Dependabot changeset token](#dependabot-changeset-token)                          |
 | Default `GITHUB_TOKEN` permissions                  | Read-only                                                                                                                                                                      | **Settings → Actions → General → Workflow permissions**                            |
 | GitHub Actions can create and approve pull requests | On. When merging `main` back into `develop` conflicts, the [sync workflow](#release-schedule-release-pr-from-develop-to-main) opens a pull request with its own `GITHUB_TOKEN` | **Settings → Actions → General → Workflow permissions**                            |
@@ -1368,7 +1370,7 @@ Each row uses exactly one of these statuses:
 | `not a concern (YYYY-MM-DD)` | The OWASP topic doesn't apply to this repository, as with self-hosted runners                                                       |
 | `open risk`                  | A gap remains, and the Notes cell states the risk                                                                                   |
 
-When a risk closes, update its row to `reviewed` or `not a concern` with the date it closed.
+When a risk closes, update its row to `reviewed` or `not a concern` with the date it closed. An `open risk` row can split one gap out of an OWASP topic. It follows that topic's row and names the gap.
 
 ### Topics
 
@@ -1382,7 +1384,8 @@ When a risk closes, update its row to `reviewed` or `not a concern` with the dat
 | `persist-credentials: false`            | `reviewed (2026-07-30)`      | Set on all `actions/checkout` steps; release uses `RELEASE_GITHUB_TOKEN` only in the publish step env (not persisted at checkout).                                                                                                                                                                                         |
 | Eliminate static credentials            | `reviewed (2026-10-04)`      | npm publish remains OIDC. Two fine-grained PATs: **`RELEASE_GITHUB_TOKEN`** (release push and GitHub Releases) and **`DEPENDABOT_CHANGESET_TOKEN`** (Dependabot changeset commits). Landings and develop syncs push with `GITHUB_TOKEN`. Prefer an App token later.                                                        |
 | OIDC for cloud providers                | `reviewed (2026-07-30)`      | Trusted Publishing on `release.yml` (push to `main` + `workflow_dispatch`).                                                                                                                                                                                                                                                |
-| Secure handling of static credentials   | `reviewed (2026-10-04)`      | `RELEASE_GITHUB_TOKEN` is scoped to the `release` environment; `DEPENDABOT_CHANGESET_TOKEN` is read only by the Dependabot changeset job. Never logged; no classic cloud keys.                                                                                                                                             |
+| Secure handling of static credentials   | `reviewed (2026-10-04)`      | `RELEASE_GITHUB_TOKEN` is a secret of the `release` environment, as [Release token](#release-token) sets it up. The workflows never log either PAT, and the repository doesn't store classic cloud keys.                                                                                                                   |
+| Dependabot changeset token              | `open risk`                  | `DEPENDABOT_CHANGESET_TOKEN` is a repository secret with Contents write, so the copy of a workflow that any pushed branch runs can read it. [Publishing](#dependabot-changeset-token) sets it up.                                                                                                                          |
 | Secrets: inherit                        | `not a concern (2026-07-27)` | Not used.                                                                                                                                                                                                                                                                                                                  |
 | Mask sensitive data                     | `reviewed (2026-07-27)`      | GitHub auto-masks secrets; gitleaks enforces pre-merge scanning.                                                                                                                                                                                                                                                           |
 | **Workflows & Execution**               |                              |                                                                                                                                                                                                                                                                                                                            |

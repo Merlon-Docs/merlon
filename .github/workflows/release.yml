@@ -151,7 +151,7 @@ jobs:
           RELEASE_GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
         run: |
           if [ -z "${RELEASE_GITHUB_TOKEN}" ]; then
-            echo "Set repository secret RELEASE_GITHUB_TOKEN (fine-grained PAT: Contents write on this repo)."
+            echo "Set RELEASE_GITHUB_TOKEN as a secret of the release environment (fine-grained PAT: Contents write on this repo)."
             exit 1
           fi
 

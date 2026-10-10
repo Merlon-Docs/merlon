@@ -8,7 +8,7 @@ Consumers install the Agent Skill as [Get started](../repo-readme/get-started.md
 
 - npm account **`bwilliamson`** with access to publish `@bwilliamson/*`
 - **2FA enabled** on npm (auth-and-writes)
-- Repository secret **`RELEASE_GITHUB_TOKEN`**, as [Release token](#release-token) describes
+- **`RELEASE_GITHUB_TOKEN`**, a secret of the `release` environment, as [Release token](#release-token) describes
 - `pnpm install` at repo root
 
 Security reporting and bad-release handling: [SECURITY.md](../../SECURITY.md) and [Security-incident triage](./security-incident-triage.md).
@@ -27,7 +27,7 @@ The release job in `release.yml` runs in the `release` environment. [Repository 
 
 ## Tokens
 
-The release job and the Dependabot changeset workflow each push with a fine-grained personal access token instead of the default `GITHUB_TOKEN`. Each token needs access to this repository only.
+The release job and the Dependabot changeset workflow each push with a fine-grained personal access token instead of the default `GITHUB_TOKEN`. The copy of a workflow that any pushed branch runs can read a repository secret. Only the jobs that run in an environment get that environment's secrets, and the `release` environment's deployment branches and reviewer keep other branches' jobs out of it, as [Repository settings](./repository-settings.md) lists.
 
 ### Release token
 
@@ -35,7 +35,7 @@ The release job pushes the release commit and tags and creates GitHub Releases w
 
 1. Create a **fine-grained** PAT as the maintainer (avoid classic `repo` unless necessary).
 2. Repository access: this repo only. Give it **Contents** read/write (commits, tags, releases). Every fine-grained token also includes read-only **Metadata** access.
-3. Store as repository secret **`RELEASE_GITHUB_TOKEN`**.
+3. Store it as **`RELEASE_GITHUB_TOKEN`** under **Settings → Environments → `release`** → **Environment secrets**.
 
 Without it, the Release job fails before versioning (hard requirement).
 
@@ -45,6 +45,8 @@ The [Dependabot changeset workflow](./versioning-and-releases.md#dependabot) pus
 
 1. Create a **fine-grained** PAT with **Contents: read and write** on this repository only.
 2. Store it as the repository secret **`DEPENDABOT_CHANGESET_TOKEN`**.
+
+The [GitHub Actions security checklist](./github-actions-security-checklist.md) lists the exposure of this repository secret as an open risk.
 
 Without the secret, the workflow logs a warning and doesn't add a changeset. On a pull request that changes a package's runtime dependencies, the Changeset check then fails.
 
