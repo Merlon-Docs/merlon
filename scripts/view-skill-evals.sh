@@ -2,7 +2,7 @@
 set -e
 
 ITERATION=${1:-1}
-WORKSPACE="skills/mdcp-workspace/iteration-$ITERATION"
+WORKSPACE=".agents/skills/mdcp-workspace/iteration-$ITERATION"
 
 if [ ! -d "$WORKSPACE" ]; then
   echo "Error: Workspace directory '$WORKSPACE' not found."

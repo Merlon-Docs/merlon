@@ -867,11 +867,14 @@ Developer Guide. Product Agent Skill delivery stays in
 
 ### Tooling
 
-- **skill-creator** — vendored at
+- **skill-creator**: vendored at
   [`.agents/skills/skill-creator/`](.agents/skills/skill-creator/SKILL.md);
   evaluate loop (prompts → with/without skill → grade → aggregate)
-- **`pnpm skill:evals:view`** — open the eval viewer helper script
-- **`.agents/skills/*-workspace/`** — per-iteration run outputs (gitignored via
+- **`pnpm skill:evals:view [N]`**: writes a static viewer for iteration N (default 1)
+  of the top-level suite's workspace to `.agents/skills/mdcp-workspace/iteration-N/viewer.html`,
+  and opens it where the `open` command exists. Elsewhere it prints the path to open.
+  It doesn't open a workflow suite's workspace.
+- **`.agents/skills/*-workspace/`**: per-iteration run outputs (gitignored via
   `*-workspace/`)
 
 Refresh skill-creator from upstream when needed:
@@ -905,12 +908,12 @@ shard is the maintainer index.
 
 Shared shape for workflow suites:
 
-| Path            | Purpose                                                                 |
-| --------------- | ----------------------------------------------------------------------- |
-| `evals.json`    | `skill_name`, prompts, `expected_output`, `files[]`, named `assertions` |
-| `files/`        | Isolated fixture trees for run workspaces (not real monorepo `docs/`)   |
-| `triggers.json` | Optional description-trigger tuning (top-level suite only)              |
-| `README.md`     | How to run and grade that suite                                         |
+| Path                                   | Purpose                                                                 |
+| -------------------------------------- | ----------------------------------------------------------------------- |
+| `evals.json`                           | `skill_name`, prompts, `expected_output`, `files[]`, named `assertions` |
+| `files/`                               | Isolated fixture trees for run workspaces (not real monorepo `docs/`)   |
+| `triggers.json` / `trigger_evals.json` | Optional description-trigger tuning (top-level suite only)              |
+| `README.md`                            | How to run and grade that suite                                         |
 
 An eval may also set `expected_workflow`, the workflow file a routing eval must read. That check
 reads the transcript instead of going to the grader. An eval may set `setup` too, which asks the
