@@ -43,7 +43,7 @@ A standalone guide is register-only:
 - The markdownlint passes in `mdcp lint` and `mdcp check` lint it only when a shard lint path reaches it or the compiled config's globs list it. The shard lint paths are the Markdown files in the guide directories, or `lint.markdownlint.shardsGlobs` in their place.
 - `mdcp fix` runs `prettier --write .` from `--docs-root`, so it formats a standalone guide only when the file is under the docs root.
 
-`standaloneGuides[]` accepts file paths or globs (for example `packages/*/README.md`), resolved from the scan root. It doubles as the canonical inventory of intentionally isolated shards.
+`standaloneGuides[]` accepts file paths or globs, such as `packages/*/README.md`, resolved from the scan root. It is also the canonical inventory of intentionally isolated files.
 
 A `standaloneGuides[]` glob can match any file under the scan root, even a path that [the scan skips](#what-the-scan-skips): `**/README.md` also matches the READMEs under `node_modules`. Link validation and Vale read every match, as does the [path probe](./path-resolution.md) when `lint.paths` is on. Keep the globs narrow. This rule is advisory, since `mdcp check` reads every match, stray or intended. Whoever edits the config applies it, and the globs in the config diff are its evidence.
 

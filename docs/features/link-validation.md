@@ -45,7 +45,7 @@ Disable markers per guide with `compile.links.markBroken: false`. `lint.links.en
 
 ## Publish-only link policy
 
-Guides with `compile.outputFile` are **publish-only** outputs (npm READMEs, `DEVELOPERS.md`, and similar). Link validation applies extra rules:
+A guide with `compile.outputFile` compiles to a [publish output](../glossary/publish-output.md), such as an npm README or `DEVELOPERS.md`. Link validation applies extra rules to it:
 
 | Target in publish output                                          | Result                                                                         |
 | ----------------------------------------------------------------- | ------------------------------------------------------------------------------ |
@@ -68,11 +68,11 @@ Example: `client-cli` with `ignoreGuides: ["features"]` compiles `../features/fe
 
 Broken-link marking and each phase skip a link in fenced code or a code span, as the [link passes](../client-core/compile-hooks/index.md#link-passes) do. The compiled phase skips a BROKEN LINK marker in fenced code, but reports one in a code span.
 
-A `.md` target names another output of the same run only when its resolved path equals that output's path. Its `#fragment` is then checked against the compiled text held in memory, so the output doesn't have to be written yet. This holds in publish-only output too. The monolith counts as an output only when at least one guide is stitched into it, because a run where every guide sets `compile.outputFile` never writes it. A link to a monolith that is never written reports `missing publish path`, even when an earlier run left the file on disk. A file that only shares a name with an output, such as a package's `README.md` when the root `README.md` is an output, gets the ordinary check: the file has to exist, and any `#fragment` has to match one of its headings.
+A `.md` target names another output of the same run only when its resolved path equals that output's path. Its `#fragment` is then checked against the compiled text held in memory, so the output doesn't have to be written yet. This holds in a publish output too. The monolith counts as an output only when at least one guide is stitched into it, because a run where every guide sets `compile.outputFile` never writes it. A link to a monolith that is never written reports `missing publish path`, even when an earlier run left the file on disk. A file that only shares a name with an output, such as a package's `README.md` when the root `README.md` is an output, gets the ordinary check: the file has to exist, and any `#fragment` has to match one of its headings.
 
 The compiled phase reads each output as compile writes it, banner included, so the line in a diagnostic is a line of that file. A `#fragment` in an output has to match one of its headings or a slug from the set that broken-link marking used. A slug that only another guide's compiled guide has is a dead anchor, even when the monolith has that heading. So is the slug of a shard that the output doesn't stitch, even when the shard is in the directory of the output's guide. A fragment on a link to another output of the run has to match a heading of that output. A finding id or a declared `{#id}` doesn't, because the heading there takes its anchor from its text. So `architecture-review.md#find-004` is a dead anchor, though compile writes that link for a link to the finding's shard. [Cross-guide purpose](../client-core/compile-hooks/cross-guide-links.md#cross-guide-purpose) says which slug a link to a shard takes in an output without the shard's section, and when that slug matches another heading there. [Monolith link lint](./monolith-link-lint.md) says how the monolith is checked, and when an issue there repeats one in a compiled guide.
 
-Co-compiled transitive targets are the shards in a guide's [`linkedSectionFiles`](./manifest-compile-order.md#linked-shards-and-the-file-name-fallback) outside its directory. A `./` or `../` link to one rewrites like any other cross-guide link, as [Cross-guide resolution](../client-core/compile-hooks/cross-guide-links.md#cross-guide-resolution) describes. [Index ownership](../client-core/compile-hooks/cross-guide-links.md#index-ownership) there assigns each shard to one guide. Validation treats remaining raw `../file.md` (or `./file.md`) to those co-compiled paths as broken when publish-only policy requires a compiled target. <!-- mdcp-paths: illustrative -->
+Co-compiled transitive targets are the shards in a guide's [`linkedSectionFiles`](./manifest-compile-order.md#linked-shards-and-the-file-name-fallback) outside its directory. A `./` or `../` link to one rewrites like any other cross-guide link, as [Cross-guide resolution](../client-core/compile-hooks/cross-guide-links.md#cross-guide-resolution) describes. [Index ownership](../client-core/compile-hooks/cross-guide-links.md#index-ownership) there assigns each shard to one guide. Validation treats remaining raw `../file.md` (or `./file.md`) to those co-compiled paths as broken when the publish-only link policy requires a compiled target. <!-- mdcp-paths: illustrative -->
 
 ## Standalone guide validation
 
@@ -162,9 +162,9 @@ link: /repo/docs/_build/a.md:5: dead anchor "#nope" (compiled guide "a")
 - A heading line inside a fenced code block takes no slug, in the compiled phase and in the shard phase
 - A link or BROKEN LINK example in fenced code is neither marked nor reported, but a BROKEN LINK marker in a code span is reported
 - Compiled dead path after publish-relative link rewrite
-- Compiled `.md` link to another output of the same run reports `dead anchor` when its `#fragment` matches no heading in that output, even before the output is written and from publish-only output
-- Compiled link to the configured monolith reports `missing publish path` when every guide is publish-only, even when an earlier run left the file on disk
-- Compiled `.md` link that only shares a file name with an output reports `missing publish path` when the file is gone and `dead anchor` for a stale `#fragment`, in publish-only output too
+- Compiled `.md` link to another output of the same run reports `dead anchor` when its `#fragment` matches no heading in that output, even before the output is written and from a publish output
+- Compiled link to the configured monolith reports `missing publish path` when every guide compiles to a publish output, even when an earlier run left the file on disk
+- Compiled `.md` link that only shares a file name with an output reports `missing publish path` when the file is gone and `dead anchor` for a stale `#fragment`, in a publish output too
 - Manifest-first guide link index: a guide that compiles a shard by following a link to it doesn't overwrite its manifest owner
 - Co-compiled transitive targets rewrite before compiled validation (same-output `#slug` / `#fragment`)
 - Cross-guide publish link rewrites to `guides.md#slug`, not same-doc `#slug`, with the slug the monolith gives the section

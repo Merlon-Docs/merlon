@@ -35,7 +35,7 @@ A BROKEN LINK marker in a guide's copy is reported when that guide's compiled gu
 - A BROKEN LINK marker that appears in both a compiled guide and the monolith is reported once, for the compiled guide, even when the rest of its line differs between the two files
 - Link lint matches a marker in the monolith only against the compiled guide of the guide whose copy holds it
 - Of two markers with the same text in a guide's copy, link lint reports the one at the line where the compiled guide has no marker
-- A copy accepts the same section slugs whichever guide is the shard's owner, a publish-only guide included, and whatever the order of `compileOrder`, with `compile.links.markBroken` `true` or `false`
+- A copy accepts the same section slugs whichever guide is the shard's owner, a guide with a publish output included, and whatever the order of `compileOrder`, with `compile.links.markBroken` `true` or `false`
 - Link lint finds the guide's copy that holds a line of the monolith for the third guide there and every guide after it
 - Of two links with the same label in a guide's copy, link lint reports the monolith marker of the link that only the monolith marks
 
