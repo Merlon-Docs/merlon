@@ -1258,7 +1258,7 @@ Never unpublish a version that other packages or consumers legitimately depend o
 
 <!-- mdcp-shard: end docs/developer/security-incident-triage.md -->
 
-<!-- mdcp-shard: start docs/developer/github-actions-security.md -->
+<!-- mdcp-shard: start docs/developer/repository-settings.md -->
 
 ## GitHub Actions security posture
 
@@ -1345,7 +1345,7 @@ We run **CodeQL** and **Zizmor** on push and pull request:
 - [Publishing](#publishing) — npm publish mechanics and Trusted Publishing (OIDC)
 - [GitHub Actions security checklist](#github-actions-security-checklist) — OWASP topic checklist with as-built status
 
-<!-- mdcp-shard: end docs/developer/github-actions-security.md -->
+<!-- mdcp-shard: end docs/developer/repository-settings.md -->
 
 <!-- mdcp-shard: start docs/developer/github-actions-security-checklist.md -->
 
