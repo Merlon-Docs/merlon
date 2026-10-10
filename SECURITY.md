@@ -2,12 +2,7 @@
 
 ## Supported versions
 
-| Version | Supported |
-| ------- | --------- |
-| 0.5.x   | Yes       |
-| < 0.5   | No        |
-
-Update this table when a new minor line is published. Versioning policy: [docs/developer/versioning-and-releases.md](docs/developer/versioning-and-releases.md).
+Security fixes go to the latest minor line of each published `@bwilliamson/mdcp-*` package and of the Agent Skill. A fix is released from `main`, as [Versioning and releases](docs/developer/versioning-and-releases.md) describes, and older minor lines don't get backports.
 
 ## Reporting a vulnerability
 
