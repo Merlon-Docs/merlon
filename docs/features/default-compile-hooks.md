@@ -14,7 +14,7 @@ New hooks require doc churn and config edits across all guides. Most guides want
 
 ## Default hook pipeline
 
-When `guides[].compile.hooks` is omitted, mdcp runs these hooks **in order** on each shard (after heading demotion and preamble stripping):
+When `guides[].compile.hooks` is omitted, mdcp runs these hooks **in order** on each shard (after heading demotion, and after the About this guide heading is dropped from the preamble shard):
 
 | Hook            | Purpose                                                                                                 |
 | --------------- | ------------------------------------------------------------------------------------------------------- |
