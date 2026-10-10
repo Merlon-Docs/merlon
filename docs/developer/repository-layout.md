@@ -11,7 +11,7 @@ mdcp/
 │   └── mdcp-arch-*/        # Internal archetypes (metadata.internal)
 ├── tests/skills/           # Live eval fixtures (optional; not publishable packs)
 ├── skills.sh.json          # skills.sh repo page layout
-├── .agents/skills/         # Dogfood installs (pnpm skill:update) + skill-creator
+├── .agents/skills/         # Vendor-managed installs (pnpm skill:update) + skill-creator
 ├── packages/
 │   ├── mdcp-core/          # @bwilliamson/mdcp-core
 │   ├── mdcp-cli/           # @bwilliamson/mdcp-cli

@@ -119,13 +119,13 @@ If you use coding agents with the MDCP skill ([skills index](docs/skills.md)), d
 | `pnpm run lint`          | ESLint on TypeScript sources                                                                                  |
 | `pnpm run format:check`  | Prettier check                                                                                                |
 | `pnpm run check`         | Full gate including skill:validate and docs:check                                                             |
-| `pnpm skill:update`      | Refresh the local skill installs under `.agents/skills/` from `skills/`                                       |
+| `pnpm skill:update`      | Refresh the vendor-managed installs under `.agents/skills/` from `skills/`                                    |
 | `pnpm skill:dev`         | Install this checkout's `mdcp` skill for Claude Code and Cursor without prompts (cloud session setup runs it) |
 | `pnpm docs:compile:repo` | Regenerate compiled docs (`guides.md`, `DEVELOPERS.md`, package READMEs)                                      |
 | `pnpm docs:check`        | Validate repo docs + `examples/sample-guides`                                                                 |
 | `pnpm formal:check`      | Run the Alloy models under `formal/alloy/` (needs Java 17 or later)                                           |
 
-[Agent Skill development](#do-not-hand-edit-agentsskills) covers refreshing the skill installs and why nobody hand-edits them.
+[Agent Skill development](#do-not-hand-edit-agentsskills) covers refreshing the vendor-managed installs and why nobody hand-edits them.
 
 Optional locally: `brew install gitleaks` (CI always scans).
 
@@ -226,7 +226,7 @@ mdcp/
 │   └── mdcp-arch-*/        # Internal archetypes (metadata.internal)
 ├── tests/skills/           # Live eval fixtures (optional; not publishable packs)
 ├── skills.sh.json          # skills.sh repo page layout
-├── .agents/skills/         # Dogfood installs (pnpm skill:update) + skill-creator
+├── .agents/skills/         # Vendor-managed installs (pnpm skill:update) + skill-creator
 ├── packages/
 │   ├── mdcp-core/          # @bwilliamson/mdcp-core
 │   ├── mdcp-cli/           # @bwilliamson/mdcp-cli
@@ -747,11 +747,11 @@ Each of these matches the `[label](target)` form with negated character classes.
 
 ## Agent Skill development
 
-Zero-friction MDCP delivery for AI agents uses one portable Agent Skill. Upstream source of truth is [`skills/mdcp/SKILL.md`](skills/mdcp/SKILL.md). In **this** monorepo, agents load it from `.agents/skills/mdcp/`, a vendor-managed local install. A consumer's `npx skills add` picks an agent-specific directory instead ([Agent Skill](docs/features/agent-skill.md)). Task workflows (bootstrap, doc-only, design-architecture, feature-level, UX, doc review) live inside that skill under `skills/mdcp/references/workflows/`, so consumers install one skill. Archetype skills under `skills/mdcp-arch-*` are internal. [Publishing the skill pack](#publishing-the-skill-pack) says which skills are released.
+Zero-friction MDCP delivery for AI agents uses one portable Agent Skill. Upstream source of truth is [`skills/mdcp/SKILL.md`](skills/mdcp/SKILL.md). In **this** monorepo, agents load it from `.agents/skills/mdcp/`, a [vendor-managed install](#do-not-hand-edit-agentsskills). A consumer's `npx skills add` picks an agent-specific directory instead ([Agent Skill](docs/features/agent-skill.md)). Task workflows (bootstrap, doc-only, design-architecture, feature-level, UX, doc review) live inside that skill under `skills/mdcp/references/workflows/`, so consumers install one skill. Archetype skills under `skills/mdcp-arch-*` are internal. [Publishing the skill pack](#publishing-the-skill-pack) says which skills are released.
 
 ### Vendor-managed installs
 
-Author under `skills/`. Then refresh vendor-managed installs for agents:
+Author under `skills/`. Then refresh the vendor-managed installs that agents load:
 
 ```bash
 pnpm skill:update
@@ -759,15 +759,16 @@ pnpm skill:update
 
 (`pnpm skill:update` runs `pnpm skill:install`, and either name does the same task.)
 
-That runs `npx skills add .` and refreshes dogfood installs under `.agents/skills/`
-from the publishable packs in `skills/` (see `skills-lock.json`).
+That runs `npx skills add .` and refreshes the vendor-managed installs under
+`.agents/skills/` from the publishable packs in `skills/` (see `skills-lock.json`).
 
 [Cloud agent sessions](#cloud-agent-environments) install the skill on their own. The Claude Code session-start hook (`.claude/hooks/session-start.sh`) and the Cursor environment (`.cursor/environment.json`) both run `pnpm skill:dev`, which installs this checkout's `skills/mdcp` for Claude Code and Cursor with telemetry off. An agent working here loads the skill from the branch it works on.
 
 #### Do not hand-edit `.agents/skills/`
 
-Copies under `.agents/skills/` are **vendor-managed** installs (local dogfood /
-agent load path). They are **not** the source of truth.
+A **vendor-managed install** is the copy of a skill that `pnpm skill:update` writes
+under `.agents/skills/` from `skills/`. Agents in this checkout load the skill
+from it, and `skills/` is the source of truth.
 
 | Do                                                                     | Do **not**                                                        |
 | ---------------------------------------------------------------------- | ----------------------------------------------------------------- |
@@ -775,7 +776,7 @@ agent load path). They are **not** the source of truth.
 | Refresh installs ([Vendor-managed installs](#vendor-managed-installs)) | Commit one-off edits that only exist under `.agents/`             |
 | Land lasting skill changes in `skills/`                                | Treat `.agents/skills/mdcp*` as durable docs or authoring surface |
 
-The skill and archetype dogfood trees (`.agents/skills/mdcp/`,
+The vendor-managed installs of the skill and the archetypes (`.agents/skills/mdcp/`,
 `.agents/skills/mdcp-arch-*`) are gitignored, and so are eval workspaces under
 `.agents/skills/*-workspace/` ([Live skill evals](#live-skill-evals)).
 
