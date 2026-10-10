@@ -21,7 +21,14 @@ pnpm why <package>                # which path pulls the vulnerable package
 
 CI fails when `pnpm audit --audit-level=high` finds a high or critical advisory (see [CI and the land gate](./local-setup.md#ci-and-the-land-gate)). Moderate noise in **dev-only** trees is hygiene, not an automatic security release of `@bwilliamson/mdcp-*`.
 
-Workspace overrides for this monorepo live under `overrides:` in [`pnpm-workspace.yaml`](../../pnpm-workspace.yaml) (pnpm 11+ no longer reads `package.json` → `pnpm.overrides`).
+### Overrides and the release-age gate
+
+Workspace overrides for this monorepo live under `overrides:` in [`pnpm-workspace.yaml`](../../pnpm-workspace.yaml), because pnpm 11 doesn't read `pnpm.overrides` from `package.json`. The same file sets `minimumReleaseAge: 10080`, and pnpm then refuses to install a version published less than seven days ago. A patch for a fresh advisory is usually younger than that. To use it:
+
+1. Pin the patched version under `overrides:`, with a comment that gives the advisory ID and the patched range.
+2. Add the exact version, such as `nanoid@3.3.18`, to `minimumReleaseAgeExclude`, with a comment that gives the advisory and the dependency path that pulls the package in.
+
+When a **transitive dev-only tooling** advisory has no patched version, add its ID to `audit.ignore`, so that `pnpm audit --audit-level=high` passes. Its comment says why the advisory can't be fixed and gives a date to check again. Remove the entry once a patch exists and an override can replace it. A **Published / prod** advisory with no patched version gets that class's response in [Classify impact first](#classify-impact-first) instead, because `audit.ignore` would also hide it from `pnpm audit --prod`.
 
 ## Prefer patch + deprecate over unpublish
 

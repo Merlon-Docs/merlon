@@ -151,11 +151,11 @@ The affected checks run by staged path:
 | Root config (`package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `eslint.config.mjs`, `tsconfig*.json`) | repo-wide typecheck + `format:check`                                           |
 | `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `packages/*/package.json`                           | `pnpm audit --audit-level=high`                                                |
 
-The docs check in the hook skips `docs:lint:changeset-links`, and a broken link only warns there. Run `pnpm docs:check` before you push. When the audit fails, resolve the advisory as [Security-incident triage](#security-incident-triage) describes before you commit the manifest change. A merge commit passes commitlint with git's default `Merge branch …` subject, and fails with a hand-written `merge: …` subject, because `merge` isn't a commit type.
+The docs check in the hook skips `docs:lint:changeset-links`, and a broken link only warns there. Run `pnpm docs:check` before you push. When the audit fails, resolve the advisory as [Overrides and the release-age gate](#overrides-and-the-release-age-gate) describes before you commit the manifest change. A merge commit passes commitlint with git's default `Merge branch …` subject, and fails with a hand-written `merge: …` subject, because `merge` isn't a commit type.
 
 ### CI and the land gate
 
-CI's Check job runs the steps of `pnpm run check`, except that it tests only mdcp-core, mdcp-cli and the repository scripts. The site's tests run in the Pages workflow. Before those steps it runs `pnpm run verify:peers`, which confirms that markdownlint-cli2 and Vale are on `PATH`, and the dependency audit `pnpm audit --audit-level=high`. A new high advisory, even on a devDependency, fails the audit, and the build and test steps after it don't run. Before `docs:check` it runs `pnpm run prepare:docs`, which repeats the peer check and syncs the Vale styles. Last, it recompiles every guide and fails if `git diff` shows a change.
+CI's Check job runs the steps of `pnpm run check`, except that it tests only mdcp-core, mdcp-cli and the repository scripts. The site's tests run in the Pages workflow. Before those steps it runs `pnpm run verify:peers`, which confirms that markdownlint-cli2 and Vale are on `PATH`, and the dependency audit `pnpm audit --audit-level=high`. A new high advisory, even on a devDependency, fails the audit, and the build and test steps after it don't run. [Overrides and the release-age gate](#overrides-and-the-release-age-gate) says how to resolve one. Before `docs:check` it runs `pnpm run prepare:docs`, which repeats the peer check and syncs the Vale styles. Last, it recompiles every guide and fails if `git diff` shows a change.
 
 The other CI jobs run beside Check. The Coverage job runs `pnpm test:coverage`, as [Test code coverage](#test-code-coverage) describes, and the Formal models job runs `pnpm formal:check`. On pull requests the Changeset job runs the changeset checks that [When to add a changeset](#when-to-add-a-changeset) describes.
 
@@ -1272,7 +1272,14 @@ pnpm why <package>                # which path pulls the vulnerable package
 
 CI fails when `pnpm audit --audit-level=high` finds a high or critical advisory (see [CI and the land gate](#ci-and-the-land-gate)). Moderate noise in **dev-only** trees is hygiene, not an automatic security release of `@bwilliamson/mdcp-*`.
 
-Workspace overrides for this monorepo live under `overrides:` in [`pnpm-workspace.yaml`](pnpm-workspace.yaml) (pnpm 11+ no longer reads `package.json` → `pnpm.overrides`).
+#### Overrides and the release-age gate
+
+Workspace overrides for this monorepo live under `overrides:` in [`pnpm-workspace.yaml`](pnpm-workspace.yaml), because pnpm 11 doesn't read `pnpm.overrides` from `package.json`. The same file sets `minimumReleaseAge: 10080`, and pnpm then refuses to install a version published less than seven days ago. A patch for a fresh advisory is usually younger than that. To use it:
+
+1. Pin the patched version under `overrides:`, with a comment that gives the advisory ID and the patched range.
+2. Add the exact version, such as `nanoid@3.3.18`, to `minimumReleaseAgeExclude`, with a comment that gives the advisory and the dependency path that pulls the package in.
+
+When a **transitive dev-only tooling** advisory has no patched version, add its ID to `audit.ignore`, so that `pnpm audit --audit-level=high` passes. Its comment says why the advisory can't be fixed and gives a date to check again. Remove the entry once a patch exists and an override can replace it. A **Published / prod** advisory with no patched version gets that class's response in [Classify impact first](#classify-impact-first) instead, because `audit.ignore` would also hide it from `pnpm audit --prod`.
 
 ### Prefer patch + deprecate over unpublish
 
