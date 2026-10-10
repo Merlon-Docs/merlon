@@ -62,7 +62,7 @@ Packages and skills are **pre-1.0** while on `0.x.y`. Until an item reaches **1.
 
 ## Durable docs vs pending changesets
 
-Pending `.changeset/*.md` files are temporary. Point consumers at package CHANGELOGs under `packages/*/` or at GitHub Releases, never at pending changesets.
+Pending `.changeset/*.md` files are temporary. Point consumers at package CHANGELOGs under `packages/*/` or at GitHub Releases, never at pending changesets. `pnpm docs:check` fails on a link from a Markdown file under `docs/` to anything under `.changeset/` other than `README.md` and `config.json`. Its first step, `pnpm docs:lint:changeset-links`, runs that check.
 
 A notice to consumers about removed or breaking behavior goes in the changeset. The release turns it into a package CHANGELOG entry.
 

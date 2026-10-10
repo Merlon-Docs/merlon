@@ -34,7 +34,7 @@ Because of this constraint, MDCP invests in the [check gate](../check-gate.md) m
 | Shards describe the product as it works now   | **Advisory**                         | Partial: source-file links, `lint.paths`, Vale                                                                                        |
 | One primary concern per shard                 | **Advisory**                         | None                                                                                                                                  |
 | No implementation detail in durable docs      | **Advisory**                         | None                                                                                                                                  |
-| No temporary information or backlogs in docs  | **Advisory**                         | Partial: pending changeset links, Vale                                                                                                |
+| No temporary information or backlogs in docs  | **Advisory**                         | Partial: this repo's changeset-link lint, Vale                                                                                        |
 | Current docs drop a removed or old name       | **Advisory**                         | Partial: `lint.paths`, link validation                                                                                                |
 | A review routine states trigger and evidence  | **Advisory**                         | None                                                                                                                                  |
 
