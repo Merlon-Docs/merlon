@@ -41,4 +41,4 @@ Find a shard under `docs/` with host search and read that one shard, as [refs](.
 - **Vale `MDCP` / `MDCP-PandocId`**: peer prose rules for unlinked heading mentions and dated claims, plus this repo's local rule against Pandoc IDs. They run in the peer Vale stage of `mdcp check`, and `--require-vale` makes a missing Vale fail the run
 - **link lint** — built-in validation runs on every `docs:check` with default `"error"` severity; publish guides set `compile.crossGuideLinks.ignoreGuides: ["features"]` so cross-guide links keep live `docs/features/` shard paths (publish-relative rebase only); see [Publish-only link policy](../features/link-validation.md#publish-only-link-policy)
 
-Run `pnpm vale:sync` after cloning or when `.vale.ini` changes (requires Vale on `PATH`).
+[First-time bootstrap](./local-setup.md#first-time-bootstrap) syncs the Vale styles and says when to sync them again.

@@ -99,8 +99,10 @@ Each term is its own shard under `docs/glossary/`. [Shared glossary](./packages/
 ```bash
 pnpm install
 pnpm build
-pnpm vale:sync            # once — requires Vale on PATH; syncs styles for docs/ and examples/sample-guides/
+pnpm vale:sync            # requires Vale on PATH; syncs styles for docs/ and examples/sample-guides/
 ```
+
+`dist/` is gitignored, and `pnpm install` doesn't build it. Run `pnpm build` after a fresh checkout, and again after you edit `packages/*/src`, before any docs script or `mdcp` CLI command. `pnpm vale:sync` downloads the styles, so it needs the network. Run it again when a `.vale.ini` changes.
 
 ### Work-item tracking setup step
 
@@ -144,9 +146,11 @@ Pre-commit runs in two phases:
 | `docs/**`, `DEVELOPERS.md`, package README shards       | `docs:compile:repo` + `docs:check:repo`                  |
 | Root config (`package.json`, lockfile, eslint/tsconfig) | repo-wide typecheck + `format:check`                     |
 
+When a dependency manifest is staged, the pre-commit hook also runs `pnpm audit --audit-level=high`. When the audit fails, resolve the advisory as [Security-incident triage](#security-incident-triage) describes before you commit the manifest change. The commit-msg hook runs commitlint. A merge commit passes it with git's default `Merge branch …` subject, and fails with a hand-written `merge: …` subject, because `merge` isn't a commit type.
+
 ### CI and the land gate
 
-CI's Check job runs the steps of `pnpm run check`, except that it tests only mdcp-core, mdcp-cli and the repository scripts. The site's tests run in the Pages workflow. Before those steps it runs `pnpm run verify:peers`, which confirms that markdownlint-cli2 and Vale are on `PATH`, and the dependency audit `pnpm audit --audit-level=high`. Before `docs:check` it runs `pnpm run prepare:docs`, which repeats the peer check and syncs the Vale styles. Last, it recompiles every guide and fails if `git diff` shows a change.
+CI's Check job runs the steps of `pnpm run check`, except that it tests only mdcp-core, mdcp-cli and the repository scripts. The site's tests run in the Pages workflow. Before those steps it runs `pnpm run verify:peers`, which confirms that markdownlint-cli2 and Vale are on `PATH`, and the dependency audit `pnpm audit --audit-level=high`. A new high advisory, even on a devDependency, fails the audit, and the build and test steps after it don't run. Before `docs:check` it runs `pnpm run prepare:docs`, which repeats the peer check and syncs the Vale styles. Last, it recompiles every guide and fails if `git diff` shows a change.
 
 The other CI jobs run beside Check. The Coverage job runs `pnpm test:coverage`, as [Test code coverage](#test-code-coverage) describes, and the Formal models job runs `pnpm formal:check`. On pull requests the Changeset job runs the changeset checks that [When to add a changeset](#when-to-add-a-changeset) describes.
 
@@ -158,35 +162,30 @@ The land gate's test step is the full `pnpm test`, so it also runs the site's te
 
 ## Cursor Cloud environment
 
-Cursor cloud agents need a few extra setup steps in this repository, and their platform has limitations to plan around. [Local setup](#local-setup) has the standard local toolchain and daily commands. This section adds only the cloud-specific setup and constraints.
+Cursor cloud agents need a few extra setup steps in this repository, and their platform has limitations to plan around. [Local setup](#local-setup) has the toolchain, the bootstrap, the daily commands and the hooks that every checkout shares. This page adds only the cloud-specific setup and constraints.
 
 The repository `AGENTS.md` (with `CLAUDE.md` as a symlink to it) stays short and links here for everything specific to Cursor cloud agents.
 
 ### Setting up a new cloud environment
 
-A fresh cloud VM needs the same toolchain as [Local setup](#local-setup), plus a few cloud-specific steps:
+A fresh cloud VM needs the same toolchain as [Local setup](#requirements), plus a few cloud-specific steps:
 
 1. **Startup update script.** `.cursor/environment.json` holds the `install` command that runs on every VM start: it fetches remote refs and runs `pnpm install`, then `pnpm skill:dev` so the agent loads this checkout's `mdcp` skill ([Agent Skill development](#agent-skill-development)). That committed file is the source of truth and overrides any dashboard-saved environment. Keep it minimal: no service startup or build steps.
-2. **Vale peer binary.** Vale is a peer binary, not an npm dependency. Install version 3.15.1 to `/usr/local/bin` (it persists in the VM snapshot); the exact release command is in [`.github/workflows/ci.yml`](.github/workflows/ci.yml). `pnpm docs:check` needs Vale on `PATH`.
+2. **Vale peer binary.** Vale is a peer binary that `pnpm install` doesn't fetch. Install version 3.15.1 to `/usr/local/bin`, where it persists in the VM snapshot. The exact release command is in [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 3. **gitleaks peer binary.** gitleaks is also a peer binary, not an npm dependency; the pre-commit hook runs `gitleaks protect --staged` when it is on `PATH`. Install version 8.30.1 to `/usr/local/bin` (persists in the VM snapshot). If it goes missing, reinstall from the [gitleaks releases](https://github.com/gitleaks/gitleaks/releases): download `gitleaks_8.30.1_linux_x64.tar.gz` and extract the `gitleaks` binary into `/usr/local/bin` (same pattern as Vale). CI runs its own scan via `gitleaks-action`, so the local install is defense-in-depth.
-4. **Build before docs or CLI.** `dist/` is gitignored and is not produced by the update script. Run `pnpm build` after a fresh checkout before `pnpm docs:check`, `pnpm docs:compile`, or invoking the `mdcp` CLI.
-5. **Sync Vale styles once.** Run `pnpm vale:sync` before the first `docs:check` on a fresh clone (network required); synced styles then persist in the snapshot.
-6. **Node version.** The VM runs Node 22 (satisfies `engines >=18`); CI uses Node 24. Do not switch Node unless a version-specific issue appears.
-7. **Local gate.** `pnpm check` runs typecheck, lint, format, build, test, skill:validate and docs:check. [CI and the land gate](#ci-and-the-land-gate) says what they add.
+4. **Bootstrap.** The update script doesn't build `dist/` or sync the Vale styles. Run the rest of [First-time bootstrap](#first-time-bootstrap) on a new VM, and rebuild as that section says. The synced styles then persist in the snapshot.
+5. **Node version.** The VM runs Node 22, which satisfies `engines >=18`, and CI uses Node 24. Do not switch Node unless a version-specific issue appears.
 
 ### Platform limitations and workarounds
 
 These are cloud-agent constraints discovered in practice. Plan work around them rather than fighting them.
 
-| Limitation                                                                                      | Workaround                                                                                                                                            |
-| ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The `gh` CLI is **read-only** for the agent; it cannot create or modify issues or pull requests | Use the dedicated pull-request tooling for PRs and PR comments. A human creates GitHub issues from agent-supplied text; add `Closes #N` afterward.    |
-| **No GitHub MCP** is available, and we do not add one in the cloud                              | Accept it. MCP servers load at session start and `.cursor/*` (except `environment.json`) is gitignored, so an agent cannot self-enable one mid-run.   |
-| A GitHub **PAT in Secrets is not wired** to `gh` or any agent tool                              | Do not rely on a PAT to unblock issue creation in the cloud; it does not help. Issue creation stays a human step.                                     |
-| The agent **cannot push to protected `main`** or merge the release PR                           | Work reaches `develop` by pushing a `land/**` branch through the land gate. A human merges the release PR into `main`.                                |
-| CI runs `pnpm audit --audit-level=high` **before** the build and test gates                     | A new advisory on a pre-existing devDependency fails audit and masks otherwise-green gates. Pin patched versions via `pnpm-workspace.yaml` overrides. |
-| The pre-commit hook runs `pnpm audit` when dependency manifests change                          | Resolve advisories (overrides) before committing manifest changes, rather than bypassing the hook.                                                    |
-| commitlint rejects non-conventional subjects, including merge commits                           | Give merge commits a conventional subject such as `chore: merge …`, not `merge: …`.                                                                   |
+| Limitation                                                                                      | Workaround                                                                                                                                          |
+| ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The `gh` CLI is **read-only** for the agent; it cannot create or modify issues or pull requests | Use the dedicated pull-request tooling for PRs and PR comments. A human creates GitHub issues from agent-supplied text. Add `Closes #N` afterward.  |
+| **No GitHub MCP** is available, and we do not add one in the cloud                              | Accept it. MCP servers load at session start and `.cursor/*` (except `environment.json`) is gitignored, so an agent cannot self-enable one mid-run. |
+| A GitHub **PAT in Secrets is not wired** to `gh` or any agent tool                              | A PAT doesn't unblock issue creation in the cloud. Issue creation stays a human step.                                                               |
+| The agent **cannot push to protected `main`** or merge the release PR                           | Work reaches `develop` by pushing a `land/**` branch through the land gate. A human merges the release PR into `main`.                              |
 
 ### Recording issues without issue-creation access
 
@@ -605,7 +604,7 @@ Find a shard under `docs/` with host search and read that one shard, as [refs](#
 - **Vale `MDCP` / `MDCP-PandocId`**: peer prose rules for unlinked heading mentions and dated claims, plus this repo's local rule against Pandoc IDs. They run in the peer Vale stage of `mdcp check`, and `--require-vale` makes a missing Vale fail the run
 - **link lint** — built-in validation runs on every `docs:check` with default `"error"` severity; publish guides set `compile.crossGuideLinks.ignoreGuides: ["features"]` so cross-guide links keep live `docs/features/` shard paths (publish-relative rebase only); see [Publish-only link policy](docs/features/link-validation.md#publish-only-link-policy)
 
-Run `pnpm vale:sync` after cloning or when `.vale.ini` changes (requires Vale on `PATH`).
+[First-time bootstrap](#first-time-bootstrap) syncs the Vale styles and says when to sync them again.
 
 <!-- mdcp-shard: end docs/developer/docs-dogfooding.md -->
 

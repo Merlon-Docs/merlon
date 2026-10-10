@@ -24,7 +24,7 @@ Only guides without a `compile.outputFile` in `docs/mdcp.config.json` join the m
 
 ## Before you run anything
 
-`dist/` is gitignored and install does not build it. Run `pnpm build` after a fresh checkout, and after editing `packages/*/src`, before any docs script or CLI command. The docs checks need Vale on `PATH`, with its styles synced once by `pnpm vale:sync`. The formal models need Java 17 or later. [Local setup](docs/developer/local-setup.md) has the full toolchain.
+Run `pnpm build` after a fresh checkout and after editing `packages/*/src`, before any docs script or CLI command. [First-time bootstrap](docs/developer/local-setup.md#first-time-bootstrap) has the rest of the setup, and [Requirements](docs/developer/local-setup.md#requirements) lists the toolchain, including Vale for the docs checks and Java for the formal models.
 
 ## Commands
 
