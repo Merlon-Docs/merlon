@@ -10,6 +10,7 @@
 - [Cloud agent environments](./cloud-agent-environments.md)
 - [Repository layout](./repository-layout.md)
 - [Packages and tests](./packages-and-tests.md)
+- [Safe markdown parsing](./safe-markdown-parsing.md)
 
 ## Work items
 
@@ -21,8 +22,7 @@
 
 - [Docs dogfooding](./docs-dogfooding.md)
 - [Markdown formatting](./markdown-formatting.md)
-- [Safe markdown parsing](./safe-markdown-parsing.md)
-- [Agent Skill](./agent-skill.md)
+- [Agent Skill development](./agent-skill.md)
 - [Live skill evals](./live-skill-evals.md)
 - [Documentation site](./docs-site.md)
 
