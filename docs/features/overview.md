@@ -124,7 +124,7 @@ Guides with `compile.outputFile` are **excluded from the monolith** so you can p
 - **`refs`**: registry file path and slug algorithm.
 - **`lint` / `vale`**: peer linter config paths and scan globs.
 
-This repository uses MDCP on its own docs under `docs/`. The features guide compiles to `docs/_build/features.md` and is the only guide in the monolith `docs/_build/guides.md`. The other guides compile to publish outputs such as `DEVELOPERS.md` and the package READMEs. See `docs/mdcp.config.json` for a multi-output layout.
+This repository uses MDCP on its own docs under `docs/`, and its `docs/mdcp.config.json` is an example of a multi-output layout. [Guide directories](../developer/docs-dogfooding.md#guide-directories) lists the output each of its guides compiles to.
 
 ## Where to go next
 

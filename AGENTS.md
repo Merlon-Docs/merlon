@@ -4,23 +4,11 @@ Instructions for coding agents in this repository. `CLAUDE.md` is a symlink to t
 
 ## Project
 
-This is the mdcp monorepo: a documentation-system Agent Skill plus a TypeScript toolchain in pnpm workspaces. The application is the `mdcp` CLI in `packages/mdcp-cli`, built on `packages/mdcp-core` and driven through `pnpm` scripts. There is no web app or long-running server.
+This is the mdcp monorepo: a documentation-system Agent Skill plus a TypeScript toolchain in pnpm workspaces. The application is the `mdcp` CLI in `packages/mdcp-cli`, built on `packages/mdcp-core` and driven through `pnpm` scripts. The repository deploys no server, only the static docs site. Locally, `pnpm site:dev` serves that site and `pnpm presentation:serve` serves the slide deck.
 
 ## Shard discipline (critical)
 
-Documentation is sharded under `docs/`. Shards are the source of truth and compiled output is generated. **Never hand-edit compiled files.** Edit the source shard under `docs/` and run `pnpm docs:compile:repo`. A file with `<!-- mdcp-shard: start ... -->` markers is compiled output, and each marker gives the path of its source shard.
-
-| Shard directory                | Compiled output                    |
-| ------------------------------ | ---------------------------------- |
-| `docs/repo-readme/`            | `README.md`                        |
-| `docs/developer/`              | `DEVELOPERS.md`                    |
-| `docs/client-cli/`             | `packages/mdcp-cli/README.md`      |
-| `docs/client-core/`            | `packages/mdcp-core/README.md`     |
-| `docs/features/`               | `docs/_build/features.md`          |
-| `docs/presentation-la-devops/` | `presentations/la-devops-2026.md`  |
-| `docs/features/`               | `docs/_build/guides.md` (monolith) |
-
-Only guides without a `compile.outputFile` in `docs/mdcp.config.json` join the monolith. Shards in `docs/glossary/` compile into the guides whose pages link to them. CI recompiles every guide and fails when `git diff` shows a stale compiled file.
+Documentation is sharded under `docs/`. Shards are the source of truth and compiled output is generated. **Never hand-edit compiled files.** Edit the source shard under `docs/` and run `pnpm docs:compile:repo`. A file with `<!-- mdcp-shard: start ... -->` markers is compiled output, and each marker gives the path of its source shard. [Guide directories](docs/developer/docs-dogfooding.md#guide-directories) lists every compiled output and its shard directory. One of them, `presentations/la-devops-2026.md`, has no markers. CI recompiles every guide and fails when `git diff` shows a stale compiled file.
 
 ## Before you run anything
 
@@ -35,7 +23,7 @@ pnpm test                # unit tests
 pnpm typecheck
 pnpm lint
 pnpm format:check
-pnpm docs:compile:repo   # recompile every output in the table above
+pnpm docs:compile:repo   # recompile every compiled output
 pnpm docs:check          # compile and check the repo docs and the examples
 pnpm run check           # typecheck, lint, format:check, build, test, skill:validate, docs:check
 pnpm formal:check        # the Alloy models in formal/alloy/

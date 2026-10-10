@@ -200,9 +200,9 @@ Because the agent cannot open GitHub issues, capture work items as ready-to-past
 ```text
 mdcp/
 ├── CODE_OF_CONDUCT.md      # Contributor Covenant (committed)
-├── README.md               # Compiled from docs/repo-readme/ (committed)
-├── DEVELOPERS.md           # Compiled from docs/developer/ (committed)
-├── presentations/          # Compiled from docs/presentation-*/ (committed)
+├── README.md               # Compiled (committed)
+├── DEVELOPERS.md           # Compiled (committed)
+├── presentations/          # Compiled (committed)
 ├── skills/                 # Agent Skills install surface only (npx skills add)
 │   ├── mdcp/               # The MDCP skill + workflows (no package.json / CHANGELOG here)
 │   └── mdcp-arch-*/        # Internal archetypes (metadata.internal)
@@ -217,12 +217,12 @@ mdcp/
 │   └── skill-*/            # Private @bwilliamson/skill-* version carriers + CHANGELOGs
 ├── docs/                   # Sharded docs (mdcp.config.json) — dogfood target
 │   ├── glossary/           # Shared acronyms and terms (cross-guide, like insert libraries)
-│   ├── features/           # Tool capabilities → docs/_build/features.md (local review, gitignored)
-│   ├── developer/          # This guide → DEVELOPERS.md
-│   ├── client-cli/         # → packages/mdcp-cli/README.md
-│   ├── client-core/        # → packages/mdcp-core/README.md
-│   ├── repo-readme/        # → README.md (publish landing)
-│   ├── presentation-la-devops/ # → presentations/la-devops-2026.md (meetup talk)
+│   ├── features/           # Tool capabilities
+│   ├── developer/          # This guide
+│   ├── client-cli/         # CLI guide
+│   ├── client-core/        # Core library guide
+│   ├── repo-readme/        # Repository landing page
+│   ├── presentation-la-devops/ # Meetup talk
 │   ├── vale-local/         # Dogfood-only Vale styles (MDCP-PandocId)
 │   └── .vale.ini           # Peer Vale config
 ├── examples/sample-guides/ # Minimal consumer fixture for tests and tutorials
@@ -231,11 +231,13 @@ mdcp/
 └── .github/workflows/      # CI and release automation
 ```
 
+[Guide directories](#guide-directories) maps each guide directory under `docs/` to its compiled output.
+
 ### Published packages
 
 Each npm package and each Agent Skill versions independently via Changesets. npm packages ship `dist/` and READMEs. Skill **carriers** live under `packages/skill-*` (private; GitHub Releases + CHANGELOG). The `skills/` tree is install content only.
 
-`mdcp-presets` README is hand-authored for now. Root `README.md`, CLI, and core READMEs are **compiled** from `docs/repo-readme/`, `docs/client-cli/`, and `docs/client-core/` shards.
+The `mdcp-presets` README is hand-authored. The root `README.md` and the CLI and core READMEs are **compiled** from shards.
 
 <!-- mdcp-shard: end docs/developer/repository-layout.md -->
 
@@ -302,7 +304,7 @@ JSONC markdownlint configs plus the shippable `MDCP` Vale style (`vale/MDCP/`). 
 
 1. `pnpm run build && pnpm test`
 2. `pnpm run lint && pnpm run format:check`
-3. `pnpm docs:compile:repo && pnpm docs:check` if you touched `docs/` shards or a file that `standaloneGuides` registers, such as `AGENTS.md` or `skills/**/*.md`
+3. Run the docs commands of [Edit workflow](#edit-workflow) step 3 if you touched `docs/` shards or a file that `standaloneGuides` registers, such as `AGENTS.md` or `skills/**/*.md`
 4. `pnpm changeset` when [a changeset is needed](#when-to-add-a-changeset)
 
 CI and the land gate run more checks than these steps. [CI and the land gate](#ci-and-the-land-gate) lists them.
@@ -569,13 +571,17 @@ This repo's documentation is sharded under [`docs/`](docs). Shards are the **sou
 
 | Directory                 | Audience                            | Output                                                                                       |
 | ------------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------- |
-| `glossary/`               | Shared terms (cross-guide)          | One shard per term; scoped transitive stitch                                                 |
+| `glossary/`               | Shared terms (cross-guide)          | No output of its own; see below                                                              |
 | `features/`               | Tool capabilities, migration map    | `docs/_build/features.md` and the monolith `docs/_build/guides.md` (gitignored local review) |
 | `developer/`              | Contributing to this repo           | `DEVELOPERS.md` at repo root                                                                 |
 | `client-cli/`             | npm CLI consumers                   | `packages/mdcp-cli/README.md`                                                                |
 | `client-core/`            | Programmatic API consumers          | `packages/mdcp-core/README.md`                                                               |
 | `repo-readme/`            | Repository visitors, skill adopters | `README.md` at repo root                                                                     |
 | `presentation-la-devops/` | Meetup talk audience                | `presentations/la-devops-2026.md`                                                            |
+
+A guide whose `compile.scopeRoot` is `glossary` stitches in every term the link walk from its shards finds ([Linked shards](docs/features/manifest-compile-order.md#linked-shards-and-the-file-name-fallback)).
+
+Each compiled output marks every stitched shard with `<!-- mdcp-shard: start … -->` and `end` comments that give the shard's path, except `presentations/la-devops-2026.md`. The presentation guide sets `includeBanner` and `sourceTags` to `false`, so its output has no markers and no banner.
 
 **Surface ownership:** `repo-readme/` = Agent Skill landing; `client-cli/` = CLI commands/config only; `client-core/` = library API/hooks only. Cross-link the other surfaces instead of duplicating skill, CLI, or API narrative across package READMEs.
 
@@ -589,7 +595,7 @@ Compile rebases each shard's `../` links relative to the file being assembled, t
 
 1. Edit shard `.md` files under the relevant guide directory.
 2. If you changed a guide's `index.md` link order, re-run compile — order is read from the manifest. See [Manifest compile order](docs/features/manifest-compile-order.md) when using `compile.sectionsHeading`.
-3. Run `pnpm docs:compile:repo` then `pnpm docs:check:repo`.
+3. Run `pnpm docs:compile:repo`, then `pnpm docs:check`, which also checks the examples.
 4. Review the change at both levels of [two-level review](docs/features/protocol/shard-srp-and-mitosis.md#two-level-review): each shard on its own, then against the guides, skills, and code that describe the same behavior. To review the docs as a set, run the [doc-review workflow](docs/features/protocol/workflows/doc-review.md).
 5. Commit shard changes. Regenerated `docs/_build/` (monolith, per-guide outputs, `refs.json`) is gitignored. CI and `pnpm docs:check` compile it locally. Every other output in the guide table is committed, in the same commit as the shard change that regenerates it.
 

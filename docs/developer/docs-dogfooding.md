@@ -6,13 +6,17 @@ This repo's documentation is sharded under [`docs/`](../../docs/). Shards are th
 
 | Directory                 | Audience                            | Output                                                                                       |
 | ------------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------- |
-| `glossary/`               | Shared terms (cross-guide)          | One shard per term; scoped transitive stitch                                                 |
+| `glossary/`               | Shared terms (cross-guide)          | No output of its own; see below                                                              |
 | `features/`               | Tool capabilities, migration map    | `docs/_build/features.md` and the monolith `docs/_build/guides.md` (gitignored local review) |
 | `developer/`              | Contributing to this repo           | `DEVELOPERS.md` at repo root                                                                 |
 | `client-cli/`             | npm CLI consumers                   | `packages/mdcp-cli/README.md`                                                                |
 | `client-core/`            | Programmatic API consumers          | `packages/mdcp-core/README.md`                                                               |
 | `repo-readme/`            | Repository visitors, skill adopters | `README.md` at repo root                                                                     |
 | `presentation-la-devops/` | Meetup talk audience                | `presentations/la-devops-2026.md`                                                            |
+
+A guide whose `compile.scopeRoot` is `glossary` stitches in every term the link walk from its shards finds ([Linked shards](../features/manifest-compile-order.md#linked-shards-and-the-file-name-fallback)).
+
+Each compiled output marks every stitched shard with `<!-- mdcp-shard: start … -->` and `end` comments that give the shard's path, except `presentations/la-devops-2026.md`. The presentation guide sets `includeBanner` and `sourceTags` to `false`, so its output has no markers and no banner.
 
 **Surface ownership:** `repo-readme/` = Agent Skill landing; `client-cli/` = CLI commands/config only; `client-core/` = library API/hooks only. Cross-link the other surfaces instead of duplicating skill, CLI, or API narrative across package READMEs.
 
@@ -26,7 +30,7 @@ Compile rebases each shard's `../` links relative to the file being assembled, t
 
 1. Edit shard `.md` files under the relevant guide directory.
 2. If you changed a guide's `index.md` link order, re-run compile — order is read from the manifest. See [Manifest compile order](../features/manifest-compile-order.md) when using `compile.sectionsHeading`.
-3. Run `pnpm docs:compile:repo` then `pnpm docs:check:repo`.
+3. Run `pnpm docs:compile:repo`, then `pnpm docs:check`, which also checks the examples.
 4. Review the change at both levels of [two-level review](../features/protocol/shard-srp-and-mitosis.md#two-level-review): each shard on its own, then against the guides, skills, and code that describe the same behavior. To review the docs as a set, run the [doc-review workflow](../features/protocol/workflows/doc-review.md).
 5. Commit shard changes. Regenerated `docs/_build/` (monolith, per-guide outputs, `refs.json`) is gitignored. CI and `pnpm docs:check` compile it locally. Every other output in the guide table is committed, in the same commit as the shard change that regenerates it.
 
