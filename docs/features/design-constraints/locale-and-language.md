@@ -28,33 +28,13 @@ As of 2026-07-27 the cache is warm.
 
 Vale does not replace link validation: Vale asks prose mentions to become links, and a host Vale rule can ask authors to drop Pandoc IDs. Core checks that authored `.md` paths and `#anchor` fragments resolve.
 
-## How Vale handles multiple languages (model we follow)
-
-[Vale](https://vale.sh/) (see [errata-ai/vale](https://github.com/errata-ai/vale) and [styles](https://github.com/errata-ai/styles)) does **not** fork its Markdown engine per language. Multi-language docs repos use three pieces:
-
-1. **Markup / format engine** — scopes, ignores, and format parsers stay language-neutral. That maps to MDCP’s heading/link helpers (`src/markdown/`, slugify, links) and peer markdownlint.
-2. **Style packages** — folders of YAML rules under `StylesPath`. Maintainer guidance for mixed-language trees is to split **shared** rules from **language-specific** ones (for example `General` + `En`), then assign them with `.vale.ini` **glob sections**:
-
-   ```ini
-   StylesPath = styles
-   MinAlertLevel = suggestion
-
-   # English (or default) docs: shared + English grammar/style
-   [*.md]
-   BasedOnStyles = General, En
-
-   # Translations: shared only (or General + Fr, …)
-   [*.{de,es,fr,it,ja,ru}.md]
-   BasedOnStyles = General
-   ```
-
-   Path sections work the same way. mdcp passes Vale absolute paths, so start each one with `**/`, as in `[**/en/docs/*.md]` and `[**/fr/docs/*.md]`. Official packages such as **Microsoft** encode English style guides. Another language gets its own style package and keeps the same Markdown parser. An MDCP-owned prose style (unlinked heading mentions and dated claims) is the same kind of package.
-
-3. **Locale-named dictionaries** — Hunspell-compatible `en_US.{dic,aff}` under `styles/config/dictionaries/`, selected from `spelling` rules. <!-- mdcp-paths: illustrative -->
-
 ## Default and extension
 
-Compile-time locale packs default to **`en-US`** (one BCP 47 JSON file per locale + shared formatters). Prose lint for other languages is a Vale style + `.vale.ini` section — not new branches inside GFM helpers or the check pipeline.
+Compile-time locale packs default to **`en-US`** (one BCP 47 JSON file per locale + shared formatters).
+
+Vale keeps one Markdown parser for every language, and a `.vale.ini` glob or path section gives each set of files its style packages ([BasedOnStyles](https://vale.sh/docs/keys/basedonstyles)). Prose lint for another language takes a Vale style and a `.vale.ini` section, and the GFM helpers and the check pipeline stay as they are.
+
+In Vale terms, a tree with more than one language splits shared rules from language-specific ones, so English files take a shared `General` style beside an `En` style, and a translation section such as `[*.{de,fr}.md]` takes `General` alone or beside its own language style. A language's dictionary comes from its spelling rules, which select Hunspell files such as `en_US.dic` and `en_US.aff` under `config/dictionaries/` in the `StylesPath`. [Opt a standalone guide out of Vale](../../client-cli/optional-linters.md#opt-a-standalone-guide-out-of-vale) shows how a path section matches the absolute paths that mdcp passes to Vale. <!-- mdcp-paths: illustrative -->
 
 GFM helpers and heading **slugify** stay language-agnostic: they operate on Unicode heading text and GitHub-style slug rules, not on English chapter vocabulary.
 
