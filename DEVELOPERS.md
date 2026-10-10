@@ -1397,21 +1397,9 @@ This checklist tracks our compliance with the [OWASP GitHub Actions Security Che
 
 ## domain glossary
 
-Per-repository glossary shards under `docs/glossary/` for acronyms and product vocabulary. When legacy systems reuse the same term for different concepts, add a **disambiguation** entry and link from feature shards on first use. Start the glossary before large feature shards when migrating or onboarding new projects.
+A **domain glossary** is a repository's own glossary: one shard per term under `docs/glossary/`, with the term as the shard's `#` heading. It holds acronyms and product vocabulary, plus a disambiguation entry where legacy systems use one term for different concepts. A project that migrates existing docs or onboards to MDCP starts its glossary before its large feature shards. Its inclusion bar, recorded in the glossary index, says which terms to add and whose understanding counts: the client persona, contributors or both.
 
-### Inclusion bar (project-specific)
-
-Choosing what belongs in the glossary is an art — not every uncommon word deserves an entry, and not every acronym is obvious to the audience. Each repository **MUST** record its own **inclusion bar** in the glossary (typically the preamble of `docs/glossary/index.md`): which kinds of terms to add, which to omit, and whose understanding counts (client persona, contributors, or both).
-
-The [getting-started workflow](docs/features/protocol/workflows/getting-started.md) establishes that bar with the end user during bootstrap. Day-to-day workflows apply it whenever they introduce non-universal language — see [Skill workflows](docs/features/protocol/skill-workflows.md#glossary-obligation-every-workflow).
-
-### One term per shard
-
-Each definition lives in its own `.md` file with a single `#` heading (the term). Link the term from feature shards on first use, for example `[GFM](./gfm.md)` or `../glossary/gfm.md` from another guide.
-
-### Sub-index files
-
-When guides stitch glossary terms through `compile.scopeRoot`, a large glossary can group term links into sub-index files that `index.md` links. See [Shared glossary](./packages/mdcp-cli/README.md#shared-glossary).
+[Glossary obligation](docs/features/protocol/skill-workflows.md#glossary-obligation-every-workflow) says who sets the inclusion bar and when a workflow adds an entry. [Shared glossary](./packages/mdcp-cli/README.md#shared-glossary) says how guides stitch the terms and when a large glossary uses sub-index files.
 
 <!-- mdcp-shard: end docs/glossary/domain-glossary.md -->
 
@@ -1435,9 +1423,9 @@ Install and validation: [Agent Skill](docs/features/agent-skill.md).
 
 **MarkDown Context Protocol** — a **documentation system** delivered as an [Agent Skill](#agent-skills) and lightweight toolchain. It helps teams who care about durable docs distill mind maps, architecture notes, specs, and product ideas into small Markdown **shards** so intent stays reviewable in git, maintainable as ideas keep arriving, and readable one shard at a time by people and agents.
 
-MDCP is not a magic bullet for documentation debt. It is a practice and skill that puts system context where it compounds — tracing why the system or process exists, how to use it, and what value it delivers — for a team of one or a full product, engineering, and marketing org.
+[Vision and roadmap](docs/features/protocol/00-vision-and-roadmap.md) says what MDCP does about documentation debt and which teams it serves.
 
-The CLI (`compile`, `check`, and [refs](#refs) registry maintenance) implements that shared context layer alongside the skill’s behavioral guardrails.
+The CLI compiles and checks the shards and maintains the [refs](#refs) registry. It works alongside the skill’s behavioral guardrails.
 
 <!-- mdcp-shard: end docs/glossary/mdcp.md -->
 

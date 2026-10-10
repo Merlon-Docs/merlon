@@ -27,7 +27,7 @@ The tiers keep a growing docs set coherent. Contributor workflow stays out of co
 
 Each guide **MUST** have a manifest (`index.md` or `shards.md`) defining compile order.
 
-Glossary terms **SHOULD** be one shard per entry. When guides stitch glossary terms through `compile.scopeRoot`, large glossaries **MAY** group term links into sub-index files that `index.md` links. Compile follows links from those files and includes the terms in compile output. See [Shared glossary](../../client-cli/config-essentials.md#shared-glossary).
+Glossary terms **SHOULD** be one shard per entry. [Shared glossary](../../client-cli/config-essentials.md#shared-glossary) says how guides stitch the terms through `compile.scopeRoot` and when a large glossary groups them into sub-index files.
 
 The MDCP engine itself is agnostic. Other documentation systems (e.g., Legal Operations, HR Policies) **MAY** introduce their own "battery types" (archetypes) with completely different guide tiers using the same underlying `mdcp compile` and `mdcp check` mechanics.
 
