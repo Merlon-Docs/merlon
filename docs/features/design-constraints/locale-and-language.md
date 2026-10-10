@@ -9,7 +9,7 @@ Natural-language **static analysis** belongs with **[Vale](https://vale.sh/) sty
 - **GFM cross-refs** (`[label](./shard.md#slug)`) → **mdcp-core / CLI**. First-class [link validation](../link-validation.md) and [refs](../../glossary/refs.md). This is the compile/check job.
 - **Unlinked prose mentions** (en-US examples: "See Chapter…", bare `Ch. N`, "Section N" with no markdown link) → peer **Vale** style `MDCP` in `@bwilliamson/mdcp-presets` (`vale/MDCP`). Language-specific writing cues — not MDCP protocol vocabulary. Other languages need their own Vale styles.
 - **Dated claims** (en-US cues: `as of` or `until` before an ISO date) → peer **Vale** rule `MDCP.DatedClaim` in the same `MDCP` style. The cue words are Vale-style data, not locale-pack data: no compile code reads them, so they stay out of the locale pack.
-- **Pandoc IDs** (`{#…}` after a heading) → peer **Vale** (dogfood style `MDCP-PandocId` warns authors to **remove** them). Core may strip leftovers for cleanup; not an authoring feature.
+- **Pandoc IDs** (`{#…}` after a heading) → a peer **Vale** rule that the host adds, since the `MDCP` style in `@bwilliamson/mdcp-presets` has none. [GFM scope](./gfm-scope.md#headings) states the rule against authoring them. Core may strip leftovers for cleanup, and that is not an authoring feature.
 - **GFM / Markdown shape** → peer **markdownlint**.
 - **Generated caption / marker copy** (`Table 1. …`, `BROKEN LINK`) → compile-time locale pack (default `en-US`).
 - **codeEvidence line-range word cues** (en-US examples: `line 42`, `lines 12–15`) → compile-time locale pack (`lineRangeWords`). Language-neutral forms (`L6-L8`, `:10-20`) and GitHub-style **`#L…` fragment output** stay in core as protocol shape — not localized. See [codeEvidence](../../client-core/compile-hooks/code-evidence.md#codeevidence-line-ranges).
@@ -22,11 +22,11 @@ See Chapter 2 for details.
 # Illustrative, Vale MDCP.DatedClaim: a claim pinned to a date
 As of 2026-07-27 the cache is warm.
 
-# Illustrative — Vale MDCP-PandocId (Pandoc ID after heading; remove it):
+# Illustrative, a host Vale rule against Pandoc IDs (remove the ID):
 ## Details {#…}
 ```
 
-Vale does not replace link validation: Vale asks prose mentions to become links, or asks authors to drop Pandoc IDs. Core checks that authored `.md` paths and `#anchor` fragments resolve.
+Vale does not replace link validation: Vale asks prose mentions to become links, and a host Vale rule can ask authors to drop Pandoc IDs. Core checks that authored `.md` paths and `#anchor` fragments resolve.
 
 ## How Vale handles multiple languages (model we follow)
 

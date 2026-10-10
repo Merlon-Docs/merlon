@@ -17,6 +17,6 @@ GFM defines two heading forms ([ATX](https://github.github.com/gfm/#atx-headings
 | ATX edge cases (0–3 space indent, closing `#` sequence, empty ATX) | Yes | **Not yet** — current parser is a practical ATX subset                    |
 | Emit / rewrite after demote or compile title                       | —   | Always **ATX** lines                                                      |
 
-[Heading slugs](../../glossary/heading-slug.md), part of [refs](../../glossary/refs.md), use the GitHub algorithm on recognized heading text after compile. Do not author Pandoc IDs (`{#…}`).
+[Heading slugs](../../glossary/heading-slug.md), part of [refs](../../glossary/refs.md), use the GitHub algorithm on recognized heading text after compile. Do not author Pandoc IDs (`{#…}`). This rule is advisory, because mdcp's own checks and the `MDCP` Vale style pass a Pandoc ID. Authors and reviewers apply it, and the headings in a change's diff are its evidence. The host can add a Vale rule that fails on one, as [Preferred homes](./locale-and-language.md#preferred-homes) says.
 
 Shared helpers live under `packages/mdcp-core/src/markdown/` (`parseHeading` / ATX kind today). See [Packages and tests](../../developer/packages-and-tests.md) and [Safe markdown parsing](../../developer/safe-markdown-parsing.md).

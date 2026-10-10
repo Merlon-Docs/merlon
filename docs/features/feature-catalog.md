@@ -57,7 +57,7 @@ Report a shard that its guide's manifest doesn't link, and a manifest link to a 
 
 ## Peer Vale prose (not core)
 
-en-US writing cues, such as an unlinked "See Chapter…" mention, live in Vale styles rather than in mdcp's core stages. So does this repository's rule against Pandoc IDs (`{#…}` after a heading). They do not replace [Link validation](./link-validation.md) for GFM cross-refs. `mdcp check` runs them in its Vale stage, as [Check gate](./check-gate.md#check-gate-stages) says, when Vale is installed and the host's Vale config (`vale.config`, default `.vale.ini`) enables their styles. `--skip-vale` skips the stage. See [Locale and language boundary](./design-constraints/locale-and-language.md).
+en-US writing cues, such as an unlinked "See Chapter…" mention or a dated claim, live in the `MDCP` Vale style in `@bwilliamson/mdcp-presets` rather than in mdcp's core stages. [Preferred homes](./design-constraints/locale-and-language.md#preferred-homes) says which tool checks each prose rule. These cues do not replace [Link validation](./link-validation.md) for GFM cross-refs. `mdcp check` runs them in its Vale stage, as [Check gate](./check-gate.md#check-gate-stages) says, when Vale is installed and the host's Vale config (`vale.config`, default `.vale.ini`) enables their styles. `--skip-vale` skips the stage.
 
 ## Coverage scan
 

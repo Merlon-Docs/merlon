@@ -77,7 +77,7 @@ describe('design scope documentation (#26)', () => {
     );
     expect(localeShard).toContain('does not model chapters/sections');
     expect(featureCatalog).toContain('Peer Vale prose');
-    expect(featureCatalog).toContain('Pandoc IDs');
+    expect(featureCatalog).toContain('./design-constraints/locale-and-language.md#preferred-homes');
     expect(featureCatalog).toContain('not replace');
     expect(pandocMeta).toContain('MDCP-PandocId');
     expect(pandocMeta).toContain('Pandoc IDs');
