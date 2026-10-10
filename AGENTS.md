@@ -36,7 +36,7 @@ pnpm formal:check        # the Alloy models in formal/alloy/
 - [Versioning and releases](docs/developer/versioning-and-releases.md) covers how work reaches `develop` and how releases reach `main`.
 - [Formal models](docs/developer/formal-models.md) lists the guards that keep both branches tested.
 - [Agent Skill development](docs/developer/agent-skill.md) covers skill source under `skills/`, and why `.agents/skills/` is never hand-edited.
-- [Cursor Cloud environment](docs/developer/cloud-agent-environments.md) covers cloud agent setup and limits.
+- [Cloud agent environments](docs/developer/cloud-agent-environments.md) covers cloud agent setup and limits.
 
 ## Code of conduct
 
