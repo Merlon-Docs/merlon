@@ -122,7 +122,7 @@ describe('design scope documentation (#26)', () => {
     expect(gfmScopeShard).toContain('[GFM](../../glossary/gfm.md)');
     expect(gfmScopeShard).toContain('## Headings');
     expect(gfmScopeShard).toContain('Setext');
-    expect(gfmScopeShard).toContain('Not yet');
+    expect(gfmScopeShard).toContain('Not recognized');
     expect(gfmScopeShard).toContain('parseHeading');
     expect(gfmScopeShard).toContain('https://github.github.com/gfm/');
   });

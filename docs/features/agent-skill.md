@@ -81,7 +81,7 @@ Depth on single responsibility, mitosis, and two-level review:
 
 ## Ecosystem publication
 
-Primary discovery: [skills.sh](https://skills.sh) via `npx skills`. There is no submit API — the [repo page](https://skills.sh/betsalel-williamson/mdcp) is indexed from anonymous install telemetry. Secondary registries later. Do not publish a VS Code Marketplace VSIX for this delivery path.
+Primary discovery: [skills.sh](https://skills.sh) via `npx skills`. skills.sh has no submit API, and it indexes the [repo page](https://skills.sh/betsalel-williamson/mdcp) from anonymous install telemetry. Do not publish a VS Code Marketplace VSIX for this delivery path.
 
 Landing identity for skills.sh:
 

@@ -1,6 +1,6 @@
 # Locale and language boundary
 
-MDCP treats **authored [GFM](../../glossary/gfm.md)** as the format contract: **headings** (ATX subset today — see [GFM scope](./gfm-scope.md#headings)) and **[cross-links](../../glossary/cross-link.md)** (ordinary `[]()` markdown links). It does not model chapters/sections as protocol concepts.
+MDCP treats **authored [GFM](../../glossary/gfm.md)** as the format contract: **headings** (an ATX subset, as [GFM scope](./gfm-scope.md#headings) says) and **[cross-links](../../glossary/cross-link.md)** (ordinary `[]()` markdown links). It does not model chapters/sections as protocol concepts.
 
 Natural-language **static analysis** belongs with **[Vale](https://vale.sh/) style packages**, not as durable gates in the core compile/check API. Core may hold a small **[locale pack](../../glossary/locale-pack.md)** for compile-time generated wording (captions, broken-link markers), locale-specific heading-key patterns, and compile **parse-input** word cues where natural language is not protocol vocabulary.
 
@@ -38,7 +38,7 @@ In Vale terms, a tree with more than one language splits shared rules from langu
 
 GFM helpers and heading **slugify** stay language-agnostic: they operate on Unicode heading text and GitHub-style slug rules, not on English chapter vocabulary.
 
-Insert **library directory names** (`diagrams/`, `tables/`, …) and default preamble **filenames** (`about-this-guide.md`) stay English path identifiers for now. User-visible caption and marker **wording**, compile parse-input **word cues** such as code-evidence `line`/`lines`, and the about-this-guide **heading title** go through the locale pack.
+Insert **library directory names** (`diagrams/`, `tables/`, …) and default preamble **filenames** (`about-this-guide.md`) are English path identifiers. User-visible caption and marker **wording**, compile parse-input **word cues** such as code-evidence `line`/`lines`, and the about-this-guide **heading title** go through the locale pack.
 
 ## Related
 
