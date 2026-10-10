@@ -23,7 +23,7 @@ Each workflow is a file inside the skill. The agent loads only the one the task 
 
 ## Architecture Extensions
 
-Optional archetype skills for specific documentation architectures (Work in Progress).
+Archetype skills for specific documentation architectures. They aren't released to consumers. Each one sets `metadata.internal: true`, which keeps it out of the `skills` CLI's default discovery, as [Publishing the skill pack](./developer/agent-skill.md#publishing-the-skill-pack) says.
 
 | Skill                                                                         | Description                                                                  |
 | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
