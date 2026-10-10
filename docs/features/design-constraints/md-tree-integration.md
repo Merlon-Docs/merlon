@@ -2,11 +2,10 @@
 
 MDCP uses `@kayvan/markdown-tree-parser` for **split only** (`extract-all`, `explode`).
 
-Upstream `assemble` is **not used** — it does not support:
+Upstream `assemble` is **not used**, because it does not support:
 
 - Per-section heading demotion (shard `#` → compiled `##`)
 - Dropping the About this guide heading from the preamble shard
-- Overview coverage second-H1 exception
 
 ## When to fork
 
