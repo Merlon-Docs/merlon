@@ -52,13 +52,12 @@ If a prior run versioned/published but failed before tags/Releases finished, the
 
 ## Pre-1.0 policy (`0.x.y`)
 
-Packages and skills are **pre-1.0** while on `0.x.y`. Until an item reaches **1.0.0**, that item has **no API stability guarantee**. **Major bumps are disabled** (`pnpm changeset:reject-major`). Use **patch**, **minor** (including breaking-within-0.x), or **build** via `pnpm release:build`.
+Packages and skills are **pre-1.0** while on `0.x.y`. Until an item reaches **1.0.0**, that item has **no API stability guarantee**. **Major bumps are disabled** (`pnpm changeset:reject-major`). Use **patch** or **minor** (including breaking-within-0.x).
 
-| Bump      | When                                                                       |
-| --------- | -------------------------------------------------------------------------- |
-| **patch** | Bug fixes, internal refactors with no intended API change                  |
-| **minor** | New capabilities, or breaking-within-0.x until majors are opened           |
-| **build** | Republish without API change (`0.1.0-build.1`, …) via `pnpm release:build` |
+| Bump      | When                                                             |
+| --------- | ---------------------------------------------------------------- |
+| **patch** | Bug fixes, internal refactors with no intended API change        |
+| **minor** | New capabilities, or breaking-within-0.x until majors are opened |
 
 ## Durable docs vs pending changesets
 
