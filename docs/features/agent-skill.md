@@ -23,12 +23,12 @@ Packaging MDCP as an Agent Skill gives:
 
 ## Format and location
 
-- **Format:** `SKILL.md` per the [Agent Skills](https://agentskills.io) open standard (progressive disclosure: lean activation body; depth in `references/` and `scripts/`).
+- **Format:** `SKILL.md` per the [Agent Skills](https://agentskills.io) open standard (progressive disclosure, with a lean activation body and depth in `references/`).
 - **Upstream path:** [`skills/mdcp/SKILL.md`](../../skills/mdcp/SKILL.md).
 - **Install path:** your agent's skills directory after `npx skills add` (not one universal folder — the CLI maps each host to its own tree; see [Supported Agents](https://github.com/vercel-labs/skills#supported-agents)).
 - **Frontmatter:** `license`, `compatibility` (Node.js 18+ / `@bwilliamson/mdcp-cli`), and `metadata.version` (independent per skill, and synced from `packages/skill-<id>/` at release). Internal skills also set `metadata.internal: true`, and [Publishing the skill pack](../developer/agent-skill.md#publishing-the-skill-pack) says what that flag does.
 
-Skill `scripts/` are thin wrappers into the CLI — see [`skills/mdcp/references/cli-and-scripts.md`](../../skills/mdcp/references/cli-and-scripts.md) for what **compile** (build docs), **check** (validate the tree), and **refs** (cross-link registry) mean.
+The skill calls the mdcp CLI directly, without skill scripts. [`skills/mdcp/references/cli-and-scripts.md`](../../skills/mdcp/references/cli-and-scripts.md) says what **compile** (build docs), **check** (validate the tree) and **refs** (cross-link registry) mean, and why that logic stays in the CLI.
 
 ## Versioning Strategy (Vendoring)
 
