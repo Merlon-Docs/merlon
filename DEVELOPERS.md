@@ -4,7 +4,7 @@
 
 <!-- mdcp-shard: start docs/developer/about-this-guide.md -->
 
-**Audience:** contributors and maintainers working on the mdcp monorepo.
+**Audience:** contributors and maintainers working on the mdcp monorepo, home of the MarkDown Context Protocol ([MDCP](#mdcp)) Agent Skill and its toolchain.
 
 This is the **developer** guide (`docs/developer/`): how to work on this repository — local setup, package development, sharded documentation in `docs/`, changesets, npm releases, and **Agent Skill authoring** (including [live skill evals](#live-skill-evals)).
 
@@ -1483,6 +1483,20 @@ Even when nothing changes, a maintainer should run a **periodic pass** by hand a
 
 <!-- mdcp-shard: end docs/developer/github-actions-security-checklist.md -->
 
+<!-- mdcp-shard: start docs/glossary/mdcp.md -->
+
+## MDCP
+
+**MarkDown Context Protocol** — a **documentation system** delivered as an [Agent Skill](#agent-skills) and lightweight toolchain. It helps teams who care about durable docs distill mind maps, architecture notes, specs, and product ideas into small Markdown **shards** so intent stays reviewable in git, maintainable as ideas keep arriving, and readable one shard at a time by people and agents.
+
+[Vision and roadmap](docs/features/protocol/00-vision-and-roadmap.md) says what MDCP does about documentation debt and which teams it serves.
+
+The CLI compiles and checks the shards and maintains the [refs](#refs) registry. It works alongside the skill’s behavioral guardrails.
+
+Lowercase `mdcp` names the toolchain (the CLI command and the `@bwilliamson/mdcp-*` packages) and the Agent Skill.
+
+<!-- mdcp-shard: end docs/glossary/mdcp.md -->
+
 <!-- mdcp-shard: start docs/glossary/domain-glossary.md -->
 
 ## domain glossary
@@ -1506,20 +1520,6 @@ MDCP's main skill is `mdcp`, with its source in `skills/mdcp/`. It contains the 
 Install and validation: [Agent Skill](docs/features/agent-skill.md).
 
 <!-- mdcp-shard: end docs/glossary/agent-skills.md -->
-
-<!-- mdcp-shard: start docs/glossary/mdcp.md -->
-
-## MDCP
-
-**MarkDown Context Protocol** — a **documentation system** delivered as an [Agent Skill](#agent-skills) and lightweight toolchain. It helps teams who care about durable docs distill mind maps, architecture notes, specs, and product ideas into small Markdown **shards** so intent stays reviewable in git, maintainable as ideas keep arriving, and readable one shard at a time by people and agents.
-
-[Vision and roadmap](docs/features/protocol/00-vision-and-roadmap.md) says what MDCP does about documentation debt and which teams it serves.
-
-The CLI compiles and checks the shards and maintains the [refs](#refs) registry. It works alongside the skill’s behavioral guardrails.
-
-Lowercase `mdcp` names the toolchain (the CLI command and the `@bwilliamson/mdcp-*` packages) and the Agent Skill.
-
-<!-- mdcp-shard: end docs/glossary/mdcp.md -->
 
 <!-- mdcp-shard: start docs/glossary/atomic-commit-groups.md -->
 

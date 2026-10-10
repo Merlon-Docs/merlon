@@ -1,6 +1,6 @@
 # About this guide
 
-**Audience:** contributors and maintainers working on the mdcp monorepo.
+**Audience:** contributors and maintainers working on the mdcp monorepo, home of the MarkDown Context Protocol ([MDCP](../glossary/mdcp.md)) Agent Skill and its toolchain.
 
 This is the **developer** guide (`docs/developer/`): how to work on this repository — local setup, package development, sharded documentation in `docs/`, changesets, npm releases, and **Agent Skill authoring** (including [live skill evals](./live-skill-evals.md)).
 
