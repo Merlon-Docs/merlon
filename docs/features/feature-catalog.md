@@ -87,14 +87,7 @@ Built-in hooks:
 
 ## Agent integration (consumer repo)
 
-```json
-{
-  "scripts": {
-    "docs:compile": "mdcp compile --config docs/mdcp.config.json --docs-root docs",
-    "docs:check:mdcp": "mdcp check --config docs/mdcp.config.json --require-lint"
-  }
-}
-```
+[Repo-root npm scripts](../client-cli/config-essentials.md#repo-root-npm-scripts) in Config essentials gives the `docs:compile` and `docs:check` scripts for a consumer repository. Both pass `--docs-root docs`, because the docs root defaults to the directory the command runs in.
 
 ## Design constraints (summary)
 
