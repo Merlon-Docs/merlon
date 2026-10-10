@@ -14,12 +14,12 @@ Public pages speak first to the people who can make documentation a required pol
 
 Four goals — not job titles. Interns and students map to **Learner**; technical writers and domain SMEs map to **Author**; foundation reviewers map to **Champion**. The landing page names the primary audience's roles; archetype tables and WIIFM lines stay goal-based. Each archetype gets one [WIIFM](../glossary/wiifm.md) line (landing-safe):
 
-| Archetype    | Goal                                     | WIIFM (landing-safe)                                       | Typical path                                |
-| ------------ | ---------------------------------------- | ---------------------------------------------------------- | ------------------------------------------- |
-| **Builder**  | Integrate mdcp into repo scripts and CI  | One gate for humans, agents, and CI; smaller doc PRs       | Paste prompt or `/mdcp help me get started` |
-| **Learner**  | Try mdcp before mastering every CLI flag | Paste a prompt; agent runs setup                           | Getting started prompt                      |
-| **Author**   | Own content, not the toolchain           | One topic per file; load the section that matches the task | Paste prompt + usage model                  |
-| **Champion** | Evaluate or sponsor adoption             | Slash MTTR and accelerate onboarding with instant context  | Vision and claims shards                    |
+| Archetype    | Goal                                     | WIIFM (landing-safe)                                       | Typical path                                                           |
+| ------------ | ---------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------- |
+| **Builder**  | Integrate mdcp into repo scripts and CI  | One gate for humans, agents, and CI; smaller doc PRs       | Paste prompt or [run the bootstrap](./agent-skill.md#install-surfaces) |
+| **Learner**  | Try mdcp before mastering every CLI flag | Paste a prompt; agent runs setup                           | Getting started prompt                                                 |
+| **Author**   | Own content, not the toolchain           | One topic per file; load the section that matches the task | Paste prompt + usage model                                             |
+| **Champion** | Evaluate or sponsor adoption             | Slash MTTR and accelerate onboarding with instant context  | Vision and claims shards                                               |
 
 Paths: [CLI README](../../packages/mdcp-cli/README.md), [getting-started workflow](../../skills/mdcp/references/workflows/getting-started.md), [usage model](./protocol/usage-model.md), [vision](./protocol/00-vision-and-roadmap.md), [claims policy](./protocol/benefit-claims-and-evidence.md).
 

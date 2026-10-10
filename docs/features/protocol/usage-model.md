@@ -23,7 +23,7 @@ Authors can also run `mdcp prose` locally to see Vale findings before CI does.
 
 ### Minimal
 
-One guide that compiles to `guide.md` and passes `check`. Install the skill (`npx skills add betsalel-williamson/mdcp --skill mdcp`).
+One guide that compiles to `guide.md` and passes `check`. Install the skill with [its install command](../agent-skill.md#install-surfaces).
 
 ### Typical
 

@@ -42,6 +42,8 @@ MDCP skills are **vendored**: skill files live in the project and are versioned 
 
 ## Install surfaces
 
+[Quick Start](../repo-readme/get-started.md#quick-start) in the README walks through the install. Its command is:
+
 ```bash
 npx skills add betsalel-williamson/mdcp --skill mdcp
 ```

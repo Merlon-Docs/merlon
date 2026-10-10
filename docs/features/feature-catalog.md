@@ -18,7 +18,7 @@ Heading-slug **registry** for validation after compile. See [Refs registry path]
 
 ## Agent Skill and workflows
 
-One Agent Skill at `skills/mdcp/SKILL.md` (install via `npx skills add` into your agent's skills directory). See [Agent Skill](./agent-skill.md).
+One Agent Skill at `skills/mdcp/SKILL.md`, installed into your agent's skills directory with [its install command](./agent-skill.md#install-surfaces). See [Agent Skill](./agent-skill.md).
 
 The skill picks a workflow for each authoring job and loads only that file. Catalog and intake:
 [Skill workflows](./protocol/skill-workflows.md). Hardened is/isn’t boundaries:
@@ -28,10 +28,6 @@ The skill picks a workflow for each authoring job and loads only that file. Cata
 [Design-architecture](./protocol/workflows/design-architecture.md),
 [UX](./protocol/workflows/ux.md),
 [Doc-review](./protocol/workflows/doc-review.md).
-
-```bash
-npx skills add betsalel-williamson/mdcp --skill mdcp
-```
 
 Optional local with/without-skill grading for each workflow is maintainer work — see [Live skill evals](../developer/live-skill-evals.md). Not a CI gate.
 
