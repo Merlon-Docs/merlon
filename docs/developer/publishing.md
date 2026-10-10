@@ -64,9 +64,23 @@ pnpm release:main --dry-run
 
 With pending changesets, the dry run lists them and then exits 1 with "changeset version ran but no package versions changed", because it skipped the version step. So it can't preview a versioning release.
 
-Manual fallback:
+The manual fallback runs the release from a maintainer machine. `pnpm release:main` exits at once without `RELEASE_GITHUB_TOKEN` in the environment, and Trusted Publishing needs the OIDC token that only the release workflow gets. So export the token and sign in with `npm login` first. Run the fallback in a fresh clone of `main`, because the script points that clone's `origin` at a URL that contains the token and sets its git identity to `github-actions[bot]`. The clone has no dependencies or synced Vale styles yet, and `pnpm run check` needs both:
 
 ```bash
+pnpm install --frozen-lockfile
+pnpm vale:sync
 pnpm run check
 pnpm release:main
 ```
+
+When a CI run pushed the release commit to `main` and stopped before it published, `main` has no pending changesets left, and `pnpm release:main` only heals tags and GitHub Releases. Publish the missing versions from a checkout of `main` instead. When the run stopped at the dependency audit, first resolve the advisory, or confirm that it is dev-only as [Classify impact first](./security-incident-triage.md#classify-impact-first) describes. The block's `pnpm audit --prod` step then fails on any high advisory left in a published package's dependencies. Give npm your 2FA code when it asks:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm audit --prod --audit-level=high
+pnpm build
+npm login
+pnpm exec changeset publish --no-git-tag
+```
+
+`changeset publish` publishes each public package whose version npm doesn't have yet, and `--no-git-tag` leaves the tags to the Release run that the push of the release commit already started. That run waits for approval of the `release` environment. Leave it waiting until npm has the versions, then approve it, and it creates the missing tags and GitHub Releases. If that run is gone, start one from the Release workflow's manual trigger.

@@ -1017,14 +1017,14 @@ There is **no calendar cadence** and **no Version Packages PR**. A release is a 
 
 1. Changesets reach `develop` with the landings they describe ([When to add a changeset](#when-to-add-a-changeset)). The release workflow versions and publishes only after a release PR reaches `main`.
 2. When `develop` is tested and ready, confirm that the pending `.changeset/*.md` files list only the packages and skills that should bump, and that each unreleased skill is still internal, as [Publishing the skill pack](#publishing-the-skill-pack) requires. Then open a PR from `develop` to `main` and merge it with a **merge commit**. Squashing would give `main` history that `develop` lacks.
-3. The merge runs the [release workflow](.github/workflows/release.yml) (`pnpm release:main`), which needs the `RELEASE_GITHUB_TOKEN` secret described in [Publishing](#publishing). The **Release plan** job posts the pending changesets (and any **missing GitHub Releases**) to the run summary. Read that summary on the latest run to review the bumps and release notes, then approve the **`release` environment** there. The version job **resets to the current `origin/main` tip** (so post-approval work includes all merged changesets), then **sequentially**: applies changesets → syncs skill `metadata.version` → builds (so husky can run) → commits `chore: release` → **pushes to `main`** → publishes public packages to npm → **pushes tags** → creates GitHub Releases (including skill carriers).
+3. The merge runs the [release workflow](.github/workflows/release.yml) (`pnpm release:main`), which needs the `RELEASE_GITHUB_TOKEN` secret described in [Publishing](#publishing). The **Release plan** job posts the pending changesets (and any **missing GitHub Releases**) to the run summary. Read that summary on the latest run to review the bumps and release notes, then approve the **`release` environment** there. The version job **resets to the current `origin/main` tip** (so post-approval work includes all merged changesets), then **sequentially**: applies changesets → syncs skill `metadata.version` → runs `pnpm skill:validate` → builds (so husky can run) → commits `chore: release` → **pushes to `main`** → runs the dependency audit `pnpm audit --audit-level=high` → publishes public packages to npm → **pushes tags** → creates GitHub Releases (including skill carriers).
 4. Every push to `main` runs the [sync workflow](.github/workflows/sync-develop.yml), which merges `main`, with the release commit and any hotfix, back into `develop`. A clean merge is pushed to the `land/sync-main` branch, and the sync dispatches the land workflow on it. The merge goes to `develop` only after it passes the gate. If the gate fails, `develop` doesn't get `main`'s commits until someone fixes the failure. They can merge `main` into a `land/**` branch other than `land/sync-main` and fix it there, or land the fix on `develop` and run **Sync develop** again. The next sync overwrites `land/sync-main`, so a fix pushed there is lost. A conflict opens a PR from `main` to `develop` instead. Resolve it the same way, by merging `main` into a `land/**` branch other than `land/sync-main`. The PR itself can't take the fix, because its head is the protected `main`. Once `develop` contains `main`, the PR closes as merged.
 5. Check that each bumped item, skill carriers included, has a GitHub Release and that npm shows the new version of each public package. Then confirm that the land workflow's run on `land/sync-main` put the release commit on `develop`. A landing queued after it can cancel it while it waits, and it fails when `develop` moves during the run. In either case, re-run all of its jobs or run **Sync develop** again.
 6. When a workflow change reached `develop` after the previous sync, check that the sync's push to `land/sync-main` went through. The sync pushes with `GITHUB_TOKEN`, which can't be given the `workflows` permission, and its force-push includes every workflow change `develop` gained since that sync. If the push was refused, reset `land/sync-main` to `develop` with your own access and run **Sync develop** again. Its push then includes only what `main` adds.
 
 **Latest main wins:** concurrency does **not** cancel an in-flight publish (`cancel-in-progress: false`). The Release plan job **cancels** other Release runs on `main` that are still **waiting** (env approval) or **queued**. If `main` moves during the short version window, `pnpm release:main` aborts the push with a superseded message (no force-push).
 
-If a prior run versioned/published but failed before tags/Releases finished, the next Release plan detects **missing** `name@version` git tags and/or GitHub Releases and the release job **heals** them without bumping versions again (tag + `gh release create … --target` at the commit that last changed that package’s `package.json`).
+On a run without pending changesets, the Release plan detects **missing** `name@version` git tags and GitHub Releases, and the release job **heals** them without bumping versions again (tag + `gh release create … --target` at the commit that last changed that package’s `package.json`). Heal restores tags and GitHub Releases, not npm packages. The audit runs after the push to `main`. When it fails on a new advisory, `main` holds versions that npm never received. [Dry run and manual fallback](#dry-run-and-manual-fallback) says how to publish them.
 
 **Skills** are under `skills/`, the directory that `npx skills add` installs from. Each skill versions through a private carrier package in `packages/skill-<id>/`, which holds its `package.json` and CHANGELOG. Keep both files out of `skills/`, because every install would copy them into agent context. `pnpm release:main` syncs the carrier version into `skills/<id>/SKILL.md` `metadata.version`, so never edit that field by hand.
 
@@ -1219,12 +1219,26 @@ pnpm release:main --dry-run
 
 With pending changesets, the dry run lists them and then exits 1 with "changeset version ran but no package versions changed", because it skipped the version step. So it can't preview a versioning release.
 
-Manual fallback:
+The manual fallback runs the release from a maintainer machine. `pnpm release:main` exits at once without `RELEASE_GITHUB_TOKEN` in the environment, and Trusted Publishing needs the OIDC token that only the release workflow gets. So export the token and sign in with `npm login` first. Run the fallback in a fresh clone of `main`, because the script points that clone's `origin` at a URL that contains the token and sets its git identity to `github-actions[bot]`. The clone has no dependencies or synced Vale styles yet, and `pnpm run check` needs both:
 
 ```bash
+pnpm install --frozen-lockfile
+pnpm vale:sync
 pnpm run check
 pnpm release:main
 ```
+
+When a CI run pushed the release commit to `main` and stopped before it published, `main` has no pending changesets left, and `pnpm release:main` only heals tags and GitHub Releases. Publish the missing versions from a checkout of `main` instead. When the run stopped at the dependency audit, first resolve the advisory, or confirm that it is dev-only as [Classify impact first](#classify-impact-first) describes. The block's `pnpm audit --prod` step then fails on any high advisory left in a published package's dependencies. Give npm your 2FA code when it asks:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm audit --prod --audit-level=high
+pnpm build
+npm login
+pnpm exec changeset publish --no-git-tag
+```
+
+`changeset publish` publishes each public package whose version npm doesn't have yet, and `--no-git-tag` leaves the tags to the Release run that the push of the release commit already started. That run waits for approval of the `release` environment. Leave it waiting until npm has the versions, then approve it, and it creates the missing tags and GitHub Releases. If that run is gone, start one from the Release workflow's manual trigger.
 
 <!-- mdcp-shard: end docs/developer/publishing.md -->
 
