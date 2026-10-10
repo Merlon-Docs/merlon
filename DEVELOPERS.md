@@ -1051,7 +1051,7 @@ The land gate and CI on pull requests both run `pnpm changeset:reject-major` and
 
 The Dependabot changeset workflow writes the patch changeset for you. When a Dependabot PR changes `dependencies`, `peerDependencies` or `optionalDependencies` in a `packages/*/package.json`, it commits `.changeset/dependabot-pr-<n>.md` to the PR branch, and CI re-runs on that commit. The workflow lives in [`.github/workflows/dependabot-changeset.yml`](.github/workflows/dependabot-changeset.yml) and runs [`scripts/dependabot-changeset.mjs`](scripts/dependabot-changeset.mjs). It runs on `pull_request_target` from the base branch and reads the PR's manifests through the API as data; it never checks out or runs the PR's code.
 
-The push needs the repository secret `DEPENDABOT_CHANGESET_TOKEN`: a fine-grained personal access token with **Contents: read and write** on this repository only. A commit made with the default `GITHUB_TOKEN` would not start CI, leaving the required checks pending. Without the secret the workflow logs a warning and adds nothing, and the Changeset check fails as before.
+The push uses the `DEPENDABOT_CHANGESET_TOKEN` secret that [Dependabot changeset token](#dependabot-changeset-token) sets up, so that the commit starts CI.
 
 Once the workflow has committed to a PR, Dependabot stops rebasing it on its own. Comment `@dependabot rebase` to refresh it; the rebase drops the changeset commit and the workflow adds it again.
 
@@ -1149,7 +1149,7 @@ Consumers install the Agent Skill as [Get started](README.md#get-started) shows.
 
 - npm account **`bwilliamson`** with access to publish `@bwilliamson/*`
 - **2FA enabled** on npm (auth-and-writes)
-- Repository secret **`RELEASE_GITHUB_TOKEN`**, set up as described below
+- Repository secret **`RELEASE_GITHUB_TOKEN`**, as [Release token](#release-token) describes
 - `pnpm install` at repo root
 
 Security reporting and bad-release handling: [SECURITY.md](SECURITY.md) and [Security-incident triage](#security-incident-triage).
@@ -1168,14 +1168,32 @@ First npm publish must happen from your machine with `npm login` before Trusted 
 
 Also enable **Settings → Actions → General → Workflow permissions → Allow GitHub Actions to create and approve pull requests**. The [sync workflow](#release-schedule-release-pr-from-develop-to-main) needs it. When merging `main` back into `develop` conflicts, that workflow opens a pull request from `main` to `develop` with its own `GITHUB_TOKEN`.
 
-#### `RELEASE_GITHUB_TOKEN`
+### Tokens
+
+The release job and the Dependabot changeset workflow each push with a fine-grained personal access token instead of the default `GITHUB_TOKEN`. Each token needs access to this repository only.
+
+#### Release token
+
+The release job pushes the release commit and tags and creates GitHub Releases with `RELEASE_GITHUB_TOKEN`.
 
 1. Create a **fine-grained** PAT as the maintainer (avoid classic `repo` unless necessary).
 2. Repository access: this repo only. Give it **Contents** read/write (commits, tags, releases). Every fine-grained token also includes read-only **Metadata** access.
 3. Store as repository secret **`RELEASE_GITHUB_TOKEN`**.
-4. Rotate when maintainers change or on a schedule.
 
 Without it, the Release job fails before versioning (hard requirement).
+
+#### Dependabot changeset token
+
+The [Dependabot changeset workflow](#dependabot) pushes its changeset commit to the pull request with `DEPENDABOT_CHANGESET_TOKEN`. A commit made with the default `GITHUB_TOKEN` would not start CI, and the required checks would stay pending.
+
+1. Create a **fine-grained** PAT with **Contents: read and write** on this repository only.
+2. Store it as the repository secret **`DEPENDABOT_CHANGESET_TOKEN`**.
+
+Without the secret, the workflow logs a warning and doesn't add a changeset. On a pull request that changes a package's runtime dependencies, the Changeset check then fails.
+
+#### Rotation
+
+Rotation is advisory, because no workflow or check reads the tokens' expiry dates. A maintainer rotates each token before the expiry date set on it, and when the maintainer who created it leaves. The new expiry date in the token's settings is the record that a rotation happened. An expired token fails its run visibly: the Release job stops at its first call that uses the release token, and the Dependabot changeset run stops at its first API call.
 
 ### Dry run and manual fallback
 
