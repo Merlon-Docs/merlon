@@ -7,7 +7,7 @@
 ## Set up and find your way
 
 - [Local setup](./local-setup.md)
-- [Cursor Cloud environment](./cursor-cloud-environment.md)
+- [Cursor Cloud environment](./cloud-agent-environments.md)
 - [Repository layout](./repository-layout.md)
 - [Packages and tests](./packages-and-tests.md)
 

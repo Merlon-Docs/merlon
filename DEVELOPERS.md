@@ -154,7 +154,7 @@ The land gate's test step is the full `pnpm test`, so it also runs the site's te
 
 <!-- mdcp-shard: end docs/developer/local-setup.md -->
 
-<!-- mdcp-shard: start docs/developer/cursor-cloud-environment.md -->
+<!-- mdcp-shard: start docs/developer/cloud-agent-environments.md -->
 
 ## Cursor Cloud environment
 
@@ -192,7 +192,7 @@ These are cloud-agent constraints discovered in practice. Plan work around them 
 
 Because the agent cannot open GitHub issues, capture work items as ready-to-paste issue text (title, body with acceptance criteria, labels, and project fields per [Agent work-item tracking](#agent-work-item-tracking)) in the commit message of the change that delivers the work. A maintainer creates the issue and links it with `Closes #N`.
 
-<!-- mdcp-shard: end docs/developer/cursor-cloud-environment.md -->
+<!-- mdcp-shard: end docs/developer/cloud-agent-environments.md -->
 
 <!-- mdcp-shard: start docs/developer/repository-layout.md -->
 
