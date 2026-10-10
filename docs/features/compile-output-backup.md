@@ -49,7 +49,7 @@ docs/_build/                       ← outputDir
 
 The backup of a publish output outside the docs root climbs out of the backup root, one directory for each `../` at the start of its key. With the default `backup.dir`, a key with one `../` puts the backup under `.caches/`, beside `backups/`. With a one-level `backup.dir` such as `archive`, that backup lands under `outputDir`, at `docs/_build/packages/mdcp-cli/README.md`, and a key with two `../` segments puts it outside `outputDir`, in the docs root.
 
-Delete `_build/` to clean generated output and the backups under it. Root `.gitignore` includes `.caches/` for legacy layouts where `outputDir` is `.`.
+Delete `_build/` to clean generated output and the backups under it. When `outputDir` is `.`, list `.caches/` in `.gitignore`, because the cache tree then sits in the docs root itself.
 
 ## Config
 

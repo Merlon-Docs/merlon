@@ -62,8 +62,6 @@ Two more cases are not authorial at all, and they are declared in config rather 
 
 They match differently because they claim different things. Nothing under a generated prefix exists until something builds it, so the prefix covers the whole tree. A vocabulary entry is one name the document uses without instantiating, so matching stops at that name: `docs/client/` is declared, and `docs/client/onboarding.md` is still an unresolved path. Neither matches a sibling that merely shares a prefix. <!-- mdcp-paths: illustrative -->
 
-This repository uses `vocabulary` for `docs/client/` and `docs/extensions/`, two directories the protocol defines that mdcp itself does not instantiate. They name directories in a consumer's tree, so this repository files them as vocabulary.
-
 ## Path resolution config
 
 ```json
