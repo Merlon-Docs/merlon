@@ -735,7 +735,7 @@ Each of these matches the `[label](target)` form with negated character classes.
 
 Zero-friction MDCP delivery for AI agents uses one portable Agent Skill. Upstream source of truth is [`skills/mdcp/SKILL.md`](skills/mdcp/SKILL.md). In **this** monorepo, agents load it from `.agents/skills/mdcp/`, a vendor-managed local install. A consumer's `npx skills add` picks an agent-specific directory instead ([Agent Skill](docs/features/agent-skill.md)). Task workflows (bootstrap, doc-only, design-architecture, feature-level, UX, doc review) live inside that skill under `skills/mdcp/references/workflows/`, so consumers install one skill. Archetype skills under `skills/mdcp-arch-*` are internal. [Publishing the skill pack](#publishing-the-skill-pack) says which skills are released.
 
-### Local dogfood
+### Vendor-managed installs
 
 Author under `skills/`. Then refresh vendor-managed installs for agents:
 
@@ -755,11 +755,11 @@ Cloud agent sessions install the skill on their own. The Claude Code session-sta
 Copies under `.agents/skills/` are **vendor-managed** installs (local dogfood /
 agent load path). They are **not** the source of truth.
 
-| Do                                                               | Do **not**                                                        |
-| ---------------------------------------------------------------- | ----------------------------------------------------------------- |
-| Edit publishable packs under `skills/<name>/`                    | Hand-edit `.agents/skills/<name>/` to “fix” or tweak guidance     |
-| Run `pnpm skill:update` after skill edits so agents pick them up | Commit one-off edits that only exist under `.agents/`             |
-| Land lasting skill changes in `skills/`                          | Treat `.agents/skills/mdcp*` as durable docs or authoring surface |
+| Do                                                                     | Do **not**                                                        |
+| ---------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Edit publishable packs under `skills/<name>/`                          | Hand-edit `.agents/skills/<name>/` to “fix” or tweak guidance     |
+| Refresh installs ([Vendor-managed installs](#vendor-managed-installs)) | Commit one-off edits that only exist under `.agents/`             |
+| Land lasting skill changes in `skills/`                                | Treat `.agents/skills/mdcp*` as durable docs or authoring surface |
 
 The skill and archetype dogfood trees (`.agents/skills/mdcp/`,
 `.agents/skills/mdcp-arch-*`) are gitignored, and so are eval workspaces under
@@ -772,7 +772,7 @@ When changing skill instructions:
 1. Edit `skills/mdcp/SKILL.md` (and `references/` as needed) — keep the activation body under 500 lines; put depth in `references/`. A new kind of task gets a workflow file under `skills/mdcp/references/workflows/` and a row in the skill's workflow table, not a new skill.
 2. Do **not** invent new protocol in the skill — CLI and schemas stay in packages.
 3. Put archetype guidance in `skills/mdcp-arch-*` instead of growing the parent skill.
-4. Run `pnpm skill:update` after skill edits so local agents pick up changes, then `pnpm skill:validate` and `pnpm docs:check`.
+4. Refresh installs ([Vendor-managed installs](#vendor-managed-installs)), then run `pnpm skill:validate` and `pnpm docs:check`.
 5. Add a changeset for the skill ([When to add a changeset](#when-to-add-a-changeset)).
 
 ### Verification
