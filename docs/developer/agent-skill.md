@@ -79,8 +79,7 @@ for humans browsing the catalog. Upstream reference:
 | Match skill names/slugs from `skills/*/SKILL.md` `name:`                      | Act as a publish/submit registry                     |
 
 Invalid or missing JSON falls back to the default installs-sorted list. Skills.sh
-picks up edits after the repo is seen again by install telemetry; pages are
-cached, so updates can lag.
+caches its pages, which can delay an edit.
 
 ### How it fits this repo
 

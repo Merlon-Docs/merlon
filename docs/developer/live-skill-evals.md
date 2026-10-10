@@ -13,12 +13,9 @@ Developer Guide. Product Agent Skill delivery stays in
 
 - **Never a CI gate.** Do not require Claude CLI, skill-creator, or live agent
   runs in GitHub Actions.
-- **Not skills-ref validation.** `pnpm skill:validate`
-  ([skills-ref](https://agentskills.io/specification)) checks skill packages on
-  disk; it does not spawn agents.
-
-Contrast: `pnpm skill:validate` remains the CI/static skill gate. See
-[Agent Skill development](./agent-skill.md).
+- **Not skills-ref validation.** [`pnpm skill:validate`](./agent-skill.md#verification)
+  checks skill packages on disk with
+  [skills-ref](https://agentskills.io/specification) and doesn't spawn agents.
 
 ## Tooling
 
