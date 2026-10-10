@@ -628,16 +628,12 @@ Write each [cross-link](#cross-link) in the form that [No placeholder links](doc
 
 ### Tables
 
-A table's cells can contain links, in a list item or a blockquote too. Prettier aligns each GFM table in a shard, and compile can rewrite a link to a target of another length. Compile then re-aligns the table as Prettier prints it with this repo's `proseWrap` setting, `preserve`. The compiled table passes markdownlint's MD060 rule. [Tables after link rewriting](./packages/mdcp-core/README.md#tables-after-link-rewriting) says which tables compile re-aligns.
+Prettier aligns each GFM table in a shard with the root `.prettierrc.json`, which sets `proseWrap` to `preserve`. Compile re-aligns a table the same way after it rewrites a link in the table, and [Tables after link rewriting](./packages/mdcp-core/README.md#tables-after-link-rewriting) says which tables it leaves out of line. In a shard's tables:
 
-Compile leaves a table out of line, or MD060 flags it, in these cases:
+- When a link changes width in a table whose cells all fill their columns, compile leaves the table as written, and `pnpm format:check` fails on it in a committed output such as `README.md`. Shorten the text of one cell so Prettier pads it. `pnpm format:check` skips `docs/_build/`, which `.gitignore` lists.
+- Keep explicit `{#id}` anchors out of table cells, and keep link syntax to a repository file out of code spans in table cells.
 
-- Each cell of the table fills its column in the shard. Compile treats a table as compact unless some cell pads its text with more than one space, and it leaves a compact table as written when a link in it changes width. Shorten the text of one cell so Prettier pads it. `pnpm format:check` runs Prettier on the compiled outputs that the repo commits, such as `README.md`, and fails on such a table there. It skips `docs/_build/`, which `.gitignore` lists.
-- A cell contains an explicit `{#id}` anchor. Compile strips the anchor and doesn't re-align the table. Keep these anchors out of table cells.
-- A cell shows the link syntax of an [insert](./packages/mdcp-core/README.md#inlineinserts) in a code span. `inlineInserts` rewrites that link as it does outside code, and compile doesn't re-align the table after that change. Keep such examples out of table cells.
-- A cell without a link contains text that Prettier and markdownlint measure differently, such as Hindi or pointed Hebrew. MD060 flags the table in the shard, and it flags the compiled table too, whether or not compile re-aligns it.
-
-Give the first link to an [insert](./packages/mdcp-core/README.md#inlineinserts) in a guide a paragraph of its own, ahead of any table cell that links to the insert. Compile replaces that link with the insert's heading and body, which breaks a sentence or a table around it. See [inlineInserts first inline](./packages/mdcp-core/README.md#inlineinserts-first-inline).
+Give the first link to an insert in a guide a paragraph of its own, ahead of any table cell that links to the insert, as [inlineInserts first inline](./packages/mdcp-core/README.md#inlineinserts-first-inline) says.
 
 ### Formatting and linting
 
