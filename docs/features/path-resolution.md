@@ -6,7 +6,7 @@ Specification for resolving backtick-quoted repository paths in documentation pr
 
 A shard that names `packages/mdcp-core/src/links/validate.ts` in prose makes a claim a machine can check: that file is in the repository. When the code moves and the prose survives, the claim goes stale and no structural check notices, because a backtick path is not a link. This is the gap that lets a document describe a component that has been removed while [`mdcp check`](../client-cli/commands-reference.md) still passes.
 
-The probe resolves every path claim in shards and [standalone guides](../glossary/standalone-guide.md) and fails on the ones that resolve nowhere.
+The probe resolves the path claims in the shards under the guide directories in `compileOrder` and in the [standalone guides](../glossary/standalone-guide.md), and fails on the ones that resolve nowhere. A shard that only `compile.scopeRoot` reaches, such as a shared glossary, isn't probed.
 
 It cannot tell a path that went stale from one that was always illustrative, because the two are textually identical. So the discriminator is authorial: the document says which of its paths describe this repository. That is the whole design, and it is why the probe is opt-in.
 
@@ -96,11 +96,11 @@ This repository uses `vocabulary` for `docs/client/` and `docs/extensions/`, two
 path: docs/features/overview.md:206: unresolved path "packages/mdcp-core/src/session/store.ts"
 ```
 
-Source shards and standalone guides are scanned; compiled output is not, since it is generated from them and would double-report every claim at a line nobody should edit.
+The shards under the guide directories and the standalone guides are scanned. A shard under `compile.scopeRoot` outside every guide directory isn't. Compiled output isn't scanned either, since it is generated from the shards and would double-report every claim at a line nobody should edit.
 
 ## Path resolution acceptance criteria
 
-- A claim with a directory segment that resolves against no root fails `mdcp check` at `path:line`
+- A claim with a directory segment that resolves against no root fails `mdcp check` at `path:line`, in a shard under a guide directory or in a standalone guide
 - A bare name (`index.md`), a single segment (`src/`), a command, a glob, a flag, an npm scope and a code identifier are not claims
 - A claim inside a fenced code block is not reported
 - A claim resolves against the file's own directory, the scan root, the docs root, a guide `scopeRoot`, or a `lint.paths.searchRoots` entry
