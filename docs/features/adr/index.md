@@ -2,7 +2,7 @@
 
 Durable product scope decisions for this repository. **Feature**, **client**, and **developer** shards describe the product as it works now. Removed or rejected surfaces are recorded here (rationale) and in package **CHANGELOGs** (consumer migration), not in the [Feature catalog](../feature-catalog.md). Never link ADRs to pending `.changeset/*.md` files — those notes are temporary and disappear when versioned.
 
-Delivery backlog and roadmap tracks stay in GitHub issues / the project board — see [Agent work-item tracking](../../developer/agent-work-item-tracking.md).
+Delivery backlog and roadmap work items stay in the issue tracker. A record keeps the wording it had when written, and [Agent work-item tracking](../../developer/agent-work-item-tracking.md) gives the current branch and work-item rules.
 
 ## Records
 

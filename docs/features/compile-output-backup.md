@@ -93,4 +93,3 @@ Commands affected: `compile`, `refs gen`, `lint`, `links`, `check`.
 
 - [Config essentials — path layout](../client-cli/config-essentials.md#path-layout)
 - [API — Compile](../client-core/api-compile.md)
-- GitHub issue [#20](https://github.com/betsalel-williamson/mdcp/issues/20)
