@@ -4,7 +4,7 @@ The public docs site at <https://betsalel-williamson.github.io/mdcp/> is an [Ast
 
 ## Content comes from shards
 
-Only the landing page (`packages/mdcp-site/src/content/docs/index.mdx`) is hand-authored. The other pages are generated at build time by [`packages/mdcp-site/scripts/sync-content.mjs`](../../packages/mdcp-site/scripts/sync-content.mjs) from these guides:
+The landing page (`packages/mdcp-site/src/content/docs/index.mdx`) and the Learn page (`packages/mdcp-site/src/content/docs/learn.mdx`) are hand-authored. The other pages are generated at build time by [`packages/mdcp-site/scripts/sync-content.mjs`](../../packages/mdcp-site/scripts/sync-content.mjs) from these guides:
 
 | Shards              | Site section        | Route            |
 | ------------------- | ------------------- | ---------------- |
@@ -35,14 +35,16 @@ The sync fails on any internal link it cannot resolve, and the build then checks
 ```bash
 pnpm site:dev     # build packages, compile docs, sync, then astro dev
 pnpm site:build   # same steps, then astro build and the dist link check
+pnpm site:a11y    # axe-core WCAG 2.2 A and AA checks on the built site
+pnpm --filter @bwilliamson/mdcp-site test   # unit tests of the site scripts
 ```
 
-Both commands run `pnpm build` and `pnpm docs:compile:repo` first, because the sync needs the CLI build and the refs registry.
+The first two commands run `pnpm build` and `pnpm docs:compile:repo` first, because the sync needs the CLI build and the refs registry. `pnpm site:a11y` checks the `dist/` that `pnpm site:build` wrote. It opens a sample of pages in a local Chrome, in both themes at desktop and phone widths, and fails on any violation. Set `CHROME_PATH` to use another Chrome or Chromium binary.
 
 ## Deployment
 
-[`.github/workflows/pages.yml`](../../.github/workflows/pages.yml) builds the site on pull requests that touch `docs/` or the site package, and deploys it to GitHub Pages from `develop`. Landings push `develop` with the workflow's own token, and a push with that token doesn't start other workflows. The [land workflow](../../.github/workflows/land-develop.yml) dispatches the deploy after each landing instead. [Repository settings](./repository-settings.md) lists the Pages source and the `github-pages` environment that the deploy needs.
+[`.github/workflows/pages.yml`](../../.github/workflows/pages.yml) builds the site on pull requests that touch `docs/`, the site package, the core or CLI sources, the root manifests or the workflow itself. It runs the site tests, `pnpm site:build` and the accessibility check, and deploys the result to GitHub Pages from `develop`. Landings push `develop` with the workflow's own token, and a push with that token doesn't start other workflows. The [land workflow](../../.github/workflows/land-develop.yml) dispatches the deploy after each landing instead. [Repository settings](./repository-settings.md) lists the Pages source and the `github-pages` environment that the deploy needs.
 
 ## Coverage scan
 
-The site generates its pages into gitignored paths, and the [coverage](../glossary/coverage.md) scan honors `.gitignore`, so generated pages never show up as uncaptured files. The scan only reads `.md` files, so the hand-authored `index.mdx` landing page is outside `mdcp check`; the post-build link check covers its links instead. No `scan.ignore` entry is needed.
+The site generates its pages into gitignored paths, and the [coverage](../glossary/coverage.md) scan honors `.gitignore`, so generated pages never show up as uncaptured files. The scan only reads `.md` files, so the hand-authored `index.mdx` and `learn.mdx` pages are outside `mdcp check`. The post-build link check covers their links instead. No `scan.ignore` entry is needed.
