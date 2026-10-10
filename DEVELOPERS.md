@@ -474,11 +474,11 @@ Issue templates live under `.github/ISSUE_TEMPLATE/` (bug report, feedback, adop
 
 #### Other labels (apply on intake)
 
-| Kind      | Labels                                                           | Rule                                      |
-| --------- | ---------------------------------------------------------------- | ----------------------------------------- |
-| Type      | `bug`, `enhancement`, `documentation`, `feedback`, `epic`        | At least one type that matches the issue  |
-| Component | `cli`, `compile`, `refs`, `sections`, `hooks`, `presets`, `lint` | When the work touches only that component |
-| Domain    | `protocol`                                                       | Spec / positioning / formalization work   |
+| Kind      | Labels                                                                      | Rule                                      |
+| --------- | --------------------------------------------------------------------------- | ----------------------------------------- |
+| Type      | `bug`, `enhancement`, `documentation`, `feedback`, `epic`, `adoption-story` | At least one type that matches the issue  |
+| Component | `cli`, `compile`, `refs`, `sections`, `hooks`, `presets`, `lint`            | When the work touches only that component |
+| Domain    | `protocol`                                                                  | Spec / positioning / formalization work   |
 
 ### New issue intake (required)
 
