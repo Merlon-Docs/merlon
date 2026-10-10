@@ -55,6 +55,12 @@ Local runs print a text summary and write HTML/lcov under each package’s `cove
 
 JSONC markdownlint configs plus the shippable `MDCP` Vale style (`vale/MDCP/`). Dogfood-only styles live under [`docs/vale-local/`](../vale-local/README.md). Edit preset files directly — no TypeScript build.
 
+## Repository script tests
+
+Most `*.test.mjs` files under `scripts/` test the script beside them, and `pnpm test` runs them all after the package tests, as [Daily commands](./local-setup.md#daily-commands) lists. `scripts/vale-mdcp-style.test.mjs` has no script beside it: it runs the `MDCP` Vale style of `mdcp-presets` on fixtures. The site's script tests run with the package tests, and [Build and preview](./docs-site.md#build-and-preview) gives the command that runs them alone.
+
+A test that runs git in a throwaway repository removes every `GIT_*` variable from `process.env` first, as `scripts/lib/consumed-changesets.test.mjs` does. A git hook exports `GIT_INDEX_FILE`, and other git-driven runs can export more `GIT_*` variables; while one is set, git in the throwaway repository reads the checkout that runs the tests.
+
 ## Before you push
 
 1. `pnpm run build && pnpm test`
