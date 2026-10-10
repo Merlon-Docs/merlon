@@ -171,7 +171,7 @@ A result's `knownSlugs` lists the slugs a `#fragment` in `text` may name besides
 
 When top-level `outputFile` is set, `compileGuides` returns the monolith text, which leaves out guides with `compile.outputFile`. Otherwise it returns every compiled guide joined in the order of `compileOrder`. `compileGuidesFromResults` does the same from results, and it stitches the monolith from each result's `monolithText`. `writeCompiledGuides` writes each compiled guide to its output path. It also writes the monolith when you pass its path and at least one guide has no `compile.outputFile`.
 
-`writeOutputFile` writes compile targets. Default: overwrite. When `backup.enabled` is true, moves an existing file to `{outputDir}/{backupDir}/{docsRoot-relative-key}{ext}` before writing. Pass `backup` on `CompileOptions` or resolve via `resolveBackupOptions(config, cliOverrides)`.
+`writeOutputFile` writes compile targets. Default: overwrite. When `backup.enabled` is true, it moves an existing file to the path that [Backup path layout](../../docs/features/compile-output-backup.md#backup-path-layout) gives before writing. Pass `backup` on `CompileOptions` or resolve via `resolveBackupOptions(config, cliOverrides)`.
 
 When `compile.title` is set, `assembleGuide` injects a `##` heading followed by a blank line before the first section. See [API — Config](#api--config) for per-guide compile fields and top-level `backup` config.
 

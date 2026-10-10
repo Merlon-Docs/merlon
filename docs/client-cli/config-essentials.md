@@ -102,7 +102,7 @@ docs/                          ← --docs-root
 | `refs.registryFile`   | `outputDir`   | `docs/_build/.caches/refs.json`     |
 | `compile.outputFile`  | `outputDir`   | `../../DEVELOPERS.md` from `_build` |
 
-Delete `_build/` to clean all generated output. `.caches/` holds derived state (refs registry) and, when `--backup` is used, prior compile output under `backups/`. See [Compile output backup](../features/compile-output-backup.md).
+Delete `_build/` to clean all generated output. `.caches/` holds derived state (refs registry) and, when `--backup` is used, prior compile output at the paths [Backup path layout](../features/compile-output-backup.md#backup-path-layout) gives.
 
 ### Default per-guide outputs
 
