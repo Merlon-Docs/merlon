@@ -30,11 +30,19 @@ mdcp/
 │   └── .vale.ini           # Peer Vale config
 ├── examples/sample-guides/ # Minimal consumer fixture for tests and tutorials
 ├── legacy/                 # Original bash/Python reference implementation
+├── scripts/                # Node and shell code behind the pnpm scripts and hooks, with their *.test.mjs tests
+├── formal/alloy/           # Alloy models of the branch and release guards (pnpm formal:check)
+├── infra/github/           # Terraform for the repository settings
+├── .husky/                 # Git hooks (pre-commit, commit-msg)
+├── .claude/hooks/          # Claude Code session-start hook
+├── .cursor/                # Cursor cloud agent environment
 ├── .changeset/             # Changesets for semver releases
 └── .github/workflows/      # CI and release automation
 ```
 
 [Guide directories](./docs-dogfooding.md#guide-directories) maps each guide directory under `docs/` to its compiled output.
+
+[Formal models](./formal-models.md) covers `formal/`, and [Repository settings](./repository-settings.md#terraform) covers the Terraform in `infra/github/`. [Git hooks](./local-setup.md#git-hooks) lists the hooks under `.husky/`, and [Cloud agent environments](./cloud-agent-environments.md) covers `.claude/` and `.cursor/`. [Repository script tests](./packages-and-tests.md#repository-script-tests) covers the tests under `scripts/`.
 
 ## Published packages
 
