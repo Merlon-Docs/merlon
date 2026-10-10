@@ -5,3 +5,5 @@
 [Vision and roadmap](../features/protocol/00-vision-and-roadmap.md) says what MDCP does about documentation debt and which teams it serves.
 
 The CLI compiles and checks the shards and maintains the [refs](./refs.md) registry. It works alongside the skill’s behavioral guardrails.
+
+Lowercase `mdcp` names the toolchain (the CLI command and the `@bwilliamson/mdcp-*` packages) and the Agent Skill.

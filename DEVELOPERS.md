@@ -1427,6 +1427,8 @@ Install and validation: [Agent Skill](docs/features/agent-skill.md).
 
 The CLI compiles and checks the shards and maintains the [refs](#refs) registry. It works alongside the skill’s behavioral guardrails.
 
+Lowercase `mdcp` names the toolchain (the CLI command and the `@bwilliamson/mdcp-*` packages) and the Agent Skill.
+
 <!-- mdcp-shard: end docs/glossary/mdcp.md -->
 
 <!-- mdcp-shard: start docs/glossary/atomic-commit-groups.md -->
