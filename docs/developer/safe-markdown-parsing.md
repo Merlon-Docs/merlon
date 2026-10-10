@@ -12,7 +12,7 @@ Everyday docs rarely hit the pathological case, but open alerts block a clean se
 
 The helpers in `packages/mdcp-core/src/markdown/` run in linear time. They cover these jobs:
 
-- parsing each heading line with `parseHeading` (ATX kind today; see [GFM scope](../features/design-constraints/gfm-scope.md#headings)) and writing it back as ATX with `formatHeadingAsAtx`
+- parsing each heading line with `parseHeading`, which reads ATX headings ([GFM scope](../features/design-constraints/gfm-scope.md#headings)), and writing it back as ATX with `formatHeadingAsAtx`
 - stripping leftover Pandoc IDs (`{#…}`) when cleaning compiled output, as defensive cleanup (the Vale style `MDCP-PandocId` reports an error on a heading that has one)
 - producing plain heading text for language-agnostic [heading slug](../glossary/heading-slug.md) generation
 - tracking fenced code blocks line by line, masking non-prose regions and counting words for prose checks

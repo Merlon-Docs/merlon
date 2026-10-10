@@ -284,7 +284,7 @@ Library source: [`packages/mdcp-core/src/`](packages/mdcp-core/src).
 
 `mdcp check` runs every area in the table except shard split and sprawl review. The `lint`, `links`, `refs-gen` and `refs-check` commands also compile before they run, so they use the compile rows too. Start with `assemble.ts` and `cli.ts` if you are tracing a compile from config to disk. The `compile` command in `cli.ts` calls the CLI's `compile-workspace.ts`, which calls `assemble.ts`.
 
-Shared heading/link helpers live under `src/markdown/` and `src/refs/` (`parseHeading` with ATX kind today, plain-text cleanup, GitHub-style **slugify**). They stay **language-agnostic**. Heading recognition is an ATX subset of GFM — see [GFM scope](docs/features/design-constraints/gfm-scope.md#headings). Compile-time wording lives under `src/locale/` (one BCP 47 JSON file per locale). Peer Vale owns prose cues and Pandoc ID authoring opinion — see [Locale and language boundary](docs/features/design-constraints/locale-and-language.md).
+The shared heading and link helpers in `src/markdown/` and `src/refs/` are **language-agnostic**. They include `parseHeading`, which reads ATX headings as [GFM scope](docs/features/design-constraints/gfm-scope.md#headings) defines them, and a GitHub-style **slugify** on plain heading text. Compile-time wording is in `src/locale/locales/`, one BCP 47 JSON file per locale. Peer Vale checks prose cues and Pandoc IDs, as [Locale and language boundary](docs/features/design-constraints/locale-and-language.md) describes.
 
 ```bash
 pnpm --filter @bwilliamson/mdcp-core test
@@ -681,7 +681,7 @@ Everyday docs rarely hit the pathological case, but open alerts block a clean se
 
 The helpers in `packages/mdcp-core/src/markdown/` run in linear time. They cover these jobs:
 
-- parsing each heading line with `parseHeading` (ATX kind today; see [GFM scope](docs/features/design-constraints/gfm-scope.md#headings)) and writing it back as ATX with `formatHeadingAsAtx`
+- parsing each heading line with `parseHeading`, which reads ATX headings ([GFM scope](docs/features/design-constraints/gfm-scope.md#headings)), and writing it back as ATX with `formatHeadingAsAtx`
 - stripping leftover Pandoc IDs (`{#…}`) when cleaning compiled output, as defensive cleanup (the Vale style `MDCP-PandocId` reports an error on a heading that has one)
 - producing plain heading text for language-agnostic [heading slug](#heading-slug) generation
 - tracking fenced code blocks line by line, masking non-prose regions and counting words for prose checks
@@ -1176,7 +1176,7 @@ Security reporting and bad-release handling: [SECURITY.md](SECURITY.md) and [Sec
 
 ### First-time publish (chicken-and-egg)
 
-First npm publish must happen from your machine with `npm login` before Trusted Publishing can be configured. Historical one-off steps remain in git history; routine releases use CI.
+A package's first npm publish runs from your machine with `npm login`, before Trusted Publishing can be configured for it. Routine releases run in CI.
 
 #### Trusted Publishing
 

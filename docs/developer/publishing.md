@@ -15,7 +15,7 @@ Security reporting and bad-release handling: [SECURITY.md](../../SECURITY.md) an
 
 ## First-time publish (chicken-and-egg)
 
-First npm publish must happen from your machine with `npm login` before Trusted Publishing can be configured. Historical one-off steps remain in git history; routine releases use CI.
+A package's first npm publish runs from your machine with `npm login`, before Trusted Publishing can be configured for it. Routine releases run in CI.
 
 ### Trusted Publishing
 
