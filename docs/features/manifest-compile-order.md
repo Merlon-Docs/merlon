@@ -78,7 +78,7 @@ mdcp only considers links **at or after** `## Sections`. Preamble example links 
 | `shards.md` lists cross-tree shards only (compiled review guides)                                                                | Usually omit                 |
 | Preamble has inline `.md` links that are examples or cross-references, plus a separate ordered section list under a `##` heading | **Set** to that heading text |
 
-The heading match is exact: `sectionsHeading` `"Sections"` matches a line that starts with `##` followed by `Sections`, not `## Section list`.
+`sectionsHeading` matches a `##` line whose text equals it, ignoring case: `"Sections"` matches `## Sections` and `## SECTIONS`, not `## Section list`. When no `##` line matches, compile reads every link in the manifest, as it does without `sectionsHeading`.
 
 ## Linked shards and the file-name fallback
 

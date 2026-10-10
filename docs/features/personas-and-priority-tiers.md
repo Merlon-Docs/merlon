@@ -56,7 +56,7 @@ The evidence behind the vision link and the Champion eval path is in [Field repo
 | ---------------------- | ------------------------------- | ---------------------------------------------- |
 | **LLM doc author**     | Edit shards, insert cross-links | `shard`, `compile`, `check` (broken `#` links) |
 | **LLM feature agent**  | Read doc context while coding   | Host search → one shard read                   |
-| **Human doc reviewer** | PR quality gate                 | `check`, `prose`, `lint`, `links`              |
+| **Human doc reviewer** | PR quality gate                 | `check`, `review`, `prose`, `lint`, `links`    |
 | **End-user reader**    | Read glossary, guides, reviews  | `compile` output                               |
 
 ## Priority tiers

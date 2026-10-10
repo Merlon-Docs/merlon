@@ -94,13 +94,13 @@ The orphan check stays a hard error because a shard in a guide directory is clea
 }
 ```
 
-| Knob               | Default                                    | Role                                                              |
-| ------------------ | ------------------------------------------ | ----------------------------------------------------------------- |
-| `standaloneGuides` | `[]`                                       | Files or globs registered as standalone (captured)                |
-| `scan.gitignore`   | `true`                                     | Honor repo-root `.gitignore` inside git; scan-root only otherwise |
-| `scan.ignore`      | built-in `.git`, `node_modules`, `.agents` | Extra directories or globs to skip                                |
-| `scan.root`        | invocation directory                       | Root the scan walks for markdown files                            |
-| `scan.strict`      | `false`                                    | Fail `mdcp check` on coverage gaps                                |
+| Knob               | Default              | Role                                                              |
+| ------------------ | -------------------- | ----------------------------------------------------------------- |
+| `standaloneGuides` | `[]`                 | Files or globs registered as standalone (captured)                |
+| `scan.gitignore`   | `true`               | Honor repo-root `.gitignore` inside git; scan-root only otherwise |
+| `scan.ignore`      | `[]`                 | Extra directories or globs to skip, added to the built-in skips   |
+| `scan.root`        | invocation directory | Root the scan walks for markdown files                            |
+| `scan.strict`      | `false`              | Fail `mdcp check` on coverage gaps                                |
 
 ## Coverage scan acceptance criteria
 
