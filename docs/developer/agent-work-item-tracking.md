@@ -4,8 +4,6 @@ How coding agents load tracker issues and delivery conventions **for this reposi
 
 **This repo’s work-item lookup system uses GitHub** for both **issues** (acceptance, discussion, `Closes #N`) and **project planning** (the Project board below). Do not invent a second tracker or stuff tickets / sprint backlogs into durable `docs/` shards. Load scope from GitHub via this shard.
 
-Configure an equivalent shard in consumer repos during [local setup](./local-setup.md) (point `WORK_ITEM_LOOKUP` at whatever issue tracker and project-planning host that repo uses).
-
 ## Tracker
 
 ```text

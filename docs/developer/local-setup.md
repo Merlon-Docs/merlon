@@ -17,9 +17,9 @@ pnpm vale:sync            # requires Vale on PATH; syncs styles for docs/ and ex
 
 `dist/` is gitignored, and `pnpm install` doesn't build it. Run `pnpm build` after a fresh checkout, and again after you edit `packages/*/src`, before any docs script or `mdcp` CLI command. `pnpm vale:sync` downloads the styles, so it needs the network. Run it again when a `.vale.ini` changes.
 
-## Work-item tracking setup step
+## Work-item tracking
 
-If you use coding agents with the MDCP skill ([skills index](../../docs/skills.md)), document how to load tracker issues **once per repo**. This project maintains that in [Agent work-item tracking](./agent-work-item-tracking.md) — add it to your setup checklist alongside install and build steps. Consumer repos should add a similar shard under `docs/developer/` and link it from local setup.
+Agents load tracker issues and delivery conventions from [Agent work-item tracking](./agent-work-item-tracking.md).
 
 ## Daily commands
 

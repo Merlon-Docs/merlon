@@ -104,9 +104,9 @@ pnpm vale:sync            # requires Vale on PATH; syncs styles for docs/ and ex
 
 `dist/` is gitignored, and `pnpm install` doesn't build it. Run `pnpm build` after a fresh checkout, and again after you edit `packages/*/src`, before any docs script or `mdcp` CLI command. `pnpm vale:sync` downloads the styles, so it needs the network. Run it again when a `.vale.ini` changes.
 
-### Work-item tracking setup step
+### Work-item tracking
 
-If you use coding agents with the MDCP skill ([skills index](docs/skills.md)), document how to load tracker issues **once per repo**. This project maintains that in [Agent work-item tracking](#agent-work-item-tracking) — add it to your setup checklist alongside install and build steps. Consumer repos should add a similar shard under `docs/developer/` and link it from local setup.
+Agents load tracker issues and delivery conventions from [Agent work-item tracking](#agent-work-item-tracking).
 
 ### Daily commands
 
@@ -342,8 +342,6 @@ CI and the land gate run more checks than these steps. [CI and the land gate](#c
 How coding agents load tracker issues and delivery conventions **for this repository**. The work-item workflows of the [MDCP skill](docs/skills.md) (installed alongside the MDCP CLI) point here via `WORK_ITEM_LOOKUP`.
 
 **This repo’s work-item lookup system uses GitHub** for both **issues** (acceptance, discussion, `Closes #N`) and **project planning** (the Project board below). Do not invent a second tracker or stuff tickets / sprint backlogs into durable `docs/` shards. Load scope from GitHub via this shard.
-
-Configure an equivalent shard in consumer repos during [local setup](#local-setup) (point `WORK_ITEM_LOOKUP` at whatever issue tracker and project-planning host that repo uses).
 
 ### Tracker
 
