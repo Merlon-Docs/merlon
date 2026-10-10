@@ -41,7 +41,7 @@ Above plus the four-tier guide layout (`features` / `client` / `developer` / `gl
 
 1. Activate the parent Agent Skill (`/mdcp`) when available
 2. Invoke `/mdcp` with the task; the skill picks a workflow and runs intake for `WORK_ITEM` — see [Skill workflows](./skill-workflows.md)
-3. Discover the shard with host tools (`rg`, IDE search, guide `index.md`) and **read one shard**; read a compiled guide under `outputDir` only when a broader read is intentional
+3. Find the shard with host search and **read one shard**, as [refs](../../glossary/refs.md) says
 4. Rely on `mdcp check` for broken `#` cross-links (optionally inspect `mdcp refs-list`)
 
 Read [`docs/skills.md`](../../../docs/skills.md) for the skill and its workflow index.

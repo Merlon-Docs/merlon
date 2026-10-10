@@ -15,7 +15,7 @@ MDCP does not magically erase documentation debt. It helps head it off by puttin
 | High level over implementation | Shards hold plan, constraints, acceptance criteria; implementation and procedures live in code or source systems |
 | Glossary as first-class        | Domain terms and legacy disambiguation live in dedicated shards                                                  |
 | Document before build/migrate  | Capture context in shards before greenfield work or migrations                                                   |
-| Granular, safe context         | Read one shard; compiled output only when a broader read is intentional                                          |
+| Granular, safe context         | Read one shard at a time, found with host search, as [refs](../../glossary/refs.md) says                         |
 | Direct value only              | Ship capabilities that close a unique gap                                                                        |
 | Skill + open toolchain         | Delivered as an Agent Skill; CLI/`mdcp-core` implement compile and check without locking you into a host         |
 | Extensions over core           | `docs/extensions/` locally; shared packs in complementary skills                                                 |

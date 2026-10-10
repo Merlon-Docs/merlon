@@ -32,7 +32,7 @@ Compile rebases each shard's `../` links relative to the file being assembled, t
 
 ## Agent context
 
-Prefer host search then read one shard under `docs/`. Compiled guides under `docs/_build/` are available when a broader read is intentional.
+Find a shard under `docs/` with host search and read that one shard, as [refs](../glossary/refs.md) says.
 
 ## Linting docs
 
