@@ -11,7 +11,7 @@ body:
 
         Local-only packs under `docs/extensions/` need no upstream issue. Use this form when you want shared guidance or an upstream complementary skill.
 
-        Maintainers apply a matching `priority:*` label from your selection below (and usually `protocol`), then finish [new issue intake](https://github.com/betsalel-williamson/mdcp/blob/main/docs/developer/agent-work-item-tracking.md#new-issue-intake-required).
+        Maintainers apply a matching `priority:*` label from your selection below (and usually `protocol`), then finish [new issue intake](https://github.com/betsalel-williamson/mdcp/blob/main/docs/developer/issue-intake-and-labels.md#new-issue-intake-required).
 
   - type: dropdown
     id: extension-kind

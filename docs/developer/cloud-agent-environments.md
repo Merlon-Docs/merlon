@@ -32,4 +32,4 @@ These are cloud-agent constraints discovered in practice. Plan work around them 
 
 ## Recording issues without issue-creation access
 
-Because the agent cannot open GitHub issues, capture work items as ready-to-paste issue text (title, body with acceptance criteria, labels, and project fields per [Agent work-item tracking](./agent-work-item-tracking.md)) in the commit message of the change that delivers the work. A maintainer creates the issue and links it with `Closes #N`.
+Because the agent cannot open GitHub issues, capture work items as ready-to-paste issue text (title, body with acceptance criteria, labels, and project fields per [Issue intake and labels](./issue-intake-and-labels.md)) in the commit message of the change that delivers the work. A maintainer creates the issue and links it with `Closes #N`.

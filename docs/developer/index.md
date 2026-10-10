@@ -14,6 +14,7 @@
 ## Work items
 
 - [Agent work-item tracking](./agent-work-item-tracking.md)
+- [Issue intake and labels](./issue-intake-and-labels.md)
 - [Weekly issue triage](./weekly-issue-triage.md)
 
 ## Docs and skills

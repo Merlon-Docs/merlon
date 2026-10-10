@@ -9,7 +9,7 @@ body:
       value: |
         Questions and suggestions are welcome. For real-world outcomes, prefer the **Adoption story** template instead.
 
-        Maintainers apply a matching `priority:*` label from your selection below, then finish [new issue intake](https://github.com/betsalel-williamson/mdcp/blob/main/docs/developer/agent-work-item-tracking.md#new-issue-intake-required) (board, Track, Status) — see [Agent work-item tracking](https://github.com/betsalel-williamson/mdcp/blob/main/docs/developer/agent-work-item-tracking.md#issue-priority-value-add).
+        Maintainers apply a matching `priority:*` label from your selection below, then finish [new issue intake](https://github.com/betsalel-williamson/mdcp/blob/main/docs/developer/issue-intake-and-labels.md#new-issue-intake-required) (board, Track, Status) — see [Issue intake and labels](https://github.com/betsalel-williamson/mdcp/blob/main/docs/developer/issue-intake-and-labels.md#issue-priority-value-add).
 
   - type: dropdown
     id: priority
