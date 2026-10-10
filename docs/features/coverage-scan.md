@@ -22,7 +22,7 @@ A guide compiles a list of shards into one output. A [standalone guide](../gloss
 - a guide output target: a [compiled guide](../glossary/compiled-guide.md) or the [monolith](../glossary/monolith.md), or
 - a `standaloneGuides[]` entry.
 
-Manifest membership inside a guide directory is the [orphan check](./feature-catalog.md#orphan-check)'s job. So the coverage scan treats a whole guide directory as accounted for and reports none of its shards.
+Manifest membership inside a guide directory is the [orphan check](./manifest-compile-order.md#orphan-check-scope)'s job. So the coverage scan treats a whole guide directory as accounted for and reports none of its shards.
 
 The scan walks the scan root for `*.md`, removes ignored vendor paths, then subtracts the captured set. Whatever remains is **uncaptured** and reported.
 
@@ -69,7 +69,7 @@ Machine-readable inventory (captured / uncaptured / standalone / missing) is ava
 
 ## Relationship to the orphan check
 
-The coverage scan does not replace the [orphan check](./feature-catalog.md#orphan-check). They cover different mistakes:
+The coverage scan does not replace the [orphan check](./manifest-compile-order.md#orphan-check-scope). They cover different mistakes:
 
 | Check         | Scope                                                                                                  | Severity                                   |
 | ------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------ |
@@ -78,7 +78,7 @@ The coverage scan does not replace the [orphan check](./feature-catalog.md#orpha
 
 The orphan check stays a hard error because a shard in a guide directory is clearly meant to compile. The coverage scan is a warning because an uncaptured file may be intentional until registered as standalone.
 
-The orphan check reads only the top level of each guide directory in `compileOrder`. The coverage scan treats each guide directory and each `compile.scopeRoot` tree as captured. A shard in a guide subdirectory or under a scope root that nothing links, such as a term in the shared glossary, passes both checks and never compiles.
+[Orphan check scope](./manifest-compile-order.md#orphan-check-scope) says which files the orphan check reads. The coverage scan treats each guide directory and each `compile.scopeRoot` tree as captured. A shard in a guide subdirectory or under a scope root that nothing links, such as a term in the shared glossary, passes both checks and never compiles.
 
 ## Config
 

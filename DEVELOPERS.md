@@ -1640,9 +1640,7 @@ Read [Cross-guide link rewriting](./packages/mdcp-core/README.md#cross-guide-lin
 
 ## orphan
 
-An **orphan** is a top-level shard in a [guide](#guide) directory that the guide's [manifest](#manifest) does not link. [Manifest compile order](docs/features/manifest-compile-order.md) explains which manifest links count, including the `compile.sectionsHeading` rule and the [file-name fallback](docs/features/manifest-compile-order.md#linked-shards-and-the-file-name-fallback).
-
-Unlinked shards in a guide subdirectory or under a `compile.scopeRoot` are out of scope for this check. See [Relationship to the orphan check](docs/features/coverage-scan.md#relationship-to-the-orphan-check).
+An **orphan** is a top-level shard in a [guide](#guide) directory that the guide's [manifest](#manifest) does not link. [Orphan check scope](docs/features/manifest-compile-order.md#orphan-check-scope) in Manifest compile order specifies the check and which manifest links count, including the `compile.sectionsHeading` rule and the [file-name fallback](docs/features/manifest-compile-order.md#linked-shards-and-the-file-name-fallback).
 
 <!-- mdcp-shard: end docs/glossary/orphan.md -->
 

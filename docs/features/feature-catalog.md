@@ -57,7 +57,7 @@ mdcp shard   # requires config.source
 
 ## Orphan check
 
-Detect shards not in manifest or missing files.
+Report a shard that its guide's manifest doesn't link, and a manifest link to a missing file. [Orphan check scope](./manifest-compile-order.md#orphan-check-scope) in Manifest compile order specifies it.
 
 ## Peer Vale prose (not core)
 
