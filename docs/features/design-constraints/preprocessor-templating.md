@@ -20,3 +20,5 @@ Run preprocessing **before** shards are authored or committed (or regenerate sha
 **Not compile hooks:** [`guides[].compile.hooks`](../../client-core/compile-hooks/index.md) assemble [authored GFM](../../glossary/authored-gfm.md) — link rewrites, insert inlining, and similar — not a template engine.
 
 **Non-goals:** no built-in variable engine, template parser, or preprocessor hook API in MDCP core.
+
+Part of [Design constraints](./index.md).

@@ -47,3 +47,5 @@ Insert **library directory names** (`diagrams/`, `tables/`, …) and default pre
 - [Optional linters](../../client-cli/optional-linters.md) — CLI wiring and scan scope
 - [Link validation](../link-validation.md) — first-class internal target checks (not Vale)
 - Vale docs: [BasedOnStyles](https://vale.sh/docs/keys/basedonstyles), [spelling / dictionaries](https://vale.sh/docs/checks/spelling), [Hunspell](https://vale.sh/docs/guides/hunspell)
+
+Part of [Design constraints](./index.md).

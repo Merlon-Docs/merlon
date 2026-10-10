@@ -26,4 +26,4 @@ Features without a clear direct-value case go **back to the drawing board** — 
 - Public WIIFM copy (README, decks) — claim only what the capability uniquely does
 - Roadmap items that duplicate host search or generic file open
 
-Parent: [Design constraints](./index.md).
+Part of [Design constraints](./index.md).

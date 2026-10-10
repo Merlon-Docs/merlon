@@ -14,3 +14,5 @@ Vendor a fork into `packages/markdown-tree` when:
 1. mdcp moves compile onto md-tree's `assemble`, which then needs heading-transform hooks
 2. `explode` must preserve the preamble without synthetic H2 promotion
 3. Upstream is unresponsive or breaking
+
+Part of [Design constraints](./index.md).
