@@ -113,7 +113,7 @@ The orphan check stays a hard error because a shard in a guide directory is clea
 - Built-in defaults (`.git`, `node_modules`, `.agents`) are always skipped; `scan.ignore` extends them.
 - A `standaloneGuides[]` entry matching no file is reported as missing.
 - `mdcp check` prints uncaptured and missing-standalone paths; with `scan.strict: true` those gaps fail the gate.
-- The existing orphan check behavior is unchanged.
+- The coverage scan doesn't change what the orphan check reports.
 
 ## Coverage scan related
 

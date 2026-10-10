@@ -2,15 +2,9 @@
 
 Built-in compile hooks run on every guide compile **without** listing hook names in config. Authors express intent in shard markdown (evidence links, insert libraries); hook enablement is not a second manifest.
 
-## Problem
+## Default pipeline rationale
 
-Consumer configs repeat the same hook array on every guide:
-
-```json
-"hooks": ["stripAnchors", "codeEvidence", "inlineInserts"]
-```
-
-New hooks require doc churn and config edits across all guides. Most guides want the same defaults.
+Most guides want the same built-in hooks. A default pipeline keeps the hook array out of each guide's config, and a new built-in hook reaches every guide that omits `compile.hooks` without a config edit.
 
 ## Default hook pipeline
 
@@ -75,9 +69,9 @@ Set `compile.hooks` to an object. Keys with `false` disable that hook; other key
 }
 ```
 
-### Explicit override (backward compatible)
+### Explicit override
 
-Set `compile.hooks` to a string array to replace the default pipeline entirely (existing behavior):
+Set `compile.hooks` to a string array to replace the default pipeline entirely:
 
 ```json
 {
@@ -89,11 +83,10 @@ Set `compile.hooks` to a string array to replace the default pipeline entirely (
 
 ## Acceptance criteria
 
-- [x] Default hook pipeline runs without `compile.hooks` when not specified
-- [x] Documented opt-out mechanism (object form on `compile.hooks`)
-- [x] Existing explicit `compile.hooks` string arrays continue to work
-- [x] Tests for default-on behavior and selective disable
-- [x] Client docs show minimal config first, opt-out second
+- The default hook pipeline runs when `compile.hooks` is omitted.
+- The object form of `compile.hooks` turns off single hooks.
+- An explicit `compile.hooks` string array replaces the default pipeline.
+- Tests cover the default pipeline and turning off single hooks.
 
 ## Implementation
 
