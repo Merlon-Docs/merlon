@@ -1,4 +1,4 @@
-# Locale pack
+# locale pack
 
 A **locale pack** is MDCP’s compile-time bundle of natural-language data that is **not** GFM protocol shape. It covers:
 

@@ -870,7 +870,7 @@ Contrast with a [guide](#guide), whose shards compile into one output. Compile d
 
 <!-- mdcp-shard: start ../../docs/glossary/locale-pack.md -->
 
-## Locale pack
+## locale pack
 
 A **locale pack** is MDCP’s compile-time bundle of natural-language data that is **not** GFM protocol shape. It covers:
 

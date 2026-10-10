@@ -57,7 +57,7 @@ describe('design scope documentation (#26)', () => {
     expect(localeShard).not.toContain('MDCP-Xref');
     expect(localeShard).toContain('en-US');
     expect(localeShard).toContain('Hunspell');
-    expect(localeGlossary).toContain('# Locale pack');
+    expect(localeGlossary).toContain('# locale pack');
     expect(localeGlossary).toContain('compile-time');
     expect(localeGlossary).not.toContain('transitional');
     expect(glossaryIndex).toContain('./locale-pack.md');
@@ -116,7 +116,7 @@ describe('design scope documentation (#26)', () => {
     const gfm = readRepoDoc('docs/glossary/gfm.md');
     const authoredGfm = readRepoDoc('docs/glossary/authored-gfm.md');
     expect(gfm).toContain('# GFM');
-    expect(authoredGfm).toContain('# Authored GFM');
+    expect(authoredGfm).toContain('# authored GFM');
     expect(gfm).toContain('GitHub Flavored Markdown');
     expect(gfm).toContain('ATX subset');
     expect(gfmScopeShard).toContain('[GFM](../../glossary/gfm.md)');
@@ -142,7 +142,7 @@ describe('design scope documentation (#26)', () => {
     for (const outputPath of GLOSSARY_COMPILED_GUIDES) {
       const compiled = readRepoDoc(outputPath);
       expect(compiled).toContain('## GFM');
-      expect(compiled).toContain('## Authored GFM');
+      expect(compiled).toContain('## authored GFM');
       expect(compiled).toContain('## cross-link');
       expect(compiled).not.toContain('## xref');
     }

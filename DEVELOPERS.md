@@ -25,7 +25,7 @@ Which guide a shard belongs in: the placement test in [Default guide layout](doc
 
 Shared acronyms and terms for all mdcp docs. Spell out a term on first use in a shard and link the short form here. This rule is advisory, applied by authors and in review, and the glossary links in a change's diff are its evidence.
 
-**Inclusion bar (this repository):** Add entries for MDCP-specific jargon, acronyms, and overloaded words that a new contributor or the stated client persona would not reliably understand from everyday English or general software practice alone (for example protocol terms, compile/refs vocabulary, and skill-verification names). Do **not** add entries for common English, universal programming terms, or words that are unambiguous in context for that audience. When unsure, prefer a short glossary entry over leaving shorthand unexplained. See [domain glossary](#domain-glossary).
+**Inclusion bar (this repository):** add entries for MDCP-specific jargon, acronyms, and overloaded words that a new contributor or the stated client persona would not reliably understand from everyday English or general software practice alone (such as protocol terms, compile/refs vocabulary, and skill practice terms). Do **not** add entries for common English, universal programming terms, or words that are unambiguous in context for that audience. When unsure, prefer a short glossary entry over leaving shorthand unexplained. See [domain glossary](#domain-glossary).
 
 Each term is its own shard under `docs/glossary/`. [Shared glossary](./packages/mdcp-cli/README.md#shared-glossary) covers how guides pull term shards in and when to use sub-index files.
 
@@ -34,9 +34,9 @@ Each term is its own shard under `docs/glossary/`. [Shared glossary](./packages/
 - [Agent Skills (Agent Skill, skill)](#agent-skills)
 - [MDCP](#mdcp)
 
-### Skill verification
+### Skill practice
 
-- [Atomic commit groups](#atomic-commit-groups)
+- [atomic commit groups](#atomic-commit-groups)
 - [live skill eval](#live-skill-eval)
 
 ### Documentation structure
@@ -48,6 +48,7 @@ Each term is its own shard under `docs/glossary/`. [Shared glossary](./packages/
 - [standalone guide](#standalone-guide)
 - [idea mitosis](#idea-mitosis)
 - [shard single responsibility](#shard-single-responsibility)
+- [domain glossary](#domain-glossary)
 
 ### Compile outputs and links
 
@@ -69,7 +70,7 @@ Each term is its own shard under `docs/glossary/`. [Shared glossary](./packages/
 ### Format and wording
 
 - [GFM](#gfm)
-- [Authored GFM](#authored-gfm)
+- [authored GFM](#authored-gfm)
 - [locale pack](#locale-pack)
 
 ### Security
@@ -1433,7 +1434,7 @@ Lowercase `mdcp` names the toolchain (the CLI command and the `@bwilliamson/mdcp
 
 <!-- mdcp-shard: start docs/glossary/atomic-commit-groups.md -->
 
-## Atomic commit groups
+## atomic commit groups
 
 A plan section of numbered groups that splits coding or multi-concern work into commits of one concern each. After the plan is approved, the agent makes one commit per group instead of one commit for everything.
 
@@ -1656,7 +1657,7 @@ MDCP’s authored format contract is GFM, but heading recognition is an **ATX su
 
 <!-- mdcp-shard: start docs/glossary/authored-gfm.md -->
 
-## Authored GFM
+## authored GFM
 
 Shard markdown as written before compile, with no preprocessor substitution or template conditionals. Compile hooks may transform it during assembly. Read [Preprocessor / templating (out of scope)](docs/features/design-constraints/preprocessor-templating.md#preprocessor--templating-out-of-scope).
 
@@ -1664,7 +1665,7 @@ Shard markdown as written before compile, with no preprocessor substitution or t
 
 <!-- mdcp-shard: start docs/glossary/locale-pack.md -->
 
-## Locale pack
+## locale pack
 
 A **locale pack** is MDCP’s compile-time bundle of natural-language data that is **not** GFM protocol shape. It covers:
 

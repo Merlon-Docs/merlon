@@ -1,4 +1,4 @@
-# Atomic commit groups
+# atomic commit groups
 
 A plan section of numbered groups that splits coding or multi-concern work into commits of one concern each. After the plan is approved, the agent makes one commit per group instead of one commit for everything.
 

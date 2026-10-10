@@ -1179,7 +1179,7 @@ See [What compile actually does](../../docs/features/overview.md#what-compile-ac
 
 <!-- mdcp-shard: start ../../docs/glossary/authored-gfm.md -->
 
-## Authored GFM
+## authored GFM
 
 Shard markdown as written before compile, with no preprocessor substitution or template conditionals. Compile hooks may transform it during assembly. Read [Preprocessor / templating (out of scope)](../../docs/features/design-constraints/preprocessor-templating.md#preprocessor--templating-out-of-scope).
 
@@ -1187,7 +1187,7 @@ Shard markdown as written before compile, with no preprocessor substitution or t
 
 <!-- mdcp-shard: start ../../docs/glossary/locale-pack.md -->
 
-## Locale pack
+## locale pack
 
 A **locale pack** is MDCP’s compile-time bundle of natural-language data that is **not** GFM protocol shape. It covers:
 
