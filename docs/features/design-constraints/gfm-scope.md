@@ -17,6 +17,6 @@ GFM defines two heading forms ([ATX](https://github.github.com/gfm/#atx-headings
 | ATX edge cases (0–3 space indent, closing `#` sequence, empty ATX) | Yes | **Not yet** — current parser is a practical ATX subset                    |
 | Emit / rewrite after demote or compile title                       | —   | Always **ATX** lines                                                      |
 
-[Heading slugs](../../glossary/heading-slug.md) use the GitHub algorithm on recognized heading text after compile. Do not author Pandoc IDs (`{#…}`); see [Heading references](./heading-references.md).
+[Heading slugs](../../glossary/heading-slug.md), part of [refs](../../glossary/refs.md), use the GitHub algorithm on recognized heading text after compile. Do not author Pandoc IDs (`{#…}`).
 
 Shared helpers live under `packages/mdcp-core/src/markdown/` (`parseHeading` / ATX kind today). See [Packages and tests](../../developer/packages-and-tests.md) and [Safe markdown parsing](../../developer/safe-markdown-parsing.md).

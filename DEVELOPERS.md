@@ -609,7 +609,7 @@ Shards in this repository follow these Markdown conventions. Where a feature sha
 
 ### Headings and links
 
-Shards are GFM, and their headings use the ATX form. [GFM scope](docs/features/design-constraints/gfm-scope.md) sets that authoring contract and the heading subset compile recognizes. Link a heading by the slug of its text, as [Heading references](docs/features/design-constraints/heading-references.md) says. Don't write a Pandoc ID (`{#…}`) after a heading: the local Vale rule `MDCP-PandocId` fails `pnpm docs:check` on one.
+Shards are GFM, and their headings use the ATX form. [GFM scope](docs/features/design-constraints/gfm-scope.md#headings) sets that authoring contract and the heading subset compile recognizes. Link a heading by the slug of its text, as that section says. Don't write a Pandoc ID (`{#…}`) after a heading: the local Vale rule `MDCP-PandocId` fails `pnpm docs:check` on one.
 
 Write each [cross-link](#cross-link) inline, as `[label](target)` on one line. Keep images and other brackets out of the label, and write the target without a title or angle brackets. In a shard that a compiled output stitches, `pnpm docs:check` fails when such a link points at a missing page or source file, or at a dead `#fragment`, even inside an HTML comment. Link a page in the change that adds it. [No placeholder links](docs/features/link-validation.md#no-placeholder-links) sets that rule and lists the links that link validation skips, and [Link validation purpose](docs/features/link-validation.md#link-validation-purpose) says which targets it checks.
 
