@@ -951,7 +951,7 @@ Both commands run `pnpm build` and `pnpm docs:compile:repo` first, because the s
 
 ### Deployment
 
-[`.github/workflows/pages.yml`](.github/workflows/pages.yml) builds the site on pull requests that touch `docs/` or the site package, and deploys it to GitHub Pages from `develop`. Landings push `develop` with the workflow's own token, which starts no other workflows, so the [land workflow](.github/workflows/land-develop.yml) dispatches the deploy after each landing. The repository's Pages source must be set to **GitHub Actions**, and the `github-pages` environment must allow deployments from `develop`.
+[`.github/workflows/pages.yml`](.github/workflows/pages.yml) builds the site on pull requests that touch `docs/` or the site package, and deploys it to GitHub Pages from `develop`. Landings push `develop` with the workflow's own token, and a push with that token doesn't start other workflows. The [land workflow](.github/workflows/land-develop.yml) dispatches the deploy after each landing instead. [Repository settings](#repository-settings) lists the Pages source and the `github-pages` environment that the deploy needs.
 
 ### Coverage scan
 
@@ -1087,7 +1087,7 @@ The trace lists the states in order. In each state, `Step.kind` names the event 
 
 `formal/alloy/landing.als` models the events that move `develop` or `main`. A landing and the sync from `main` move `develop`, the release commit moves `main`, and a PR merge or a maintainer's direct push can move either branch. It also models CI on pull requests, including a PR whose base branch changes after it opens.
 
-The model checks three properties. Each one is true only while all of its guards are in place, and for each guard a check finds a run that breaks the property without it. A guard is either a branch rule, which is a repository setting that no workflow can enforce, or a choice in a workflow under `.github/workflows/`.
+The model checks three properties. Each one is true only while all of its guards are in place, and for each guard a check finds a run that breaks the property without it. A guard is either a branch rule, which is a [repository setting](#repository-settings) that no workflow can enforce, or a choice in a workflow under `.github/workflows/`.
 
 #### `develop` only moves to a tested tree
 
@@ -1160,13 +1160,11 @@ First npm publish must happen from your machine with `npm login` before Trusted 
 
 #### Trusted Publishing
 
-**Important:** The `release.yml` workflow is bound to the `release` GitHub Environment. Configure Environment protection (required reviewers) and allow **`main`** as a deployment branch.
+The release job in `release.yml` runs in the `release` environment. [Repository settings](#repository-settings) lists its reviewers and deployment branches.
 
 1. Each package → **Settings** → **Trusted Publisher** → **GitHub Actions**
 2. Repository: `betsalel-williamson/mdcp`
 3. Workflow filename: `release.yml`
-
-Also enable **Settings → Actions → General → Workflow permissions → Allow GitHub Actions to create and approve pull requests**. The [sync workflow](#release-schedule-release-pr-from-develop-to-main) needs it. When merging `main` back into `develop` conflicts, that workflow opens a pull request from `main` to `develop` with its own `GITHUB_TOKEN`.
 
 ### Tokens
 
@@ -1275,100 +1273,85 @@ Never unpublish a version that other packages or consumers legitimately depend o
 
 ### Related docs
 
-- [SECURITY.md](SECURITY.md) — reporting and maintainer security practices
-- [GitHub Actions security posture](#github-actions-security-posture) — CI workflow and repository settings audit trail
-- [GitHub Actions security checklist](#github-actions-security-checklist) — OWASP topic checklist with as-built status
-- [Versioning and releases](#versioning-and-releases) — cutting fixed releases
-- [Publishing](#publishing) — npm publish mechanics and Trusted Publishing
+- [SECURITY.md](SECURITY.md): reporting and maintainer security practices
+- [Repository settings](#repository-settings): branch protection, environments and secrets
+- [GitHub Actions security checklist](#github-actions-security-checklist): OWASP topic checklist with as-built status
+- [Versioning and releases](#versioning-and-releases): cutting fixed releases
+- [Publishing](#publishing): npm publish mechanics and Trusted Publishing
 
 <!-- mdcp-shard: end docs/developer/security-incident-triage.md -->
 
 <!-- mdcp-shard: start docs/developer/repository-settings.md -->
 
-## GitHub Actions security posture
+## Repository settings
 
-Maintainer guide for tracking **GitHub Actions security posture** in this public OSS monorepo. Vulnerability **reporting** stays in [SECURITY.md](SECURITY.md); dependency and release triage stays in [Security-incident triage](#security-incident-triage). This shard is the audit trail for CI workflow and repository settings against the [OWASP GitHub Actions Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/GitHub_Actions_Security_Cheat_Sheet.html).
+Some controls in this repository live in its settings on the hosting platform, and the [Terraform](#terraform) files in `infra/github/` declare some of them. A maintainer applies those files by hand, so a pull request can't change a live setting, and no workflow can enforce one. This page lists the settings that the release, landing and security pages depend on, with each one's value and the file or settings page that holds it. [Formal models](#landing-and-release) says which branch rules keep `develop` and `main` tested, and the [GitHub Actions security checklist](#github-actions-security-checklist) reviews these settings against the OWASP cheat sheet.
 
-Work is tracked under epic [#173 — Repository security posture](https://github.com/betsalel-williamson/mdcp/issues/173). The durable checklist lives in [#168 — OWASP GitHub Actions security checklist docs](https://github.com/betsalel-williamson/mdcp/issues/168); see [GitHub Actions security checklist](#github-actions-security-checklist) for row-by-row status. CodeQL findings on library regexes (heading / `{#id}` [ReDoS](#redos)) are tracked separately in [Safe markdown parsing](#safe-markdown-parsing-heading-helpers).
+### Settings
 
-### Status vocabulary
+| Setting                                             | Value                                                                                                                                                                          | Declared or set in                                                                 |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| Required checks on `main`                           | `Check` and `Changeset` from CI, and `Scan` from gitleaks, on a branch that is up to date with `main`                                                                          | `infra/github/protection.tf`                                                       |
+| Reviews on `main`                                   | [Code-owner review](#code-owner-review), with stale approvals dismissed and no minimum approval count                                                                          | `infra/github/protection.tf`                                                       |
+| Force-push to `main`, and its deletion              | Blocked                                                                                                                                                                        | `infra/github/protection.tf`                                                       |
+| Secret scanning and push protection                 | On                                                                                                                                                                             | `infra/github/repository.tf`                                                       |
+| Merge methods                                       | Merge commit, squash and rebase are allowed. The release PR needs a merge commit, as [Release schedule](#release-schedule-release-pr-from-develop-to-main) says                | `infra/github/repository.tf`                                                       |
+| `release` environment reviewers                     | The repository owner                                                                                                                                                           | `infra/github/environments.tf`                                                     |
+| `release` environment admin bypass                  | On, so a repository admin can deploy without a reviewer's approval                                                                                                             | `infra/github/environments.tf`                                                     |
+| `release` environment deployment branches           | `main` and `v*` tags                                                                                                                                                           | **Settings → Environments → `release`**                                            |
+| `RELEASE_GITHUB_TOKEN`                              | A repository secret                                                                                                                                                            | [Release token](#release-token)                                                    |
+| `DEPENDABOT_CHANGESET_TOKEN`                        | A repository secret                                                                                                                                                            | [Dependabot changeset token](#dependabot-changeset-token)                          |
+| Default `GITHUB_TOKEN` permissions                  | Read-only                                                                                                                                                                      | **Settings → Actions → General → Workflow permissions**                            |
+| GitHub Actions can create and approve pull requests | On. When merging `main` back into `develop` conflicts, the [sync workflow](#release-schedule-release-pr-from-develop-to-main) opens a pull request with its own `GITHUB_TOKEN` | **Settings → Actions → General → Workflow permissions**                            |
+| Pages source                                        | GitHub Actions, for the [site deploy](#deployment)                                                                                                                             | **Settings → Pages**                                                               |
+| `github-pages` environment deployment branches      | `develop`                                                                                                                                                                      | **Settings → Environments → `github-pages`**                                       |
+| Trusted Publisher of each npm package               | `release.yml` in this repository                                                                                                                                               | The package's npm settings, as [Trusted Publishing](#trusted-publishing) describes |
 
-Each checklist row uses **exactly one** of these statuses (normative):
+### Terraform
 
-| Status                       | Meaning                                                                                                                        |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `reviewed (YYYY-MM-DD)`      | Topic assessed against current repo state on that date; controls in place or accepted with documented rationale                |
-| `not a concern (YYYY-MM-DD)` | OWASP topic does not apply to this repo (e.g. no self-hosted runners)                                                          |
-| `open risk (#N)`             | Gap remains; `#N` is a **remediation issue** that is a child of [#173](https://github.com/betsalel-williamson/mdcp/issues/173) |
+[`infra/github/`](infra/github) declares the settings whose row names a `.tf` file, with the `integrations/github` provider. It also declares settings that no page here depends on, such as the repository's description and topics. Its `imports.tf` adopts the existing repository, `main` protection and `release` environment. An apply then changes them in place. The provider can't set the branch and tag policies of an environment on a user account's repository, and `environments.tf` leaves them to the settings page.
 
-Do not invent alternate labels. When a risk closes, update the row to `reviewed` or `not a concern` with the resolution date.
+The live settings can drift from the files between applies. With admin access to the repository, compare and apply them from a checkout:
 
-### Re-review cadence
+```bash
+cd infra/github
+export GITHUB_TOKEN=<admin token>
+terraform init
+terraform plan    # lists each live setting that differs from the files
+terraform apply
+```
 
-This cadence is **advisory**, because no workflow re-runs the checklist. Whoever makes one of the changes below should re-run the rows it affects. When a coding agent makes the change, it should commit the re-run on the same branch. For a Dependabot bump of an action version, the maintainer who merges the PR should re-run those rows. Each re-run leaves its evidence as a new date on those rows in the [checklist](#github-actions-security-checklist).
+Terraform writes its state to `infra/github/terraform.tfstate`, and `infra/github/.gitignore` keeps that file out of commits, along with `.terraform/` and plan files.
 
-Re-run the affected rows when any of the following change:
+### Code-owner review
 
-- Workflow files under `.github/workflows/` (triggers, permissions, action versions, secrets usage)
-- Repository or organization **Actions** settings (default `GITHUB_TOKEN` permissions, allowed actions, environments)
-- Branch protection, rulesets, or required checks that gate merges and releases
-- Dependabot or secret-scanning configuration
-- Release mechanics ([Publishing](#publishing) — OIDC, environments, npm trust)
+[`.github/CODEOWNERS`](.github/CODEOWNERS) assigns a code owner to every path, with entries of their own for `.github/`, `packages/`, `docs/`, `skills/` and `.agents/skills/`. CODEOWNERS alone doesn't block a merge. The code-owner review on `main` does, as the OWASP cheat sheet recommends for changes from external contributors. Pull requests from forks still run CI under the base repository's policy, and the code owner that CODEOWNERS names approves each change to an owned path before it merges. The rule's minimum approval count is 0, because only maintainers can merge.
 
-The [Zizmor](#static-analysis) job gates part of the review for workflow-file changes, since it fails on workflow misconfigurations. It scans Dependabot PRs and direct pushes to `develop` as they arrive, but for workflow changes that land through the land workflow, its first scan is on the release PR ([Landing on `develop`](#landing-on-develop)).
-
-Even when nothing changes, a maintainer should run a **periodic pass** by hand about once a quarter so third-party action advisories and OWASP guidance updates do not drift unnoticed. A full pass gives every dated row a new date, so an oldest date more than a quarter old shows that a pass is overdue.
-
-### CODEOWNERS and external contributor review
-
-OWASP recommends requiring approval from code owners so external contributors cannot merge changes to critical paths without maintainer review. This repo assigns `@betsalel-williamson` in [`.github/CODEOWNERS`](.github/CODEOWNERS) for:
-
-- All paths (`*`) — default owner
-- `.github/`: workflows, Dependabot, and repository automation
-- `packages/`: published npm packages and CLI
-- `docs/`: sharded documentation compiled into READMEs
-- `skills/` and `.agents/skills/`: publishable and committed skills
-
-CODEOWNERS alone does not block merges; branch protection must enforce owner review.
-
-#### Branch protection settings (repo admin)
-
-After CODEOWNERS is on `main`, a repo admin enables review enforcement:
-
-1. Open **Settings → Branches → Branch protection rules → `main`** (or the active ruleset for `main`).
-2. Under **Require a pull request before merging**, enable **Require review from Code Owners**.
-3. Keep **Dismiss stale pull request approvals when new commits are pushed** enabled.
-
-A separate `required_approving_review_count` is not needed — only maintainers have merge access, so the maintainer merge itself serves as the approval gate. Re-verify after any branch-protection edits:
+With admin `gh` auth, read the live review settings, or repair them without Terraform:
 
 ```bash
 gh api repos/betsalel-williamson/mdcp/branches/main/protection \
   --jq '.required_pull_request_reviews | {require_code_owner_reviews}'
-```
 
-To set or repair those toggles (requires admin `gh` auth):
-
-```bash
 gh api -X PATCH repos/betsalel-williamson/mdcp/branches/main/protection/required_pull_request_reviews \
   -F require_code_owner_reviews=true \
   -F required_approving_review_count=0
 ```
 
-Fork PRs from outside collaborators still run CI under the base-repo policy; code-owner review ensures `@betsalel-williamson` approves changes to owned paths before merge.
+### Required checks and scanners
 
-### Static analysis
+`protection.tf` doesn't list Release source among the required checks on `main`. [Formal models](#main-only-merges-develop-or-hotfix) says what goes wrong without that rule.
 
-We run **CodeQL** and **Zizmor** on push and pull request:
+CodeQL and Zizmor run on every pull request and on each push to `main` or `develop`:
 
-- **CodeQL** — matrix over `javascript-typescript` (package/source SAST) and `actions` (workflow queries per OWASP). Analysis uploads SARIF; make the **Analyze** / **CodeQL** checks **required** on `main`, and set code-scanning severity so findings block merges.
-- **Zizmor** — GitHub Actions workflow misconfiguration scanner. The job **fails on findings** (blocking); annotations surface issues on the PR. Make it a **required** status check on `main` if it should gate merges.
+- **CodeQL**, the `Analyze` job, analyzes `javascript-typescript` for the package sources and `actions` for workflow queries in one run, and uploads SARIF to code scanning. [Safe markdown parsing](#safe-markdown-parsing-heading-helpers) says how a ReDoS finding on a library regex gets fixed.
+- **Zizmor** scans the workflow files for misconfigurations. The job fails on a finding and annotates the pull request.
 
-### Related docs
+`protection.tf` doesn't list `Analyze` or `Zizmor` as a required check. A finding from either one shows on the pull request, and its reviewer weighs it. [Landing on `develop`](#landing-on-develop) says when the scanners first see a landing's changes.
 
-- [SECURITY.md](SECURITY.md) — reporting and maintainer security practices
-- [Security-incident triage](#security-incident-triage) — dependency advisories and release remediation
-- [Publishing](#publishing) — npm publish mechanics and Trusted Publishing (OIDC)
-- [GitHub Actions security checklist](#github-actions-security-checklist) — OWASP topic checklist with as-built status
+### Branch rules on `develop`
+
+`infra/github/` doesn't declare a rule for `develop`. [Formal models](#develop-only-moves-to-a-tested-tree) names the two branch rules that `develop` needs, and the identity of the land workflow that they have to exempt.
 
 <!-- mdcp-shard: end docs/developer/repository-settings.md -->
 
@@ -1376,12 +1359,26 @@ We run **CodeQL** and **Zizmor** on push and pull request:
 
 ## GitHub Actions security checklist
 
-This checklist tracks our compliance with the [OWASP GitHub Actions Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/GitHub_Actions_Security_Cheat_Sheet.html). See [GitHub Actions security posture](#github-actions-security-posture) for vocabulary and re-review guidance. All open risks are tracked under epic [#173](https://github.com/betsalel-williamson/mdcp/issues/173).
+This checklist reviews the repository's CI workflows and [repository settings](#repository-settings) against the [OWASP GitHub Actions Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/GitHub_Actions_Security_Cheat_Sheet.html). Vulnerability reporting stays in [SECURITY.md](SECURITY.md), and dependency and release triage in [Security-incident triage](#security-incident-triage).
+
+### Status vocabulary
+
+Each row uses exactly one of these statuses:
+
+| Status                       | Meaning                                                                                                                             |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `reviewed (YYYY-MM-DD)`      | The topic was assessed against the repository on that date. Its controls are in place, or the Notes cell says why a gap is accepted |
+| `not a concern (YYYY-MM-DD)` | The OWASP topic doesn't apply to this repository, as with self-hosted runners                                                       |
+| `open risk`                  | A gap remains, and the Notes cell states the risk                                                                                   |
+
+When a risk closes, update its row to `reviewed` or `not a concern` with the date it closed.
+
+### Topics
 
 | OWASP Topic                             | Status                       | Notes                                                                                                                                                                                                                                                                                                                      |
 | --------------------------------------- | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Pipeline Governance**                 |                              |                                                                                                                                                                                                                                                                                                                            |
-| Treat CI/CD as critical production code | `reviewed (2026-07-27)`      | Security posture docs, full `pnpm run check` gate, and checklist tracked under #173.                                                                                                                                                                                                                                       |
+| Treat CI/CD as critical production code | `reviewed (2026-10-05)`      | The full `pnpm run check` gate, and this checklist with the [repository settings](#repository-settings) it reviews.                                                                                                                                                                                                        |
 | **Authentication & Authorization**      |                              |                                                                                                                                                                                                                                                                                                                            |
 | Default `GITHUB_TOKEN` permissions      | `reviewed (2026-07-27)`      | Repo default is read-only.                                                                                                                                                                                                                                                                                                 |
 | Workflow-level `permissions: {}`        | `reviewed (2026-10-04)`      | Empty top-level on every workflow; job-scoped writes.                                                                                                                                                                                                                                                                      |
@@ -1404,7 +1401,7 @@ This checklist tracks our compliance with the [OWASP GitHub Actions Security Che
 | Self-hosted runners                     | `not a concern (2026-07-27)` | Using `ubuntu-latest` GitHub-hosted runners.                                                                                                                                                                                                                                                                               |
 | Runner groups                           | `not a concern (2026-07-27)` | Not applicable to GitHub-hosted runners.                                                                                                                                                                                                                                                                                   |
 | Egress monitoring                       | `reviewed (2026-07-27)`      | Harden-Runner in audit mode only (not block).                                                                                                                                                                                                                                                                              |
-| Environment required reviewers          | `reviewed (2026-07-27)`      | Bound to `release` env; required reviewers are maintainer ops.                                                                                                                                                                                                                                                             |
+| Environment required reviewers          | `reviewed (2026-10-05)`      | Bound to `release` env; required reviewers are maintainer ops. `environments.tf` turns admin bypass on. The owner is the only admin and also the reviewer. The bypass skips only the owner's own approval.                                                                                                                 |
 | **Code & Supply Chain**                 |                              |                                                                                                                                                                                                                                                                                                                            |
 | Branch protection baseline              | `reviewed (2026-10-04)`      | `main` is protected with PR, code-owner review and status checks. `develop` takes the land workflow's tested merges, a clean sync of `main` among them, plus Dependabot PRs and the sync's PR when `main` conflicts. The Formal models guide names the guards each branch needs to stay tested, and which are missing now. |
 | Require approval for external           | `reviewed (2026-09-10)`      | CODEOWNERS on `main`; `require_code_owner_reviews` enabled. Separate approval count not required — only maintainers can merge.                                                                                                                                                                                             |
@@ -1412,10 +1409,26 @@ This checklist tracks our compliance with the [OWASP GitHub Actions Security Che
 | Dependabot cooldown                     | `reviewed (2026-07-27)`      | Explicit 7-day cooldown on `npm` and `github-actions`.                                                                                                                                                                                                                                                                     |
 | Artifact / cache poisoning              | `reviewed (2026-07-27)`      | Removed `cache: pnpm` from `release.yml`; CI jobs still cache.                                                                                                                                                                                                                                                             |
 | Secret scanning                         | `reviewed (2026-07-27)`      | Gitleaks workflow is active.                                                                                                                                                                                                                                                                                               |
-| Static analysis (CodeQL/Zizmor)         | `reviewed (2026-07-27)`      | CodeQL (`javascript-typescript` + `actions`) + Zizmor; Zizmor fails on findings.                                                                                                                                                                                                                                           |
+| Static analysis (CodeQL/Zizmor)         | `reviewed (2026-10-05)`      | CodeQL (`javascript-typescript` + `actions`) and Zizmor run on every pull request. Neither is a required check ([Required checks and scanners](#required-checks-and-scanners)).                                                                                                                                            |
 | AI-in-CI                                | `not a concern (2026-07-27)` | No AI assistants used in CI.                                                                                                                                                                                                                                                                                               |
 | **Incident Response**                   |                              |                                                                                                                                                                                                                                                                                                                            |
 | Incident response plan                  | `reviewed (2026-07-27)`      | Covered in `SECURITY.md` and triage docs.                                                                                                                                                                                                                                                                                  |
+
+### Re-review cadence
+
+This cadence is **advisory**, because no workflow re-runs the checklist. Whoever makes one of the changes below should re-run the rows it affects. When a coding agent makes the change, it should commit the re-run on the same branch. For a Dependabot bump of an action version, the maintainer who merges the PR should re-run those rows. Each re-run leaves its evidence as a new date on those rows.
+
+Re-run the affected rows when any of the following change:
+
+- Workflow files under `.github/workflows/` (triggers, permissions, action versions, secrets usage)
+- [Repository settings](#repository-settings), or organization **Actions** settings (default `GITHUB_TOKEN` permissions, allowed actions, environments)
+- Branch protection, rulesets, or required checks that gate merges and releases
+- Dependabot or secret-scanning configuration
+- Release mechanics ([Publishing](#publishing): OIDC, environments, npm trust)
+
+The [Zizmor](#required-checks-and-scanners) job checks part of that review for workflow-file changes, because it fails on a workflow misconfiguration. It scans Dependabot PRs and direct pushes to `develop` as they arrive. Its first scan of a workflow change that lands through the land workflow is on the release PR ([Landing on `develop`](#landing-on-develop)).
+
+Even when nothing changes, a maintainer should run a **periodic pass** by hand about once a quarter so third-party action advisories and OWASP guidance updates do not drift unnoticed. A full pass gives every dated row a new date, so an oldest date more than a quarter old shows that a pass is overdue.
 
 <!-- mdcp-shard: end docs/developer/github-actions-security-checklist.md -->
 

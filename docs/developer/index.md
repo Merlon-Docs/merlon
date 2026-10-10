@@ -35,5 +35,5 @@
 ## Security
 
 - [Security-incident triage](./security-incident-triage.md)
-- [GitHub Actions security posture](./repository-settings.md)
+- [Repository settings](./repository-settings.md)
 - [GitHub Actions security checklist](./github-actions-security-checklist.md)

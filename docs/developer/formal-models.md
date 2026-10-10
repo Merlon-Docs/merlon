@@ -21,7 +21,7 @@ The trace lists the states in order. In each state, `Step.kind` names the event 
 
 `formal/alloy/landing.als` models the events that move `develop` or `main`. A landing and the sync from `main` move `develop`, the release commit moves `main`, and a PR merge or a maintainer's direct push can move either branch. It also models CI on pull requests, including a PR whose base branch changes after it opens.
 
-The model checks three properties. Each one is true only while all of its guards are in place, and for each guard a check finds a run that breaks the property without it. A guard is either a branch rule, which is a repository setting that no workflow can enforce, or a choice in a workflow under `.github/workflows/`.
+The model checks three properties. Each one is true only while all of its guards are in place, and for each guard a check finds a run that breaks the property without it. A guard is either a branch rule, which is a [repository setting](./repository-settings.md) that no workflow can enforce, or a choice in a workflow under `.github/workflows/`.
 
 ### `develop` only moves to a tested tree
 

@@ -1,84 +1,69 @@
-# GitHub Actions security posture
+# Repository settings
 
-Maintainer guide for tracking **GitHub Actions security posture** in this public OSS monorepo. Vulnerability **reporting** stays in [SECURITY.md](../../SECURITY.md); dependency and release triage stays in [Security-incident triage](./security-incident-triage.md). This shard is the audit trail for CI workflow and repository settings against the [OWASP GitHub Actions Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/GitHub_Actions_Security_Cheat_Sheet.html).
+Some controls in this repository live in its settings on the hosting platform, and the [Terraform](#terraform) files in `infra/github/` declare some of them. A maintainer applies those files by hand, so a pull request can't change a live setting, and no workflow can enforce one. This page lists the settings that the release, landing and security pages depend on, with each one's value and the file or settings page that holds it. [Formal models](./formal-models.md#landing-and-release) says which branch rules keep `develop` and `main` tested, and the [GitHub Actions security checklist](./github-actions-security-checklist.md) reviews these settings against the OWASP cheat sheet.
 
-Work is tracked under epic [#173 — Repository security posture](https://github.com/betsalel-williamson/mdcp/issues/173). The durable checklist lives in [#168 — OWASP GitHub Actions security checklist docs](https://github.com/betsalel-williamson/mdcp/issues/168); see [GitHub Actions security checklist](./github-actions-security-checklist.md) for row-by-row status. CodeQL findings on library regexes (heading / `{#id}` [ReDoS](../glossary/redos.md)) are tracked separately in [Safe markdown parsing](./safe-markdown-parsing.md).
+## Settings
 
-## Status vocabulary
+| Setting                                             | Value                                                                                                                                                                                                      | Declared or set in                                                                                |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Required checks on `main`                           | `Check` and `Changeset` from CI, and `Scan` from gitleaks, on a branch that is up to date with `main`                                                                                                      | `infra/github/protection.tf`                                                                      |
+| Reviews on `main`                                   | [Code-owner review](#code-owner-review), with stale approvals dismissed and no minimum approval count                                                                                                      | `infra/github/protection.tf`                                                                      |
+| Force-push to `main`, and its deletion              | Blocked                                                                                                                                                                                                    | `infra/github/protection.tf`                                                                      |
+| Secret scanning and push protection                 | On                                                                                                                                                                                                         | `infra/github/repository.tf`                                                                      |
+| Merge methods                                       | Merge commit, squash and rebase are allowed. The release PR needs a merge commit, as [Release schedule](./versioning-and-releases.md#release-schedule-release-pr-from-develop-to-main) says                | `infra/github/repository.tf`                                                                      |
+| `release` environment reviewers                     | The repository owner                                                                                                                                                                                       | `infra/github/environments.tf`                                                                    |
+| `release` environment admin bypass                  | On, so a repository admin can deploy without a reviewer's approval                                                                                                                                         | `infra/github/environments.tf`                                                                    |
+| `release` environment deployment branches           | `main` and `v*` tags                                                                                                                                                                                       | **Settings → Environments → `release`**                                                           |
+| `RELEASE_GITHUB_TOKEN`                              | A repository secret                                                                                                                                                                                        | [Release token](./publishing.md#release-token)                                                    |
+| `DEPENDABOT_CHANGESET_TOKEN`                        | A repository secret                                                                                                                                                                                        | [Dependabot changeset token](./publishing.md#dependabot-changeset-token)                          |
+| Default `GITHUB_TOKEN` permissions                  | Read-only                                                                                                                                                                                                  | **Settings → Actions → General → Workflow permissions**                                           |
+| GitHub Actions can create and approve pull requests | On. When merging `main` back into `develop` conflicts, the [sync workflow](./versioning-and-releases.md#release-schedule-release-pr-from-develop-to-main) opens a pull request with its own `GITHUB_TOKEN` | **Settings → Actions → General → Workflow permissions**                                           |
+| Pages source                                        | GitHub Actions, for the [site deploy](./docs-site.md#deployment)                                                                                                                                           | **Settings → Pages**                                                                              |
+| `github-pages` environment deployment branches      | `develop`                                                                                                                                                                                                  | **Settings → Environments → `github-pages`**                                                      |
+| Trusted Publisher of each npm package               | `release.yml` in this repository                                                                                                                                                                           | The package's npm settings, as [Trusted Publishing](./publishing.md#trusted-publishing) describes |
 
-Each checklist row uses **exactly one** of these statuses (normative):
+## Terraform
 
-| Status                       | Meaning                                                                                                                        |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `reviewed (YYYY-MM-DD)`      | Topic assessed against current repo state on that date; controls in place or accepted with documented rationale                |
-| `not a concern (YYYY-MM-DD)` | OWASP topic does not apply to this repo (e.g. no self-hosted runners)                                                          |
-| `open risk (#N)`             | Gap remains; `#N` is a **remediation issue** that is a child of [#173](https://github.com/betsalel-williamson/mdcp/issues/173) |
+[`infra/github/`](../../infra/github/) declares the settings whose row names a `.tf` file, with the `integrations/github` provider. It also declares settings that no page here depends on, such as the repository's description and topics. Its `imports.tf` adopts the existing repository, `main` protection and `release` environment. An apply then changes them in place. The provider can't set the branch and tag policies of an environment on a user account's repository, and `environments.tf` leaves them to the settings page.
 
-Do not invent alternate labels. When a risk closes, update the row to `reviewed` or `not a concern` with the resolution date.
+The live settings can drift from the files between applies. With admin access to the repository, compare and apply them from a checkout:
 
-## Re-review cadence
+```bash
+cd infra/github
+export GITHUB_TOKEN=<admin token>
+terraform init
+terraform plan    # lists each live setting that differs from the files
+terraform apply
+```
 
-This cadence is **advisory**, because no workflow re-runs the checklist. Whoever makes one of the changes below should re-run the rows it affects. When a coding agent makes the change, it should commit the re-run on the same branch. For a Dependabot bump of an action version, the maintainer who merges the PR should re-run those rows. Each re-run leaves its evidence as a new date on those rows in the [checklist](./github-actions-security-checklist.md).
+Terraform writes its state to `infra/github/terraform.tfstate`, and `infra/github/.gitignore` keeps that file out of commits, along with `.terraform/` and plan files.
 
-Re-run the affected rows when any of the following change:
+## Code-owner review
 
-- Workflow files under `.github/workflows/` (triggers, permissions, action versions, secrets usage)
-- Repository or organization **Actions** settings (default `GITHUB_TOKEN` permissions, allowed actions, environments)
-- Branch protection, rulesets, or required checks that gate merges and releases
-- Dependabot or secret-scanning configuration
-- Release mechanics ([Publishing](./publishing.md) — OIDC, environments, npm trust)
+[`.github/CODEOWNERS`](../../.github/CODEOWNERS) assigns a code owner to every path, with entries of their own for `.github/`, `packages/`, `docs/`, `skills/` and `.agents/skills/`. CODEOWNERS alone doesn't block a merge. The code-owner review on `main` does, as the OWASP cheat sheet recommends for changes from external contributors. Pull requests from forks still run CI under the base repository's policy, and the code owner that CODEOWNERS names approves each change to an owned path before it merges. The rule's minimum approval count is 0, because only maintainers can merge.
 
-The [Zizmor](#static-analysis) job gates part of the review for workflow-file changes, since it fails on workflow misconfigurations. It scans Dependabot PRs and direct pushes to `develop` as they arrive, but for workflow changes that land through the land workflow, its first scan is on the release PR ([Landing on `develop`](./versioning-and-releases.md#landing-on-develop)).
-
-Even when nothing changes, a maintainer should run a **periodic pass** by hand about once a quarter so third-party action advisories and OWASP guidance updates do not drift unnoticed. A full pass gives every dated row a new date, so an oldest date more than a quarter old shows that a pass is overdue.
-
-## CODEOWNERS and external contributor review
-
-OWASP recommends requiring approval from code owners so external contributors cannot merge changes to critical paths without maintainer review. This repo assigns `@betsalel-williamson` in [`.github/CODEOWNERS`](../../.github/CODEOWNERS) for:
-
-- All paths (`*`) — default owner
-- `.github/`: workflows, Dependabot, and repository automation
-- `packages/`: published npm packages and CLI
-- `docs/`: sharded documentation compiled into READMEs
-- `skills/` and `.agents/skills/`: publishable and committed skills
-
-CODEOWNERS alone does not block merges; branch protection must enforce owner review.
-
-### Branch protection settings (repo admin)
-
-After CODEOWNERS is on `main`, a repo admin enables review enforcement:
-
-1. Open **Settings → Branches → Branch protection rules → `main`** (or the active ruleset for `main`).
-2. Under **Require a pull request before merging**, enable **Require review from Code Owners**.
-3. Keep **Dismiss stale pull request approvals when new commits are pushed** enabled.
-
-A separate `required_approving_review_count` is not needed — only maintainers have merge access, so the maintainer merge itself serves as the approval gate. Re-verify after any branch-protection edits:
+With admin `gh` auth, read the live review settings, or repair them without Terraform:
 
 ```bash
 gh api repos/betsalel-williamson/mdcp/branches/main/protection \
   --jq '.required_pull_request_reviews | {require_code_owner_reviews}'
-```
 
-To set or repair those toggles (requires admin `gh` auth):
-
-```bash
 gh api -X PATCH repos/betsalel-williamson/mdcp/branches/main/protection/required_pull_request_reviews \
   -F require_code_owner_reviews=true \
   -F required_approving_review_count=0
 ```
 
-Fork PRs from outside collaborators still run CI under the base-repo policy; code-owner review ensures `@betsalel-williamson` approves changes to owned paths before merge.
+## Required checks and scanners
 
-## Static analysis
+`protection.tf` doesn't list Release source among the required checks on `main`. [Formal models](./formal-models.md#main-only-merges-develop-or-hotfix) says what goes wrong without that rule.
 
-We run **CodeQL** and **Zizmor** on push and pull request:
+CodeQL and Zizmor run on every pull request and on each push to `main` or `develop`:
 
-- **CodeQL** — matrix over `javascript-typescript` (package/source SAST) and `actions` (workflow queries per OWASP). Analysis uploads SARIF; make the **Analyze** / **CodeQL** checks **required** on `main`, and set code-scanning severity so findings block merges.
-- **Zizmor** — GitHub Actions workflow misconfiguration scanner. The job **fails on findings** (blocking); annotations surface issues on the PR. Make it a **required** status check on `main` if it should gate merges.
+- **CodeQL**, the `Analyze` job, analyzes `javascript-typescript` for the package sources and `actions` for workflow queries in one run, and uploads SARIF to code scanning. [Safe markdown parsing](./safe-markdown-parsing.md) says how a ReDoS finding on a library regex gets fixed.
+- **Zizmor** scans the workflow files for misconfigurations. The job fails on a finding and annotates the pull request.
 
-## Related docs
+`protection.tf` doesn't list `Analyze` or `Zizmor` as a required check. A finding from either one shows on the pull request, and its reviewer weighs it. [Landing on `develop`](./versioning-and-releases.md#landing-on-develop) says when the scanners first see a landing's changes.
 
-- [SECURITY.md](../../SECURITY.md) — reporting and maintainer security practices
-- [Security-incident triage](./security-incident-triage.md) — dependency advisories and release remediation
-- [Publishing](./publishing.md) — npm publish mechanics and Trusted Publishing (OIDC)
-- [GitHub Actions security checklist](./github-actions-security-checklist.md) — OWASP topic checklist with as-built status
+## Branch rules on `develop`
+
+`infra/github/` doesn't declare a rule for `develop`. [Formal models](./formal-models.md#develop-only-moves-to-a-tested-tree) names the two branch rules that `develop` needs, and the identity of the land workflow that they have to exempt.
