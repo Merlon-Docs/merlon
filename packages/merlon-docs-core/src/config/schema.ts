@@ -86,7 +86,7 @@ export const MerlonConfigSchema = z.object({
   /** Four-part version of the Merlon Docs standard the repository conforms to (default 0.5.0.0). */
   standardVersion: z.string().default('0.5.0.0'),
   /**
-   * @deprecated Former name of `standardVersion`, still read for one minor release.
+   * @deprecated Former name of `standardVersion`, still read until the next major release.
    * `parseConfig` and `loadConfig` copy it to `standardVersion` and set it to the same value.
    */
   protocolVersion: z.string().optional(),
@@ -190,7 +190,7 @@ export const MerlonConfigSchema = z.object({
            */
           generated: z.array(z.string()).default([]),
           /**
-           * Paths this repository documents without having: names the protocol
+           * Paths this repository documents without having: names the standard
            * defines for a consumer repository, or another project's tree.
            * Matched exactly, so an invented file beneath one still has to
            * resolve.

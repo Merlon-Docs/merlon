@@ -23,7 +23,7 @@ Two config lists declare why a path legitimately does not resolve, and they say
 which case they are rather than sharing one allow-list. `lint.paths.generated`
 covers paths that exist only after a build or install, matched as a prefix since
 nothing under one exists yet. `lint.paths.vocabulary` covers a name the
-repository documents without having, such as a protocol tier a consumer creates,
+repository documents without having, such as a tier the standard defines and a consumer creates,
 matched exactly so an invented file beneath that name still has to resolve.
 
 Because no pattern separates a stale path from an always-illustrative one, the

@@ -11,7 +11,7 @@ body:
 
         Local-only packs under `docs/extensions/` need no upstream issue. Use this form when you want shared guidance or an upstream complementary skill.
 
-        Maintainers apply a matching `priority:*` label from your selection below (and usually `protocol`), then finish [new issue intake](https://github.com/Merlon-Docs/merlon/blob/main/docs/developer/issue-intake-and-labels.md#new-issue-intake-required).
+        Maintainers apply a matching `priority:*` label from your selection below (and usually `standard`), then finish [new issue intake](https://github.com/Merlon-Docs/merlon/blob/main/docs/developer/issue-intake-and-labels.md#new-issue-intake-required).
 
   - type: dropdown
     id: extension-kind
@@ -96,7 +96,7 @@ body:
       required: true
 
   - type: input
-    id: protocol-version
+    id: standard-version
     attributes:
       label: Target standardVersion
       description: Four-part spec version (`standardVersion`, formerly `protocolVersion`) this extension claims to support

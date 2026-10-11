@@ -25,7 +25,7 @@ Which guide a shard belongs in: the placement test in [Default guide layout](doc
 
 Shared acronyms and terms for all docs in this repository. Spell out a term on first use in a shard and link the short form here. This rule is advisory, applied by authors and in review, and the glossary links in a change's diff are its evidence.
 
-**Inclusion bar (this repository):** add entries for jargon specific to Merlon Docs, acronyms, and overloaded words that a new contributor or the stated client persona would not reliably understand from everyday English or general software practice alone (such as protocol terms, compile/refs vocabulary, and skill practice terms). Do **not** add entries for common English, universal programming terms, or words that are unambiguous in context for that audience. When unsure, prefer a short glossary entry over leaving shorthand unexplained. See [domain glossary](#domain-glossary).
+**Inclusion bar (this repository):** add entries for jargon specific to Merlon Docs, acronyms, and overloaded words that a new contributor or the stated client persona would not reliably understand from everyday English or general software practice alone (such as terms of the standard, compile/refs vocabulary, and skill practice terms). Do **not** add entries for common English, universal programming terms, or words that are unambiguous in context for that audience. When unsure, prefer a short glossary entry over leaving shorthand unexplained. See [domain glossary](#domain-glossary).
 
 Each term is its own shard under `docs/glossary/`. [Shared glossary](./packages/merlon-docs-cli/README.md#shared-glossary) covers how guides pull term shards in and when to use sub-index files.
 
@@ -622,7 +622,7 @@ Use **one** mutually exclusive GitHub label so the board and `gh issue list` sta
 2. **Labels**: maintainers or coding agents apply the matching `priority:*` label when triaging (GitHub forms cannot map a dropdown to a label automatically). Replace any previous `priority:*` label so only one remains.
 3. **What to work on next**: prefer open issues labeled `priority:P0`, then `P1`. Skip `priority:defer` until the gate in the issue body is met.
 
-Issue templates live under `.github/ISSUE_TEMPLATE/` (bug report, feedback, adoption story, extension proposal). The adoption-story template has no priority dropdown, because it records qualitative evidence. Extension proposals use the priority dropdown and the `enhancement` type label, and maintainers usually also apply `protocol`. Pull requests use `.github/PULL_REQUEST_TEMPLATE.md`, which asks for the spec and skill versions when the change touches those surfaces.
+Issue templates live under `.github/ISSUE_TEMPLATE/` (bug report, feedback, adoption story, extension proposal). The adoption-story template has no priority dropdown, because it records qualitative evidence. Extension proposals use the priority dropdown and the `enhancement` type label, and maintainers usually also apply `standard`. Pull requests use `.github/PULL_REQUEST_TEMPLATE.md`, which asks for the spec and skill versions when the change touches those surfaces.
 
 #### Other labels (apply on intake)
 
@@ -630,7 +630,7 @@ Issue templates live under `.github/ISSUE_TEMPLATE/` (bug report, feedback, adop
 | --------- | --------------------------------------------------------------------------- | ----------------------------------------- |
 | Type      | `bug`, `enhancement`, `documentation`, `feedback`, `epic`, `adoption-story` | At least one type that matches the issue  |
 | Component | `cli`, `compile`, `refs`, `sections`, `hooks`, `presets`, `lint`            | When the work touches only that component |
-| Domain    | `protocol`                                                                  | Spec / positioning / formalization work   |
+| Domain    | `standard`                                                                  | Spec / positioning / formalization work   |
 
 ### New issue intake (required)
 

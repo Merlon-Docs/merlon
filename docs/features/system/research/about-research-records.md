@@ -14,7 +14,7 @@ Separating the tiers resolves it. Product shards carry no exemption. Records are
 
 | Belongs                                 | Does not belong                             |
 | --------------------------------------- | ------------------------------------------- |
-| Field reports and corpus measurements   | Normative protocol text                     |
+| Field reports and corpus measurements   | Normative text of the standard              |
 | Defect-injection and detection matrices | Current behavior of the CLI or the compiler |
 | Survey and questionnaire responses      | Roadmaps and planned work                   |
 | Evidence that a design constraint cites | The design constraint itself                |

@@ -109,7 +109,7 @@ describe('probePathClaims', () => {
   });
 
   it('accepts a vocabulary name exactly, not the paths beneath it', () => {
-    // `docs/client/` is a tier the protocol defines and this repository does
+    // `docs/client/` is a tier the standard defines and this repository does
     // not instantiate. An invented file under that name is still a defect.
     const declared = { ...noRoots, vocabulary: ['docs/client/'] };
     expect(probePathClaims('/x/shard.md', 'Tiers include `docs/client/`.\n', declared)).toEqual([]);

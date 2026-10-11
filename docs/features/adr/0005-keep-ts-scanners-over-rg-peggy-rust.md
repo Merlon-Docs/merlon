@@ -6,7 +6,7 @@
 
 ## Context
 
-Phase A replaced polynomial-risk regexes for headings and leftover Pandoc `{#…}` cleanup with shared **linear TypeScript helpers** under `mdcp-core`. Phase B continued that audit for remaining **protocol** regexes (such as the code-evidence line ranges).
+Phase A replaced polynomial-risk regexes for headings and leftover Pandoc `{#…}` cleanup with shared **linear TypeScript helpers** under `mdcp-core`. Phase B continued that audit for remaining **format** regexes (such as the code-evidence line ranges).
 
 Phase B rewrote the code-evidence line-range regex as an imperative scanner that takes its words from the locale pack. It also replaced the regex that matched the About this guide H1 with `parseHeading` and the locale's title. Phase B kept the Markdown link idioms as regexes, such as `MD_LINK_RE` in link extract, because its timings found them linear. On crafted input their time grows at least with the square of the input's length. Compile ran four of them on a whole manifest or shard body. Linear scanners later replaced the three that the manifest walk and the `inlineInserts` hook ran, whose time grew with up to the cube of the text's length. The `codeEvidence` hook's `MD_LINK_RE` still reads each run of lines between fenced code, which can be a whole shard body. [Link idioms](../../developer/safe-markdown-parsing.md#link-idioms) in Safe markdown parsing lists the idioms that are still regexes, with the rule that applies to them now.
 
@@ -30,7 +30,7 @@ We will **not** reintroduce chapter-cue prose lint into `mdcp-core` — that sta
 
 | Option                         | Disposition for core micro-parsers                                                                                                                                       |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **TypeScript linear scanners** | **Chosen** for protocol helpers — in-process, O(n), ReDoS-safe, easy parity with prior regex behavior                                                                    |
+| **TypeScript linear scanners** | **Chosen** for format helpers — in-process, O(n), ReDoS-safe, easy parity with prior regex behavior                                                                      |
 | **Vale styles**                | **Chosen** for en-US prose chapter cues — not a core parse stack ([vale.sh](https://vale.sh/))                                                                           |
 | **ripgrep (`rg`)**             | **Declined** — filesystem search via process spawn; wrong layer for already-loaded strings that need structured rewrite results                                          |
 | **Peggy / PEG**                | **Declined for now** — pays off for recursive shared grammars; overhead without benefit for flat left-to-right line walks                                                |

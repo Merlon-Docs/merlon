@@ -1,6 +1,6 @@
 # @merlon-docs/merlon-docs-presets
 
-Starter **markdownlint-cli2** configs and a **Vale** style package (`MDCP`) for MarkDown Context Protocol consumer repos.
+Starter **markdownlint-cli2** configs and a **Vale** style package (`MerlonDocs`) for Merlon Docs consumer repos.
 
 Install alongside `@merlon-docs/merlon-docs-cli` when you want `merlon lint` / `merlon prose` (or `merlon check --require-lint` / `--require-vale`) without writing lint configs from scratch.
 
@@ -38,9 +38,9 @@ npm install -D @merlon-docs/merlon-docs-presets markdownlint-cli2 @merlon-docs/m
 - Lints 0 files and passes when there is no monolith, or the monolith has another name or path, so copy the preset and point its `globs` at your compiled outputs
 - Lints a `guides.md` left at the docs root by an earlier `outputDir: "."` layout too, so delete that file when you move to `_build`
 
-## Vale style (`MDCP`)
+## Vale style (`MerlonDocs`)
 
-English (en-US) prose cues when docs **mention** a numbered heading (`Chapter` / `Section` / `Ch.` / `Sec.`) without a GFM markdown link, or pin a claim to a date. MDCP itself only models headings and links. This style is language-specific static analysis. Keep [merlon-docs-core](https://www.npmjs.com/package/@merlon-docs/merlon-docs-core) on compile and protocol validation (including link targets). See [Locale and language boundary](../../docs/features/design-constraints/locale-and-language.md).
+English (en-US) prose cues when docs **mention** a numbered heading (`Chapter` / `Section` / `Ch.` / `Sec.`) without a GFM markdown link, or pin a claim to a date. Merlon Docs itself only models headings and links. This style is language-specific static analysis. Leave compile and structural validation, including link targets, to [merlon-docs-core](https://www.npmjs.com/package/@merlon-docs/merlon-docs-core). See [Locale and language boundary](../../docs/features/design-constraints/locale-and-language.md).
 
 | Path                   | Role                                            |
 | ---------------------- | ----------------------------------------------- |
@@ -62,7 +62,7 @@ The `TokenIgnores` pattern skips each inline link from its label to its closing 
 
 ### Enable with Vale Packages
 
-Use `Packages` when consuming the MDCP Vale style as a release zip:
+Use `Packages` when consuming the MerlonDocs Vale style as a release zip:
 
 ```ini
 StylesPath = styles
@@ -80,7 +80,7 @@ Then run:
 vale sync
 ```
 
-The package config enables `MDCP` and ignores already-linked GFM markdown tokens so labels such as `[Section 2](./other.md#section-2)` do not false-positive. Vale 3.15.1 syncs local directory packages such as `./node_modules/@merlon-docs/merlon-docs-presets/vale/package` as style files but moves the package `.vale.ini`, so use the fallback below for npm-directory installs in this version.
+The package config enables `MerlonDocs` and ignores already-linked GFM markdown tokens so labels such as `[Section 2](./other.md#section-2)` do not false-positive. Vale 3.15.1 syncs local directory packages such as `./node_modules/@merlon-docs/merlon-docs-presets/vale/package` as style files but moves the package `.vale.ini`, so use the fallback below for npm-directory installs in this version.
 
 Merge with other Vale packages by listing each package and combining styles:
 
@@ -94,7 +94,7 @@ BasedOnStyles = Microsoft, MerlonDocs
 TokenIgnores = \[(?:\\.|[^\[\]\\]|\[(?:\\.|[^\[\]\\])*\])*\]\([^)]*\)
 ```
 
-The heading-mention rules use `scope: ~heading` so ATX heading titles (which may contain the words Chapter/Section) are not matched. `MerlonDocs.DatedClaim` keeps the default scope, so a dated heading is flagged too. The mdcp repo's local `MerlonDocs-PandocId` style uses `scope: heading` for Pandoc IDs (`{#…}`).
+The heading-mention rules use `scope: ~heading` so ATX heading titles (which may contain the words Chapter/Section) are not matched. `MerlonDocs.DatedClaim` keeps the default scope, so a dated heading is flagged too. The Merlon Docs repository's local `MerlonDocs-PandocId` style uses `scope: heading` for Pandoc IDs (`{#…}`).
 
 Run prose checks with:
 
@@ -144,7 +144,7 @@ Shard lint scope comes from the Markdown files in the `compileOrder` guide direc
 @merlon-docs/merlon-docs-presets/vale/package/styles/MerlonDocs/*
 ```
 
-markdownlint-cli2 expects a filesystem path in `--config`, so the `node_modules/...` form above is the usual approach. Vale can sync the packaged MDCP style from `node_modules/@merlon-docs/merlon-docs-presets/vale/package`.
+markdownlint-cli2 expects a filesystem path in `--config`, so the `node_modules/...` form above is the usual approach. Vale can sync the packaged MerlonDocs style from `node_modules/@merlon-docs/merlon-docs-presets/vale/package`.
 
 ## Customizing
 
@@ -182,7 +182,7 @@ As of 2026-07-27 the median build took 41 seconds on the reference runner.
 
 ## Example
 
-See [examples/sample-guides/merlon.config.json](../../examples/sample-guides/merlon.config.json) in the mdcp repo (paths differ in the monorepo vs. a consumer install).
+See [examples/sample-guides/merlon.config.json](../../examples/sample-guides/merlon.config.json) in the Merlon Docs repository (paths differ in the monorepo vs. a consumer install).
 
 ## License
 

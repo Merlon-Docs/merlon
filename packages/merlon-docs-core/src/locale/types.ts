@@ -8,7 +8,7 @@ export interface LocalePack {
 
   /**
    * Authored word forms that introduce a line number or range in link labels
-   * (en-US: `lines`, `line`). Longest-first. Not GitHub `#L…` protocol output —
+   * (en-US: `lines`, `line`). Longest-first. Not the GitHub `#L…` fragment syntax —
    * see codeEvidence line-range docs.
    */
   readonly lineRangeWords: readonly string[];

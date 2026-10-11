@@ -78,7 +78,7 @@ export interface PathProbeOptions {
    */
   generated: string[];
   /**
-   * Paths this repository documents without having: names the protocol defines
+   * Paths this repository documents without having: names the standard defines
    * for a consumer repository, or another project's tree. Matched exactly,
    * because the name is what the document declares, so an invented file
    * beneath one still has to resolve.

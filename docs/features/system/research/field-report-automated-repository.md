@@ -19,7 +19,7 @@ Reported 2026-09 by the maintainer, from a trunk-based repository with no human-
 
 ## What held
 
-The structural half of the protocol worked without supervision:
+The structural half of the standard worked without supervision:
 
 - **Manifest membership.** Every shard was indexed. The [orphan check](../../feature-catalog.md#orphan-check) makes an unindexed shard fail the gate, so agents added the index entry as part of the same change.
 - **Link integrity.** No dangling internal link survived to trunk. [Link validation](../../link-validation.md) fails `mdcp check`, so a broken cross-reference never reached review.
@@ -46,11 +46,11 @@ The report attributes the failure to structure rather than to agents ignoring th
 4. **Deleting has a worse payoff than keeping.** Removing context risks a repeated incident that a reviewer or a later agent will notice and attribute. Keeping it costs nothing at any gate. Where a local rule offers any exception — here, narrative that "explains a constraint" — every agent resolves the tie in the same direction, so archaeology accumulates monotonically. A rule that is unconditional upstream is not safe either; it is simply unbudgeted.
 5. **A hygiene pass with no named trigger does not exist.** The repository stated a cadence and described what the pass should do. It never stated what fires the pass or how a run is evidenced. A documented schedule with no actor behind it is indistinguishable from one that was never wired, including to the agents reading the corpus.
 
-## What this means for the protocol
+## What this means for the standard
 
 The report's conclusion is narrow and worth stating plainly: **in a repository with no human in the commit path, a documentation rule with no failing check is a preference.** MDCP's pitch is trustworthy context for agents that arrive with no history. The structural checks deliver that for links and indexes. Content is where the trust actually breaks, and today the content rules rely on a reader that a fully automated repository does not have.
 
-Three positions follow, all of them protocol-level rather than repository-level:
+Three positions follow, all of them standard-level rather than repository-level:
 
 - Anything mechanical in a content rule belongs in the checker. A backtick path that resolves to nothing is a factual claim about the repository that a gate can falsify, and it was the cheapest signal available in this field report.
 - Whatever the gate validates for a compiled guide should also run over a standalone one. Being uncompiled is a compile property, not a reason to be trusted more.

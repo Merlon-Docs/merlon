@@ -7,7 +7,7 @@ Natural-language **static analysis** belongs with **[Vale](https://vale.sh/) sty
 ## Preferred homes
 
 - **GFM cross-refs** (`[label](./shard.md#slug)`) → **merlon-docs-core / CLI**. First-class [link validation](../link-validation.md) and [refs](../../glossary/refs.md). This is the compile/check job.
-- **Unlinked prose mentions** (en-US examples: "See Chapter…", bare `Ch. N`, "Section N" with no markdown link) → peer **Vale** style `MerlonDocs` in `@merlon-docs/merlon-docs-presets` (`vale/MerlonDocs`). Language-specific writing cues — not Merlon Docs protocol vocabulary. Other languages need their own Vale styles.
+- **Unlinked prose mentions** (en-US examples: "See Chapter…", bare `Ch. N`, "Section N" with no markdown link) → peer **Vale** style `MerlonDocs` in `@merlon-docs/merlon-docs-presets` (`vale/MerlonDocs`). Language-specific writing cues — not vocabulary of the Merlon Docs standard. Other languages need their own Vale styles.
 - **Dated claims** (en-US cues: `as of` or `until` before an ISO date) → peer **Vale** rule `MerlonDocs.DatedClaim` in the same `MerlonDocs` style. The cue words are Vale-style data, not locale-pack data: no compile code reads them, so they stay out of the locale pack.
 - **Pandoc IDs** (`{#…}` after a heading) → a peer **Vale** rule that the host adds, since the `MerlonDocs` style in `@merlon-docs/merlon-docs-presets` has none. [GFM scope](./gfm-scope.md#headings) states the rule against authoring them. Core may strip leftovers for cleanup, and that is not an authoring feature.
 - **GFM / Markdown shape** → peer **markdownlint**.

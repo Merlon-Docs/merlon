@@ -62,7 +62,7 @@ Agents load whole shards, never chunks. Estimated at four characters per token, 
 
 These are static sizes rather than observed consumption. The corpus doesn't record agent session logs, token counts or costs. The ratio is the only figure it can contribute.
 
-## What this means for the protocol
+## What this means for the standard
 
 - **Every file that can carry a link should have its links checked.** This is the report's strongest finding, and it restates the conclusion of the first corpus: a rule with no failing check is a preference. Here the boundary was not a missing rule but a scoping decision that bought a fast, quiet check and paid with the only persistent breakage in the repository.
 - **A scan ignore list answers one question and is used for two.** "This file is not a shard, so do not expect it in a manifest" and "do not check the links in this file" are separate exemptions behind one configuration key. Every link in the third and fourth rows above broke because the second exemption was granted along with the first.

@@ -63,7 +63,7 @@ function startsIgnoreCase(text: string, i: number, literalLower: string): boolea
   return true;
 }
 
-/** Protocol single-letter `L` prefix (GitHub fragment shape — not locale wording). */
+/** Single-letter `L` prefix of a GitHub line fragment (fragment syntax, not locale wording). */
 function matchLetterLPrefix(text: string, i: number): number | null {
   if (!startsIgnoreCase(text, i, 'l')) return null;
   // Do not treat the start of a longer word cue as bare `L` (handled via locale words).

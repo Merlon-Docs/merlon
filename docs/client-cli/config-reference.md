@@ -72,11 +72,11 @@ This table links the page that documents each key:
 
 ## Schema-only fields
 
-| Field                | Notes                                                                                                                                                               |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `refs.slugAlgorithm` | Informational; only `github` is implemented                                                                                                                         |
-| `standardVersion`    | The version of the Merlon Docs standard the repository conforms to. Defaults to `0.5.0.0`, and no command reads it                                                  |
-| `protocolVersion`    | Former name of `standardVersion`, read for one minor release. Its value fills `standardVersion` when that key is absent, and loading fails when the two keys differ |
+| Field                | Notes                                                                                                                                                                      |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `refs.slugAlgorithm` | Informational; only `github` is implemented                                                                                                                                |
+| `standardVersion`    | The version of the Merlon Docs standard the repository conforms to. Defaults to `0.5.0.0`, and no command reads it                                                         |
+| `protocolVersion`    | Former name of `standardVersion`, read until the next major release. Its value fills `standardVersion` when that key is absent, and loading fails when the two keys differ |
 
 ## Full schema and sample config
 

@@ -12,7 +12,7 @@
     "protocolVersion": {
       "type": "string",
       "deprecated": true,
-      "description": "Former name of standardVersion, still read for one minor release. Use standardVersion."
+      "description": "Former name of standardVersion, still read until the next major release. Use standardVersion."
     },
     "source": {
       "type": "string"
@@ -368,7 +368,7 @@
               "items": {
                 "type": "string"
               },
-              "description": "Exact names this repository documents without having, such as a protocol tier a consumer creates."
+              "description": "Exact names this repository documents without having, such as a tier the standard defines and a consumer creates."
             }
           }
         }
