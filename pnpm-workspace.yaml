@@ -53,6 +53,12 @@ overrides:
   # GHSA-frvp-7c67-39w9: path traversal <2.0.5; GHSA-9mqv-5hh9-4cgg: DoS <=2.0.9.
   # Pin >=2.0.10 (2.0.11+ still inside minimumReleaseAge).
   '@hono/node-server@<2.0.10': 2.0.10
+  # @changesets/cli → launch-editor → shell-quote (dev-only release tooling).
+  # GHSA-pqg4-j6r4-53mv: command injection in quote(), patched >=1.11.0.
+  shell-quote@<1.11.0: 1.11.0
+  # mdcp-site → astro → sharp (dev-only docs site build).
+  # GHSA-wq5f-xc86-pv6w / CVE-2026-96889: librsvg dependency, patched >=0.35.5.
+  sharp@<0.35.5: 0.35.5
 # Unfixable advisories (no patched version published yet). Ignore so
 # `pnpm audit --audit-level=high` exits 0 without --ignore-unfixable.
 # - GHSA-w3rx-r6r6-pgpr: image-size — patched >=2.0.3, but 2.0.3 not published
