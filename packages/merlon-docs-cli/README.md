@@ -483,7 +483,7 @@ This table links the page that documents each key:
 | `compileOrder`, `guides[].name`, `guides[].path`, `outputDir`, `outputFile`, `refs.registryFile`, `compile.outputFile` | [Minimal config](#minimal-config) and [Path layout](#path-layout)                                                                                                            |
 | `compile.scopeRoot`                                                                                                    | [Shared glossary](#shared-glossary)                                                                                                                                          |
 | `review.*`                                                                                                             | [Review thresholds](#review-thresholds) on this page                                                                                                                         |
-| `protocolVersion`, `refs.slugAlgorithm`                                                                                | [Schema-only fields](#schema-only-fields) on this page                                                                                                                       |
+| `standardVersion`, `protocolVersion`, `refs.slugAlgorithm`                                                             | [Schema-only fields](#schema-only-fields) on this page                                                                                                                       |
 | `source`, `guides[].source`, `guides[].splitLevel`                                                                     | [Consumer migration](#map-the-document-to-guides)                                                                                                                            |
 | `compile.preambleSection`                                                                                              | [Project layout](#project-layout)                                                                                                                                            |
 | `banner`, `sourceTags`, `compile.includeBanner`, `compile.sourceTags`                                                  | [Source tags and banner](../../docs/features/source-tags-and-banner.md)                                                                                                      |
@@ -523,10 +523,11 @@ This table links the page that documents each key:
 
 ### Schema-only fields
 
-| Field                | Notes                                          |
-| -------------------- | ---------------------------------------------- |
-| `refs.slugAlgorithm` | Informational; only `github` is implemented    |
-| `protocolVersion`    | Defaults to `0.5.0.0`, and no command reads it |
+| Field                | Notes                                                                                                                                                               |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `refs.slugAlgorithm` | Informational; only `github` is implemented                                                                                                                         |
+| `standardVersion`    | The version of the Merlon Docs standard the repository conforms to. Defaults to `0.5.0.0`, and no command reads it                                                  |
+| `protocolVersion`    | Former name of `standardVersion`, read for one minor release. Its value fills `standardVersion` when that key is absent, and loading fails when the two keys differ |
 
 ### Full schema and sample config
 

@@ -1,6 +1,6 @@
 # Merlon Docs
 
-**Merlon Docs** is a **documentation system** for software projects, delivered as an [Agent Skill](./agent-skills.md) and a lightweight toolchain. With people reviewing the result, it helps teams who care about durable docs distill mind maps, architecture notes, specs, and product ideas into small Markdown **shards** so intent stays reviewable in git, maintainable as ideas keep arriving, and readable one shard at a time by people and agents.
+**Merlon Docs** is an **open standard** for a documentation system in software projects, delivered as an [Agent Skill](./agent-skills.md) and a lightweight toolchain. With people reviewing the result, it helps teams who care about durable docs distill mind maps, architecture notes, specs, and product ideas into small Markdown **shards** so intent stays reviewable in git, maintainable as ideas keep arriving, and readable one shard at a time by people and agents.
 
 Formerly MDCP (MarkDown Context Protocol). The old name borrowed the word protocol from the Model Context Protocol. Merlon Docs is a set of processes for recording a project's durable information.
 

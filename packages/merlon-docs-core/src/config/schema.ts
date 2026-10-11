@@ -83,8 +83,13 @@ const GuideSchema = z.object({
 });
 
 export const MerlonConfigSchema = z.object({
-  /** Four-part protocol version for conforming repositories (default 0.5.0.0). */
-  protocolVersion: z.string().default('0.5.0.0'),
+  /** Four-part version of the Merlon Docs standard the repository conforms to (default 0.5.0.0). */
+  standardVersion: z.string().default('0.5.0.0'),
+  /**
+   * @deprecated Former name of `standardVersion`, still read for one minor release.
+   * `parseConfig` and `loadConfig` copy it to `standardVersion` and set it to the same value.
+   */
+  protocolVersion: z.string().optional(),
 
   source: z.string().optional(),
   /** Generated output root relative to docs root (default `_build`). */

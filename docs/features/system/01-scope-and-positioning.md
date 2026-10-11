@@ -4,7 +4,7 @@
 
 ## What kind of system it is
 
-[Merlon Docs](../../glossary/merlon-docs.md) is a **documentation system**, a set of processes for writing and checking a project's docs. An Agent Skill and a CLI run them offline, and people review the result. It isn't a protocol, and it differs from a wire protocol such as [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) on every row below.
+[Merlon Docs](../../glossary/merlon-docs.md) is an **open standard** for a documentation system, a set of processes for writing and checking a project's docs. An Agent Skill and a CLI run them offline, and people review the result. It isn't a protocol, and it differs from a wire protocol such as [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) on every row below.
 
 | Dimension       | MCP                                       | Merlon Docs                                                             |
 | --------------- | ----------------------------------------- | ----------------------------------------------------------------------- |
@@ -38,7 +38,7 @@ Content domain is **orthogonal** to transport. The [Code Repository Archetype](.
 
 ## OpenAPI analogy
 
-OpenAPI defines HTTP API contracts. Merlon Docs defines **documentation context contracts** for a shard tree: shard layout, compile invariants, and the refs registry. The analogy is about clear contracts — Merlon Docs itself is positioned as an Agent Skill and toolchain, not an industry “standard” to join.
+OpenAPI defines HTTP API contracts. Merlon Docs defines **documentation context contracts** for a shard tree: shard layout, compile invariants, and the refs registry. The analogy is about clear contracts. Merlon Docs is an open standard that any tool can follow, and this repository contains its Agent Skill and reference toolchain.
 
 ## Normative core vs reference implementation
 

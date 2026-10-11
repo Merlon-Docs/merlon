@@ -10,6 +10,7 @@ export {
 } from './config/schema.js';
 export {
   loadConfig,
+  parseConfig,
   resolveOutputPath,
   resolveGuideLinkBase,
   resolveRefsPath,

@@ -5,13 +5,36 @@ import { resolveUnderOutputDir, defaultGuideOutputFile } from './paths.js';
 
 export { defaultGuideOutputFile, resolveUnderOutputDir } from './paths.js';
 
+/**
+ * Validates a parsed config file with `MerlonConfigSchema` and reads the former
+ * `protocolVersion` key: its value fills `standardVersion` when that key is
+ * absent, and `protocolVersion` then mirrors `standardVersion`. Different values
+ * under the two keys are an error.
+ */
+export function parseConfig(raw: unknown): MerlonConfig {
+  let input = raw;
+  if (raw !== null && typeof raw === 'object' && !Array.isArray(raw)) {
+    const record = raw as Record<string, unknown>;
+    if (record.protocolVersion !== undefined) {
+      if (record.standardVersion === undefined) {
+        input = { ...record, standardVersion: record.protocolVersion };
+      } else if (record.standardVersion !== record.protocolVersion) {
+        throw new Error(
+          `Config sets standardVersion (${String(record.standardVersion)}) and its former name protocolVersion (${String(record.protocolVersion)}) to different values. Keep standardVersion only.`,
+        );
+      }
+    }
+  }
+  const config = MerlonConfigSchema.parse(input);
+  return { ...config, protocolVersion: config.standardVersion };
+}
+
 export function loadConfig(configPath: string, configBase: string): MerlonConfig {
   const abs = resolve(configBase, configPath);
   if (!existsSync(abs)) {
     throw new Error(`Config not found: ${abs}`);
   }
-  const raw = JSON.parse(readFileSync(abs, 'utf-8'));
-  return MerlonConfigSchema.parse(raw);
+  return parseConfig(JSON.parse(readFileSync(abs, 'utf-8')));
 }
 
 export function resolveOutputPath(config: MerlonConfig, docsRoot: string): string | undefined {

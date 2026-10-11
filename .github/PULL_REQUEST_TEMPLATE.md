@@ -8,7 +8,7 @@
 
 <!-- Required when the change touches system shards, skills, schemas, or CLI contracts. Otherwise write N/A. -->
 
-- **protocolVersion** (four-part): <!-- e.g. 0.5.0.0 — schema default / label 0.5 -->
+- **standardVersion** (four-part): <!-- e.g. 0.5.0.0 — schema default / label 0.5 -->
 - **Parent skill** (`skills/merlon-docs` `metadata.version`): <!-- e.g. 0.7.2 -->
 - **merlon-docs-cli** (if relevant): <!-- e.g. 0.7.1 -->
 

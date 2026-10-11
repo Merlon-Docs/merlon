@@ -1,15 +1,16 @@
 # Config API
 
-| Export                                                                                       | Purpose                                                                          |
-| -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| `loadConfig(path, configBase)`                                                               | Load and validate `merlon.config.json` (`path` is resolved from `configBase`)    |
-| `resolveOutputPath`, `resolveRefsPath`, `resolveGuideDir`, `resolveUnderOutputDir`           | Path resolvers for docs root and `outputDir`                                     |
-| `defaultGuideOutputFile`, `effectiveGuideOutputFile`                                         | A guide's default output file name, and its `compile.outputFile` or that default |
-| `resolveDocsRoot(config, docsRoot)`                                                          | The docs root, which is `docsRoot` as given                                      |
-| `resolveGuideLinkBase(config, docsRoot, name, compileOrderLength, compile)`                  | The output a publish output links to for a guide                                 |
-| `getGuideConfig`, `guideScanDirs`, `shardLintPaths`                                          | In-scope guide fileset and shard lint helpers                                    |
-| `MerlonConfigSchema`, `MerlonConfig`, `MerlonConfigInput`, `GuideConfig`, `GuideConfigInput` | Zod schema and types                                                             |
-| `DEFAULT_COMPILE_HOOKS`, `resolveCompileHooks`                                               | Default built-in hook pipeline and guide-level resolution                        |
+| Export                                                                                       | Purpose                                                                                       |
+| -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `loadConfig(path, configBase)`                                                               | Load and validate `merlon.config.json` (`path` is resolved from `configBase`)                 |
+| `parseConfig(raw)`                                                                           | Validate a config object that is already parsed, as `loadConfig` does after it reads the file |
+| `resolveOutputPath`, `resolveRefsPath`, `resolveGuideDir`, `resolveUnderOutputDir`           | Path resolvers for docs root and `outputDir`                                                  |
+| `defaultGuideOutputFile`, `effectiveGuideOutputFile`                                         | A guide's default output file name, and its `compile.outputFile` or that default              |
+| `resolveDocsRoot(config, docsRoot)`                                                          | The docs root, which is `docsRoot` as given                                                   |
+| `resolveGuideLinkBase(config, docsRoot, name, compileOrderLength, compile)`                  | The output a publish output links to for a guide                                              |
+| `getGuideConfig`, `guideScanDirs`, `shardLintPaths`                                          | In-scope guide fileset and shard lint helpers                                                 |
+| `MerlonConfigSchema`, `MerlonConfig`, `MerlonConfigInput`, `GuideConfig`, `GuideConfigInput` | Zod schema and types                                                                          |
+| `DEFAULT_COMPILE_HOOKS`, `resolveCompileHooks`                                               | Default built-in hook pipeline and guide-level resolution                                     |
 
 `resolveGuideLinkBase` returns the guide's `compile.outputFile` when the guide sets one. Without one, it returns the monolith when the config has one, and the guide's compiled guide otherwise. Despite its name, the result is the [link base](../features/compile-pipeline/publish-relative-links.md#when-it-runs) of only the assembly that writes that file. A guide in the monolith has one link base per document, and its own compiled guide rebases on its own path rather than on the monolith this returns.
 
@@ -37,7 +38,9 @@ Pass `process.cwd()` as `configBase` for `loadConfig`. Pass the docs root as `do
 
 With `shardsGlobs`, it returns each entry as written, negated entries included, with two exceptions. A `.` entry becomes `**`. An entry that starts with `../` gets the escaped absolute directory those segments name in their place, then `/**` when the entry is a directory, and a negated one gets `**` in front.
 
-`loadConfig` validates the file with `MerlonConfigSchema` and fills the top-level defaults, such as `outputDir`, `banner`, `sourceTags`, `scan`, `backup`, `refs` and `review`. A key inside an omitted optional object, such as `lint`, `lint.links`, `vale` or a guide's `compile`, is `undefined` after loading, and the code that reads it applies the documented default. Config essentials lists the output layout and its defaults under [Path layout](../client-cli/config-essentials.md#path-layout). [Source tags and default banner](../features/source-tags-and-banner.md) gives the default banner text and the per-guide `compile.includeBanner` and `compile.sourceTags` keys.
+`loadConfig` validates the file with `MerlonConfigSchema` through `parseConfig`, and fills the top-level defaults, such as `outputDir`, `banner`, `sourceTags`, `scan`, `backup`, `refs` and `review`. A key inside an omitted optional object, such as `lint`, `lint.links`, `vale` or a guide's `compile`, is `undefined` after loading, and the code that reads it applies the documented default. Config essentials lists the output layout and its defaults under [Path layout](../client-cli/config-essentials.md#path-layout). [Source tags and default banner](../features/source-tags-and-banner.md) gives the default banner text and the per-guide `compile.includeBanner` and `compile.sourceTags` keys.
+
+A config written before the rename stores the standard version under `protocolVersion`. `parseConfig` copies that value to `standardVersion` when `standardVersion` is absent, and it sets `protocolVersion` to the result. Different values under the two keys are an error. Parsing with `MerlonConfigSchema` alone skips that copy, so `standardVersion` takes its default.
 
 ### Publish outputs and link paths
 

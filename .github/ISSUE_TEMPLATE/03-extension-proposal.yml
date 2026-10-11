@@ -98,8 +98,8 @@ body:
   - type: input
     id: protocol-version
     attributes:
-      label: Target protocolVersion
-      description: Four-part spec version (`protocolVersion`) this extension claims to support
+      label: Target standardVersion
+      description: Four-part spec version (`standardVersion`, formerly `protocolVersion`) this extension claims to support
       placeholder: '0.5.0.0'
     validations:
       required: true

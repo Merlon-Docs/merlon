@@ -1,6 +1,6 @@
 # Vision and roadmap
 
-**Merlon Docs** is a documentation system for software projects. An [Agent Skill](../../glossary/agent-skills.md) drafts **system context** in Markdown shards and people review it, so a project's intent and terminology stay in the repository. Compile and check let the same docs serve people and agents. Teams record the durable information they need to develop and operate their software while they do the work, instead of after it.
+**Merlon Docs** is an open standard for documenting software projects. An [Agent Skill](../../glossary/agent-skills.md) drafts **system context** in Markdown shards and people review it, so a project's intent and terminology stay in the repository. Compile and check let the same docs serve people and agents. Teams record the durable information they need to develop and operate their software while they do the work, instead of after it.
 
 ## Problem
 
@@ -50,4 +50,4 @@ The V1 authoring profile includes the [Skill workflows](./skill-workflows.md).
 
 ## Governance
 
-Merlon Docs is an open-source product of Williamson Computing Services, MIT licensed. The plan is to keep growing adoption and, if that goes well, to move the project to an **open source foundation** that gives its specification and extension catalogs a neutral home. The Merlon Docs repository hosts the reference toolchain.
+Merlon Docs is an open standard and an open-source project, MIT licensed. The plan is to keep growing adoption and, if that goes well, to move the project to an **open source foundation** that gives its specification and extension catalogs a neutral home. The Merlon Docs repository hosts the reference toolchain.
