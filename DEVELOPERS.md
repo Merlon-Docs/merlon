@@ -360,9 +360,9 @@ CI and the land gate run more checks than these steps. [CI and the land gate](#c
 
 <!-- mdcp-shard: start docs/developer/safe-markdown-parsing.md -->
 
-## Safe markdown parsing (heading helpers)
+## Safe markdown parsing
 
-Maintainer note for why `mdcp-core` parses headings and related markup with shared **language-agnostic** helpers instead of ad-hoc regular expressions, and which regexes remain in the package. [ADR 0005](docs/features/adr/0005-keep-ts-scanners-over-rg-peggy-rust.md) records how the rule came about and why the scanners stay in TypeScript.
+Maintainer note on the `mdcp-core` parsers for headings, fences, broken-link markers and links. It says why they are shared **language-agnostic** helpers and hand-written scanners instead of ad-hoc regular expressions, and which regexes remain in the package. The table reader has its own page, [Tables after link rewriting](docs/features/compile-pipeline/tables-after-link-rewriting.md). [ADR 0005](docs/features/adr/0005-keep-ts-scanners-over-rg-peggy-rust.md) records how the rule came about and why the scanners stay in TypeScript.
 
 ### Why this is necessary
 
@@ -446,6 +446,48 @@ Link lint, broken-link marking, the link passes and `codeEvidence` mask code spa
 - Don't reintroduce `lintXrefs` or chapter-cue regexes in `mdcp-core`. Unlinked chapter and section cues in prose are Vale's job, as [Locale and language boundary](docs/features/design-constraints/locale-and-language.md) describes.
 
 <!-- mdcp-shard: end docs/developer/safe-markdown-parsing.md -->
+
+<!-- mdcp-shard: start docs/developer/benchmarks.md -->
+
+## Benchmarks
+
+`pnpm bench:dogfood` times compile and check on this repository's own docs against the [Performance goals](docs/features/protocol/performance.md). `pnpm bench:context-size` measures how much context a whole compiled guide and one shard of those docs take. CI doesn't run either script.
+
+### Before you run
+
+`pnpm bench:dogfood` loads the built CLI and core and compiles the docs itself, so it needs `pnpm build`. `pnpm bench:context-size` reads the compiled outputs, which `pnpm docs:compile:repo` writes after a build:
+
+```bash
+pnpm build && pnpm docs:compile:repo
+```
+
+`pnpm bench:dogfood` also runs `mdcp check` with the peer linters required. It needs Vale on `PATH` and the styles that `pnpm vale:sync` installs, as [Local setup](#first-time-bootstrap) describes, and `pnpm install` provides markdownlint-cli2.
+
+### Performance benchmark
+
+`pnpm bench:dogfood` runs [`bench-dogfood-performance.mjs`](scripts/bench-dogfood-performance.mjs). It times `mdcp compile` and `mdcp check` on `docs/` as the median of three CLI runs, and one in-process compile and link lint. It writes `docs/features/protocol/research/benchmark-dogfood-<date>.csv`, one row per operation. [Tier 4](docs/features/protocol/performance.md#tier-4-regression-metrics) of the performance goals says what its ms/link row measures, and how to work out ms/shard by hand from the compile time.
+
+### Context-size benchmark
+
+`pnpm bench:context-size` runs [`bench-context-size.mjs`](scripts/bench-context-size.mjs). It counts the characters and tokens of five compiled outputs and of the shards in the six directories it lists, and it writes `docs/features/protocol/research/context-size-dogfood-<date>.csv`. `--out <path>` writes the CSV elsewhere, and `--no-write` prints the table without writing a file. The [context-size record](docs/features/protocol/research/context-size-dogfood-2026-10-05.md) explains the rows.
+
+Token counts come from the open-source [gpt-tokenizer](https://github.com/niieani/gpt-tokenizer), with the `o200k_base` encoding by default. [Benefit claims and evidence](docs/features/protocol/benefit-claims-and-evidence.md#context-size) says how to read a token count. Switch the tokenizer to match your own stack. With `--no-write`, the examples below print the table and leave the day's CSV alone:
+
+```bash
+pnpm bench:context-size --tokenizer cl100k_base --no-write         # another gpt-tokenizer encoding
+pnpm bench:context-size --tokenizer chars4 --no-write              # characters ÷ 4, no tokenizer
+pnpm bench:context-size --tokenizer-module ./count.mjs --no-write  # your counter: export countTokens(text)
+```
+
+The other encodings are `o200k_harmony`, `p50k_base`, `p50k_edit`, `r50k_base` and `gpt2`. A counter module maps text to a number through its `countTokens` export or its default export. The script resolves a counter module's path and the `--out` path against the directory it runs in, which under pnpm is the repository root. `MDCP_TOKENIZER` and `MDCP_TOKENIZER_MODULE` set the same choices from the environment. `--tokenizer` overrides `MDCP_TOKENIZER`, and `--tokenizer-module` overrides `MDCP_TOKENIZER_MODULE`. A counter module from either source wins over an encoding, so unset `MDCP_TOKENIZER_MODULE` before you compare encodings with `--tokenizer`.
+
+### Keeping a run
+
+Each script puts the UTC date of the run in its CSV's file name, and a second run on the same UTC day overwrites that day's file. Commit a CSV you keep before you run again, and delete the CSV of a run you don't keep.
+
+A run you keep gets a research record beside its CSV, and earlier CSVs and records stay as measured. The new record goes into the records list in [About research records](docs/features/protocol/research/about-research-records.md#records), and the page it feeds links to it. For a context-size record that page is [Benefit claims and evidence](docs/features/protocol/benefit-claims-and-evidence.md#context-size), and its record link moves to the new record, as does the link on this page. The documentation site's context-size table reads one record's CSV, so a new context-size record also changes three things in `packages/mdcp-site/src/components/ContextSizes.astro`: the CSV import, `RECORD_PATH` and `RECORD_TITLE`.
+
+<!-- mdcp-shard: end docs/developer/benchmarks.md -->
 
 <!-- mdcp-shard: start docs/developer/agent-work-item-tracking.md -->
 
@@ -749,48 +791,6 @@ Find a shard under `docs/` with host search and read that one shard, as [refs](#
 
 <!-- mdcp-shard: end docs/developer/docs-dogfooding.md -->
 
-<!-- mdcp-shard: start docs/developer/benchmarks.md -->
-
-## Benchmarks
-
-`pnpm bench:dogfood` times compile and check on this repository's own docs against the [Performance goals](docs/features/protocol/performance.md). `pnpm bench:context-size` measures how much context a whole compiled guide and one shard of those docs take. CI doesn't run either script.
-
-### Before you run
-
-`pnpm bench:dogfood` loads the built CLI and core and compiles the docs itself, so it needs `pnpm build`. `pnpm bench:context-size` reads the compiled outputs, which `pnpm docs:compile:repo` writes after a build:
-
-```bash
-pnpm build && pnpm docs:compile:repo
-```
-
-`pnpm bench:dogfood` also runs `mdcp check` with the peer linters required. It needs Vale on `PATH` and the styles that `pnpm vale:sync` installs, as [Local setup](#first-time-bootstrap) describes, and `pnpm install` provides markdownlint-cli2.
-
-### Performance benchmark
-
-`pnpm bench:dogfood` runs [`bench-dogfood-performance.mjs`](scripts/bench-dogfood-performance.mjs). It times `mdcp compile` and `mdcp check` on `docs/` as the median of three CLI runs, and one in-process compile and link lint. It writes `docs/features/protocol/research/benchmark-dogfood-<date>.csv`, one row per operation. [Tier 4](docs/features/protocol/performance.md#tier-4-regression-metrics) of the performance goals says what its ms/link row measures, and how to work out ms/shard by hand from the compile time.
-
-### Context-size benchmark
-
-`pnpm bench:context-size` runs [`bench-context-size.mjs`](scripts/bench-context-size.mjs). It counts the characters and tokens of five compiled outputs and of the shards in the six directories it lists, and it writes `docs/features/protocol/research/context-size-dogfood-<date>.csv`. `--out <path>` writes the CSV elsewhere, and `--no-write` prints the table without writing a file. The [context-size record](docs/features/protocol/research/context-size-dogfood-2026-10-05.md) explains the rows.
-
-Token counts come from the open-source [gpt-tokenizer](https://github.com/niieani/gpt-tokenizer), with the `o200k_base` encoding by default. [Benefit claims and evidence](docs/features/protocol/benefit-claims-and-evidence.md#context-size) says how to read a token count. Switch the tokenizer to match your own stack. With `--no-write`, the examples below print the table and leave the day's CSV alone:
-
-```bash
-pnpm bench:context-size --tokenizer cl100k_base --no-write         # another gpt-tokenizer encoding
-pnpm bench:context-size --tokenizer chars4 --no-write              # characters ÷ 4, no tokenizer
-pnpm bench:context-size --tokenizer-module ./count.mjs --no-write  # your counter: export countTokens(text)
-```
-
-The other encodings are `o200k_harmony`, `p50k_base`, `p50k_edit`, `r50k_base` and `gpt2`. A counter module maps text to a number through its `countTokens` export or its default export. The script resolves a counter module's path and the `--out` path against the directory it runs in, which under pnpm is the repository root. `MDCP_TOKENIZER` and `MDCP_TOKENIZER_MODULE` set the same choices from the environment. `--tokenizer` overrides `MDCP_TOKENIZER`, and `--tokenizer-module` overrides `MDCP_TOKENIZER_MODULE`. A counter module from either source wins over an encoding, so unset `MDCP_TOKENIZER_MODULE` before you compare encodings with `--tokenizer`.
-
-### Keeping a run
-
-Each script puts the UTC date of the run in its CSV's file name, and a second run on the same UTC day overwrites that day's file. Commit a CSV you keep before you run again, and delete the CSV of a run you don't keep.
-
-A run you keep gets a research record beside its CSV, and earlier CSVs and records stay as measured. The new record goes into the records list in [About research records](docs/features/protocol/research/about-research-records.md#records), and the page it feeds links to it. For a context-size record that page is [Benefit claims and evidence](docs/features/protocol/benefit-claims-and-evidence.md#context-size), and its record link moves to the new record, as does the link on this page. The documentation site's context-size table reads one record's CSV, so a new context-size record also changes three things in `packages/mdcp-site/src/components/ContextSizes.astro`: the CSV import, `RECORD_PATH` and `RECORD_TITLE`.
-
-<!-- mdcp-shard: end docs/developer/benchmarks.md -->
-
 <!-- mdcp-shard: start docs/developer/markdown-formatting.md -->
 
 ## Markdown formatting
@@ -808,7 +808,7 @@ Write each [cross-link](#cross-link) in the form that [No placeholder links](doc
 Prettier aligns each GFM table in a shard with the root `.prettierrc.json`, which sets `proseWrap` to `preserve`. Compile re-aligns a table the same way after it rewrites a link in the table, and [Tables after link rewriting](docs/features/compile-pipeline/tables-after-link-rewriting.md) says which tables it leaves out of line. In a shard's tables:
 
 - When a link changes width in a table whose cells all fill their columns, compile leaves the table as written, and `pnpm format:check` fails on it in a committed output such as `README.md`. Shorten the text of one cell so Prettier pads it. `pnpm format:check` skips `docs/_build/`, which `.gitignore` lists.
-- Keep explicit `{#id}` anchors out of table cells, and keep link syntax to a repository file out of code spans in table cells.
+- Keep explicit `{#id}` anchors out of table cells, and keep a link to an insert out of code spans in table cells. The [`stripAnchors`](./packages/mdcp-core/README.md#stripanchors) hook strips the anchor and [`inlineInserts`](./packages/mdcp-core/README.md#inlineinserts) rewrites the link, and [Tables after link rewriting](docs/features/compile-pipeline/tables-after-link-rewriting.md) says that either change leaves the table out of line. The [link passes](docs/features/compile-pipeline/link-passes.md) and `codeEvidence` leave a link in a code span as written.
 
 Give the first link to an insert in a guide a paragraph of its own, ahead of any table cell that links to the insert, as [inlineInserts first inline](./packages/mdcp-core/README.md#inlineinserts-first-inline) says.
 
@@ -1475,7 +1475,7 @@ gh api -X PATCH repos/betsalel-williamson/mdcp/branches/main/protection/required
 
 CodeQL and Zizmor run on every pull request and on each push to `main`:
 
-- **CodeQL**, the `Analyze` job, analyzes `javascript-typescript` for the package sources and `actions` for workflow queries in one run, and uploads SARIF to code scanning. [Safe markdown parsing](#safe-markdown-parsing-heading-helpers) says how a ReDoS finding on a library regex gets fixed.
+- **CodeQL**, the `Analyze` job, analyzes `javascript-typescript` for the package sources and `actions` for workflow queries in one run, and uploads SARIF to code scanning. [Safe markdown parsing](#safe-markdown-parsing) says how a ReDoS finding on a library regex gets fixed.
 - **Zizmor** scans the workflow files for misconfigurations. The job fails on a finding and annotates the pull request.
 
 `protection.tf` doesn't list `Analyze` or `Zizmor` as a required check. A finding from either one shows on the pull request, and its reviewer weighs it. [Landing on `develop`](#landing-on-develop) says when the scanners first see a landing's changes.
@@ -1865,7 +1865,7 @@ Default `en-US` (one BCP 47 JSON file per locale under `src/locale/locales/`). L
 
 **ReDoS** (Regular expression Denial of Service) is when a regular expression takes far too long on certain inputs — often because overlapping or unbounded quantifiers force the engine to explore many matching paths. Attackers (or accidental pathological strings) can stall a process that runs the pattern on untrusted or library-controlled text.
 
-In this repository, CodeQL’s `js/polynomial-redos` rule flags that class of risk. Heading and Pandoc heading-id parsing in `mdcp-core` uses shared linear helpers, so the pattern does not spread. See [Safe markdown parsing](#safe-markdown-parsing-heading-helpers).
+In this repository, CodeQL’s `js/polynomial-redos` rule flags that class of risk. Heading and Pandoc heading-id parsing in `mdcp-core` uses shared linear helpers, so the pattern does not spread. See [Safe markdown parsing](#safe-markdown-parsing).
 
 <!-- mdcp-shard: end docs/glossary/redos.md -->
 

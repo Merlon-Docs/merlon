@@ -9,8 +9,12 @@
 - [Local setup](./local-setup.md)
 - [Cloud agent environments](./cloud-agent-environments.md)
 - [Repository layout](./repository-layout.md)
+
+## Change the code
+
 - [Packages and tests](./packages-and-tests.md)
 - [Safe markdown parsing](./safe-markdown-parsing.md)
+- [Benchmarks](./benchmarks.md)
 
 ## Work items
 
@@ -21,7 +25,6 @@
 ## Docs and skills
 
 - [Docs dogfooding](./docs-dogfooding.md)
-- [Benchmarks](./benchmarks.md)
 - [Markdown formatting](./markdown-formatting.md)
 - [Agent Skill development](./agent-skill.md)
 - [Live skill evals](./live-skill-evals.md)

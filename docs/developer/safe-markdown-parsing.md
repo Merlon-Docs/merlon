@@ -1,6 +1,6 @@
-# Safe markdown parsing (heading helpers)
+# Safe markdown parsing
 
-Maintainer note for why `mdcp-core` parses headings and related markup with shared **language-agnostic** helpers instead of ad-hoc regular expressions, and which regexes remain in the package. [ADR 0005](../features/adr/0005-keep-ts-scanners-over-rg-peggy-rust.md) records how the rule came about and why the scanners stay in TypeScript.
+Maintainer note on the `mdcp-core` parsers for headings, fences, broken-link markers and links. It says why they are shared **language-agnostic** helpers and hand-written scanners instead of ad-hoc regular expressions, and which regexes remain in the package. The table reader has its own page, [Tables after link rewriting](../features/compile-pipeline/tables-after-link-rewriting.md). [ADR 0005](../features/adr/0005-keep-ts-scanners-over-rg-peggy-rust.md) records how the rule came about and why the scanners stay in TypeScript.
 
 ## Why this is necessary
 

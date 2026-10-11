@@ -13,7 +13,7 @@ Write each [cross-link](../glossary/cross-link.md) in the form that [No placehol
 Prettier aligns each GFM table in a shard with the root `.prettierrc.json`, which sets `proseWrap` to `preserve`. Compile re-aligns a table the same way after it rewrites a link in the table, and [Tables after link rewriting](../features/compile-pipeline/tables-after-link-rewriting.md) says which tables it leaves out of line. In a shard's tables:
 
 - When a link changes width in a table whose cells all fill their columns, compile leaves the table as written, and `pnpm format:check` fails on it in a committed output such as `README.md`. Shorten the text of one cell so Prettier pads it. `pnpm format:check` skips `docs/_build/`, which `.gitignore` lists.
-- Keep explicit `{#id}` anchors out of table cells, and keep link syntax to a repository file out of code spans in table cells.
+- Keep explicit `{#id}` anchors out of table cells, and keep a link to an insert out of code spans in table cells. The [`stripAnchors`](../client-core/compile-hooks/strip-anchors.md) hook strips the anchor and [`inlineInserts`](../client-core/compile-hooks/inline-inserts.md) rewrites the link, and [Tables after link rewriting](../features/compile-pipeline/tables-after-link-rewriting.md) says that either change leaves the table out of line. The [link passes](../features/compile-pipeline/link-passes.md) and `codeEvidence` leave a link in a code span as written.
 
 Give the first link to an insert in a guide a paragraph of its own, ahead of any table cell that links to the insert, as [inlineInserts first inline](../client-core/compile-hooks/inline-inserts.md#inlineinserts-first-inline) says.
 
