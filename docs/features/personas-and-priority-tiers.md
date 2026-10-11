@@ -48,6 +48,8 @@ Reference: [`docs/repo-readme/`](../repo-readme/index.md) → `README.md`.
 - Dual equal get-started paths (A/B); Champion eval path in get-started; routing explains fit, not priority
 - Want to know more = archetype link hub; keep landing scannable — Mermaid only in the short **MDCP 101** section (not elsewhere on the landing)
 
+This style is advisory ([Enforceable rules](./design-constraints/enforceable-rules.md)): no check reads the order of `docs/repo-readme/` or its WIIFM lines. Whoever edits `docs/repo-readme/` applies it, and the README diff is its evidence.
+
 The evidence behind the vision link and the Champion eval path is in [Field report: a first external evaluator](./protocol/research/field-report-first-evaluator.md).
 
 ## Tool operator personas
