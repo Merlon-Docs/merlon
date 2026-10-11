@@ -10,7 +10,7 @@
 
 **MarkDown Context Protocol (MDCP)** is a **documentation system** delivered as an [Agent Skill](https://agentskills.io) plus a small compile/check toolchain. It is for people whose docs grow as product ideas keep arriving and who want each topic in a small file that a check validates. If you are evaluating it for a team, [Vision and roadmap](docs/features/protocol/00-vision-and-roadmap.md) explains the problem it solves and the principles behind it.
 
-Instead of dumping every mind map, architecture note, and spec into one file that overwhelms both humans and LLM context windows, MDCP stores that intent as small, validated Markdown **shards** such as `docs/features/my-feature.md`, `docs/procedures/line-changeover.md`, `docs/equipment/press-manual.md` or `docs/training/onboarding-module.md`. The Agent Skill tells agents to read **one shard at a time** and to update the shards before they change what the shards describe. In CI, `mdcp check` fails when a shard is orphaned or an internal link is broken. Discover and install via [skills.sh](https://skills.sh/betsalel-williamson/mdcp). <!-- mdcp-paths: illustrative -->
+Instead of putting every architecture note and spec into one file, MDCP stores that intent as small, validated Markdown **shards** such as `docs/features/my-feature.md`, `docs/procedures/line-changeover.md`, `docs/equipment/press-manual.md` or `docs/training/onboarding-module.md`. The Agent Skill tells agents to read **one shard at a time** and to update the shards before they change what the shards describe. In CI, `mdcp check` fails when a shard is orphaned or an internal link is broken. Discover and install via [skills.sh](https://skills.sh/betsalel-williamson/mdcp). <!-- mdcp-paths: illustrative -->
 
 <!-- mdcp-shard: end docs/repo-readme/what-this-tool-is.md -->
 
@@ -20,7 +20,7 @@ Instead of dumping every mind map, architecture note, and spec into one file tha
 
 Find the line that matches what you want from MDCP:
 
-- **Integrate mdcp into repo scripts and CI:** `mdcp check` is one gate for everyone who edits the docs and for CI, and it fails on orphan shards and broken internal links.
+- **Integrate mdcp into repo scripts and CI:** `mdcp check` is one gate for editors and CI.
 - **Try mdcp before mastering every CLI flag:** paste the bootstrap prompt from [Get started](#get-started), and the agent walks you through setup.
 - **Own content, not the toolchain:** each topic is its own shard. When you or an agent reads only the shard for a task, the context contains one topic in place of the whole guide.
 - **Evaluate or sponsor adoption:** judge fit from the vision and the benefit claims policy before anyone installs anything. [Evaluate before you adopt](#evaluate-before-you-adopt) links both pages.
@@ -92,11 +92,9 @@ flowchart LR
   review --> gate["mdcp check / CI"]
 ```
 
-**In an [Agent Skills](https://agentskills.io) host:** install the skill, then type or paste the bootstrap prompt that [Get started](#get-started) shows.
-
 **In a chat-only tool with no access to your repository:** don't install the toolchain yet. Keep notes in your project folder if you have one, or wait until you use an agent that can edit a git repository. Read [Overview](docs/features/overview.md) and [Vision and roadmap](docs/features/protocol/00-vision-and-roadmap.md) first.
 
-**Automation / CI:** the [Agent Skill](docs/features/agent-skill.md) tells agents _when_ to touch docs, and the [CLI](packages/mdcp-cli/README.md) runs `compile` and `check` in scripts and pipelines. [The Toolchain](#the-toolchain) covers both.
+Otherwise take Path A or Path B in [Get started](#get-started).
 
 ### Are you ready?
 
@@ -115,15 +113,15 @@ You feel the benefit on the **second session** — when prior decisions are stil
 
 ```mermaid
 flowchart TB
-  skill["Agent Skill — how agents work with docs"] --> shards["Shards — small Markdown topics in git"]
-  shards --> check["mdcp check — validation gate"]
+  skill["Agent Skill: how agents work with docs"] --> shards["Shards: small Markdown topics in git"]
+  shards --> cli["CLI: mdcp check, the validation gate"]
 ```
 
-- **[Skill](https://agentskills.io)** ([definition](docs/glossary/agent-skills.md)): instructions your agent follows (`/mdcp`, which picks a workflow for each task).
+- **[Agent Skill](https://agentskills.io)** ([definition](docs/glossary/agent-skills.md)): instructions your agent follows (`/mdcp`, which picks a workflow for each task).
 - **[Shards](docs/glossary/shard.md)**: source of truth. Compiled READMEs are generated, so do not hand-edit them.
-- **[Check](docs/glossary/check.md)**: validates the docs system as it grows.
+- **CLI**: `mdcp compile` builds the guides and [`mdcp check`](docs/glossary/check.md) validates the docs system as it grows. Both run on the Core library.
 
-[Overview](docs/features/overview.md) explains the deeper model.
+[The Toolchain](#the-toolchain) lists the three surfaces and their installs, and [Overview](docs/features/overview.md) explains the deeper model.
 
 <!-- mdcp-shard: end docs/repo-readme/mdcp-101.md -->
 
@@ -143,9 +141,9 @@ The skill tells agents _when_ and _how_ to use documentation; the CLI and core *
 
 <!-- mdcp-shard: end docs/repo-readme/the-toolchain.md -->
 
-<!-- mdcp-shard: start docs/repo-readme/project-status.md -->
+<!-- mdcp-shard: start docs/repo-readme/versions-and-feedback.md -->
 
-## Project status
+## Versions and feedback
 
 Packages and skills version independently, and the [pre-1.0 policy](docs/developer/versioning-and-releases.md#pre-10-policy-0xy) says what can change before each one reaches 1.0.0.
 
@@ -153,7 +151,7 @@ Packages and skills version independently, and the [pre-1.0 policy](docs/develop
 
 Open a [GitHub issue](https://github.com/betsalel-williamson/mdcp/issues) for feedback and bugs. To share how your team uses MDCP, open an issue from the [adoption-story template](https://github.com/betsalel-williamson/mdcp/issues/new?template=adoption-story.yml).
 
-<!-- mdcp-shard: end docs/repo-readme/project-status.md -->
+<!-- mdcp-shard: end docs/repo-readme/versions-and-feedback.md -->
 
 <!-- mdcp-shard: start docs/repo-readme/learn-more.md -->
 

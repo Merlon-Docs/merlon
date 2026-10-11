@@ -22,11 +22,9 @@ flowchart LR
   review --> gate["mdcp check / CI"]
 ```
 
-**In an [Agent Skills](https://agentskills.io) host:** install the skill, then type or paste the bootstrap prompt that [Get started](./get-started.md) shows.
-
 **In a chat-only tool with no access to your repository:** don't install the toolchain yet. Keep notes in your project folder if you have one, or wait until you use an agent that can edit a git repository. Read [Overview](../features/overview.md) and [Vision and roadmap](../features/protocol/00-vision-and-roadmap.md) first.
 
-**Automation / CI:** the [Agent Skill](../features/agent-skill.md) tells agents _when_ to touch docs, and the [CLI](../../packages/mdcp-cli/README.md) runs `compile` and `check` in scripts and pipelines. [The Toolchain](./the-toolchain.md) covers both.
+Otherwise take Path A or Path B in [Get started](./get-started.md).
 
 ## Are you ready?
 
@@ -45,12 +43,12 @@ You feel the benefit on the **second session** — when prior decisions are stil
 
 ```mermaid
 flowchart TB
-  skill["Agent Skill — how agents work with docs"] --> shards["Shards — small Markdown topics in git"]
-  shards --> check["mdcp check — validation gate"]
+  skill["Agent Skill: how agents work with docs"] --> shards["Shards: small Markdown topics in git"]
+  shards --> cli["CLI: mdcp check, the validation gate"]
 ```
 
-- **[Skill](https://agentskills.io)** ([definition](../glossary/agent-skills.md)): instructions your agent follows (`/mdcp`, which picks a workflow for each task).
+- **[Agent Skill](https://agentskills.io)** ([definition](../glossary/agent-skills.md)): instructions your agent follows (`/mdcp`, which picks a workflow for each task).
 - **[Shards](../glossary/shard.md)**: source of truth. Compiled READMEs are generated, so do not hand-edit them.
-- **[Check](../glossary/check.md)**: validates the docs system as it grows.
+- **CLI**: `mdcp compile` builds the guides and [`mdcp check`](../glossary/check.md) validates the docs system as it grows. Both run on the Core library.
 
-[Overview](../features/overview.md) explains the deeper model.
+[The Toolchain](./the-toolchain.md) lists the three surfaces and their installs, and [Overview](../features/overview.md) explains the deeper model.

@@ -6,6 +6,6 @@
   - [Get started](./get-started.md)
   - [MDCP 101](./mdcp-101.md)
   - [The Toolchain](./the-toolchain.md)
-  - [Project status](./project-status.md)
+  - [Versions and feedback](./versions-and-feedback.md)
   - [Learn more](./learn-more.md)
   - [This repository](./this-repository.md)
