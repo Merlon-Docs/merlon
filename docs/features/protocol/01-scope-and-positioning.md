@@ -30,7 +30,7 @@ MDCP is an **offline document context protocol** — not a wire protocol like [M
 
 ## Documentation domain vs transport
 
-MDCP is for **technical documentation** broadly — software specs, factory SOPs, equipment manuals, training curricula, and similar durable procedural or system docs.
+MDCP is for **technical documentation** broadly: durable procedural or system docs such as software specs.
 
 **V1 transport** is a version-controlled file tree (typically a git repo plus CI/PR review). That is how shards are authored and validated today — not a limit on _what_ you document.
 
@@ -42,10 +42,10 @@ OpenAPI defines HTTP API contracts. MDCP defines **documentation context contrac
 
 ## Normative core vs reference implementation
 
-| Layer                     | Owner                                                         |
-| ------------------------- | ------------------------------------------------------------- |
-| Normative spec (MDCP 1.0) | `docs/features/` (protocol/ plus the compile and check specs) |
-| Protocol artifacts        | Schema files in `packages/mdcp-core/`                         |
-| Extension packs           | complementary skills + local `docs/extensions/`               |
-| Reference implementation  | `@bwilliamson/mdcp-cli`, `@bwilliamson/mdcp-core`             |
-| Delivery adapters (V2/V3) | MCP server, hosted API                                        |
+| Layer                     | Owner                                                                                                  |
+| ------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Normative spec (MDCP 1.0) | `docs/features/` (protocol/ plus the compile and check specs)                                          |
+| Protocol artifacts        | Schema files in `packages/mdcp-core/`                                                                  |
+| Extension packs           | complementary skills + local [`docs/extensions/`](./extensions-and-archetypes.md#extensions-directory) |
+| Reference implementation  | `@bwilliamson/mdcp-cli`, `@bwilliamson/mdcp-core`                                                      |
+| Delivery adapters (V2/V3) | MCP server, hosted API                                                                                 |

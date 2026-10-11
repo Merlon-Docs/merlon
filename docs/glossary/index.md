@@ -22,6 +22,7 @@ Each term is its own shard under `docs/glossary/`. [Shared glossary](../client-c
 - [guide](./guide.md)
 - [manifest](./manifest.md)
 - [guide tier](./guide-tier.md)
+- [archetype](./archetype.md)
 - [standalone guide](./standalone-guide.md)
 - [idea mitosis](./idea-mitosis.md)
 - [shard single responsibility](./shard-single-responsibility.md)

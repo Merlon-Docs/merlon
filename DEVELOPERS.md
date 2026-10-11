@@ -45,6 +45,7 @@ Each term is its own shard under `docs/glossary/`. [Shared glossary](./packages/
 - [guide](#guide)
 - [manifest](#manifest)
 - [guide tier](#guide-tier)
+- [archetype](#archetype)
 - [standalone guide](#standalone-guide)
 - [idea mitosis](#idea-mitosis)
 - [shard single responsibility](#shard-single-responsibility)
@@ -1652,6 +1653,16 @@ A **guide tier** is one category in an [archetype](#archetype)'s guide layout. E
 [Default guide layout](docs/features/protocol/mdcp-1.0-spec.md#2-default-guide-layout-code-repository-archetype) defines the four tiers. Under its placement test, a shard that consumers need goes in `features/` or `client/`, and a shard that only contributors need goes in `developer/`.
 
 <!-- mdcp-shard: end docs/glossary/guide-tier.md -->
+
+<!-- mdcp-shard: start docs/glossary/archetype.md -->
+
+## archetype
+
+An **archetype**, or battery type, is a documented bundle of guide layout, glossary seeds, optional prompts and extension pointers for one project class. The default, the Code Repository Archetype, is the four [guide tiers](#guide-tier) that [Default guide layout](docs/features/protocol/mdcp-1.0-spec.md#2-default-guide-layout-code-repository-archetype) defines. The other archetypes in this repository are archetype skills, `mdcp-arch-*` [Agent Skills](#agent-skills), which [Archetypes](docs/features/protocol/extensions-and-archetypes.md#archetypes-battery-types) lists, and a team can define its own for another documentation system.
+
+The adoption archetypes in [Personas and priority tiers](docs/features/personas-and-priority-tiers.md#adoption-archetypes), such as Learner and Author, are reader goals, not layouts.
+
+<!-- mdcp-shard: end docs/glossary/archetype.md -->
 
 <!-- mdcp-shard: start docs/glossary/standalone-guide.md -->
 

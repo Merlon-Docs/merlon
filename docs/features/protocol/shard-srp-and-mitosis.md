@@ -54,7 +54,7 @@ A **guide** is an ordered constellation of shards for **one audience job family*
 - Manifest order tells a coherent story for that audience without requiring every reader to load every shard.
 - Each shard passes the [placement test](./mdcp-1.0-spec.md#2-default-guide-layout-code-repository-archetype).
 
-The MDCP engine is domain-agnostic. Other archetypes may use different guide names; the SRP and mitosis rules still apply.
+The SRP and mitosis rules apply under every [archetype](./extensions-and-archetypes.md#archetypes-battery-types), whatever its guide names.
 
 ## Two-level review
 

@@ -29,7 +29,7 @@ Each guide **MUST** have a manifest (`index.md` or `shards.md`) defining compile
 
 Glossary terms **SHOULD** be one shard per entry. [Shared glossary](../../client-cli/config-essentials.md#shared-glossary) says how guides stitch the terms through `compile.scopeRoot` and when a large glossary groups them into sub-index files.
 
-The MDCP engine itself is agnostic. Other documentation systems (e.g., Legal Operations, HR Policies) **MAY** introduce their own "battery types" (archetypes) with completely different guide tiers using the same underlying `mdcp compile` and `mdcp check` mechanics.
+Other documentation systems **MAY** introduce their own [archetypes](./extensions-and-archetypes.md#archetypes-battery-types) with different guide tiers on the same `mdcp compile` and `mdcp check` mechanics.
 
 ## 3. Compile and validation
 
@@ -49,7 +49,7 @@ Work-item workflows **MUST** resolve `WORK_ITEM` and `WORK_ITEM_LOOKUP` before e
 
 ## 5. Skills and immutability
 
-The mdcp Agent Skill installed in an agent's skills directory **MUST NOT** be hand-edited for repo-specific content. The rule is advisory ([Enforceable rules](../design-constraints/enforceable-rules.md)), because `mdcp check` reads the docs root and never an installed skill. Whoever changes the repository applies it, and the change's review is the evidence. Project overlays belong in `docs/extensions/` or repo shards. [Extensions and archetypes](./extensions-and-archetypes.md) covers extension packs and archetypes.
+The mdcp Agent Skill installed in an agent's skills directory **MUST NOT** be hand-edited for repo-specific content. The rule is advisory ([Enforceable rules](../design-constraints/enforceable-rules.md)), because `mdcp check` reads the docs root and never an installed skill. Whoever changes the repository applies it, and the change's review is the evidence. Project overlays belong in `docs/extensions/`, registered as [Extensions directory](./extensions-and-archetypes.md#extensions-directory) says, or in repo shards. [Extensions and archetypes](./extensions-and-archetypes.md) covers extension packs and archetypes.
 
 ## 6. Agent context delivery
 

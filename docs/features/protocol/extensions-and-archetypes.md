@@ -32,7 +32,7 @@ These principles are advisory ([Enforceable rules](../design-constraints/enforce
 
 ## Extensions directory
 
-Extensions are complementary skills. mdcp's own are the internal archetypes under `skills/mdcp-arch-*`, and a project can add its own in a local `docs/extensions/`.
+Extensions are complementary skills. mdcp's own are the internal archetypes under `skills/mdcp-arch-*`, and a project can add its own in a local `docs/extensions/`. Register that directory as a [guide](../../glossary/guide.md) with its own manifest, its files as `standaloneGuides` entries, or the directory in `scan.ignore`. Otherwise the [coverage scan](../coverage-scan.md) reports each markdown file in it as uncaptured, and `mdcp check` fails under `scan.strict: true`.
 
 | Kind                | Purpose                                                            | Example                                   |
 | ------------------- | ------------------------------------------------------------------ | ----------------------------------------- |
