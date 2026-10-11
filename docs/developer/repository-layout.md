@@ -45,6 +45,4 @@ mdcp/
 
 ## Published packages
 
-Each npm package and each Agent Skill versions independently via Changesets. npm packages ship `dist/` and READMEs. Skill **carriers** live under `packages/skill-*` (private; GitHub Releases + CHANGELOG). The `skills/` tree is install content only.
-
-The `mdcp-presets` README is hand-authored. The root `README.md` and the CLI and core READMEs are **compiled** from shards.
+The table in [Versioning and releases](./versioning-and-releases.md) lists each published item, its identifier and where it publishes. [Release schedule](./versioning-and-releases.md#release-schedule-release-pr-from-develop-to-main) covers the carrier package that versions a skill. The `mdcp-presets` README is hand-authored. The root `README.md` and the CLI and core READMEs are **compiled** from shards.

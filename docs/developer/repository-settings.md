@@ -57,7 +57,7 @@ gh api -X PATCH repos/betsalel-williamson/mdcp/branches/main/protection/required
 
 `protection.tf` doesn't list Release source among the required checks on `main`. [Formal models](./formal-models.md#main-only-merges-develop-or-hotfix) says what goes wrong without that rule.
 
-CodeQL and Zizmor run on every pull request and on each push to `main` or `develop`:
+CodeQL and Zizmor run on every pull request and on each push to `main`:
 
 - **CodeQL**, the `Analyze` job, analyzes `javascript-typescript` for the package sources and `actions` for workflow queries in one run, and uploads SARIF to code scanning. [Safe markdown parsing](./safe-markdown-parsing.md) says how a ReDoS finding on a library regex gets fixed.
 - **Zizmor** scans the workflow files for misconfigurations. The job fails on a finding and annotates the pull request.

@@ -1,6 +1,6 @@
 # Publishing
 
-Packages: `@bwilliamson/mdcp-core`, `@bwilliamson/mdcp-cli`, `@bwilliamson/mdcp-presets` (npm). Skill carriers: `@bwilliamson/skill-*` under `packages/skill-*` (GitHub Releases only; not npm).
+Which items publish to npm and which only to GitHub Releases is in the [Versioning and releases](./versioning-and-releases.md) table.
 
 Consumers install the Agent Skill as [Get started](../repo-readme/get-started.md) shows. The [CLI](../client-cli/install-and-quick-start.md#install) and [core](../client-core/about.md#install) package READMEs give their own install commands.
 

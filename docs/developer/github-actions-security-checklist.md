@@ -69,6 +69,6 @@ Re-run the affected rows when any of the following change:
 - Dependabot or secret-scanning configuration
 - Release mechanics ([Publishing](./publishing.md): OIDC, environments, npm trust)
 
-The [Zizmor](./repository-settings.md#required-checks-and-scanners) job checks part of that review for workflow-file changes, because it fails on a workflow misconfiguration. It scans Dependabot PRs and direct pushes to `develop` as they arrive. Its first scan of a workflow change that lands through the land workflow is on the release PR ([Landing on `develop`](./versioning-and-releases.md#landing-on-develop)).
+The [Zizmor](./repository-settings.md#required-checks-and-scanners) job checks part of that review for workflow-file changes, because it fails on a workflow misconfiguration. It scans every pull request, Dependabot's among them, and each push to `main`. Its first scan of a workflow change that lands through the land workflow, or that a maintainer pushes to `develop` directly, is on the release PR ([Landing on `develop`](./versioning-and-releases.md#landing-on-develop)).
 
 Even when nothing changes, a maintainer should run a **periodic pass** by hand about once a quarter so third-party action advisories and OWASP guidance updates do not drift unnoticed. A full pass gives every dated row a new date, so an oldest date more than a quarter old shows that a pass is overdue.

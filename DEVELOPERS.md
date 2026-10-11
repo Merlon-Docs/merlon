@@ -110,20 +110,20 @@ Agents load tracker issues and delivery conventions from [Agent work-item tracki
 
 ### Daily commands
 
-| Command                  | Purpose                                                                                                                                                       |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm build`             | Build all packages (`mdcp-core`, `mdcp-cli`)                                                                                                                  |
-| `pnpm test`              | Run every package's tests, then the repo script tests under `scripts/`. [Spec-to-test map](#spec-to-test-map) names the tests behind the spec shards it lists |
-| `pnpm test:coverage`     | Vitest coverage for `mdcp-core` and `mdcp-cli` (HTML under `packages/*/coverage/`)                                                                            |
-| `pnpm run typecheck`     | TypeScript across packages                                                                                                                                    |
-| `pnpm run lint`          | ESLint on package sources and repo scripts, and on the site with its Astro accessibility rules                                                                |
-| `pnpm run format:check`  | Prettier check                                                                                                                                                |
-| `pnpm run check`         | Full gate including skill:validate and docs:check                                                                                                             |
-| `pnpm skill:update`      | Refresh the vendor-managed installs under `.agents/skills/` from `skills/`                                                                                    |
-| `pnpm skill:dev`         | Install this checkout's `mdcp` skill for Claude Code and Cursor without prompts (cloud session setup runs it)                                                 |
-| `pnpm docs:compile:repo` | Regenerate every compiled output ([Guide directories](#guide-directories))                                                                                    |
-| `pnpm docs:check`        | Validate repo docs + `examples/sample-guides`                                                                                                                 |
-| `pnpm formal:check`      | Run the Alloy models under `formal/alloy/` (needs Java 17 or later)                                                                                           |
+| Command                  | Purpose                                                                                                       |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `pnpm build`             | Build all packages (`mdcp-core`, `mdcp-cli`)                                                                  |
+| `pnpm test`              | Run every package's tests, then the repo script tests under `scripts/`                                        |
+| `pnpm test:coverage`     | Vitest coverage for `mdcp-core` and `mdcp-cli` (HTML under `packages/*/coverage/`)                            |
+| `pnpm run typecheck`     | TypeScript across packages                                                                                    |
+| `pnpm run lint`          | ESLint on package sources and repo scripts, and on the site with its Astro accessibility rules                |
+| `pnpm run format:check`  | Prettier check                                                                                                |
+| `pnpm run check`         | Full gate including skill:validate and docs:check                                                             |
+| `pnpm skill:update`      | Refresh the vendor-managed installs under `.agents/skills/` from `skills/`                                    |
+| `pnpm skill:dev`         | Install this checkout's `mdcp` skill for Claude Code and Cursor without prompts (cloud session setup runs it) |
+| `pnpm docs:compile:repo` | Regenerate every compiled output ([Guide directories](#guide-directories))                                    |
+| `pnpm docs:check`        | Validate repo docs + `examples/sample-guides`                                                                 |
+| `pnpm formal:check`      | Run the Alloy models under `formal/alloy/` (needs Java 17 or later)                                           |
 
 [Agent Skill development](#do-not-hand-edit-agentsskills) covers refreshing the vendor-managed installs and why nobody hand-edits them.
 
@@ -260,9 +260,7 @@ mdcp/
 
 ### Published packages
 
-Each npm package and each Agent Skill versions independently via Changesets. npm packages ship `dist/` and READMEs. Skill **carriers** live under `packages/skill-*` (private; GitHub Releases + CHANGELOG). The `skills/` tree is install content only.
-
-The `mdcp-presets` README is hand-authored. The root `README.md` and the CLI and core READMEs are **compiled** from shards.
+The table in [Versioning and releases](#versioning-and-releases) lists each published item, its identifier and where it publishes. [Release schedule](#release-schedule-release-pr-from-develop-to-main) covers the carrier package that versions a skill. The `mdcp-presets` README is hand-authored. The root `README.md` and the CLI and core READMEs are **compiled** from shards.
 
 <!-- mdcp-shard: end docs/developer/repository-layout.md -->
 
@@ -1052,7 +1050,7 @@ The first two commands run `pnpm build` and `pnpm docs:compile:repo` first, beca
 
 ### Deployment
 
-[`.github/workflows/pages.yml`](.github/workflows/pages.yml) builds the site on pull requests that touch `docs/`, the site package, the core or CLI sources, the root manifests or the workflow itself. It runs the site tests, `pnpm site:build` and the accessibility check, and deploys the result to GitHub Pages from `develop`. Landings push `develop` with the workflow's own token, and a push with that token doesn't start other workflows. The [land workflow](.github/workflows/land-develop.yml) dispatches the deploy after each landing instead. [Repository settings](#repository-settings) lists the Pages source and the `github-pages` environment that the deploy needs.
+[`.github/workflows/pages.yml`](.github/workflows/pages.yml) runs only when dispatched. The [land workflow](.github/workflows/land-develop.yml) dispatches it on `develop` after each landing, in its Deploy the docs site from develop step, because the landing's push to `develop` uses the workflow's own token, which doesn't start a workflow. A maintainer can also dispatch it by hand, on `develop`. The run executes the site tests, `pnpm site:build` and the accessibility check, and deploys the result to GitHub Pages from the ref it was dispatched on. A pull request doesn't build the site, so run `pnpm site:build` before landing; otherwise a sync or link failure shows up in the deploy run after the landing. [Repository settings](#repository-settings) lists the Pages source and the `github-pages` environment that the deploy needs.
 
 ### Coverage scan
 
@@ -1241,7 +1239,7 @@ Model a part of the system when it runs as a sequence of states and a wrong orde
 
 ## Publishing
 
-Packages: `@bwilliamson/mdcp-core`, `@bwilliamson/mdcp-cli`, `@bwilliamson/mdcp-presets` (npm). Skill carriers: `@bwilliamson/skill-*` under `packages/skill-*` (GitHub Releases only; not npm).
+Which items publish to npm and which only to GitHub Releases is in the [Versioning and releases](#versioning-and-releases) table.
 
 Consumers install the Agent Skill as [Get started](README.md#get-started) shows. The [CLI](./packages/mdcp-cli/README.md#install) and [core](./packages/mdcp-core/README.md#install) package READMEs give their own install commands.
 
@@ -1465,7 +1463,7 @@ gh api -X PATCH repos/betsalel-williamson/mdcp/branches/main/protection/required
 
 `protection.tf` doesn't list Release source among the required checks on `main`. [Formal models](#main-only-merges-develop-or-hotfix) says what goes wrong without that rule.
 
-CodeQL and Zizmor run on every pull request and on each push to `main` or `develop`:
+CodeQL and Zizmor run on every pull request and on each push to `main`:
 
 - **CodeQL**, the `Analyze` job, analyzes `javascript-typescript` for the package sources and `actions` for workflow queries in one run, and uploads SARIF to code scanning. [Safe markdown parsing](#safe-markdown-parsing-heading-helpers) says how a ReDoS finding on a library regex gets fixed.
 - **Zizmor** scans the workflow files for misconfigurations. The job fails on a finding and annotates the pull request.
@@ -1551,7 +1549,7 @@ Re-run the affected rows when any of the following change:
 - Dependabot or secret-scanning configuration
 - Release mechanics ([Publishing](#publishing): OIDC, environments, npm trust)
 
-The [Zizmor](#required-checks-and-scanners) job checks part of that review for workflow-file changes, because it fails on a workflow misconfiguration. It scans Dependabot PRs and direct pushes to `develop` as they arrive. Its first scan of a workflow change that lands through the land workflow is on the release PR ([Landing on `develop`](#landing-on-develop)).
+The [Zizmor](#required-checks-and-scanners) job checks part of that review for workflow-file changes, because it fails on a workflow misconfiguration. It scans every pull request, Dependabot's among them, and each push to `main`. Its first scan of a workflow change that lands through the land workflow, or that a maintainer pushes to `develop` directly, is on the release PR ([Landing on `develop`](#landing-on-develop)).
 
 Even when nothing changes, a maintainer should run a **periodic pass** by hand about once a quarter so third-party action advisories and OWASP guidance updates do not drift unnoticed. A full pass gives every dated row a new date, so an oldest date more than a quarter old shows that a pass is overdue.
 
@@ -1649,7 +1647,7 @@ See [Manifest compile order](docs/features/manifest-compile-order.md).
 
 ## guide tier
 
-A **guide tier** is one category in an [archetype](docs/features/protocol/extensions-and-archetypes.md#archetypes-battery-types)'s guide layout. Each tier specifies what its shards contain and what they keep out. The default archetype, the Code Repository Archetype, defines four tiers: `features/`, `client/`, `developer/`, and `glossary/`. A tier can include more than one [guide](#guide).
+A **guide tier** is one category in an [archetype](#archetype)'s guide layout. Each tier specifies what its shards contain and what they keep out. The default archetype, the Code Repository Archetype, defines four tiers: `features/`, `client/`, `developer/`, and `glossary/`. A tier can include more than one [guide](#guide).
 
 [Default guide layout](docs/features/protocol/mdcp-1.0-spec.md#2-default-guide-layout-code-repository-archetype) defines the four tiers. Under its placement test, a shard that consumers need goes in `features/` or `client/`, and a shard that only contributors need goes in `developer/`.
 

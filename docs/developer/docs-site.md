@@ -43,7 +43,7 @@ The first two commands run `pnpm build` and `pnpm docs:compile:repo` first, beca
 
 ## Deployment
 
-[`.github/workflows/pages.yml`](../../.github/workflows/pages.yml) builds the site on pull requests that touch `docs/`, the site package, the core or CLI sources, the root manifests or the workflow itself. It runs the site tests, `pnpm site:build` and the accessibility check, and deploys the result to GitHub Pages from `develop`. Landings push `develop` with the workflow's own token, and a push with that token doesn't start other workflows. The [land workflow](../../.github/workflows/land-develop.yml) dispatches the deploy after each landing instead. [Repository settings](./repository-settings.md) lists the Pages source and the `github-pages` environment that the deploy needs.
+[`.github/workflows/pages.yml`](../../.github/workflows/pages.yml) runs only when dispatched. The [land workflow](../../.github/workflows/land-develop.yml) dispatches it on `develop` after each landing, in its Deploy the docs site from develop step, because the landing's push to `develop` uses the workflow's own token, which doesn't start a workflow. A maintainer can also dispatch it by hand, on `develop`. The run executes the site tests, `pnpm site:build` and the accessibility check, and deploys the result to GitHub Pages from the ref it was dispatched on. A pull request doesn't build the site, so run `pnpm site:build` before landing; otherwise a sync or link failure shows up in the deploy run after the landing. [Repository settings](./repository-settings.md) lists the Pages source and the `github-pages` environment that the deploy needs.
 
 ## Coverage scan
 
