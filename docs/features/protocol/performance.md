@@ -16,7 +16,7 @@ The [usage model](./usage-model.md) prefers granular context (one shard at a tim
 
 ## Service level objectives (SLOs)
 
-Normative targets below. Each target is defined at a shard count. A smaller corpus that meets a target doesn't show the target is met at that count. The most recent measured run is [Benchmark: this repository's docs before and after single-pass compile](./research/benchmark-dogfood-2026-06-19.md).
+The targets below are advisory ([Enforceable rules](../design-constraints/enforceable-rules.md)): no gate fails on them. CI doesn't run the benchmark, and the `status` column that `pnpm bench:dogfood` writes records met or miss for the three targets it measures without failing the run. Whoever runs it reads that column against the shard count each target is defined at. The evidence is the dated CSV the run writes beside the research records, and a research record for a run kept as a reference. A smaller corpus that meets a target doesn't show the target is met at that count. The most recent measured run is [Benchmark: this repository's docs before and after single-pass compile](./research/benchmark-dogfood-2026-06-19.md).
 
 ### Tier 1: Interactive (agent authoring loop)
 
