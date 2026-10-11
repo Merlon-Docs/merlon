@@ -42,7 +42,7 @@ Collect these via intake (or from the conversation if already stated):
 ### Step 3: Revise and Write
 
 1. Add or revise MDCP shards under the appropriate guide (`docs/features/`, `docs/developer/`, `docs/client/`), or a standalone guide such as a root `AGENTS.md`.
-2. Put intent, contracts, and acceptance criteria in shards — **not** implementation samples, function signatures, or file paths into product source (the codebase is the source of truth for how something is built).
+2. Put intent, contracts, and acceptance criteria in shards, **not** code dumps such as sample code or function signatures (the codebase is the source of truth for how something is built). Link a source file only as evidence for a claim. The code evidence compile hook, on by default, resolves such links and adds a line fragment where the label or the link target gives a line range or a symbol.
 3. **Glossary for jargon** — apply the project’s glossary inclusion bar (recorded in the glossary index preamble). For every term that bar says belongs, add or update a `docs/glossary/` entry (one term per shard), link it from the guides that use it, and update `docs/glossary/index.md`. Do not leave unexplained shorthand that fails the bar.
 4. Update each guide's `index.md` for compile order.
 5. Validate cross-links with `mdcp check` — do not edit generated compile output or `refs.json` by hand.
