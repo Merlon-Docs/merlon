@@ -5,7 +5,7 @@ These commands use tools installed in **your** repo (not bundled with mdcp):
 | Command      | Peer tool                                          | Purpose                                                                                         |
 | ------------ | -------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | `mdcp lint`  | `markdownlint-cli2`                                | Lint shards and compiled output (GFM / Markdown structure)                                      |
-| `mdcp prose` | `vale` (install separately)                        | Prose style lint (Vale style packages; Microsoft = US English)                                  |
+| `mdcp prose` | `vale` (install separately)                        | Prose style lint with the Vale styles your `.vale.ini` names                                    |
 | `mdcp links` | `markdown-link-check`                              | Optional HTTP URL checks (peer; not built-in internal link validation)                          |
 | `mdcp fix`   | `prettier`, `markdownlint-cli2`                    | Run `prettier --write .` then `markdownlint-cli2 --fix` (no config paths)                       |
 | `mdcp check` | `markdownlint-cli2`, `vale`, `markdown-link-check` | The check gate's lint, prose and URL stages, each run when its peer is installed and configured |

@@ -31,17 +31,17 @@ When a continuing stage of `mdcp check` fails, the run ends with a stderr **fail
 
 ## Command summary
 
-| Command          | When you need it                                                                                                                                                             |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mdcp compile`   | Regenerate compiled outputs and `refs.json` under `outputDir` (exits 1 on broken links by default)                                                                           |
-| `mdcp check`     | Run the full validation gate (exits 1 when any stage fails)                                                                                                                  |
-| `mdcp review`    | Report documentation sprawl signals across guide shards (report-only; `--strict` to fail)                                                                                    |
-| `mdcp shard`     | Split a source document into shards (requires top-level `source` and a `source` on each guide; see [Consumer migration](./consumer-migration.md#map-the-document-to-guides)) |
-| `mdcp refs-list` | List each compiled output's heading slugs and file from `refs.json` as JSON                                                                                                  |
-| `mdcp lint`      | markdownlint-cli2 on shards and compiled output (peer, if installed)                                                                                                         |
-| `mdcp prose`     | Vale prose lint (peer, if installed)                                                                                                                                         |
-| `mdcp links`     | markdown-link-check on compiled output (peer, if installed)                                                                                                                  |
-| `mdcp fix`       | Prettier + markdownlint `--fix`; needs a markdownlint-cli2 config with `globs` and always exits 0 ([Optional linters](./optional-linters.md))                                |
+| Command                                              | When you need it                                                                                                                                                             |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mdcp compile`                                       | Regenerate compiled outputs and `refs.json` under `outputDir` (exits 1 on broken links by default)                                                                           |
+| `mdcp check`                                         | Run the full validation gate (exits 1 when any stage fails)                                                                                                                  |
+| `mdcp review`                                        | Report documentation sprawl signals across guide shards (report-only; `--strict` to fail)                                                                                    |
+| `mdcp shard`                                         | Split a source document into shards (requires top-level `source` and a `source` on each guide; see [Consumer migration](./consumer-migration.md#map-the-document-to-guides)) |
+| `mdcp refs-gen`, `mdcp refs-check`, `mdcp refs-list` | Generate, verify or list the refs registry, as [Refs subcommands](#refs-subcommands) describes                                                                               |
+| `mdcp lint`                                          | markdownlint-cli2 on shards and compiled output (peer, if installed)                                                                                                         |
+| `mdcp prose`                                         | Vale prose lint (peer, if installed)                                                                                                                                         |
+| `mdcp links`                                         | markdown-link-check on compiled output (peer, if installed)                                                                                                                  |
+| `mdcp fix`                                           | Prettier + markdownlint `--fix`; needs a markdownlint-cli2 config with `globs` and always exits 0 ([Optional linters](./optional-linters.md))                                |
 
 ## Sprawl review
 

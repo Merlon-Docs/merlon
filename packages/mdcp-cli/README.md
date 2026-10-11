@@ -26,9 +26,9 @@ The CLI and the skill are separate installs with separate docs. [Get started](..
 
 ## Why mdcp for coding agents
 
-Which **CLI commands** address common docs failures when agents edit the repo:
+Common docs failures when agents edit the repo, and what helps:
 
-| Pain                       | What goes wrong                        | Command                                                   |
+| Pain                       | What goes wrong                        | What helps                                                |
 | -------------------------- | -------------------------------------- | --------------------------------------------------------- |
 | **Single-file docs**       | Merge conflicts, stale TOC             | `mdcp compile`; `mdcp check` catches orphans              |
 | **Broken cross-links**     | Agents guess `#anchor` slugs           | `mdcp check` (optional `mdcp refs-list` for slugs)        |
@@ -392,17 +392,17 @@ When a continuing stage of `mdcp check` fails, the run ends with a stderr **fail
 
 ### Command summary
 
-| Command          | When you need it                                                                                                                                      |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mdcp compile`   | Regenerate compiled outputs and `refs.json` under `outputDir` (exits 1 on broken links by default)                                                    |
-| `mdcp check`     | Run the full validation gate (exits 1 when any stage fails)                                                                                           |
-| `mdcp review`    | Report documentation sprawl signals across guide shards (report-only; `--strict` to fail)                                                             |
-| `mdcp shard`     | Split a source document into shards (requires top-level `source` and a `source` on each guide; see [Consumer migration](#map-the-document-to-guides)) |
-| `mdcp refs-list` | List each compiled output's heading slugs and file from `refs.json` as JSON                                                                           |
-| `mdcp lint`      | markdownlint-cli2 on shards and compiled output (peer, if installed)                                                                                  |
-| `mdcp prose`     | Vale prose lint (peer, if installed)                                                                                                                  |
-| `mdcp links`     | markdown-link-check on compiled output (peer, if installed)                                                                                           |
-| `mdcp fix`       | Prettier + markdownlint `--fix`; needs a markdownlint-cli2 config with `globs` and always exits 0 ([Optional linters](#optional-linters))             |
+| Command                                              | When you need it                                                                                                                                      |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mdcp compile`                                       | Regenerate compiled outputs and `refs.json` under `outputDir` (exits 1 on broken links by default)                                                    |
+| `mdcp check`                                         | Run the full validation gate (exits 1 when any stage fails)                                                                                           |
+| `mdcp review`                                        | Report documentation sprawl signals across guide shards (report-only; `--strict` to fail)                                                             |
+| `mdcp shard`                                         | Split a source document into shards (requires top-level `source` and a `source` on each guide; see [Consumer migration](#map-the-document-to-guides)) |
+| `mdcp refs-gen`, `mdcp refs-check`, `mdcp refs-list` | Generate, verify or list the refs registry, as [Refs subcommands](#refs-subcommands) describes                                                        |
+| `mdcp lint`                                          | markdownlint-cli2 on shards and compiled output (peer, if installed)                                                                                  |
+| `mdcp prose`                                         | Vale prose lint (peer, if installed)                                                                                                                  |
+| `mdcp links`                                         | markdown-link-check on compiled output (peer, if installed)                                                                                           |
+| `mdcp fix`                                           | Prettier + markdownlint `--fix`; needs a markdownlint-cli2 config with `globs` and always exits 0 ([Optional linters](#optional-linters))             |
 
 ### Sprawl review
 
@@ -630,7 +630,7 @@ These commands use tools installed in **your** repo (not bundled with mdcp):
 | Command      | Peer tool                                          | Purpose                                                                                         |
 | ------------ | -------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | `mdcp lint`  | `markdownlint-cli2`                                | Lint shards and compiled output (GFM / Markdown structure)                                      |
-| `mdcp prose` | `vale` (install separately)                        | Prose style lint (Vale style packages; Microsoft = US English)                                  |
+| `mdcp prose` | `vale` (install separately)                        | Prose style lint with the Vale styles your `.vale.ini` names                                    |
 | `mdcp links` | `markdown-link-check`                              | Optional HTTP URL checks (peer; not built-in internal link validation)                          |
 | `mdcp fix`   | `prettier`, `markdownlint-cli2`                    | Run `prettier --write .` then `markdownlint-cli2 --fix` (no config paths)                       |
 | `mdcp check` | `markdownlint-cli2`, `vale`, `markdown-link-check` | The check gate's lint, prose and URL stages, each run when its peer is installed and configured |

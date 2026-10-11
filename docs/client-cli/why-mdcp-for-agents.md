@@ -1,8 +1,8 @@
 # Why mdcp for coding agents
 
-Which **CLI commands** address common docs failures when agents edit the repo:
+Common docs failures when agents edit the repo, and what helps:
 
-| Pain                       | What goes wrong                        | Command                                                   |
+| Pain                       | What goes wrong                        | What helps                                                |
 | -------------------------- | -------------------------------------- | --------------------------------------------------------- |
 | **Single-file docs**       | Merge conflicts, stale TOC             | `mdcp compile`; `mdcp check` catches orphans              |
 | **Broken cross-links**     | Agents guess `#anchor` slugs           | `mdcp check` (optional `mdcp refs-list` for slugs)        |
