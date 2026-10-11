@@ -27,7 +27,9 @@ Several commands run peer tools that you install in your repository, such as mar
 
 ## Stability
 
-Before **1.0.0**, this package has **no API stability guarantee**: CLI commands, flags, the `mdcp.config.json` schema and compile output can change in any `0.x.y` release, under the [pre-1.0 policy](../developer/versioning-and-releases.md#pre-10-policy-0xy). Read the changelog and release notes of each MDCP package you use before upgrading. They hold the upgrade notes for earlier releases, which the feature catalog doesn't repeat.
+Before **1.0.0**, CLI commands, flags, the `mdcp.config.json` schema and compile output can change in any `0.x.y` release, under the [pre-1.0 policy](../developer/versioning-and-releases.md#pre-10-policy-0xy).
+
+Before upgrading, read the changelog and release notes of each MDCP package you use. They hold the upgrade notes for earlier releases, which the feature catalog doesn't repeat.
 
 ## Quick start
 
@@ -73,7 +75,7 @@ Before **1.0.0**, this package has **no API stability guarantee**: CLI commands,
    mdcp check --config docs/mdcp.config.json --docs-root docs --skip-vale
    ```
 
-   `--config` resolves from the directory you run the command in, and `--docs-root` sets the docs root. [Config essentials](./config-essentials.md#--config-vs---docs-root) has the details, and [Global options](./commands-reference.md#global-options) lists the options that every command accepts.
+   [`--config` vs `--docs-root`](./config-essentials.md#--config-vs---docs-root) says what each flag resolves from, and [Global options](./commands-reference.md#global-options) lists the options that every command accepts.
 
    `--skip-vale` leaves Vale out of the check. Without it, `mdcp check` runs Vale whenever it finds `vale`, and Vale stops with a runtime error when it can't find a config. Drop the flag once you set up Vale as [Optional linters](./optional-linters.md) describes.
 

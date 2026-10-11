@@ -73,7 +73,9 @@ Several commands run peer tools that you install in your repository, such as mar
 
 ### Stability
 
-Before **1.0.0**, this package has **no API stability guarantee**: CLI commands, flags, the `mdcp.config.json` schema and compile output can change in any `0.x.y` release, under the [pre-1.0 policy](../../DEVELOPERS.md#pre-10-policy-0xy). Read the changelog and release notes of each MDCP package you use before upgrading. They hold the upgrade notes for earlier releases, which the feature catalog doesn't repeat.
+Before **1.0.0**, CLI commands, flags, the `mdcp.config.json` schema and compile output can change in any `0.x.y` release, under the [pre-1.0 policy](../../DEVELOPERS.md#pre-10-policy-0xy).
+
+Before upgrading, read the changelog and release notes of each MDCP package you use. They hold the upgrade notes for earlier releases, which the feature catalog doesn't repeat.
 
 ### Quick start
 
@@ -119,7 +121,7 @@ Before **1.0.0**, this package has **no API stability guarantee**: CLI commands,
    mdcp check --config docs/mdcp.config.json --docs-root docs --skip-vale
    ```
 
-   `--config` resolves from the directory you run the command in, and `--docs-root` sets the docs root. [Config essentials](#--config-vs---docs-root) has the details, and [Global options](#global-options) lists the options that every command accepts.
+   [`--config` vs `--docs-root`](#--config-vs---docs-root) says what each flag resolves from, and [Global options](#global-options) lists the options that every command accepts.
 
    `--skip-vale` leaves Vale out of the check. Without it, `mdcp check` runs Vale whenever it finds `vale`, and Vale stops with a runtime error when it can't find a config. Drop the flag once you set up Vale as [Optional linters](#optional-linters) describes.
 
@@ -445,13 +447,7 @@ Every command accepts:
 | `--backup-dir <path>` | from config        | Backup directory, relative to `outputDir` or absolute                            |
 | `--backup-ext <ext>`  | from config        | Suffix for backup file names                                                     |
 
-**Repo-root npm scripts** typically use both flags:
-
-```bash
-mdcp compile --config docs/mdcp.config.json --docs-root docs
-```
-
-`--config` locates the file from where the command runs; `--docs-root` sets the shard tree root. These bases are independent — see [Config essentials](#--config-vs---docs-root).
+Repo-root npm scripts pass both `--config` and `--docs-root`, as [`--config` vs `--docs-root`](#--config-vs---docs-root) explains.
 
 ### Daily workflow
 
@@ -597,7 +593,7 @@ mdcp check --config docs/mdcp.config.json --docs-root docs
 mdcp refs-list --config docs/mdcp.config.json --docs-root docs
 ```
 
-`mdcp check` fails on dead `#` fragments and bad paths. `mdcp refs-list` lists the heading slugs of each compiled output, with the output's file, from the [refs registry](#refs-registry) that `mdcp compile` writes. When `mdcp check` reports a dead anchor on a link into a compiled output, look up that file's slugs with `mdcp refs-list --format table`. A `#fragment` has to match a slug of the file the link points at. For a bare `#fragment` in a shard, that is each output that stitches the shard. Compile stitches a guide's shard into the guide's [compiled guide](#compiled-guide) and, for a guide in the [monolith](#monolith), into the monolith too, where the same heading can take another slug, such as `setup-1` for `setup`. A bare `#fragment` may also point at the id of a section in that output, such as a `FIND-*` finding id. `mdcp refs-list` doesn't print those ids. Compile doesn't write an output for a [standalone guide](#standalone-guide), so the registry doesn't hold its headings.
+`mdcp check` fails on dead `#` fragments and bad paths. `mdcp refs-list` lists the heading slugs of each compiled output, with the output's file, from the [refs registry](#refs-registry) that `mdcp compile` writes. When `mdcp check` reports a dead anchor on a link into a compiled output, look up that file's slugs with `mdcp refs-list --format table`. A `#fragment` has to match a slug of the file the link points at. For a bare `#fragment` in a shard, that is each output that stitches the shard. Compile stitches a guide's shard into the guide's [compiled guide](#compiled-guide) and, for a guide in the [monolith](#monolith), into the monolith too, where the same heading can take another slug, such as `setup-1` for `setup`. A bare `#fragment` may also point at the id of a section in that output, such as a `FIND-*` finding id. `mdcp refs-list` doesn't print those ids. Compile doesn't write its own output for a [standalone guide](#standalone-guide), so its headings are in the registry only when a guide stitches the file through its manifest or a `compile.scopeRoot` walk, as [Standalone guide behavior](../../docs/features/coverage-scan.md#standalone-guide-behavior) says.
 
 ### Heading slugs (GitHub rules)
 

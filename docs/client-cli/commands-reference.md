@@ -13,13 +13,7 @@ Every command accepts:
 | `--backup-dir <path>` | from config        | Backup directory, relative to `outputDir` or absolute                            |
 | `--backup-ext <ext>`  | from config        | Suffix for backup file names                                                     |
 
-**Repo-root npm scripts** typically use both flags:
-
-```bash
-mdcp compile --config docs/mdcp.config.json --docs-root docs
-```
-
-`--config` locates the file from where the command runs; `--docs-root` sets the shard tree root. These bases are independent — see [Config essentials](./config-essentials.md#--config-vs---docs-root).
+Repo-root npm scripts pass both `--config` and `--docs-root`, as [`--config` vs `--docs-root`](./config-essentials.md#--config-vs---docs-root) explains.
 
 ## Daily workflow
 
