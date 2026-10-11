@@ -23,7 +23,7 @@ describe('bench-context-size', () => {
   it('writes each run to a dated CSV beside the research records', () => {
     const out = parseArgs([], {}, '2026-10-05').out.split(sep).join('/');
     assert.ok(
-      out.endsWith('/docs/features/protocol/research/context-size-dogfood-2026-10-05.csv'),
+      out.endsWith('/docs/features/system/research/context-size-dogfood-2026-10-05.csv'),
       out,
     );
     assert.equal(parseArgs(['--out', 'x.csv'], {}, '2026-10-05').out, resolve('x.csv'));

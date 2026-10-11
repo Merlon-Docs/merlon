@@ -1,17 +1,17 @@
-# `mdcp` design-architecture workflow live evals
+# `merlon-docs` design-architecture workflow live evals
 
-Fixtures and prompts for the optional [skill-creator](../../../../../.agents/skills/skill-creator/SKILL.md) loop against the `mdcp` skill's design-architecture workflow. Not a CI gate.
+Fixtures and prompts for the optional [skill-creator](../../../../../.agents/skills/skill-creator/SKILL.md) loop against the `merlon-docs` skill's design-architecture workflow. Not a CI gate.
 
 Parent suite: [`tests/skills/merlon-docs/evals/`](../README.md). Maintainer index: [`docs/developer/live-skill-evals.md`](../../../../../docs/developer/live-skill-evals.md).
 
 ## Layout
 
-| Path                         | Purpose                                                                     |
-| ---------------------------- | --------------------------------------------------------------------------- |
-| `evals.json`                 | Prompts, `expected_output`, and named `assertions` for MDCP sharding checks |
-| `files/greenfield-design/`   | Empty feature/ADR indexes — capture architecture as new shards              |
-| `files/brownfield-monolith/` | Large `docs/ARCHITECTURE.md` monolith to split into `docs/features/` shards |
-| `files/design-fixture/`      | Thin sandbox + packages bait for design-only scope pressure                 |
+| Path                         | Purpose                                                                            |
+| ---------------------------- | ---------------------------------------------------------------------------------- |
+| `evals.json`                 | Prompts, `expected_output`, and named `assertions` for Merlon Docs sharding checks |
+| `files/greenfield-design/`   | Empty feature/ADR indexes — capture architecture as new shards                     |
+| `files/brownfield-monolith/` | Large `docs/ARCHITECTURE.md` monolith to split into `docs/features/` shards        |
+| `files/design-fixture/`      | Thin sandbox + packages bait for design-only scope pressure                        |
 
 ## What the suite covers
 
@@ -20,7 +20,7 @@ Parent suite: [`tests/skills/merlon-docs/evals/`](../README.md). Maintainer inde
 3. **Design-only scope** — oversized “build the feature” ask stays within the design-architecture workflow's boundaries
 4. **Atomic commit groups (plan-only)** — ADR + design shard + indexes under “squash / skip polish” pressure; must include numbered commit groups and stop for review
 
-Focus is **MDCP documentation-system** behavior (small shards, links, indexes, no drive-by product code) — not grading systems-design brilliance. A separate design-thinking skill is out of scope; prompts only check that the workflow advises pairing when deep critique is requested.
+Focus is **Merlon Docs documentation-system** behavior (small shards, links, indexes, no drive-by product code) — not grading systems-design brilliance. A separate design-thinking skill is out of scope; prompts only check that the workflow advises pairing when deep critique is requested.
 
 ## Discrimination notes (iteration-2)
 

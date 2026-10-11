@@ -30,7 +30,7 @@ The Features Guide's [Compile pipeline](../../features/compile-pipeline/index.md
 
 ## Extension pattern
 
-A custom hook runs only in a process that registers it with `registerCompileHook` before it calls `compileGuideResults` or `compileGuides`. Importing the core registers the built-in hooks and `identity`, which returns the body unchanged. The mdcp CLI doesn't load a custom hook, so `merlon compile` and `merlon check` compile without one. Register yours in your own build script:
+A custom hook runs only in a process that registers it with `registerCompileHook` before it calls `compileGuideResults` or `compileGuides`. Importing the core registers the built-in hooks and `identity`, which returns the body unchanged. The Merlon Docs CLI doesn't load a custom hook, so `merlon compile` and `merlon check` compile without one. Register yours in your own build script:
 
 ```typescript
 import { registerCompileHook } from '@merlon-docs/merlon-docs-core';

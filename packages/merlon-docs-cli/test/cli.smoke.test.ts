@@ -92,7 +92,7 @@ function writeValeLevelFixture(docs: string, vale: Record<string, unknown>, body
 
 /**
  * Repo-layout fixture: guide shards under `docs/`, standalone guides at the repo root
- * (the scan root), and a `.vale.ini` in `docs/` on the shipped MDCP style. AGENTS.md
+ * (the scan root), and a `.vale.ini` in `docs/` on the shipped MerlonDocs style. AGENTS.md
  * trips the error-level `MerlonDocs.UnlinkedSeeChapter`; the guide shard is clean.
  */
 function writeStandaloneValeFixture(
@@ -1703,7 +1703,7 @@ describe('cli smoke', () => {
     }
   });
 
-  it('applies the presets README path section to the absolute paths mdcp passes Vale', () => {
+  it('applies the presets README path section to the absolute paths merlon passes Vale', () => {
     if (!valeInstalled()) return;
 
     // The documented .vale.ini block that exempts research records from MerlonDocs.DatedClaim.

@@ -1,7 +1,7 @@
 # Doc-only workflow
 
-Product capability: the **doc-only** workflow of the `mdcp` skill authors or refactors
-MDCP shards as a technical-writer pass — durable guide content without changing
+Product capability: the **doc-only** workflow of the `merlon-docs` skill authors or refactors
+Merlon Docs shards as a technical-writer pass — durable guide content without changing
 functional product code.
 
 Workflow file: [`skills/merlon-docs/references/workflows/doc-only.md`](../../../../skills/merlon-docs/references/workflows/doc-only.md).
@@ -30,7 +30,7 @@ durable docs so search stays trustworthy.
 - **Architecture intent / ADR drafting as the primary deliverable** — use
   the [design-architecture workflow](./design-architecture.md).
 - **Primary client-guide UX / journey design** — use the [ux workflow](./ux.md).
-- **Bootstrapping MDCP in an empty or legacy repo** — use
+- **Bootstrapping Merlon Docs in an empty or legacy repo** — use
   the [getting-started workflow](./getting-started.md).
 - **Keeping “old way” sections for archaeology** — Git history preserves prior
   wording; consumer notice of removed behavior belongs in the changeset pipeline.

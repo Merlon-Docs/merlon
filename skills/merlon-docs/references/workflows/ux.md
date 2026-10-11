@@ -1,10 +1,10 @@
 # UX workflow
 
-> Loaded by the `mdcp` skill. Its hard rules, QA principles, and **What
-> belongs where** apply throughout. The `mdcp` CLI must be installed.
+> Loaded by the `merlon-docs` skill. Its hard rules, QA principles, and **What
+> belongs where** apply throughout. The `merlon` CLI must be installed.
 
 Act as an expert UX Designer (and Frontend Engineer when UI is required) to
-apply **user-centric design** using MDCP shards — end-user value, processes,
+apply **user-centric design** using Merlon Docs shards — end-user value, processes,
 and workflows first; interfaces second.
 
 ## Role
@@ -36,7 +36,7 @@ Collect these via intake (or from the conversation if already stated):
 1. Follow `WORK_ITEM_LOOKUP`. Inspect the repository for scope, acceptance criteria, validation commands, and delivery conventions before editing.
 2. Treat acceptance criteria as the scope boundary — one UX scope at a time; do not expand into adjacent issues unless `WORK_ITEM` explicitly includes them.
 3. Outline steps from `WORK_ITEM` and repo context. Pull only the shards, docs, and code paths needed for this task.
-4. Before waiting for human review, include an **Atomic commit groups** section in the plan per the `mdcp` skill's QA principles (id/name, one concern, exact files, conventional commit subject). After approval, commit one group at a time.
+4. Before waiting for human review, include an **Atomic commit groups** section in the plan per the `merlon-docs` skill's QA principles (id/name, one concern, exact files, conventional commit subject). After approval, commit one group at a time.
 
 ### Step 2: Branch and Value Focus
 

@@ -1,10 +1,10 @@
 # Shard single responsibility and idea mitosis
 
-MDCP treats documentation as library science for software product intent: settle a concept, give it one place to live, and keep that place small enough that a human or agent can load it alone without being misled.
+Merlon Docs treats documentation as library science for software product intent: settle a concept, give it one place to live, and keep that place small enough that a human or agent can load it alone without being misled.
 
 The focal rule is **[shard single responsibility](../../glossary/shard-single-responsibility.md) for a documentation shard**. How shards assemble into guides is secondary. Frameworks that informed this thinking are listed in [Acknowledgments](./acknowledgments.md) — they are provenance, not the instruction set.
 
-The `mdcp` skill states these rules for agents, in the QA principles of `SKILL.md` and in [`skills/merlon-docs/references/shard-responsibility.md`](../../../skills/merlon-docs/references/shard-responsibility.md), because every install gets a copy of those files. [Agent Skill](../agent-skill.md#quality-assurance-qa-principles) names the skill as their owner. This page explains the rules in more depth. No check compares the three copies with each other or with the glossary entry [shard single responsibility](../../glossary/shard-single-responsibility.md), so keeping the four in step is advisory ([Enforceable rules](../design-constraints/enforceable-rules.md)): whoever changes a rule changes all four, and the change's review is the evidence.
+The `merlon-docs` skill states these rules for agents, in the QA principles of `SKILL.md` and in [`skills/merlon-docs/references/shard-responsibility.md`](../../../skills/merlon-docs/references/shard-responsibility.md), because every install gets a copy of those files. [Agent Skill](../agent-skill.md#quality-assurance-qa-principles) names the skill as their owner. This page explains the rules in more depth. No check compares the three copies with each other or with the glossary entry [shard single responsibility](../../glossary/shard-single-responsibility.md), so keeping the four in step is advisory ([Enforceable rules](../design-constraints/enforceable-rules.md)): whoever changes a rule changes all four, and the change's review is the evidence.
 
 ## Single responsibility rule
 
@@ -28,7 +28,7 @@ When pressure builds along more than one axis, **split** the shard instead of le
 
 ### Split when
 
-1. **Dual audience** — consumers and contributors both “need this paragraph” → apply the [placement test](./mdcp-1.0-spec.md#2-default-guide-layout-code-repository-archetype); usually `features`/`client` vs `developer`.
+1. **Dual audience** — consumers and contributors both “need this paragraph” → apply the [placement test](./merlon-docs-1.0-spec.md#2-default-guide-layout-code-repository-archetype); usually `features`/`client` vs `developer`.
 2. **Dual job** — understanding _why_ mixed with _how to do it_ or with look-up facts → separate explanation, how-to/runbook, and reference/definition shards.
 3. **Dual concern** — two independent capabilities or decisions → one shard each.
 4. **Load failure** — reading the file alone misleads → extract the missing concern or merge with the sibling that must travel with it (mitosis can also mean “these two were never separate organisms”).
@@ -52,7 +52,7 @@ A **guide** is an ordered constellation of shards for **one audience job family*
 
 - Each shard still passes single responsibility.
 - Manifest order tells a coherent story for that audience without requiring every reader to load every shard.
-- Each shard passes the [placement test](./mdcp-1.0-spec.md#2-default-guide-layout-code-repository-archetype).
+- Each shard passes the [placement test](./merlon-docs-1.0-spec.md#2-default-guide-layout-code-repository-archetype).
 
 The SRP and mitosis rules apply under every [archetype](./extensions-and-archetypes.md#archetypes-battery-types), whatever its guide names.
 

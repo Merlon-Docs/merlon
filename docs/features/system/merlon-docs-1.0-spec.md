@@ -1,12 +1,12 @@
-# MDCP 1.0 specification (draft)
+# Merlon Docs 1.0 specification (draft)
 
-Normative specification for the MarkDown Context Protocol ([MDCP](../../glossary/mdcp.md)).
+Normative specification for [Merlon Docs](../../glossary/merlon-docs.md), the documentation system.
 
-> The reference implementation leads and this text follows it. Protocol versioning is independent of package semver. Agent entrypoint is the parent **Agent Skill** (`/merlon-docs`).
+> The reference implementation leads and this text follows it. The specification version, `protocolVersion` in the config schema, is independent of package semver. Agent entrypoint is the parent **Agent Skill** (`/merlon-docs`).
 
 ## 1. Introduction
 
-MDCP defines **offline document context preparation**, from shard layout and compile semantics to the validation pipeline and the skill workflows. It does **not** define wire transport (see [Scope and positioning](./01-scope-and-positioning.md)).
+Merlon Docs defines **offline document context preparation**, from shard layout and compile semantics to the validation pipeline and the skill workflows. It does **not** define wire transport (see [Scope and positioning](./01-scope-and-positioning.md)).
 
 Conformance keywords: **MUST**, **SHOULD**, **MAY** (RFC 2119 sense).
 
@@ -46,13 +46,13 @@ The normative clauses for compile and validation are the twelve shards that the 
 
 ## 4. Skill workflows
 
-Skill workflows are part of the MDCP 1.0 authoring profile. The `mdcp` skill selects one per task (e.g. the feature-level workflow for a code change). See [Skill workflows](./skill-workflows.md).
+Skill workflows are part of the Merlon Docs 1.0 authoring profile. The `merlon-docs` skill selects one per task (e.g. the feature-level workflow for a code change). See [Skill workflows](./skill-workflows.md).
 
 Work-item workflows **MUST** resolve `WORK_ITEM` and `WORK_ITEM_LOOKUP` before editing, as [Required intake](./skill-workflows.md#required-intake) defines. Feature work **SHOULD** use the [feature-level workflow](./workflows/feature-level.md). Both rules are advisory, like the other obligations on [Skill workflows](./skill-workflows.md), which says who applies them and what evidence a session leaves.
 
 ## 5. Skills and immutability
 
-The mdcp Agent Skill installed in an agent's skills directory **MUST NOT** be hand-edited for repo-specific content. The rule is advisory ([Enforceable rules](../design-constraints/enforceable-rules.md)), because `merlon check` reads the docs root and never an installed skill. Whoever changes the repository applies it, and the change's review is the evidence. Project overlays belong in `docs/extensions/`, registered as [Extensions directory](./extensions-and-archetypes.md#extensions-directory) says, or in repo shards. [Extensions and archetypes](./extensions-and-archetypes.md) covers extension packs and archetypes.
+The Merlon Docs Agent Skill installed in an agent's skills directory **MUST NOT** be hand-edited for repo-specific content. The rule is advisory ([Enforceable rules](../design-constraints/enforceable-rules.md)), because `merlon check` reads the docs root and never an installed skill. Whoever changes the repository applies it, and the change's review is the evidence. Project overlays belong in `docs/extensions/`, registered as [Extensions directory](./extensions-and-archetypes.md#extensions-directory) says, or in repo shards. [Extensions and archetypes](./extensions-and-archetypes.md) covers extension packs and archetypes.
 
 ## 6. Agent context delivery
 
@@ -60,4 +60,4 @@ Agent context comes from the parent **Agent Skill** and one-shard reads ([ADR 00
 
 ## Appendix A (informative)
 
-MDCP vs MCP and delivery adapters: [01-scope-and-positioning.md](./01-scope-and-positioning.md)
+Merlon Docs vs MCP and delivery adapters: [01-scope-and-positioning.md](./01-scope-and-positioning.md)

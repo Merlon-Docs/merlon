@@ -3,4 +3,4 @@
 **Prepared For:** Example Client
 **Prepared By:** Example Consulting
 
-This package demonstrates the mdcp sharded documentation workflow.
+This package demonstrates the Merlon Docs sharded documentation workflow.

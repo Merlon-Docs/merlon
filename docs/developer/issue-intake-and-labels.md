@@ -18,7 +18,7 @@ Pick the Track value from [Track selection](#track-selection).
 
 | Track             | Use for                                                                 |
 | ----------------- | ----------------------------------------------------------------------- |
-| 1.0 Formalization | Protocol ADR, normative spec, schemas, conformance                      |
+| 1.0 Formalization | System ADR, normative spec, schemas, conformance                        |
 | Maintenance       | Bugs, compile/check correctness, agent-process hygiene, adoption polish |
 | Performance       | SLOs, benchmarks, engine spikes (often `priority:defer`)                |
 | Future (V2+)      | MCP server, hosted API, and other post-V1 delivery surfaces             |
@@ -55,7 +55,7 @@ Use **one** mutually exclusive GitHub label so the board and `gh issue list` sta
 2. **Labels**: maintainers or coding agents apply the matching `priority:*` label when triaging (GitHub forms cannot map a dropdown to a label automatically). Replace any previous `priority:*` label so only one remains.
 3. **What to work on next**: prefer open issues labeled `priority:P0`, then `P1`. Skip `priority:defer` until the gate in the issue body is met.
 
-Issue templates live under `.github/ISSUE_TEMPLATE/` (bug report, feedback, adoption story, extension proposal). The adoption-story template has no priority dropdown, because it records qualitative evidence. Extension proposals use the priority dropdown and the `enhancement` type label, and maintainers usually also apply `protocol`. Pull requests use `.github/PULL_REQUEST_TEMPLATE.md`, which asks for protocol/skill version when the change touches those surfaces.
+Issue templates live under `.github/ISSUE_TEMPLATE/` (bug report, feedback, adoption story, extension proposal). The adoption-story template has no priority dropdown, because it records qualitative evidence. Extension proposals use the priority dropdown and the `enhancement` type label, and maintainers usually also apply `protocol`. Pull requests use `.github/PULL_REQUEST_TEMPLATE.md`, which asks for the spec and skill versions when the change touches those surfaces.
 
 ### Other labels (apply on intake)
 
@@ -89,7 +89,7 @@ PROJECT_ID=$(gh api graphql -f query='
 
 ISSUE_NODE=$(gh api graphql -f query='
   query($n:Int!) {
-    repository(owner:"betsalel-williamson", name:"mdcp") {
+    repository(owner:"betsalel-williamson", name:"Merlon Docs") {
       issue(number:$n) { id }
     }
   }' -F n=<N> --jq '.data.repository.issue.id')

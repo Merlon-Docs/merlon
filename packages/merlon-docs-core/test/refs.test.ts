@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import GithubSlugger, { slug as githubSlug } from 'github-slugger';
 import { githubSlugify, headingTextToPlain, buildSlugRegistry } from '../src/refs/slugs.js';
-import * as mdcp from '../src/index.js';
+import * as merlon from '../src/index.js';
 import { genRefsFromCompiled, checkRefsRegistry } from '../src/refs/registry.js';
 import { resolveRefsPath } from '../src/config/load.js';
 import { useTmpDir } from './helpers/tmp-dir.js';
@@ -128,12 +128,12 @@ describe('buildSlugRegistry', () => {
 
 describe('public refs API', () => {
   it('does not export lookupHeadings', () => {
-    expect('lookupHeadings' in mdcp).toBe(false);
+    expect('lookupHeadings' in merlon).toBe(false);
   });
 
   it('still exports buildSlugRegistry and registry helpers', () => {
-    expect(typeof mdcp.buildSlugRegistry).toBe('function');
-    expect(typeof mdcp.genRefsFromCompiled).toBe('function');
+    expect(typeof merlon.buildSlugRegistry).toBe('function');
+    expect(typeof merlon.genRefsFromCompiled).toBe('function');
   });
 });
 

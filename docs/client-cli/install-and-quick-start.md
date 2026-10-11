@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/@merlon-docs/merlon-docs-cli.svg)](https://www.npmjs.com/package/@merlon-docs/merlon-docs-cli)
 
-This package installs the **`mdcp` CLI** for use in your repo or CI. It works in **any** codebase, whatever its stack or layout, because mdcp manages only your documentation shards and compile pipeline.
+This package installs the **`merlon` CLI** for use in your repo or CI. It works in **any** codebase, whatever its stack or layout, because Merlon Docs manages only your documentation shards and compile pipeline.
 
 To install the Agent Skill instead, see [Not the Agent Skill](./about.md#not-the-agent-skill).
 
@@ -29,7 +29,7 @@ Several commands run peer tools that you install in your repository, such as mar
 
 Before **1.0.0**, CLI commands, flags, the `merlon.config.json` schema and compile output can change in any `0.x.y` release, under the [pre-1.0 policy](../developer/versioning-and-releases.md#pre-10-policy-0xy).
 
-Before upgrading, read the changelog and release notes of each MDCP package you use. They hold the upgrade notes for earlier releases, which the feature catalog doesn't repeat.
+Before upgrading, read the changelog and release notes of each Merlon Docs package you use. They hold the upgrade notes for earlier releases, which the feature catalog doesn't repeat.
 
 ## Quick start
 
@@ -56,9 +56,9 @@ Before upgrading, read the changelog and release notes of each MDCP package you 
    }
    ```
 
-   This path works when the docs root is a direct child of the directory that holds `node_modules`, and Optional linters says how mdcp resolves it. When markdownlint-cli2 is missing, `merlon check` skips the shard pass with an info line unless you pass `--require-lint`. When the preset file is missing, the pass fails. Optional linters also covers the compiled-output preset and Vale.
+   This path works when the docs root is a direct child of the directory that holds `node_modules`, and Optional linters says how Merlon Docs resolves it. When markdownlint-cli2 is missing, `merlon check` skips the shard pass with an info line unless you pass `--require-lint`. When the preset file is missing, the pass fails. Optional linters also covers the compiled-output preset and Vale.
 
-2. Lay out shards under guide directories (each with `index.md` and chapter files). The [sample guides](../../examples/sample-guides/) in the mdcp repository show a layout, and you can [copy single keys from their config](./config-reference.md#full-schema-and-sample-config).
+2. Lay out shards under guide directories (each with `index.md` and chapter files). The [sample guides](../../examples/sample-guides/) in the Merlon Docs repository show a layout, and you can [copy single keys from their config](./config-reference.md#full-schema-and-sample-config).
 
 3. Run:
 

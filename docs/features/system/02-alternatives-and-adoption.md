@@ -4,7 +4,7 @@ Read [Scope and positioning](./01-scope-and-positioning.md) and [Vision and road
 
 ## Alternatives comparison
 
-| Incumbent                            | What it does well        | What MDCP adds                                         |
+| Incumbent                            | What it does well        | What Merlon Docs adds                                  |
 | ------------------------------------ | ------------------------ | ------------------------------------------------------ |
 | Single-file README / full `llms.txt` | Zero tooling             | Sharding, validation gate, Agent Skill                 |
 | Context7 / large crawled corpora     | Fuzzy retrieval at scale | Author-controlled, deterministic, PR-reviewable shards |
@@ -16,12 +16,12 @@ Read [Scope and positioning](./01-scope-and-positioning.md) and [Vision and road
 
 ## Pandoc and advanced publish stacks
 
-MDCP shards are [GFM-only](../design-constraints/gfm-scope.md). Adopters with Pandoc, LaTeX, or wikilinks are not excluded:
+Merlon Docs shards are [GFM-only](../design-constraints/gfm-scope.md). Adopters with Pandoc, LaTeX, or wikilinks are not excluded:
 
 - Compile to GFM compiled guides (plus the optional monolith) and feed downstream publish pipelines.
 - Run parallel guides for agent-only vs site-only content when scopes differ.
 
-MDCP covers authoring and how agents query shards. Pandoc and static site generators publish downstream from the compiled output.
+Merlon Docs covers authoring and how agents query shards. Pandoc and static site generators publish downstream from the compiled output.
 
 ## Bootstrap-first adoption
 
@@ -29,18 +29,18 @@ Suited to the **Learner** and **Author** [adoption archetypes](../personas-and-p
 
 1. Install the parent Agent Skill with [its install command](../agent-skill.md#install-surfaces) before or alongside CLI setup.
 2. Use your existing agent (with `/merlon-docs`) to shard an existing source document and plan glossary entries.
-3. Wire mdcp, compile, and validate (`merlon compile` / `merlon check`).
+3. Wire Merlon Docs, compile, and validate (`merlon compile` / `merlon check`).
 
-## When to adopt MDCP
+## When to adopt Merlon Docs
 
-**Choose MDCP when:**
+**Choose Merlon Docs when:**
 
 - Documentation has outgrown a single file (merge conflicts, broken anchors)
 - LLM pair-coding needs scoped, validated context
 - Same shards publish to multiple outputs (monolith + README + `DEVELOPERS.md`)
 - CI must fail on structural doc drift
 
-**Do not choose MDCP when:**
+**Do not choose Merlon Docs when:**
 
 - README-only repo with no growth pain
 - Docs live entirely outside git

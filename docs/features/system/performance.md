@@ -1,16 +1,16 @@
 # Performance goals
 
-Latency targets for MDCP compile and check, and the shard count each target is defined at.
+Latency targets for Merlon Docs compile and check, and the shard count each target is defined at.
 
-MDCP is designed for **full programs** (hundreds of shards across multiple guides with dense cross-links) while keeping interactive agent loops and CI gates fast. This page sets the targets. Measurements against them are [research records](./research/about-research-records.md), dated and kept as measured.
+Merlon Docs is designed for **full programs** (hundreds of shards across multiple guides with dense cross-links) while keeping interactive agent loops and CI gates fast. This page sets the targets. Measurements against them are [research records](./research/about-research-records.md), dated and kept as measured.
 
 ## Why performance matters
 
-| Actor                    | Hot path                        | Expectation                                        |
-| ------------------------ | ------------------------------- | -------------------------------------------------- |
-| LLM doc author           | edit shard → `check`            | Compile+check under a few seconds during authoring |
-| CI                       | `merlon check --require-lint`   | PR gate completes before reviewer context switches |
-| Agent (context consumer) | Host search → single-shard read | No mdcp target, because this path doesn't run mdcp |
+| Actor                    | Hot path                        | Expectation                                                      |
+| ------------------------ | ------------------------------- | ---------------------------------------------------------------- |
+| LLM doc author           | edit shard → `check`            | Compile+check under a few seconds during authoring               |
+| CI                       | `merlon check --require-lint`   | PR gate completes before reviewer context switches               |
+| Agent (context consumer) | Host search → single-shard read | No Merlon Docs target, because this path doesn't run Merlon Docs |
 
 The [usage model](./usage-model.md) prefers granular context (one shard at a time). Performance work keeps that model viable as repos grow.
 
@@ -24,7 +24,7 @@ The targets below are advisory ([Enforceable rules](../design-constraints/enforc
 | --------------------- | ---------------------- | ------------------------------------ |
 | `compile` (full repo) | **< 2 s** @ 200 shards | An author recompiles after each edit |
 
-### Tier 2: CI gate (core mdcp only, no peers)
+### Tier 2: CI gate (core Merlon Docs only, no peers)
 
 | Operation             | Target                  | Rationale                            |
 | --------------------- | ----------------------- | ------------------------------------ |
@@ -55,7 +55,7 @@ For the last two rows the benchmark writes a fixed 1, so only unit tests can cat
 
 A guide in the [monolith](../../glossary/monolith.md) is assembled once for its compiled guide and once for the monolith, because paths and section slugs differ between the two files. Shard reads stay at one per shard. The second assembly can push ms/shard past the 20% limit in the table above, and the double assembly is an accepted exception to that limit.
 
-Link lint reads the monolith as a document of its own, so it checks each link of a guide in the monolith in both files. That second check adds work for each link. Link lint builds the set of heading slugs of each output once, and on mdcp's own docs that saves more time than the second check costs. Where the second check raises the ms/link row, the rise is accepted.
+Link lint reads the monolith as a document of its own, so it checks each link of a guide in the monolith in both files. That second check adds work for each link. Link lint builds the set of heading slugs of each output once, and on Merlon Docs' own docs that saves more time than the second check costs. Where the second check raises the ms/link row, the rise is accepted.
 
 ## Related
 

@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-10-01
-- **Related:** PR [#281](https://github.com/Merlon-Docs/merlon/pull/281) (the consolidation); PR [#285](https://github.com/Merlon-Docs/merlon/pull/285) (measured follow-up changes); [Agent Skill](../agent-skill.md); [Skill workflows](../protocol/skill-workflows.md); [Live skill evals](../../developer/live-skill-evals.md); [Skill eval round](../protocol/research/skill-eval-round-2026-10-03.md); [ADR 0007](./0007-doc-review-workflow.md)
+- **Related:** PR [#281](https://github.com/Merlon-Docs/merlon/pull/281) (the consolidation); PR [#285](https://github.com/Merlon-Docs/merlon/pull/285) (measured follow-up changes); [Agent Skill](../agent-skill.md); [Skill workflows](../system/skill-workflows.md); [Live skill evals](../../developer/live-skill-evals.md); [Skill eval round](../system/research/skill-eval-round-2026-10-03.md); [ADR 0007](./0007-doc-review-workflow.md)
 
 ## Context
 
@@ -18,7 +18,7 @@ The owner asked for one `mdcp` skill that pulls in what each task needs instead 
 
 ## Decision
 
-Publish one `mdcp` skill. Each former helper becomes a workflow file under [`skills/merlon-docs/references/workflows/`](../../../skills/merlon-docs/references/workflows/), and `SKILL.md` holds a routing table that picks one workflow per task and loads only that file. `SKILL.md` or [Skill workflows](../protocol/skill-workflows.md) defines each rule every workflow shares, such as atomic commit groups and guide placement, and workflow files link to it.
+Publish one `mdcp` skill. Each former helper becomes a workflow file under [`skills/merlon-docs/references/workflows/`](../../../skills/merlon-docs/references/workflows/), and `SKILL.md` holds a routing table that picks one workflow per task and loads only that file. `SKILL.md` or [Skill workflows](../system/skill-workflows.md) defines each rule every workflow shares, such as atomic commit groups and guide placement, and workflow files link to it.
 
 The helpers are no longer published. People install `mdcp` alone and invoke it as `/mdcp` with the task in plain words.
 
@@ -34,7 +34,7 @@ Measured on October 2, 2026, with headless agent runs in throwaway copies of the
 
 On identical prompts, two runs of the one-skill arm differed by 4 assertions. That is about the size of every gap in the first two rows. Those rows show the merge changed scores by less than noise, in either direction. The routing row is the measured gain. In the six-skill arm, `mdcp-doc-only` took the UX, doc-review and feature-level requests in both rounds.
 
-The October 3 round in [Skill eval round](../protocol/research/skill-eval-round-2026-10-03.md) then changed the consolidated skill one variant at a time and kept four changes that beat noise. That round is evidence for the later changes, not for this decision.
+The October 3 round in [Skill eval round](../system/research/skill-eval-round-2026-10-03.md) then changed the consolidated skill one variant at a time and kept four changes that beat noise. That round is evidence for the later changes, not for this decision.
 
 ## Consequences
 

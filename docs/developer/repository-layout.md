@@ -1,42 +1,42 @@
 # Repository layout
 
 ```text
-mdcp/
-├── CODE_OF_CONDUCT.md      # Contributor Covenant (committed)
-├── README.md               # Compiled (committed)
-├── DEVELOPERS.md           # Compiled (committed)
-├── presentations/          # Talk deck kept as delivered (not compiled)
-├── skills/                 # Agent Skills install surface only (npx skills add)
-│   ├── mdcp/               # The MDCP skill + workflows (no package.json / CHANGELOG here)
-│   └── merlon-docs-arch-*/        # Internal archetypes (metadata.internal)
-├── tests/skills/           # Live eval fixtures (optional; not publishable packs)
-├── skills.sh.json          # skills.sh repo page layout
-├── .agents/skills/         # Vendor-managed installs + vendored skill-creator, writing-skills
+merlon/
+├── CODE_OF_CONDUCT.md       # Contributor Covenant (committed)
+├── README.md                # Compiled (committed)
+├── DEVELOPERS.md            # Compiled (committed)
+├── presentations/           # Talk deck kept as delivered (not compiled)
+├── skills/                  # Agent Skills install surface only (npx skills add)
+│   ├── merlon-docs/         # The Merlon Docs skill + workflows (no package.json / CHANGELOG here)
+│   └── merlon-docs-arch-*/  # Internal archetypes (metadata.internal)
+├── tests/skills/            # Live eval fixtures (optional; not publishable packs)
+├── skills.sh.json           # skills.sh repo page layout
+├── .agents/skills/          # Vendor-managed installs + vendored skill-creator, writing-skills
 ├── packages/
-│   ├── merlon-docs-core/          # @merlon-docs/merlon-docs-core
-│   ├── merlon-docs-cli/           # @merlon-docs/merlon-docs-cli
-│   ├── merlon-docs-presets/       # @merlon-docs/merlon-docs-presets
-│   ├── merlon-docs-site/          # Starlight docs site (private, unversioned)
-│   └── skill-*/            # Private @merlon-docs/skill-* version carriers + CHANGELOGs
-├── docs/                   # Sharded docs (merlon.config.json) — dogfood target
-│   ├── glossary/           # Shared acronyms and terms (cross-guide, like insert libraries)
-│   ├── features/           # Tool capabilities
-│   ├── developer/          # This guide
-│   ├── client-cli/         # CLI guide
-│   ├── client-core/        # Core library guide
-│   ├── repo-readme/        # Repository landing page
-│   ├── vale-local/         # Dogfood-only Vale styles (MerlonDocs-PandocId)
-│   └── .vale.ini           # Peer Vale config
-├── examples/sample-guides/ # Minimal consumer fixture for tests and tutorials
-├── legacy/                 # Original bash/Python reference implementation
-├── scripts/                # Node and shell code behind the pnpm scripts and hooks, with their *.test.mjs tests
-├── formal/alloy/           # Alloy models of the branch and release guards (pnpm formal:check)
-├── infra/github/           # Terraform for the repository settings
-├── .husky/                 # Git hooks (pre-commit, commit-msg)
-├── .claude/hooks/          # Claude Code session-start hook
-├── .cursor/                # Cursor cloud agent environment
-├── .changeset/             # Changesets for semver releases
-└── .github/workflows/      # CI and release automation
+│   ├── merlon-docs-core/    # @merlon-docs/merlon-docs-core
+│   ├── merlon-docs-cli/     # @merlon-docs/merlon-docs-cli
+│   ├── merlon-docs-presets/ # @merlon-docs/merlon-docs-presets
+│   ├── merlon-docs-site/    # Starlight docs site (private, unversioned)
+│   └── skill-*/             # Private @merlon-docs/skill-* version carriers + CHANGELOGs
+├── docs/                    # Sharded docs (merlon.config.json) — dogfood target
+│   ├── glossary/            # Shared acronyms and terms (cross-guide, like insert libraries)
+│   ├── features/            # Tool capabilities
+│   ├── developer/           # This guide
+│   ├── client-cli/          # CLI guide
+│   ├── client-core/         # Core library guide
+│   ├── repo-readme/         # Repository landing page
+│   ├── vale-local/          # Dogfood-only Vale styles (MerlonDocs-PandocId)
+│   └── .vale.ini            # Peer Vale config
+├── examples/sample-guides/  # Minimal consumer fixture for tests and tutorials
+├── legacy/                  # Original bash/Python reference implementation
+├── scripts/                 # Node and shell code behind the pnpm scripts and hooks, with their *.test.mjs tests
+├── formal/alloy/            # Alloy models of the branch and release guards (pnpm formal:check)
+├── infra/github/            # Terraform for the repository settings
+├── .husky/                  # Git hooks (pre-commit, commit-msg)
+├── .claude/hooks/           # Claude Code session-start hook
+├── .cursor/                 # Cursor cloud agent environment
+├── .changeset/              # Changesets for semver releases
+└── .github/workflows/       # CI and release automation
 ```
 
 [Guide directories](./docs-dogfooding.md#guide-directories) maps each guide directory under `docs/` to its compiled output and says why `presentations/` is kept as delivered.

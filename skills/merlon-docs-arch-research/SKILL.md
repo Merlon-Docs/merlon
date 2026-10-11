@@ -12,7 +12,7 @@ license: MIT
 compatibility: >-
   Requires Node.js 18+ for @merlon-docs/merlon-docs-cli (docs compile,
   validate, and cross-link registry commands). Skill scripts are thin
-  wrappers; they do not replace the CLI. Install the mdcp parent skill first.
+  wrappers; they do not replace the CLI. Install the Merlon Docs parent skill first.
 metadata:
   author: Merlon-Docs
   internal: true
@@ -21,7 +21,7 @@ metadata:
     category: 'documentation'
 ---
 
-# MDCP Archetype: Research Project
+# Merlon Docs Archetype: Research Project
 
 For work that produces **evidence** rather than a shipping surface: field reports, corpus measurements, benchmarks, surveys, and experiments. Use it standalone for a research repository, or as an overlay that adds a research tier to a project that already has product documentation.
 

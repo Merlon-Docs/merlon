@@ -656,7 +656,7 @@ describe('cli e2e', () => {
     expect(output).toContain('| Step | Actor  | Action');
     expect(output).toContain('| Code | Meaning   |');
     expect(output).toContain('flowchart LR');
-    expect(output).toContain('![MDCP logo](./logo.svg)');
+    expect(output).toContain('![Merlon Docs logo](./logo.svg)');
     expect(output).toContain('<audio src="./chime.mp3" controls></audio>');
     expect(output).toContain('[Request flow](#diagram-1-request-flow)');
     // The catalog gives each first reference a paragraph of its own, so its table compiles whole,

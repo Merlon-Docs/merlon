@@ -1,6 +1,6 @@
 # md-tree integration
 
-MDCP uses `@kayvan/markdown-tree-parser` for **split only** (`extract-all`, `explode`).
+Merlon Docs uses `@kayvan/markdown-tree-parser` for **split only** (`extract-all`, `explode`).
 
 Upstream `assemble` is **not used**, because it does not support:
 
@@ -11,7 +11,7 @@ Upstream `assemble` is **not used**, because it does not support:
 
 Vendor a fork into `packages/markdown-tree` when:
 
-1. mdcp moves compile onto md-tree's `assemble`, which then needs heading-transform hooks
+1. Merlon Docs moves compile onto md-tree's `assemble`, which then needs heading-transform hooks
 2. `explode` must preserve the preamble without synthetic H2 promotion
 3. Upstream is unresponsive or breaking
 

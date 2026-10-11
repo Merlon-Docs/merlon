@@ -48,10 +48,10 @@ Live eval fixtures live under `tests/skills/<skill>/evals/` so publishable packs
 under `skills/` stay eval-free (`npx skills` / `pnpm skill:validate` only touch
 `skills/`).
 
-- [mdcp](../../tests/skills/merlon-docs/evals/README.md) — subject `mdcp`; routing and
+- [Merlon Docs](../../tests/skills/merlon-docs/evals/README.md) — subject `merlon-docs`; routing and
   QA principles; workspace `.agents/skills/merlon-docs-workspace/`
 - One suite per workflow under `tests/skills/merlon-docs/evals/<workflow>/`, each with
-  subject `mdcp`:
+  subject `merlon-docs`:
   [getting-started](../../tests/skills/merlon-docs/evals/getting-started/README.md),
   [doc-only](../../tests/skills/merlon-docs/evals/doc-only/README.md),
   [design-architecture](../../tests/skills/merlon-docs/evals/design-architecture/README.md),
@@ -79,4 +79,4 @@ reads the transcript instead of going to the grader. An eval may set `setup` too
 runner to add dated commits after the fixture commit (see the doc-review suite README).
 
 Workflow intake and write obligations stay in
-[Skill workflows](../features/protocol/skill-workflows.md).
+[Skill workflows](../features/system/skill-workflows.md).

@@ -1,6 +1,6 @@
-# `mdcp` ux workflow live evals
+# `merlon-docs` ux workflow live evals
 
-Fixtures and prompts for the optional [skill-creator](../../../../../.agents/skills/skill-creator/SKILL.md) loop against the `mdcp` skill's ux workflow. Not a CI gate.
+Fixtures and prompts for the optional [skill-creator](../../../../../.agents/skills/skill-creator/SKILL.md) loop against the `merlon-docs` skill's ux workflow. Not a CI gate.
 
 Parent suite: [`tests/skills/merlon-docs/evals/`](../README.md). Maintainer index: [`docs/developer/live-skill-evals.md`](../../../../../docs/developer/live-skill-evals.md).
 
@@ -13,7 +13,7 @@ Parent suite: [`tests/skills/merlon-docs/evals/`](../README.md). Maintainer inde
 | `files/fixture-stale-architecture-in-client/` | Seeded architecture dump in a client shard                             |
 | `files/fixture-decoy-paths/`                  | Client settings + developer/features/source decoys                     |
 
-Dogfood repos may map persona guides to other names (`client-cli`, `client-core`) via config — out of scope for these fixtures, which teach the protocol path `docs/client/`.
+Dogfood repos may map persona guides to other names (`client-cli`, `client-core`) via config — out of scope for these fixtures, which teach the default path `docs/client/`.
 
 ## What the suite covers
 
@@ -47,7 +47,7 @@ Workspace (gitignored): `.agents/skills/merlon-docs-ux-workspace/iteration-2/`.
 1. Ensure `.agents/skills/skill-creator/` is present (vendored in this repo).
 2. Load the subject skill from `skills/merlon-docs/` (workflow: `references/workflows/ux.md`).
 3. Copy the listed `files` into an isolated working tree per run (do not edit this monorepo’s real `docs/`).
-4. Spawn **with_skill** and **without_skill** baselines together. Do **not** load the `mdcp` skill into without_skill arms.
+4. Spawn **with_skill** and **without_skill** baselines together. Do **not** load the `merlon-docs` skill into without_skill arms.
 5. Write results under `.agents/skills/merlon-docs-ux-workspace/iteration-N/` (gitignored via `*-workspace/`).
 
 ```text

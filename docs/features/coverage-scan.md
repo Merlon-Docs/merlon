@@ -4,7 +4,7 @@ Specification for the repository-wide markdown coverage scan. The scan reports e
 
 ## Two document concepts
 
-MDCP tracks two kinds of authored markdown:
+Merlon Docs tracks two kinds of authored markdown:
 
 | Concept          | Compiled | Source of truth          | Declared in                     |
 | ---------------- | -------- | ------------------------ | ------------------------------- |
@@ -15,7 +15,7 @@ A guide compiles a list of shards into one output, and a [standalone guide](../g
 
 ## Coverage and the captured set
 
-[Coverage](../glossary/coverage.md) is the set of markdown files MDCP can account for. A file is **captured** when it is one of:
+[Coverage](../glossary/coverage.md) is the set of markdown files Merlon Docs can account for. A file is **captured** when it is one of:
 
 - a markdown file inside a guide directory (a guide listed in `compileOrder`),
 - a markdown file inside a guide's `compile.scopeRoot` (shared trees such as a glossary),

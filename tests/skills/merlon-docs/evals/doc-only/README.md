@@ -1,15 +1,15 @@
-# `mdcp` doc-only workflow live evals
+# `merlon-docs` doc-only workflow live evals
 
-Fixtures and prompts for the optional [skill-creator](../../../../../.agents/skills/skill-creator/SKILL.md) loop against the `mdcp` skill's doc-only workflow. Not a CI gate.
+Fixtures and prompts for the optional [skill-creator](../../../../../.agents/skills/skill-creator/SKILL.md) loop against the `merlon-docs` skill's doc-only workflow. Not a CI gate.
 
 Parent suite: [`tests/skills/merlon-docs/evals/`](../README.md).
 
 ## Layout
 
-| Path                       | Purpose                                                                 |
-| -------------------------- | ----------------------------------------------------------------------- |
-| `evals.json`               | Prompts, `expected_output`, and named `assertions` for docs-only checks |
-| `files/fixture-mini-repo/` | Tiny MDCP sandbox (docs + bait `src/`) shared across all four evals     |
+| Path                       | Purpose                                                                    |
+| -------------------------- | -------------------------------------------------------------------------- |
+| `evals.json`               | Prompts, `expected_output`, and named `assertions` for docs-only checks    |
+| `files/fixture-mini-repo/` | Tiny Merlon Docs sandbox (docs + bait `src/`) shared across all four evals |
 
 ## What the suite covers
 

@@ -1,7 +1,7 @@
 # UX workflow
 
-Product capability: the **ux** workflow of the `mdcp` skill applies **user-centric
-design** to MDCP work — end-user value, processes, and workflows (how many
+Product capability: the **ux** workflow of the `merlon-docs` skill applies **user-centric
+design** to Merlon Docs work — end-user value, processes, and workflows (how many
 steps to accomplish X) — documented primarily in **client-guide shards**.
 Interfaces and UI implementation are in scope when they serve those flows, not
 as the sole focus.
@@ -37,7 +37,7 @@ product development stays anchored on what the end user must accomplish.
   the [doc-only workflow](./doc-only.md).
 - **Architecture intent / ADR drafting** — use
   the [design-architecture workflow](./design-architecture.md).
-- **Bootstrapping MDCP in an empty or legacy repo** — use
+- **Bootstrapping Merlon Docs in an empty or legacy repo** — use
   the [getting-started workflow](./getting-started.md).
 - **UI-only polish detached from user outcomes** — screens and components are
   means; this workflow owns the end-user process and value first.

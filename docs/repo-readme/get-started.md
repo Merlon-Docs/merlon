@@ -1,19 +1,19 @@
 # Get started
 
-MDCP has two ways in, and the right one depends on who edits your docs:
+Merlon Docs has two ways in, and the right one depends on who edits your docs:
 
 - **Path A, the Agent Skill:** an agent edits the docs in your repository, and the skill tells it when to update shards and when to compile and check them.
-- **Path B, the CLI in scripts and CI:** people edit the shards, and the `mdcp` command compiles and checks them in npm scripts and the pipeline.
+- **Path B, the CLI in scripts and CI:** people edit the shards, and the `merlon` command compiles and checks them in npm scripts and the pipeline.
 
-A repository can take both paths. Path A's bootstrap session installs the CLI too, because agents run `mdcp` commands, as [The Toolchain](./the-toolchain.md) explains.
+A repository can take both paths. Path A's bootstrap session installs the CLI too, because agents run `merlon` commands, as [The Toolchain](./the-toolchain.md) explains.
 
 ## Evaluate before you adopt
 
-If you are deciding whether a team should adopt MDCP, read two pages before anyone installs it. [Vision and roadmap](../features/protocol/00-vision-and-roadmap.md) explains the problem MDCP solves and the principles behind it. [Benefit claims and evidence](../features/protocol/benefit-claims-and-evidence.md) separates what the tool does from outcomes that depend on how a team works, and says which claims have evidence behind them. Then try Path A or Path B in one repository to see the workflow on your own docs.
+If you are deciding whether a team should adopt Merlon Docs, read two pages before anyone installs it. [Vision and roadmap](../features/system/00-vision-and-roadmap.md) explains the problem Merlon Docs solves and the principles behind it. [Benefit claims and evidence](../features/system/benefit-claims-and-evidence.md) separates what the tool does from outcomes that depend on how a team works, and says which claims have evidence behind them. Then try Path A or Path B in one repository to see the workflow on your own docs.
 
 ## Path A: install the Agent Skill
 
-Install the mdcp Agent Skill into your repository with the [`skills` CLI](https://www.skills.sh/docs/cli), which [skills.sh](https://skills.sh) also uses:
+Install the Merlon Docs Agent Skill into your repository with the [`skills` CLI](https://www.skills.sh/docs/cli), which [skills.sh](https://skills.sh) also uses:
 
 ```bash
 npx skills add Merlon-Docs/merlon --skill merlon-docs

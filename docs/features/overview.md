@@ -1,6 +1,6 @@
 # Overview
 
-**mdcp**, the [MarkDown Context Protocol (MDCP)](../glossary/mdcp.md) toolchain and Agent Skill, helps teams maintain large documentation in **small shard files**, **compile them into canonical outputs**, and **validate before merge**. It is built for LLM-assisted authoring, human review, and compiled output for agents and end-user readers.
+[**Merlon Docs**](../glossary/merlon-docs.md), a documentation system delivered as a toolchain and an Agent Skill, helps teams maintain large documentation in **small shard files**, **compile them into canonical outputs**, and **validate before merge**. It is built for LLM-assisted authoring, human review, and compiled output for agents and end-user readers.
 
 This page is the **mental model** for the whole system. Use it to orient yourself before diving into command details, API modules, or config fields.
 
@@ -8,7 +8,7 @@ This page is the **mental model** for the whole system. Use it to orient yoursel
 
 Large Markdown guides are hard to edit, diff, and link correctly. A single `README.md` or `guides.md` with dozens of headings invites merge conflicts, broken cross-references, and orphan sections that no longer appear in the table of contents.
 
-MDCP inverts the workflow:
+Merlon Docs inverts the workflow:
 
 1. **Authors edit shards**: one file per section, listed in the [manifest](../glossary/manifest.md) (`index.md` or `shards.md`) of their [guide](../glossary/guide.md).
 2. **Compile stitches shards**: it normalizes heading levels and rewrites links.
@@ -39,7 +39,7 @@ flowchart TB
     index["index.md / shards.md"]
   end
 
-  subgraph mdcp["MDCP"]
+  subgraph merlon["Merlon Docs"]
     cli["@merlon-docs/merlon-docs-cli"]
     core["@merlon-docs/merlon-docs-core"]
     presets["@merlon-docs/merlon-docs-presets"]
@@ -73,11 +73,11 @@ flowchart TB
   shards --> validate
 ```
 
-| Package                                | Role                                                                                           |
-| -------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| **`@merlon-docs/merlon-docs-cli`**     | Command-line entry point: `compile`, `check`, `review`, `shard`, `refs`, peer linter wrappers. |
-| **`@merlon-docs/merlon-docs-core`**    | Library behind the CLI: compile/assemble, refs, validation, shard orchestration, hooks.        |
-| **`@merlon-docs/merlon-docs-presets`** | Starter markdownlint configs and the `MDCP` Vale style (opt-in via config / `.vale.ini`).      |
+| Package                                | Role                                                                                            |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| **`@merlon-docs/merlon-docs-cli`**     | Command-line entry point: `compile`, `check`, `review`, `shard`, `refs`, peer linter wrappers.  |
+| **`@merlon-docs/merlon-docs-core`**    | Library behind the CLI: compile/assemble, refs, validation, shard orchestration, hooks.         |
+| **`@merlon-docs/merlon-docs-presets`** | Starter markdownlint configs and the `MerlonDocs` Vale style (opt-in via config / `.vale.ini`). |
 
 The CLI is a thin wrapper over core. Integrators (CI, editors, agents) can call core directly or shell out to the CLI.
 
@@ -124,17 +124,17 @@ Guides with `compile.outputFile` are **excluded from the monolith** so you can p
 - **`refs`**: registry file path and slug algorithm.
 - **`lint` / `vale`**: peer linter config paths and scan globs.
 
-This repository uses MDCP on its own docs under `docs/`, and its `docs/merlon.config.json` is an example of a multi-output layout. [Guide directories](../developer/docs-dogfooding.md#guide-directories) lists the output each of its guides compiles to.
+This repository uses Merlon Docs on its own docs under `docs/`, and its `docs/merlon.config.json` is an example of a multi-output layout. [Guide directories](../developer/docs-dogfooding.md#guide-directories) lists the output each of its guides compiles to.
 
 ## Where to go next
 
 - **Commands and priority tiers**: the [Feature catalog](./feature-catalog.md) and [Personas and priority tiers](./personas-and-priority-tiers.md)
-- **Who runs which command**: the [Actors and obligations](./protocol/usage-model.md#actors-and-obligations) table in the usage model
+- **Who runs which command**: the [Actors and obligations](./system/usage-model.md#actors-and-obligations) table in the usage model
 - **Intentional limits**: the [Design constraints](./design-constraints/index.md), each with a one-line summary
 - **Install and daily commands**: the [Client CLI guide](../client-cli/index.md)
 - **Programmatic API**: the [Client core guide](../client-core/index.md)
 - **Config fields**: the [config API](../client-core/api-config.md)
 - **Compile hooks**: the [Compile hooks overview](../client-core/compile-hooks/index.md)
 - **Contributing to this repo**: the [Developer guide](../developer/index.md)
-- **Performance SLOs at scale**: the [Performance goals](./protocol/performance.md) page
-- **A publish landing example**: this repository compiles its root `README.md` from [`docs/repo-readme/`](../repo-readme/index.md). Its copy follows the [Publish landing style](./personas-and-priority-tiers.md#publish-landing-style) and the claim tiers in [Benefit claims and evidence](./protocol/benefit-claims-and-evidence.md)
+- **Performance SLOs at scale**: the [Performance goals](./system/performance.md) page
+- **A publish landing example**: this repository compiles its root `README.md` from [`docs/repo-readme/`](../repo-readme/index.md). Its copy follows the [Publish landing style](./personas-and-priority-tiers.md#publish-landing-style) and the claim tiers in [Benefit claims and evidence](./system/benefit-claims-and-evidence.md)

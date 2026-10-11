@@ -43,7 +43,7 @@ With `shardsGlobs`, it returns each entry as written, negated entries included, 
 
 Guides with `compile.outputFile` publish outside the shard tree (npm READMEs, `DEVELOPERS.md`, and similar).
 
-After the cross-guide and intra-guide rewrites, compile resolves the `../` links a shard still has and writes them relative to the guide's [link base](../features/compile-pipeline/publish-relative-links.md#when-it-runs). [Publish-relative exclusions](../features/compile-pipeline/publish-relative-links.md#publish-relative-exclusions) lists the links it leaves as written, such as a path that leads to no file. A guide doesn't need path-prefix config for this. [Link passes](../features/compile-pipeline/link-passes.md) lists the passes in order, and [Publish-relative link rewriting](../features/compile-pipeline/publish-relative-links.md) has examples from MDCP's own docs.
+After the cross-guide and intra-guide rewrites, compile resolves the `../` links a shard still has and writes them relative to the guide's [link base](../features/compile-pipeline/publish-relative-links.md#when-it-runs). [Publish-relative exclusions](../features/compile-pipeline/publish-relative-links.md#publish-relative-exclusions) lists the links it leaves as written, such as a path that leads to no file. A guide doesn't need path-prefix config for this. [Link passes](../features/compile-pipeline/link-passes.md) lists the passes in order, and [Publish-relative link rewriting](../features/compile-pipeline/publish-relative-links.md) has examples from Merlon Docs’ own docs.
 
 ## `compile.hooks`
 

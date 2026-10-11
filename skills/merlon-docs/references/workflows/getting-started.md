@@ -1,10 +1,10 @@
 # Getting-started workflow
 
-> Loaded by the `mdcp` skill. Its hard rules, QA principles, and **What
-> belongs where** apply throughout. The `mdcp` CLI must be installed.
+> Loaded by the `merlon-docs` skill. Its hard rules, QA principles, and **What
+> belongs where** apply throughout. The `merlon` CLI must be installed.
 
-Bootstrap MDCP, then optionally guide a **first feature** through the other
-workflows. After onboarding, the `mdcp` skill routes day-to-day work to the
+Bootstrap Merlon Docs, then optionally guide a **first feature** through the other
+workflows. After onboarding, the `merlon-docs` skill routes day-to-day work to the
 matching workflow.
 
 ## Role
@@ -42,7 +42,7 @@ Discover package manager and existing docs before editing.
 - **Greenfield** — no meaningful docs tree → scaffold cleanly.
 - **Brownfield** — legacy docs exist:
   - Do **not** delete or overwrite legacy files.
-  - Scaffold the four-tier MDCP layout **alongside** them.
+  - Scaffold the four-tier Merlon Docs layout **alongside** them.
   - Pull useful content into new shards.
   - Mark each migrated legacy file **ready to archive after review** (banner).
     Never auto-delete.

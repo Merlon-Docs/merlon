@@ -10,7 +10,7 @@ license: MIT
 compatibility: >-
   Requires Node.js 18+ for @merlon-docs/merlon-docs-cli (docs compile,
   validate, and cross-link registry commands). Skill scripts are thin
-  wrappers; they do not replace the CLI. Install the mdcp parent skill first.
+  wrappers; they do not replace the CLI. Install the Merlon Docs parent skill first.
 metadata:
   author: Merlon-Docs
   internal: true
@@ -19,7 +19,7 @@ metadata:
     category: 'documentation'
 ---
 
-# MDCP Archetype: OSS Library
+# Merlon Docs Archetype: OSS Library
 
 For publishable packages (npm, PyPI, crates.io) where **API truth lives in source** and a sharded documentation system holds intent, stability guarantees, and migration notes without duplicating the API surface.
 

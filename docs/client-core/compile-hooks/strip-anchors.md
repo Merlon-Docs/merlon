@@ -10,9 +10,9 @@ A marker goes with the whitespace before it on the same line. When a marker open
 
 ## stripAnchors heading lines
 
-A line that mdcp reads as a heading, an ATX heading at column 0, loses every marker, even inside a fenced code block or a code span. Heading slugs drop every marker from a title and skip the lines that the [fence scan](../../features/compile-pipeline/fence-scan.md) reads as code. The scan ignores HTML and can misread a fence there, so stripping every heading line keeps a marker off a rendered heading even then.
+A line that Merlon Docs reads as a heading, an ATX heading at column 0, loses every marker, even inside a fenced code block or a code span. Heading slugs drop every marker from a title and skip the lines that the [fence scan](../../features/compile-pipeline/fence-scan.md) reads as code. The scan ignores HTML and can misread a fence there, so stripping every heading line keeps a marker off a rendered heading even then.
 
-To show the syntax on a heading inside a fenced example, start the heading line one to three spaces in. mdcp doesn't read that line as a heading. The strip treats it as fenced text and keeps its marker. Outside a fence the same line is prose, and its marker goes.
+To show the syntax on a heading inside a fenced example, start the heading line one to three spaces in. Merlon Docs doesn't read that line as a heading. The strip treats it as fenced text and keeps its marker. Outside a fence the same line is prose, and its marker goes.
 
 ## stripAnchors code
 

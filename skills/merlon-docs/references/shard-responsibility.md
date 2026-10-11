@@ -1,6 +1,6 @@
 # Shard responsibility (agent reference)
 
-Operative rules for when to write, split, or leave durable MDCP shards. Keep this file short. Provenance: see [acknowledgments.md](./acknowledgments.md).
+Operative rules for when to write, split, or leave durable Merlon Docs shards. Keep this file short. Provenance: see [acknowledgments.md](./acknowledgments.md).
 
 ## Single responsibility
 

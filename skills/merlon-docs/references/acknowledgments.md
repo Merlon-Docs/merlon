@@ -1,8 +1,8 @@
 # Acknowledgments
 
-Lineage for MDCP documentation philosophy. **Not** operative rules — follow the parent skill QA principles and [shard-responsibility.md](./shard-responsibility.md).
+Lineage for Merlon Docs documentation philosophy. **Not** operative rules — follow the parent skill QA principles and [shard-responsibility.md](./shard-responsibility.md).
 
-| Source                                      | Adapted into MDCP                                                                                  |
+| Source                                      | Adapted into Merlon Docs                                                                           |
 | ------------------------------------------- | -------------------------------------------------------------------------------------------------- |
 | Single responsibility (software design)     | One reason to change for **documentation shards**                                                  |
 | Library / information architecture          | Classify and shelve settled concepts for trustworthy retrieval                                     |

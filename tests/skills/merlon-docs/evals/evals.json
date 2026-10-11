@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Bootstrap MDCP agent guidance in a new repo",
+      "prompt": "Bootstrap Merlon Docs agent guidance in a new repo",
       "expected_output": "Creates a docs root, merlon.config.json, and runs compile and check successfully.",
       "files": ["evals/files/bootstrap/README.md", "evals/files/bootstrap/package.json"],
       "assertions": [
@@ -24,7 +24,7 @@
     {
       "id": 2,
       "prompt": "Compile and validate docs after editing shards",
-      "expected_output": "Runs the compile and check commands using the MDCP CLI wrapper script.",
+      "expected_output": "Runs the compile and check commands using the Merlon Docs CLI wrapper script.",
       "files": [
         "evals/files/workspace/README.md",
         "evals/files/workspace/docs/client/about-this-guide.md",
@@ -143,7 +143,7 @@
     },
     {
       "id": 6,
-      "prompt": "We need to ship three things this week: (1) OAuth login for the API, (2) a redesigned settings UX for end users, and (3) developer docs for three new CLI commands. Using MDCP, start the work — update docs and plan implementation.",
+      "prompt": "We need to ship three things this week: (1) OAuth login for the API, (2) a redesigned settings UX for end users, and (3) developer docs for three new CLI commands. Using Merlon Docs, start the work — update docs and plan implementation.",
       "expected_output": "Scopes to one focused batch (or asks which WORK_ITEM to take first). Names the single matching workflow from the skill's workflow table. Proposes a docs-first slice for that one concern instead of multi-feature implementation.",
       "files": [],
       "assertions": [
@@ -163,7 +163,7 @@
     },
     {
       "id": 7,
-      "prompt": "Clean up docs/features/notifications.md in the hygiene fixture. It still has a migration backlog and pasted implementation code. Make the shard durable and current per MDCP QA principles.",
+      "prompt": "Clean up docs/features/notifications.md in the hygiene fixture. It still has a migration backlog and pasted implementation code. Make the shard durable and current per Merlon Docs QA principles.",
       "expected_output": "Removes the migration/planning backlog (belongs in issue tracking). Strips implementation code from the shard. Leaves present-tense current behavior / intent only. Replaces the 'Why email only' history (used to, the incident, as of 2026-07-01) with the current constraint in one present-tense sentence. Because the email-only constraint still holds, moves its history to an ADR that the shard links, and does not keep it inline because of the repo convention or send it to a changeset. Leaves the incident log to the tracker and links no incident log or ticket from the shard. Does not link durable docs to pending .changeset files.",
       "files": [
         "evals/files/hygiene/docs/features/notifications.md",
@@ -198,7 +198,7 @@
     },
     {
       "id": 8,
-      "prompt": "Improve the onboarding checklist so new users understand how to get value from the product. Using the routing fixture, update the right MDCP guides and say which mdcp workflow should own this WORK_ITEM.",
+      "prompt": "Improve the onboarding checklist so new users understand how to get value from the product. Using the routing fixture, update the right Merlon Docs guides and say which Merlon Docs workflow should own this WORK_ITEM.",
       "expected_output": "Routes to the ux workflow per the workflow table. Primary edits under docs/client/ with outcome/usage focus. Avoids dumping maintainer architecture into client guides and avoids implementation code in shards.",
       "files": [
         "evals/files/routing/merlon.config.json",
@@ -258,7 +258,7 @@
     },
     {
       "id": 10,
-      "prompt": "Using the mdcp skill, plan a coding change that touches docs shards AND product code: (1) document a new --dry-run flag for compile in docs/features/, (2) implement the flag in packages/, (3) add a changeset. Leadership wants one squash commit tonight and says skip optional polish like commit grouping. Produce the PLAN only — STOP and WAIT FOR HUMAN REVIEW before editing any files.",
+      "prompt": "Using the Merlon Docs skill, plan a coding change that touches docs shards AND product code: (1) document a new --dry-run flag for compile in docs/features/, (2) implement the flag in packages/, (3) add a changeset. Leadership wants one squash commit tonight and says skip optional polish like commit grouping. Produce the PLAN only — STOP and WAIT FOR HUMAN REVIEW before editing any files.",
       "expected_output": "Plan includes a labeled Atomic commit groups section with numbered groups; each group has id/name, one concern, exact files, and a conventional commit subject; more than one group when concerns differ; stops for human review without implementing.",
       "files": [
         "evals/files/routing/merlon.config.json",
@@ -302,7 +302,7 @@
         },
         {
           "name": "creates_merlon_config",
-          "description": "Creates an merlon.config.json with a compileOrder covering the guides"
+          "description": "Creates a merlon.config.json with a compileOrder covering the guides"
         },
         {
           "name": "creates_four_tier_layout",

@@ -1,7 +1,7 @@
 {
   "name": "@merlon-docs/merlon-docs-presets",
   "version": "0.8.0",
-  "description": "Starter markdownlint and Vale presets for MarkDown Context Protocol consumers",
+  "description": "Starter markdownlint and Vale presets for Merlon Docs consumers",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

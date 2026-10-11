@@ -55,10 +55,10 @@ The line scope exists because a whole-file marker on a mostly-descriptive shard 
 
 Two more cases are not authorial at all, and they are declared in config rather than in the prose, because they are properties of the repository rather than of a sentence.
 
-| Knob                    | Matching | The claim it declares                                                                    |
-| ----------------------- | -------- | ---------------------------------------------------------------------------------------- |
-| `lint.paths.generated`  | Prefix   | Real here, absent in a clean checkout: build output, caches, vendor-managed installs     |
-| `lint.paths.vocabulary` | Exact    | A name this repository documents without having: a protocol tier, another project's tree |
+| Knob                    | Matching | The claim it declares                                                                   |
+| ----------------------- | -------- | --------------------------------------------------------------------------------------- |
+| `lint.paths.generated`  | Prefix   | Real here, absent in a clean checkout: build output, caches, vendor-managed installs    |
+| `lint.paths.vocabulary` | Exact    | A name this repository documents without having: a roadmap tier, another project's tree |
 
 They match differently because they claim different things. Nothing under a generated prefix exists until something builds it, so the prefix covers the whole tree. A vocabulary entry is one name the document uses without instantiating, so matching stops at that name: `docs/client/` is declared, and `docs/client/onboarding.md` is still an unresolved path. Neither matches a sibling that merely shares a prefix. <!-- merlon-paths: illustrative -->
 

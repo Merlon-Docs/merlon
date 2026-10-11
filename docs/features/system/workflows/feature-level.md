@@ -1,7 +1,7 @@
 # Feature-level workflow
 
-Product capability: the **feature-level** workflow of the `mdcp` skill implements and
-documents shipped features using a **docs-first** then **TDD** loop so MDCP
+Product capability: the **feature-level** workflow of the `merlon-docs` skill implements and
+documents shipped features using a **docs-first** then **TDD** loop so Merlon Docs
 shards stay the contract before product code changes.
 
 Workflow file: [`skills/merlon-docs/references/workflows/feature-level.md`](../../../../skills/merlon-docs/references/workflows/feature-level.md).
@@ -33,7 +33,7 @@ of drifting in chat-only designs.
 - **Architecture intent / ADR drafting without implementation** — use
   the [design-architecture workflow](./design-architecture.md).
 - **Primary client-guide UX / journey design** — use the [ux workflow](./ux.md).
-- **Bootstrapping MDCP in an empty or legacy repo** — use
+- **Bootstrapping Merlon Docs in an empty or legacy repo** — use
   the [getting-started workflow](./getting-started.md).
 - **Expanding beyond the loaded `WORK_ITEM`** — stay on acceptance criteria
   unless the issue explicitly expands scope.

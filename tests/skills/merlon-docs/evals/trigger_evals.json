@@ -4,11 +4,11 @@
     "should_trigger": true
   },
   {
-    "query": "Bootstrap MDCP in a new repository for agent documentation",
+    "query": "Bootstrap Merlon Docs in a new repository for agent documentation",
     "should_trigger": true
   },
   {
-    "query": "Validate a heading cross-link while editing MDCP shards",
+    "query": "Validate a heading cross-link while editing Merlon Docs shards",
     "should_trigger": true
   },
   {

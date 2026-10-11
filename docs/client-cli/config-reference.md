@@ -79,4 +79,4 @@ This table links the page that documents each key:
 
 ## Full schema and sample config
 
-[`merlon.config.schema.json`](../../packages/merlon-docs-core/merlon.config.schema.json), a file in the mdcp repository that the npm packages leave out, is the JSON Schema for every key. The [sample guides' config](../../examples/sample-guides/merlon.config.json) is a longer example. Its paths resolve only from the mdcp repository root, so copy single keys from it.
+[`merlon.config.schema.json`](../../packages/merlon-docs-core/merlon.config.schema.json), a file in the Merlon Docs repository that the npm packages leave out, is the JSON Schema for every key. The [sample guides' config](../../examples/sample-guides/merlon.config.json) is a longer example. Its paths resolve only from the Merlon Docs repository root, so copy single keys from it.

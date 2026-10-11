@@ -1,4 +1,4 @@
-# Why mdcp for coding agents
+# Why Merlon Docs for coding agents
 
 Common docs failures when agents edit the repo, and what helps:
 

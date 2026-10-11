@@ -88,7 +88,7 @@ the compiled guides for the rule's key phrase to catch reworded ones.
   removed behavior, delete it. An incident log or a temporary note moves to
   the tracker, and the doc does not link it.
 
-With peer Vale and the `MDCP` style from `@merlon-docs/merlon-docs-presets`, the
+With peer Vale and the `MerlonDocs` style from `@merlon-docs/merlon-docs-presets`, the
 `MerlonDocs.DatedClaim` rule fails on `as of` or `until` before an ISO date, such as
 `as of 2026-07-01`. The reword above applies to every dated claim, whatever
 the date's format. An ADR keeps the rule on and gives each date on its own,

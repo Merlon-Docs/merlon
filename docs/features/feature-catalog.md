@@ -21,19 +21,19 @@ Heading-slug **registry** for validation after compile. See [Refs registry path]
 One Agent Skill at `skills/merlon-docs/SKILL.md`, installed into your agent's skills directory with [its install command](./agent-skill.md#install-surfaces). See [Agent Skill](./agent-skill.md).
 
 The skill picks a workflow for each authoring job and loads only that file. Catalog and intake:
-[Skill workflows](./protocol/skill-workflows.md). Hardened is/isn’t boundaries:
-[Getting-started](./protocol/workflows/getting-started.md),
-[Feature-level](./protocol/workflows/feature-level.md),
-[Doc-only](./protocol/workflows/doc-only.md),
-[Design-architecture](./protocol/workflows/design-architecture.md),
-[UX](./protocol/workflows/ux.md),
-[Doc-review](./protocol/workflows/doc-review.md).
+[Skill workflows](./system/skill-workflows.md). Hardened is/isn’t boundaries:
+[Getting-started](./system/workflows/getting-started.md),
+[Feature-level](./system/workflows/feature-level.md),
+[Doc-only](./system/workflows/doc-only.md),
+[Design-architecture](./system/workflows/design-architecture.md),
+[UX](./system/workflows/ux.md),
+[Doc-review](./system/workflows/doc-review.md).
 
 [Live skill evals](../developer/live-skill-evals.md), which grade each workflow with and without the skill, are maintainer work.
 
 ## Validation gate
 
-Run the validation stages in one command, and fail when any of them fails. [Check gate](./check-gate.md) specifies the stages and the exit status. Latency targets for large shard sets are in [Performance goals](./protocol/performance.md).
+Run the validation stages in one command, and fail when any of them fails. [Check gate](./check-gate.md) specifies the stages and the exit status. Latency targets for large shard sets are in [Performance goals](./system/performance.md).
 
 ```bash
 merlon check --require-lint
@@ -57,7 +57,7 @@ Report a shard that its guide's manifest doesn't link, and a manifest link to a 
 
 ## Peer Vale prose (not core)
 
-en-US writing cues, such as an unlinked "See Chapter…" mention or a dated claim, live in the `MDCP` Vale style in `@merlon-docs/merlon-docs-presets` rather than in mdcp's core stages. [Preferred homes](./design-constraints/locale-and-language.md#preferred-homes) says which tool checks each prose rule. These cues do not replace [Link validation](./link-validation.md) for GFM cross-refs. `merlon check` runs them in its Vale stage, as [Check gate](./check-gate.md#check-gate-stages) says, when Vale is installed and the host's Vale config (`vale.config`, default `.vale.ini`) enables their styles. `--skip-vale` skips the stage.
+en-US writing cues, such as an unlinked "See Chapter…" mention or a dated claim, live in the `MerlonDocs` Vale style in `@merlon-docs/merlon-docs-presets` rather than in Merlon Docs' core stages. [Preferred homes](./design-constraints/locale-and-language.md#preferred-homes) says which tool checks each prose rule. These cues do not replace [Link validation](./link-validation.md) for GFM cross-refs. `merlon check` runs them in its Vale stage, as [Check gate](./check-gate.md#check-gate-stages) says, when Vale is installed and the host's Vale config (`vale.config`, default `.vale.ini`) enables their styles. `--skip-vale` skips the stage.
 
 ## Coverage scan
 

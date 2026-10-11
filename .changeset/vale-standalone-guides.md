@@ -17,6 +17,6 @@ To keep Vale off one file, such as vendored text, give it a section at the end o
 BasedOnStyles =
 ```
 
-Start the section with `**/`, because mdcp passes Vale absolute paths, and a section such as `[CODE_OF_CONDUCT.md]` never matches. A rule that an earlier section sets by name, such as `MerlonDocs.DatedClaim = warning`, stays on until this section sets it to `NO`. The CLI README's "Opt a standalone guide out of Vale" section has the full example.
+Start the section with `**/`, because Merlon Docs passes Vale absolute paths, and a section such as `[CODE_OF_CONDUCT.md]` never matches. A rule that an earlier section sets by name, such as `MerlonDocs.DatedClaim = warning`, stays on until this section sets it to `NO`. The CLI README's "Opt a standalone guide out of Vale" section has the full example.
 
 `standaloneGuides` globs match without the coverage scan's ignore list, so a broad glob such as `**/README.md` also sends files under `node_modules` to Vale. List narrower globs.

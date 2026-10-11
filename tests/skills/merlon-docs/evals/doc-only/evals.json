@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "WORK_ITEM: Document the current Widget Export feature for maintainers. WORK_ITEM_LOOKUP: docs/developer/agent-work-item-tracking.md (or the equivalent in this fixture). Author or refactor MDCP shards under docs/features/ so they describe how Widget Export works today, update the guide index for compile order, and validate with merlon check. Do not expand scope beyond documentation.",
+      "prompt": "WORK_ITEM: Document the current Widget Export feature for maintainers. WORK_ITEM_LOOKUP: docs/developer/agent-work-item-tracking.md (or the equivalent in this fixture). Author or refactor Merlon Docs shards under docs/features/ so they describe how Widget Export works today, update the guide index for compile order, and validate with merlon check. Do not expand scope beyond documentation.",
       "expected_output": "Agent revises feature shards and index only, documents current behavior, and runs merlon check. No edits under src/ or other product code.",
       "files": [
         "evals/doc-only/files/fixture-mini-repo/README.md",
@@ -33,7 +33,7 @@
         },
         {
           "name": "no_hand_edit_generated",
-          "description": "Does not hand-edit generated compile output or invent a non-MDCP docs workflow"
+          "description": "Does not hand-edit generated compile output or invent a docs workflow outside Merlon Docs"
         }
       ]
     },
@@ -77,7 +77,7 @@
     },
     {
       "id": 3,
-      "prompt": "WORK_ITEM: Clean up the Widget Export feature shard. It still has a migration backlog, temporary planning notes, and a section documenting the superseded CSV-only workflow. WORK_ITEM_LOOKUP: docs/developer/agent-work-item-tracking.md. Apply MDCP \u201ccurrent docs only\u201d / \u201cno temp info or backlogs\u201d: remove stale planning from durable docs; keep only as-built behavior. Validate with merlon check.",
+      "prompt": "WORK_ITEM: Clean up the Widget Export feature shard. It still has a migration backlog, temporary planning notes, and a section documenting the superseded CSV-only workflow. WORK_ITEM_LOOKUP: docs/developer/agent-work-item-tracking.md. Apply Merlon Docs \u201ccurrent docs only\u201d / \u201cno temp info or backlogs\u201d: remove stale planning from durable docs; keep only as-built behavior. Validate with merlon check.",
       "expected_output": "Agent removes migration backlog, planning TODOs, and superseded-workflow prose from the durable shard; leaves current-behavior content; acknowledges planning belongs in the issue tracker/changeset, not durable shards.",
       "files": [
         "evals/doc-only/files/fixture-mini-repo/README.md",

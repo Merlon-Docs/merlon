@@ -45,7 +45,7 @@ When a continuing stage of `merlon check` fails, the run ends with a stderr **fa
 
 ## Sprawl review
 
-`merlon review` reads every shard compile reads for the guides in `compileOrder`, including nested shards and each guide manifest (`index.md` by default), and reports signals that a shard or index needs a human or agent to look at it. It never writes files and skips paths matched by `scan.ignore`. The signals point at [idea mitosis](../glossary/idea-mitosis.md) candidates; deciding whether to split, merge, or regroup stays with the reviewer (see [Shard single responsibility and idea mitosis](../features/protocol/shard-srp-and-mitosis.md)).
+`merlon review` reads every shard compile reads for the guides in `compileOrder`, including nested shards and each guide manifest (`index.md` by default), and reports signals that a shard or index needs a human or agent to look at it. It never writes files and skips paths matched by `scan.ignore`. The signals point at [idea mitosis](../glossary/idea-mitosis.md) candidates; deciding whether to split, merge, or regroup stays with the reviewer (see [Shard single responsibility and idea mitosis](../features/system/shard-srp-and-mitosis.md)).
 
 ```bash
 merlon review --config docs/merlon.config.json --docs-root docs

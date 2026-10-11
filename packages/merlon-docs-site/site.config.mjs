@@ -17,7 +17,7 @@ export const DEFAULT_BRANCH = 'main';
  */
 export const PUBLISHED_GUIDES = [
   { name: 'client-cli', route: 'guide', label: 'User guide' },
-  { name: 'features', route: 'concepts', label: 'Concepts & protocol' },
+  { name: 'features', route: 'concepts', label: 'Concepts' },
   { name: 'client-core', route: 'api', label: 'Library API' },
   { name: 'glossary', route: 'glossary', label: 'Glossary' },
   { name: 'developer', route: 'contributing', label: 'Contributing' },

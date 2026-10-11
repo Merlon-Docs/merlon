@@ -1,7 +1,7 @@
 # Doc-review workflow
 
-> Loaded by the `mdcp` skill. Its hard rules, QA principles, and **What
-> belongs where** apply throughout. The `mdcp` CLI must be installed.
+> Loaded by the `merlon-docs` skill. Its hard rules, QA principles, and **What
+> belongs where** apply throughout. The `merlon` CLI must be installed.
 
 A shard read alone usually looks fine. Sprawl only shows across shards. The same rule
 turns up in five places, or a guide index grows into a flat list, or a shard

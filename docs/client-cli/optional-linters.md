@@ -1,6 +1,6 @@
 # Optional linters
 
-These commands use tools installed in **your** repo (not bundled with mdcp):
+These commands use tools installed in **your** repo (not bundled with Merlon Docs):
 
 | Command        | Peer tool                                          | Purpose                                                                                         |
 | -------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
@@ -10,7 +10,7 @@ These commands use tools installed in **your** repo (not bundled with mdcp):
 | `merlon fix`   | `prettier`, `markdownlint-cli2`                    | Run `prettier --write .` then `markdownlint-cli2 --fix` (no config paths)                       |
 | `merlon check` | `markdownlint-cli2`, `vale`, `markdown-link-check` | The check gate's lint, prose and URL stages, each run when its peer is installed and configured |
 
-`merlon fix` does not bundle formatters. Install **Prettier** and **markdownlint-cli2** in your repo first (`node_modules/.bin` or PATH). Each step is skipped with an info message if the peer is missing. mdcp passes markdownlint-cli2 no file paths. Its fix step needs a `.markdownlint-cli2.jsonc` (or another markdownlint-cli2 config file) in the docs root that lists `globs`. Without one, markdownlint-cli2 prints its usage text and fixes nothing. `merlon fix` exits 0 whatever either tool returns, so read its output to see whether both steps ran.
+`merlon fix` does not bundle formatters. Install **Prettier** and **markdownlint-cli2** in your repo first (`node_modules/.bin` or PATH). Each step is skipped with an info message if the peer is missing. Merlon Docs passes markdownlint-cli2 no file paths. Its fix step needs a `.markdownlint-cli2.jsonc` (or another markdownlint-cli2 config file) in the docs root that lists `globs`. Without one, markdownlint-cli2 prints its usage text and fixes nothing. `merlon fix` exits 0 whatever either tool returns, so read its output to see whether both steps ran.
 
 ```bash
 merlon lint --require-lint          # fail if markdownlint-cli2 is missing
@@ -27,11 +27,11 @@ Install npm peers with:
 npm install -D prettier markdownlint-cli2 @merlon-docs/merlon-docs-presets
 ```
 
-Install **Vale** separately so `vale` is on your `PATH`, using one of the methods in [Vale installation](https://vale.sh/docs/vale-cli/installation/). After adding a `.vale.ini`, run `vale sync` in that directory. mdcp looks for `vale` in `node_modules/.bin`, from the docs root up, before it looks on `PATH`. `merlon prose` and `merlon check` run Vale in the docs root and pass it the config file that `vale.config` names, `.vale.ini` by default.
+Install **Vale** separately so `vale` is on your `PATH`, using one of the methods in [Vale installation](https://vale.sh/docs/vale-cli/installation/). After adding a `.vale.ini`, run `vale sync` in that directory. Merlon Docs looks for `vale` in `node_modules/.bin`, from the docs root up, before it looks on `PATH`. `merlon prose` and `merlon check` run Vale in the docs root and pass it the config file that `vale.config` names, `.vale.ini` by default.
 
 `lint.markdownlint.shardsConfig` names the markdownlint-cli2 config file for the shard pass, and `lint.markdownlint.compiledConfig` names the one for the compiled pass. `merlon lint` and `merlon check` run each pass only when its key is set, and [Check gate stages](../features/check-gate.md#check-gate-stages) lists both passes in the check. A relative path is read from the docs root, so a `docs/` root next to `node_modules` uses `../node_modules/@merlon-docs/merlon-docs-presets/...`, as step 1 of [Quick start](./install-and-quick-start.md#quick-start) shows.
 
-A [locale pack](../glossary/locale-pack.md) is MDCP compile-time wording, not a Vale style. The **`MDCP` Vale style** in `@merlon-docs/merlon-docs-presets` (`vale/MerlonDocs/`) holds the en-US prose cues. Its rules flag a numbered heading mention with no link, and `MerlonDocs.DatedClaim` flags `as of` or `until` before an ISO date. See [Locale and language boundary](../features/design-constraints/locale-and-language.md).
+A [locale pack](../glossary/locale-pack.md) is Merlon Docs’ compile-time wording, not a Vale style. The **`MerlonDocs` Vale style** in `@merlon-docs/merlon-docs-presets` (`vale/MerlonDocs/`) holds the en-US prose cues. Its rules flag a numbered heading mention with no link, and `MerlonDocs.DatedClaim` flags `as of` or `until` before an ISO date. See [Locale and language boundary](../features/design-constraints/locale-and-language.md).
 
 ## Vale alert level
 
@@ -49,7 +49,7 @@ Of Vale's alerts, only error-level ones fail `merlon prose` or `merlon check`, s
 
 ## In-scope guide fileset
 
-MDCP knows the **full fileset** it manages. The guides in `compileOrder` resolve via `guides[].path` or `{docsRoot}/{name}/`, and `standaloneGuides` registers the [standalone guides](../glossary/standalone-guide.md). Shard markdownlint lints the Markdown files in the guide directories. Vale prose lints the guide directories and the standalone guides, because a file that never compiles still reaches readers as written. Both linters skip markdown that the config does not name, such as legacy flat `.md` files or unregistered sibling folders under `--docs-root`.
+Merlon Docs knows the **full fileset** it manages. The guides in `compileOrder` resolve via `guides[].path` or `{docsRoot}/{name}/`, and `standaloneGuides` registers the [standalone guides](../glossary/standalone-guide.md). Shard markdownlint lints the Markdown files in the guide directories. Vale prose lints the guide directories and the standalone guides, because a file that never compiles still reaches readers as written. Both linters skip markdown that the config does not name, such as legacy flat `.md` files or unregistered sibling folders under `--docs-root`.
 
 | Command                                            | Default scope                                     | Out of scope (skipped)                                  |
 | -------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------- |
@@ -64,9 +64,9 @@ Optional overrides replace the guide directories with the paths you list, so sco
 | `lint.markdownlint.shardsGlobs` | Shard markdownlint paths relative to `--docs-root` (default: the Markdown in compileOrder guide dirs) |
 | `vale.scanGlobs`                | Vale prose paths relative to `--docs-root` in place of the guide dirs; standalone guides stay in      |
 
-Both markdownlint passes run with the docs root as their cwd. For each guide directory, mdcp passes the shard pass a glob for the `.md` and `.markdown` files in it, such as `features/**/*.{md,markdown}`, so an image or text file beside the shards stays out of the shard pass. For a guide under the docs root, the glob is relative to the docs root and leaves the checkout path out. A relative or absolute `--docs-root` then lints the same shards, even under a directory whose name has glob characters, such as `repo (copy)`. A guide outside the docs root gets an absolute glob. With it, the shard preset's exclusions still apply to the guide, and markdownlint-cli2 still finds the guide under a symlinked docs root. mdcp escapes the glob characters and quotes in each path it puts in a glob.
+Both markdownlint passes run with the docs root as their cwd. For each guide directory, Merlon Docs passes the shard pass a glob for the `.md` and `.markdown` files in it, such as `features/**/*.{md,markdown}`, so an image or text file beside the shards stays out of the shard pass. For a guide under the docs root, the glob is relative to the docs root and leaves the checkout path out. A relative or absolute `--docs-root` then lints the same shards, even under a directory whose name has glob characters, such as `repo (copy)`. A guide outside the docs root gets an absolute glob. With it, the shard preset's exclusions still apply to the guide, and markdownlint-cli2 still finds the guide under a symlinked docs root. Merlon Docs escapes the glob characters and quotes in each path it puts in a glob.
 
-A `lint.markdownlint.shardsGlobs` entry goes to markdownlint-cli2 as written, and markdownlint-cli2 resolves it against the docs root. The exceptions are `.`, which mdcp passes as `**`, and an entry that starts with `../`, negated or not, which mdcp makes absolute for the same reasons as a guide outside the docs root. Given `.` as its only path, markdownlint-cli2 would lint the Markdown files at the top of the docs root and nothing below them. It lints every file under any other directory entry, and an entry that starts with `!` or `#` excludes the files it matches. The compiled pass gets only `--config` from mdcp, and markdownlint-cli2 resolves the `globs` in `compiledConfig` against its cwd, the docs root.
+A `lint.markdownlint.shardsGlobs` entry goes to markdownlint-cli2 as written, and markdownlint-cli2 resolves it against the docs root. The exceptions are `.`, which Merlon Docs passes as `**`, and an entry that starts with `../`, negated or not, which Merlon Docs makes absolute for the same reasons as a guide outside the docs root. Given `.` as its only path, markdownlint-cli2 would lint the Markdown files at the top of the docs root and nothing below them. It lints every file under any other directory entry, and an entry that starts with `!` or `#` excludes the files it matches. The compiled pass gets only `--config` from Merlon Docs, and markdownlint-cli2 resolves the `globs` in `compiledConfig` against its cwd, the docs root.
 
 Vale lints each standalone guide once, even when it is inside a scanned directory or two `standaloneGuides` entries match it. The exception is a guide that a scanned directory also reaches through a symlinked subdirectory. Vale follows that link when it walks the directory, so it lints the file under both names.
 
@@ -74,7 +74,7 @@ Vale does not expand globs, so each `vale.scanGlobs` entry must be a file or dir
 
 The shard config in `@merlon-docs/merlon-docs-presets` supplies rules and exclusions. For the shard pass, **scope always comes from the CLI**, not from preset globs. A guide at `.` or a `.` entry in `shardsGlobs` reaches the whole docs root, and then the shard preset's exclusions are what keep compiled outputs out of the shard pass. The compiled pass is the opposite. Its scope is the `globs` in the compiled config, and the compiled preset's globs match only the monolith paths `_build/guides.md` and `guides.md`. The presets README lists what each preset excludes, lints and turns on, and when to copy one, in [Shard preset highlights](../../packages/merlon-docs-presets/README.md#shard-preset-highlights) and [Compiled preset highlights](../../packages/merlon-docs-presets/README.md#compiled-preset-highlights).
 
-`merlon fix` is out of band: it runs `prettier --write .` and `markdownlint-cli2 --fix` from the docs root and is not part of mdcp's guide fileset gate. It reaches a standalone guide only when the file is under `--docs-root`.
+`merlon fix` is out of band: it runs `prettier --write .` and `markdownlint-cli2 --fix` from the docs root and is not part of Merlon Docs' guide fileset gate. It reaches a standalone guide only when the file is under `--docs-root`.
 
 ### Opt a standalone guide out of Vale
 

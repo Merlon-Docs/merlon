@@ -1,6 +1,6 @@
 # Versioning and releases
 
-mdcp uses [Semantic Versioning 2.0.0](https://semver.org/) and [Changesets](https://github.com/changesets/changesets) for predictable releases. **Each npm package and each Agent Skill versions independently** — a changeset only bumps the items it lists.
+Merlon Docs uses [Semantic Versioning 2.0.0](https://semver.org/) and [Changesets](https://github.com/changesets/changesets) for predictable releases. **Each npm package and each Agent Skill versions independently** — a changeset only bumps the items it lists.
 
 | Item        | Identifier                         | Published to                                                       |
 | ----------- | ---------------------------------- | ------------------------------------------------------------------ |

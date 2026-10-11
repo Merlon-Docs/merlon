@@ -65,7 +65,7 @@
   display: block;
 }
 
-/* The protocol's name leads; the two parts it ships follow in a quieter tone. */
+/* The product name leads; the two parts it ships follow in a quieter tone. */
 .merlon-hero h1 > span + span {
   font-size: 0.72em;
   line-height: 1.18;
@@ -366,7 +366,7 @@
   margin-top: 3.5rem;
 }
 
-/* Problem rows: what goes wrong on the left, what MDCP does on the right. */
+/* Problem rows: what goes wrong on the left, what Merlon Docs does on the right. */
 .sl-markdown-content .merlon-problems {
   margin-top: 3rem;
   border-top: 1px solid var(--merlon-ink);
@@ -396,7 +396,7 @@
 .sl-markdown-content .merlon-problems .merlon-fix::before {
   display: block;
   margin-bottom: 0.35rem;
-  content: 'MDCP\00a0\00a0';
+  content: 'Merlon Docs\00a0\00a0';
   font-family: var(--merlon-mono);
   font-size: 0.6875rem;
   letter-spacing: 0.06em;

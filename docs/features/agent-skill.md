@@ -1,15 +1,15 @@
 # Agent Skill
 
-MDCP ships as one portable **documentation system** Agent Skill so projects inherit docs-as-code guardrails without a host-specific IDE extension. People install that one skill; it picks the workflow for each task (bootstrap, docs-only, design, feature, UX, doc review) and loads only that workflow's file.
+Merlon Docs ships as one portable **documentation system** Agent Skill so projects inherit docs-as-code guardrails without a host-specific IDE extension. People install that one skill; it picks the workflow for each task (bootstrap, docs-only, design, feature, UX, doc review) and loads only that workflow's file.
 
 ## Why Agent Skills
 
-Packaging MDCP as an Agent Skill gives:
+Packaging Merlon Docs as an Agent Skill gives:
 
 - **Lower friction**, with zero-install in the repo or `npx skills add`
 - **Host interoperability** across Cursor, Copilot, Claude Code, VS Code, and CLI hosts
 - **Simpler maintenance**, because agents load markdown skill directories from the repo
-- **Composition** in one skill with task workflows inside it ([Skill workflows](./protocol/skill-workflows.md) lists them, and `protocol/workflows/` sets each workflow's boundaries)
+- **Composition** in one skill with task workflows inside it ([Skill workflows](./system/skill-workflows.md) lists them, and `system/workflows/` sets each workflow's boundaries)
 - **Reviewable instructions**, vendored in your agent's skills directory and committed with the project
 
 ## The skill and complementary skills
@@ -17,7 +17,7 @@ Packaging MDCP as an Agent Skill gives:
 **Upstream source** (this repository, publishable):
 
 - [`skills/merlon-docs/`](../../skills/merlon-docs/) holds the documentation system skill and its workflows, the supported consumer install.
-- `skills/merlon-docs-arch-*/` holds the internal archetype skills that [Extensions and archetypes](./protocol/extensions-and-archetypes.md) lists. [Publishing the skill pack](../developer/agent-skill.md#publishing-the-skill-pack) says when one is released.
+- `skills/merlon-docs-arch-*/` holds the internal archetype skills that [Extensions and archetypes](./system/extensions-and-archetypes.md) lists. [Publishing the skill pack](../developer/agent-skill.md#publishing-the-skill-pack) says when one is released.
 
 **Consumer install target** after `npx skills add`: the **agent-specific** skills directory the [`skills` CLI](https://www.skills.sh/docs/cli) chooses (`--agent` or auto-detect) — vendored into your repo. Per-agent paths: [Supported Agents](https://github.com/vercel-labs/skills#supported-agents).
 
@@ -28,11 +28,11 @@ Packaging MDCP as an Agent Skill gives:
 - **Install path:** your agent's skills directory after `npx skills add` (not one universal folder — the CLI maps each host to its own tree; see [Supported Agents](https://github.com/vercel-labs/skills#supported-agents)).
 - **Frontmatter:** `license`, `compatibility` (Node.js 18+ / `@merlon-docs/merlon-docs-cli`), and `metadata.version` (independent per skill, and synced from `packages/skill-<id>/` at release). Internal skills also set `metadata.internal: true`, and [Publishing the skill pack](../developer/agent-skill.md#publishing-the-skill-pack) says what that flag does.
 
-The skill calls the mdcp CLI directly, without skill scripts. [`skills/merlon-docs/references/cli-and-scripts.md`](../../skills/merlon-docs/references/cli-and-scripts.md) says what **compile** (build docs), **check** (validate the tree) and **refs** (cross-link registry) mean, and why that logic stays in the CLI.
+The skill calls the Merlon Docs CLI directly, without skill scripts. [`skills/merlon-docs/references/cli-and-scripts.md`](../../skills/merlon-docs/references/cli-and-scripts.md) says what **compile** (build docs), **check** (validate the tree) and **refs** (cross-link registry) mean, and why that logic stays in the CLI.
 
 ## Versioning Strategy (Vendoring)
 
-MDCP skills are **vendored**: skill files live in the project and are versioned with Git.
+Merlon Docs skills are **vendored**: skill files live in the project and are versioned with Git.
 
 1. **Commit to Git:** When you run `npx skills add`, the skill's files are copied into your agent's skills directory and tracked in your own source control.
 2. **Docs-as-code Evolution:** The skill version is tied to the commit in your repository. Agent instruction changes are reviewable in Pull Requests alongside the code or configuration changes they support.
@@ -74,14 +74,14 @@ current docs only, [shard single responsibility](../glossary/shard-single-respon
 temporary information in durable docs, and recording where plans live.
 
 Because every install gets its own copy of `SKILL.md`, the file also states four rules that these docs own:
-the [plan obligation for atomic commit groups](./protocol/skill-workflows.md#atomic-commit-groups-plan-obligation),
-the [guide layout and placement test](./protocol/mdcp-1.0-spec.md#2-default-guide-layout-code-repository-archetype),
-the [concept removal obligation](./protocol/skill-workflows.md#concept-removal-obligation),
-and the [trigger and evidence of the weekly review routine](./protocol/workflows/doc-review.md#weekly-review-routine).
+the [plan obligation for atomic commit groups](./system/skill-workflows.md#atomic-commit-groups-plan-obligation),
+the [guide layout and placement test](./system/merlon-docs-1.0-spec.md#2-default-guide-layout-code-repository-archetype),
+the [concept removal obligation](./system/skill-workflows.md#concept-removal-obligation),
+and the [trigger and evidence of the weekly review routine](./system/workflows/doc-review.md#weekly-review-routine).
 The workflow files inside the skill repeat or point to each one at the step where it applies.
 
 Depth on single responsibility, mitosis, and two-level review:
-[Shard single responsibility and idea mitosis](./protocol/shard-srp-and-mitosis.md).
+[Shard single responsibility and idea mitosis](./system/shard-srp-and-mitosis.md).
 
 ## Ecosystem publication
 
@@ -92,7 +92,7 @@ Maintainer detail: [Publishing the skill pack](../developer/agent-skill.md#publi
 
 ## Agent Skill acceptance criteria
 
-1. The skill is a valid Agent Skills package, and its `name: mdcp` matches its folder under `skills/`.
+1. The skill is a valid Agent Skills package, and its `name: merlon-docs` matches its folder under `skills/`.
 2. Consumer install docs describe one skill, installed with `npx skills add`.
 3. The skill encodes bootstrap, smallest-context loading and hard rules for docs-as-code agents, and it routes each task to one workflow file.
 4. The skill is host-agnostic, and no required step is Marketplace-only.

@@ -24,4 +24,4 @@ Consumer migration and breaking-change notice live in the package [CHANGELOG](..
 
 - [Feature catalog](../feature-catalog.md) lists current capabilities only; it does not document removed export profiles.
 - Invoking `mdcp export` fails with guidance toward the Agent Skill and shard reads.
-- Roadmap delivery after export removal is Agent Skills + compile/check (V1); optional MCP / hosted access stay separate pipeline items in [Vision and roadmap](../protocol/00-vision-and-roadmap.md).
+- Roadmap delivery after export removal is Agent Skills + compile/check (V1); optional MCP / hosted access stay separate pipeline items in [Vision and roadmap](../system/00-vision-and-roadmap.md).

@@ -5,7 +5,7 @@
 
 ## Get started
 
-- [Why mdcp for coding agents](./why-mdcp-for-agents.md)
+- [Why Merlon Docs for coding agents](./why-merlon-docs-for-agents.md)
 - [Install and quick start](./install-and-quick-start.md)
 - [Project layout](./project-layout.md)
 - [Config essentials](./config-essentials.md)

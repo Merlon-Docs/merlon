@@ -21,7 +21,7 @@ The refs registry is derived state under `outputDir`, not co-located with per-gu
 
 ## Stale registry check
 
-`merlon check` rewrites `refs.json` before its refs stage verifies the file, so that stage can't fail on a stale one. `merlon refs-check` compiles without writing and compares the result with the file on disk. It fails when the file no longer matches the current shards, and when the file is missing. As a CI gate, it catches a stale registry only when `refs.json` is committed and the check runs before anything compiles. With `refs.json` committed, a CI step that compiles and then runs `git diff --exit-code` also fails on a stale registry, because compile writes the same file for the same shards. Of the mdcp commands, only `merlon refs-check` fails on a stale file.
+`merlon check` rewrites `refs.json` before its refs stage verifies the file, so that stage can't fail on a stale one. `merlon refs-check` compiles without writing and compares the result with the file on disk. It fails when the file no longer matches the current shards, and when the file is missing. As a CI gate, it catches a stale registry only when `refs.json` is committed and the check runs before anything compiles. With `refs.json` committed, a CI step that compiles and then runs `git diff --exit-code` also fails on a stale registry, because compile writes the same file for the same shards. Of the Merlon Docs commands, only `merlon refs-check` fails on a stale file.
 
 ## Acceptance criteria
 

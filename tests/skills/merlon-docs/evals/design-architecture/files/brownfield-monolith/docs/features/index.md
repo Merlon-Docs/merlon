@@ -1,6 +1,6 @@
 # Features
 
-Thin MDCP feature index. Architecture content today lives in the legacy
+Thin Merlon Docs feature index. Architecture content today lives in the legacy
 monolith at [ARCHITECTURE.md](../ARCHITECTURE.md) — split into shards here
 when updating design docs.
 

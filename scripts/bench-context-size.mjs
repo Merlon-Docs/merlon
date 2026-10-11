@@ -16,7 +16,7 @@
  *                               or named export countTokens, maps text to a number
  *   MERLON_TOKENIZER, MERLON_TOKENIZER_MODULE   the same, from the environment
  *
- * Other flags: --out <csv> (default docs/features/protocol/research/context-size-dogfood-<date>.csv,
+ * Other flags: --out <csv> (default docs/features/system/research/context-size-dogfood-<date>.csv,
  * a new file for each day's run), --no-write (print only). A run worth keeping gets its own
  * research record beside the CSV; earlier CSVs stay as measured.
  */
@@ -28,7 +28,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, '..');
 const DOCS_ROOT = join(REPO_ROOT, 'docs');
 const MONOLITH = join(DOCS_ROOT, '_build/guides.md');
-const RESEARCH_DIR = join(DOCS_ROOT, 'features/protocol/research');
+const RESEARCH_DIR = join(DOCS_ROOT, 'features/system/research');
 
 /** Encodings shipped by gpt-tokenizer; each module exports countTokens(text). */
 export const ENCODINGS = [

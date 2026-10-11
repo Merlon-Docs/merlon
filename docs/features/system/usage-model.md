@@ -1,6 +1,6 @@
 # Usage model
 
-Operational roles in the MarkDown Context Protocol (MDCP).
+Operational roles in Merlon Docs.
 
 ## Agent entrypoint
 
@@ -30,11 +30,11 @@ Multi-guide `compileOrder`, publish outputs (`compile.outputFile`).
 
 ### Agent-native
 
-Above plus the four-tier guide layout (`features` / `client` / `developer` / `glossary`), the `mdcp` skill's workflows.
+Above plus the four-tier guide layout (`features` / `client` / `developer` / `glossary`), the `merlon-docs` skill's workflows.
 
 ## Coexistence
 
-[Alternatives and adoption](./02-alternatives-and-adoption.md#alternatives-comparison) says what MDCP adds beside site generators and host rules files. [Scope and positioning](./01-scope-and-positioning.md#why-mdcp-is-not-an-mcp-server) explains why MCP sits on top of MDCP instead of replacing it.
+[Alternatives and adoption](./02-alternatives-and-adoption.md#alternatives-comparison) says what Merlon Docs adds beside site generators and host rules files. [Scope and positioning](./01-scope-and-positioning.md#why-merlon-docs-is-not-an-mcp-server) explains why MCP sits on top of Merlon Docs instead of replacing it.
 
 ## Query preference order
 

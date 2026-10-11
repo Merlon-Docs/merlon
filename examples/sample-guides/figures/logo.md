@@ -1,1 +1,1 @@
-![MDCP logo](./logo.svg)
+![Merlon Docs logo](./logo.svg)

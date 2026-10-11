@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/@merlon-docs/merlon-docs-core.svg)](https://www.npmjs.com/package/@merlon-docs/merlon-docs-core)
 
-The **programmatic core library** for the [MarkDown Context Protocol (MDCP)](https://github.com/Merlon-Docs/merlon). It compiles sharded Markdown guides and validates their structure. From the compiled output it also builds the registry of section links (`refs.json`).
+The **programmatic core library** for [Merlon Docs](https://github.com/Merlon-Docs/merlon), a documentation system for software projects. It compiles sharded Markdown guides and validates their structure. From the compiled output it also builds the registry of section links (`refs.json`).
 
 Use this package when you need compile, validation, and refs APIs in scripts, CI, editors, or other tools **without** shelling out to the CLI.
 

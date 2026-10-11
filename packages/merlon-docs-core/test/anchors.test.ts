@@ -66,7 +66,7 @@ describe('stripExplicitAnchorMarkers', () => {
   });
 
   it('keeps markers on a fenced heading line that starts one to three spaces in', () => {
-    // mdcp reads a heading only at column 0, so the indented line is fenced text.
+    // Merlon Docs reads a heading only at column 0, so the indented line is fenced text.
     for (const indent of [' ', '   ']) {
       const md = ['```markdown', indent + '## Title {#keep}', '```', ''];
       expect(strip(md)).toBe(md.join('\n'));

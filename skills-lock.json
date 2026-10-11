@@ -4,27 +4,27 @@
     "merlon-docs": {
       "source": ".",
       "sourceType": "local",
-      "computedHash": "e7061590a7d1872e402a823e248d6051701b3cd8b05d385a9bbcf04e004b93eb"
+      "computedHash": "d2991077d1fcd23fedf63da0dbcfe6b74986855c11df36366a9315274451a048"
     },
     "merlon-docs-arch-gtm": {
       "source": ".",
       "sourceType": "local",
-      "computedHash": "5eeb0b3ed8355874c1cfbe50b4e102c7a47e1bda6dafa0ded96f7ed22f0cf39c"
+      "computedHash": "ffc2c6044d00e42947fdba7e1da758e7b4ee973187c81fea7ef595cb18f9bb87"
     },
     "merlon-docs-arch-oss-library": {
       "source": ".",
       "sourceType": "local",
-      "computedHash": "c976d92e2db571987badbc0140921698033c4574cdae08abc38ad6110f6e24a7"
+      "computedHash": "6382cb0d8831a54c54096161d8b872cd0b3521adfbadf993ccab63a5d1dea725"
     },
     "merlon-docs-arch-product-docs-site": {
       "source": ".",
       "sourceType": "local",
-      "computedHash": "b6c0ea5f2e64132cb7e94193b2a3415d893be70817da09d43f592e258908963a"
+      "computedHash": "7567014ef5a860dfb3e5fd425f808fa755a2f87f44f7c598975eb9103bdfd42a"
     },
     "merlon-docs-arch-research": {
       "source": ".",
       "sourceType": "local",
-      "computedHash": "eccdbf081dce49e4e399d991a33472d34d54e808b5dd139ac1edd10a0f9e0bc4"
+      "computedHash": "7cf9179e781c2f2a7e9f655c8d8f135a45fd0855831a02eed4a6975d81d0c420"
     },
     "skill-creator": {
       "source": "anthropics/skills",

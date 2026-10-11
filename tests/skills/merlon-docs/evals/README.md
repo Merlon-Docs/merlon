@@ -1,4 +1,4 @@
-# `mdcp` live evals
+# `merlon-docs` live evals
 
 Fixtures and prompts for the optional [skill-creator](../../../../.agents/skills/skill-creator/SKILL.md) loop. Not a CI gate.
 

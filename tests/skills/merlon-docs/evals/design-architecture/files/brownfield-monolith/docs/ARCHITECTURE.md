@@ -3,7 +3,7 @@
 > This single file is the **entire** architecture record for the fixture
 > product. It intentionally mixes multiple concerns, stale planning text, and
 > a durable decision that should become an ADR. Agents using
-> `mdcp-design-architecture` should break this into small MDCP shards under
+> `mdcp-design-architecture` should break this into small Merlon Docs shards under
 > `docs/features/`, update indexes, and retire superseded bullets — not grow
 > this monolith further.
 

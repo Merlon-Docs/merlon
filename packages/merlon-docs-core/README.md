@@ -8,7 +8,7 @@
 
 [![npm version](https://img.shields.io/npm/v/@merlon-docs/merlon-docs-core.svg)](https://www.npmjs.com/package/@merlon-docs/merlon-docs-core)
 
-The **programmatic core library** for the [MarkDown Context Protocol (MDCP)](https://github.com/Merlon-Docs/merlon). It compiles sharded Markdown guides and validates their structure. From the compiled output it also builds the registry of section links (`refs.json`).
+The **programmatic core library** for [Merlon Docs](https://github.com/Merlon-Docs/merlon), a documentation system for software projects. It compiles sharded Markdown guides and validates their structure. From the compiled output it also builds the registry of section links (`refs.json`).
 
 Use this package when you need compile, validation, and refs APIs in scripts, CI, editors, or other tools **without** shelling out to the CLI.
 
@@ -127,7 +127,7 @@ With `shardsGlobs`, it returns each entry as written, negated entries included, 
 
 Guides with `compile.outputFile` publish outside the shard tree (npm READMEs, `DEVELOPERS.md`, and similar).
 
-After the cross-guide and intra-guide rewrites, compile resolves the `../` links a shard still has and writes them relative to the guide's [link base](../../docs/features/compile-pipeline/publish-relative-links.md#when-it-runs). [Publish-relative exclusions](../../docs/features/compile-pipeline/publish-relative-links.md#publish-relative-exclusions) lists the links it leaves as written, such as a path that leads to no file. A guide doesn't need path-prefix config for this. [Link passes](../../docs/features/compile-pipeline/link-passes.md) lists the passes in order, and [Publish-relative link rewriting](../../docs/features/compile-pipeline/publish-relative-links.md) has examples from MDCP's own docs.
+After the cross-guide and intra-guide rewrites, compile resolves the `../` links a shard still has and writes them relative to the guide's [link base](../../docs/features/compile-pipeline/publish-relative-links.md#when-it-runs). [Publish-relative exclusions](../../docs/features/compile-pipeline/publish-relative-links.md#publish-relative-exclusions) lists the links it leaves as written, such as a path that leads to no file. A guide doesn't need path-prefix config for this. [Link passes](../../docs/features/compile-pipeline/link-passes.md) lists the passes in order, and [Publish-relative link rewriting](../../docs/features/compile-pipeline/publish-relative-links.md) has examples from Merlon Docs’ own docs.
 
 ### `compile.hooks`
 
@@ -319,7 +319,7 @@ The Features Guide's [Compile pipeline](../../docs/features/compile-pipeline/ind
 
 ### Extension pattern
 
-A custom hook runs only in a process that registers it with `registerCompileHook` before it calls `compileGuideResults` or `compileGuides`. Importing the core registers the built-in hooks and `identity`, which returns the body unchanged. The mdcp CLI doesn't load a custom hook, so `merlon compile` and `merlon check` compile without one. Register yours in your own build script:
+A custom hook runs only in a process that registers it with `registerCompileHook` before it calls `compileGuideResults` or `compileGuides`. Importing the core registers the built-in hooks and `identity`, which returns the body unchanged. The Merlon Docs CLI doesn't load a custom hook, so `merlon compile` and `merlon check` compile without one. Register yours in your own build script:
 
 ```typescript
 import { registerCompileHook } from '@merlon-docs/merlon-docs-core';
@@ -380,9 +380,9 @@ A marker goes with the whitespace before it on the same line. When a marker open
 
 ### stripAnchors heading lines
 
-A line that mdcp reads as a heading, an ATX heading at column 0, loses every marker, even inside a fenced code block or a code span. Heading slugs drop every marker from a title and skip the lines that the [fence scan](../../docs/features/compile-pipeline/fence-scan.md) reads as code. The scan ignores HTML and can misread a fence there, so stripping every heading line keeps a marker off a rendered heading even then.
+A line that Merlon Docs reads as a heading, an ATX heading at column 0, loses every marker, even inside a fenced code block or a code span. Heading slugs drop every marker from a title and skip the lines that the [fence scan](../../docs/features/compile-pipeline/fence-scan.md) reads as code. The scan ignores HTML and can misread a fence there, so stripping every heading line keeps a marker off a rendered heading even then.
 
-To show the syntax on a heading inside a fenced example, start the heading line one to three spaces in. mdcp doesn't read that line as a heading. The strip treats it as fenced text and keeps its marker. Outside a fence the same line is prose, and its marker goes.
+To show the syntax on a heading inside a fenced example, start the heading line one to three spaces in. Merlon Docs doesn't read that line as a heading. The strip treats it as fenced text and keeps its marker. Outside a fence the same line is prose, and its marker goes.
 
 ### stripAnchors code
 
@@ -430,7 +430,7 @@ The hook finds fenced code and code spans as the [link passes](../../docs/featur
 
 ### codeEvidence line ranges
 
-Line ranges are parsed from the **link label** first, then from the path (before any `#` fragment). The hook always emits GitHub-style **`#L…` fragments** (protocol output — not localized).
+Line ranges are parsed from the **link label** first, then from the path (before any `#` fragment). The hook always emits GitHub-style **`#L…` fragments** (a fixed format that isn't localized).
 
 **Language-neutral forms** (always recognized):
 
@@ -441,7 +441,7 @@ Line ranges are parsed from the **link label** first, then from the path (before
 | `:10-20`, `:10`       | `#L10-L20`, `#L10` |
 | bare `1-2`            | `#L1-L2`           |
 
-**Locale word forms** come from the active [locale pack](#locale-pack) (`lineRangeWords`). Default **en-US** recognizes `line` / `lines` (case-insensitive), for example `line 42` → `#L42` and `lines 12–15` → `#L12-L15`. Other locales may supply different authored words; they are not MDCP protocol vocabulary. See [Locale and language boundary](../../docs/features/design-constraints/locale-and-language.md).
+**Locale word forms** come from the active [locale pack](#locale-pack) (`lineRangeWords`). Default **en-US** recognizes `line` / `lines` (case-insensitive), for example `line 42` → `#L42` and `lines 12–15` → `#L12-L15`. Other locales may supply different authored words; they are not part of the Merlon Docs format. See [Locale and language boundary](../../docs/features/design-constraints/locale-and-language.md).
 
 If the URL already has a line fragment such as `#L6` or `#L6-L8`, the hook keeps it and writes each `l` in it as `L`, so `#l6-l8` becomes `#L6-L8`.
 
@@ -700,8 +700,8 @@ Catalog link `` `[Walkthrough](../media/walkthrough.md)` `` compiles to `#### Me
 
 ## Related packages
 
-- [`@merlon-docs/merlon-docs-cli`](https://www.npmjs.com/package/@merlon-docs/merlon-docs-cli): the `mdcp` command-line interface
-- [`@merlon-docs/merlon-docs-presets`](https://www.npmjs.com/package/@merlon-docs/merlon-docs-presets): starter markdownlint configs and the MDCP Vale style
+- [`@merlon-docs/merlon-docs-cli`](https://www.npmjs.com/package/@merlon-docs/merlon-docs-cli): the `merlon` command-line interface
+- [`@merlon-docs/merlon-docs-presets`](https://www.npmjs.com/package/@merlon-docs/merlon-docs-presets): starter markdownlint configs and the Merlon Docs Vale style
 
 ### Further reading
 
@@ -729,7 +729,7 @@ Read [Cross-guide link rewriting](../../docs/features/compile-pipeline/cross-gui
 
 ## locale pack
 
-A **locale pack** is MDCP’s compile-time bundle of natural-language data that is **not** GFM protocol shape. It covers:
+A **locale pack** is Merlon Docs’ compile-time bundle of natural-language data that is **not** part of the GFM format. It covers:
 
 - **Generated wording**: text such as US-English insert captions (`Table 1. …`) and `BROKEN LINK` marker copy
 - **Locale-specific patterns**: optional heading-key patterns for semantic refs

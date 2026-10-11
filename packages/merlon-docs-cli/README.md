@@ -6,25 +6,25 @@
 
 ## About @merlon-docs/merlon-docs-cli
 
-The **command-line interface** for the [MarkDown Context Protocol (MDCP)](https://github.com/Merlon-Docs/merlon).
+The **command-line interface** for [Merlon Docs](https://github.com/Merlon-Docs/merlon), a documentation system for software projects.
 
-Install this package when you need the `mdcp` binary: **compile** shards into guides, **check** the docs tree, manage **refs**, and optionally **lint** / **prose**.
+Install this package when you need the `merlon` binary: **compile** shards into guides, **check** the docs tree, manage **refs**, and optionally **lint** / **prose**.
 
 ### Not the Agent Skill
 
-This npm package is **not** the MDCP Agent Skill. Each piece of MDCP has its own job:
+This npm package is **not** the Merlon Docs Agent Skill. Each piece of Merlon Docs has its own job:
 
-- **This CLI:** the shell command `mdcp` (`merlon compile`, `merlon check`, …) from `@merlon-docs/merlon-docs-cli` on npm
+- **This CLI:** the shell command `merlon` (`merlon compile`, `merlon check`, …) from `@merlon-docs/merlon-docs-cli` on npm
 - **Core:** the programmatic library the CLI is built on, [`@merlon-docs/merlon-docs-core`](https://www.npmjs.com/package/@merlon-docs/merlon-docs-core)
 - **Agent Skill:** the host instructions (`SKILL.md` and its workflows) an agent loads for `/merlon-docs`, which decide when the agent edits docs and which workflow it follows
 
-The CLI and the skill are separate installs with separate docs. [Get started](../../README.md#get-started) in the project README shows how to install the skill and start its bootstrap session, and the [skill catalog](../../docs/skills.md) lists its workflows. The skill doesn't include the `mdcp` binary, so a repository that runs `merlon compile` or `merlon check` in scripts or CI installs this package as well. [Repo-root npm scripts](#repo-root-npm-scripts) shows the npm scripts.
+The CLI and the skill are separate installs with separate docs. [Get started](../../README.md#get-started) in the project README shows how to install the skill and start its bootstrap session, and the [skill catalog](../../docs/skills.md) lists its workflows. The skill doesn't include the `merlon` binary, so a repository that runs `merlon compile` or `merlon check` in scripts or CI installs this package as well. [Repo-root npm scripts](#repo-root-npm-scripts) shows the npm scripts.
 
 <!-- merlon-shard: end ../../docs/client-cli/about.md -->
 
-<!-- merlon-shard: start ../../docs/client-cli/why-mdcp-for-agents.md -->
+<!-- merlon-shard: start ../../docs/client-cli/why-merlon-docs-for-agents.md -->
 
-## Why mdcp for coding agents
+## Why Merlon Docs for coding agents
 
 Common docs failures when agents edit the repo, and what helps:
 
@@ -40,7 +40,7 @@ Typical loop: edit shards → `merlon compile` → `merlon check` → optional `
 
 [Install and quick start](#install-and-quick-start) covers install and flags, and the [Agent Skill](#not-the-agent-skill) contains the docs workflows an agent follows.
 
-<!-- merlon-shard: end ../../docs/client-cli/why-mdcp-for-agents.md -->
+<!-- merlon-shard: end ../../docs/client-cli/why-merlon-docs-for-agents.md -->
 
 <!-- merlon-shard: start ../../docs/client-cli/install-and-quick-start.md -->
 
@@ -48,7 +48,7 @@ Typical loop: edit shards → `merlon compile` → `merlon check` → optional `
 
 [![npm version](https://img.shields.io/npm/v/@merlon-docs/merlon-docs-cli.svg)](https://www.npmjs.com/package/@merlon-docs/merlon-docs-cli)
 
-This package installs the **`mdcp` CLI** for use in your repo or CI. It works in **any** codebase, whatever its stack or layout, because mdcp manages only your documentation shards and compile pipeline.
+This package installs the **`merlon` CLI** for use in your repo or CI. It works in **any** codebase, whatever its stack or layout, because Merlon Docs manages only your documentation shards and compile pipeline.
 
 To install the Agent Skill instead, see [Not the Agent Skill](#not-the-agent-skill).
 
@@ -75,7 +75,7 @@ Several commands run peer tools that you install in your repository, such as mar
 
 Before **1.0.0**, CLI commands, flags, the `merlon.config.json` schema and compile output can change in any `0.x.y` release, under the [pre-1.0 policy](../../DEVELOPERS.md#pre-10-policy-0xy).
 
-Before upgrading, read the changelog and release notes of each MDCP package you use. They hold the upgrade notes for earlier releases, which the feature catalog doesn't repeat.
+Before upgrading, read the changelog and release notes of each Merlon Docs package you use. They hold the upgrade notes for earlier releases, which the feature catalog doesn't repeat.
 
 ### Quick start
 
@@ -102,9 +102,9 @@ Before upgrading, read the changelog and release notes of each MDCP package you 
    }
    ```
 
-   This path works when the docs root is a direct child of the directory that holds `node_modules`, and Optional linters says how mdcp resolves it. When markdownlint-cli2 is missing, `merlon check` skips the shard pass with an info line unless you pass `--require-lint`. When the preset file is missing, the pass fails. Optional linters also covers the compiled-output preset and Vale.
+   This path works when the docs root is a direct child of the directory that holds `node_modules`, and Optional linters says how Merlon Docs resolves it. When markdownlint-cli2 is missing, `merlon check` skips the shard pass with an info line unless you pass `--require-lint`. When the preset file is missing, the pass fails. Optional linters also covers the compiled-output preset and Vale.
 
-2. Lay out shards under guide directories (each with `index.md` and chapter files). The [sample guides](../../examples/sample-guides) in the mdcp repository show a layout, and you can [copy single keys from their config](#full-schema-and-sample-config).
+2. Lay out shards under guide directories (each with `index.md` and chapter files). The [sample guides](../../examples/sample-guides) in the Merlon Docs repository show a layout, and you can [copy single keys from their config](#full-schema-and-sample-config).
 
 3. Run:
 
@@ -406,7 +406,7 @@ When a continuing stage of `merlon check` fails, the run ends with a stderr **fa
 
 ### Sprawl review
 
-`merlon review` reads every shard compile reads for the guides in `compileOrder`, including nested shards and each guide manifest (`index.md` by default), and reports signals that a shard or index needs a human or agent to look at it. It never writes files and skips paths matched by `scan.ignore`. The signals point at [idea mitosis](#idea-mitosis) candidates; deciding whether to split, merge, or regroup stays with the reviewer (see [Shard single responsibility and idea mitosis](../../docs/features/protocol/shard-srp-and-mitosis.md)).
+`merlon review` reads every shard compile reads for the guides in `compileOrder`, including nested shards and each guide manifest (`index.md` by default), and reports signals that a shard or index needs a human or agent to look at it. It never writes files and skips paths matched by `scan.ignore`. The signals point at [idea mitosis](#idea-mitosis) candidates; deciding whether to split, merge, or regroup stays with the reviewer (see [Shard single responsibility and idea mitosis](../../docs/features/system/shard-srp-and-mitosis.md)).
 
 ```bash
 merlon review --config docs/merlon.config.json --docs-root docs
@@ -530,7 +530,7 @@ This table links the page that documents each key:
 
 ### Full schema and sample config
 
-[`merlon.config.schema.json`](../merlon-docs-core/merlon.config.schema.json), a file in the mdcp repository that the npm packages leave out, is the JSON Schema for every key. The [sample guides' config](../../examples/sample-guides/merlon.config.json) is a longer example. Its paths resolve only from the mdcp repository root, so copy single keys from it.
+[`merlon.config.schema.json`](../merlon-docs-core/merlon.config.schema.json), a file in the Merlon Docs repository that the npm packages leave out, is the JSON Schema for every key. The [sample guides' config](../../examples/sample-guides/merlon.config.json) is a longer example. Its paths resolve only from the Merlon Docs repository root, so copy single keys from it.
 
 <!-- merlon-shard: end ../../docs/client-cli/config-reference.md -->
 
@@ -625,7 +625,7 @@ Slug algorithm, examples, and programmatic APIs: [Core — heading slugs](../mer
 
 ## Optional linters
 
-These commands use tools installed in **your** repo (not bundled with mdcp):
+These commands use tools installed in **your** repo (not bundled with Merlon Docs):
 
 | Command        | Peer tool                                          | Purpose                                                                                         |
 | -------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
@@ -635,7 +635,7 @@ These commands use tools installed in **your** repo (not bundled with mdcp):
 | `merlon fix`   | `prettier`, `markdownlint-cli2`                    | Run `prettier --write .` then `markdownlint-cli2 --fix` (no config paths)                       |
 | `merlon check` | `markdownlint-cli2`, `vale`, `markdown-link-check` | The check gate's lint, prose and URL stages, each run when its peer is installed and configured |
 
-`merlon fix` does not bundle formatters. Install **Prettier** and **markdownlint-cli2** in your repo first (`node_modules/.bin` or PATH). Each step is skipped with an info message if the peer is missing. mdcp passes markdownlint-cli2 no file paths. Its fix step needs a `.markdownlint-cli2.jsonc` (or another markdownlint-cli2 config file) in the docs root that lists `globs`. Without one, markdownlint-cli2 prints its usage text and fixes nothing. `merlon fix` exits 0 whatever either tool returns, so read its output to see whether both steps ran.
+`merlon fix` does not bundle formatters. Install **Prettier** and **markdownlint-cli2** in your repo first (`node_modules/.bin` or PATH). Each step is skipped with an info message if the peer is missing. Merlon Docs passes markdownlint-cli2 no file paths. Its fix step needs a `.markdownlint-cli2.jsonc` (or another markdownlint-cli2 config file) in the docs root that lists `globs`. Without one, markdownlint-cli2 prints its usage text and fixes nothing. `merlon fix` exits 0 whatever either tool returns, so read its output to see whether both steps ran.
 
 ```bash
 merlon lint --require-lint          # fail if markdownlint-cli2 is missing
@@ -652,11 +652,11 @@ Install npm peers with:
 npm install -D prettier markdownlint-cli2 @merlon-docs/merlon-docs-presets
 ```
 
-Install **Vale** separately so `vale` is on your `PATH`, using one of the methods in [Vale installation](https://vale.sh/docs/vale-cli/installation/). After adding a `.vale.ini`, run `vale sync` in that directory. mdcp looks for `vale` in `node_modules/.bin`, from the docs root up, before it looks on `PATH`. `merlon prose` and `merlon check` run Vale in the docs root and pass it the config file that `vale.config` names, `.vale.ini` by default.
+Install **Vale** separately so `vale` is on your `PATH`, using one of the methods in [Vale installation](https://vale.sh/docs/vale-cli/installation/). After adding a `.vale.ini`, run `vale sync` in that directory. Merlon Docs looks for `vale` in `node_modules/.bin`, from the docs root up, before it looks on `PATH`. `merlon prose` and `merlon check` run Vale in the docs root and pass it the config file that `vale.config` names, `.vale.ini` by default.
 
 `lint.markdownlint.shardsConfig` names the markdownlint-cli2 config file for the shard pass, and `lint.markdownlint.compiledConfig` names the one for the compiled pass. `merlon lint` and `merlon check` run each pass only when its key is set, and [Check gate stages](../../docs/features/check-gate.md#check-gate-stages) lists both passes in the check. A relative path is read from the docs root, so a `docs/` root next to `node_modules` uses `../node_modules/@merlon-docs/merlon-docs-presets/...`, as step 1 of [Quick start](#quick-start) shows.
 
-A [locale pack](#locale-pack) is MDCP compile-time wording, not a Vale style. The **`MDCP` Vale style** in `@merlon-docs/merlon-docs-presets` (`vale/MerlonDocs/`) holds the en-US prose cues. Its rules flag a numbered heading mention with no link, and `MerlonDocs.DatedClaim` flags `as of` or `until` before an ISO date. See [Locale and language boundary](../../docs/features/design-constraints/locale-and-language.md).
+A [locale pack](#locale-pack) is Merlon Docs’ compile-time wording, not a Vale style. The **`MerlonDocs` Vale style** in `@merlon-docs/merlon-docs-presets` (`vale/MerlonDocs/`) holds the en-US prose cues. Its rules flag a numbered heading mention with no link, and `MerlonDocs.DatedClaim` flags `as of` or `until` before an ISO date. See [Locale and language boundary](../../docs/features/design-constraints/locale-and-language.md).
 
 ### Vale alert level
 
@@ -674,7 +674,7 @@ Of Vale's alerts, only error-level ones fail `merlon prose` or `merlon check`, s
 
 ### In-scope guide fileset
 
-MDCP knows the **full fileset** it manages. The guides in `compileOrder` resolve via `guides[].path` or `{docsRoot}/{name}/`, and `standaloneGuides` registers the [standalone guides](#standalone-guide). Shard markdownlint lints the Markdown files in the guide directories. Vale prose lints the guide directories and the standalone guides, because a file that never compiles still reaches readers as written. Both linters skip markdown that the config does not name, such as legacy flat `.md` files or unregistered sibling folders under `--docs-root`.
+Merlon Docs knows the **full fileset** it manages. The guides in `compileOrder` resolve via `guides[].path` or `{docsRoot}/{name}/`, and `standaloneGuides` registers the [standalone guides](#standalone-guide). Shard markdownlint lints the Markdown files in the guide directories. Vale prose lints the guide directories and the standalone guides, because a file that never compiles still reaches readers as written. Both linters skip markdown that the config does not name, such as legacy flat `.md` files or unregistered sibling folders under `--docs-root`.
 
 | Command                                            | Default scope                                     | Out of scope (skipped)                                  |
 | -------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------- |
@@ -689,9 +689,9 @@ Optional overrides replace the guide directories with the paths you list, so sco
 | `lint.markdownlint.shardsGlobs` | Shard markdownlint paths relative to `--docs-root` (default: the Markdown in compileOrder guide dirs) |
 | `vale.scanGlobs`                | Vale prose paths relative to `--docs-root` in place of the guide dirs; standalone guides stay in      |
 
-Both markdownlint passes run with the docs root as their cwd. For each guide directory, mdcp passes the shard pass a glob for the `.md` and `.markdown` files in it, such as `features/**/*.{md,markdown}`, so an image or text file beside the shards stays out of the shard pass. For a guide under the docs root, the glob is relative to the docs root and leaves the checkout path out. A relative or absolute `--docs-root` then lints the same shards, even under a directory whose name has glob characters, such as `repo (copy)`. A guide outside the docs root gets an absolute glob. With it, the shard preset's exclusions still apply to the guide, and markdownlint-cli2 still finds the guide under a symlinked docs root. mdcp escapes the glob characters and quotes in each path it puts in a glob.
+Both markdownlint passes run with the docs root as their cwd. For each guide directory, Merlon Docs passes the shard pass a glob for the `.md` and `.markdown` files in it, such as `features/**/*.{md,markdown}`, so an image or text file beside the shards stays out of the shard pass. For a guide under the docs root, the glob is relative to the docs root and leaves the checkout path out. A relative or absolute `--docs-root` then lints the same shards, even under a directory whose name has glob characters, such as `repo (copy)`. A guide outside the docs root gets an absolute glob. With it, the shard preset's exclusions still apply to the guide, and markdownlint-cli2 still finds the guide under a symlinked docs root. Merlon Docs escapes the glob characters and quotes in each path it puts in a glob.
 
-A `lint.markdownlint.shardsGlobs` entry goes to markdownlint-cli2 as written, and markdownlint-cli2 resolves it against the docs root. The exceptions are `.`, which mdcp passes as `**`, and an entry that starts with `../`, negated or not, which mdcp makes absolute for the same reasons as a guide outside the docs root. Given `.` as its only path, markdownlint-cli2 would lint the Markdown files at the top of the docs root and nothing below them. It lints every file under any other directory entry, and an entry that starts with `!` or `#` excludes the files it matches. The compiled pass gets only `--config` from mdcp, and markdownlint-cli2 resolves the `globs` in `compiledConfig` against its cwd, the docs root.
+A `lint.markdownlint.shardsGlobs` entry goes to markdownlint-cli2 as written, and markdownlint-cli2 resolves it against the docs root. The exceptions are `.`, which Merlon Docs passes as `**`, and an entry that starts with `../`, negated or not, which Merlon Docs makes absolute for the same reasons as a guide outside the docs root. Given `.` as its only path, markdownlint-cli2 would lint the Markdown files at the top of the docs root and nothing below them. It lints every file under any other directory entry, and an entry that starts with `!` or `#` excludes the files it matches. The compiled pass gets only `--config` from Merlon Docs, and markdownlint-cli2 resolves the `globs` in `compiledConfig` against its cwd, the docs root.
 
 Vale lints each standalone guide once, even when it is inside a scanned directory or two `standaloneGuides` entries match it. The exception is a guide that a scanned directory also reaches through a symlinked subdirectory. Vale follows that link when it walks the directory, so it lints the file under both names.
 
@@ -699,7 +699,7 @@ Vale does not expand globs, so each `vale.scanGlobs` entry must be a file or dir
 
 The shard config in `@merlon-docs/merlon-docs-presets` supplies rules and exclusions. For the shard pass, **scope always comes from the CLI**, not from preset globs. A guide at `.` or a `.` entry in `shardsGlobs` reaches the whole docs root, and then the shard preset's exclusions are what keep compiled outputs out of the shard pass. The compiled pass is the opposite. Its scope is the `globs` in the compiled config, and the compiled preset's globs match only the monolith paths `_build/guides.md` and `guides.md`. The presets README lists what each preset excludes, lints and turns on, and when to copy one, in [Shard preset highlights](../merlon-docs-presets/README.md#shard-preset-highlights) and [Compiled preset highlights](../merlon-docs-presets/README.md#compiled-preset-highlights).
 
-`merlon fix` is out of band: it runs `prettier --write .` and `markdownlint-cli2 --fix` from the docs root and is not part of mdcp's guide fileset gate. It reaches a standalone guide only when the file is under `--docs-root`.
+`merlon fix` is out of band: it runs `prettier --write .` and `markdownlint-cli2 --fix` from the docs root and is not part of Merlon Docs' guide fileset gate. It reaches a standalone guide only when the file is under `--docs-root`.
 
 #### Opt a standalone guide out of Vale
 
@@ -729,12 +729,12 @@ The file stays a standalone guide, so coverage and link validation still check i
 ## Related packages
 
 - [`@merlon-docs/merlon-docs-core`](https://www.npmjs.com/package/@merlon-docs/merlon-docs-core): the programmatic compile, refs, and validation API
-- [`@merlon-docs/merlon-docs-presets`](https://www.npmjs.com/package/@merlon-docs/merlon-docs-presets): starter markdownlint configs for shards and compiled output, and the MDCP Vale style
+- [`@merlon-docs/merlon-docs-presets`](https://www.npmjs.com/package/@merlon-docs/merlon-docs-presets): starter markdownlint configs for shards and compiled output, and the Merlon Docs Vale style
 
 ### Further reading
 
 - [Project README](../../README.md): the Agent Skill landing page
-- [Commands reference](#commands-reference): the full `mdcp` command list
+- [Commands reference](#commands-reference): the full `merlon` command list
 - [Core API](../../docs/client-core/index.md): the programmatic library
 - [Feature catalog](../../docs/features/feature-catalog.md): maintainer depth
 - [Sample guides](../../examples/sample-guides)
@@ -833,7 +833,7 @@ See [What compile actually does](../../docs/features/overview.md#what-compile-ac
 
 Do not split only because a file is long. Prefer one primary concern per shard.
 
-See [Shard single responsibility and idea mitosis](../../docs/features/protocol/shard-srp-and-mitosis.md).
+See [Shard single responsibility and idea mitosis](../../docs/features/system/shard-srp-and-mitosis.md).
 
 <!-- merlon-shard: end ../../docs/glossary/idea-mitosis.md -->
 
@@ -841,9 +841,9 @@ See [Shard single responsibility and idea mitosis](../../docs/features/protocol/
 
 ## refs
 
-**Refs** (short for **references**) are the organized set of heading [slugs](#heading-slug) and [cross-links](#cross-link) MDCP derives from compiled guides so authors and CI can keep Markdown links coherent after stitch.
+**Refs** (short for **references**) are the organized set of heading [slugs](#heading-slug) and [cross-links](#cross-link) Merlon Docs derives from compiled guides so authors and CI can keep Markdown links coherent after stitch.
 
-The problem refs solve is structural. Stitching shards shifts heading levels and disambiguates duplicate titles, so a hand-guessed `#anchor` or stale path can break after `compile`. MDCP keeps a [refs registry](#refs-registry) and validates links at `check` time so the **compiled** document still targets the right sections and files.
+The problem refs solve is structural. Stitching shards shifts heading levels and disambiguates duplicate titles, so a hand-guessed `#anchor` or stale path can break after `compile`. Merlon Docs keeps a [refs registry](#refs-registry) and validates links at `check` time so the **compiled** document still targets the right sections and files.
 
 ### Related wording
 
@@ -856,7 +856,7 @@ The problem refs solve is structural. Stitching shards shifts heading levels and
 | **list refs**                       | Print each compiled output's headings with its file (`merlon refs-list`)            |
 | **check refs**                      | Confirm the registry on disk matches compiled headings (`merlon refs-check`)        |
 
-Refs check links. They do not find documents. To find a shard, use host search (`rg`, IDE search) or the guide `index.md`, then read that one shard. To check links, run `merlon check`. To see the registry's slugs, run `merlon refs-list`. [ADR 0002](../../docs/features/adr/0002-remove-refs-lookup.md) records why MDCP has no lookup command.
+Refs check links. They do not find documents. To find a shard, use host search (`rg`, IDE search) or the guide `index.md`, then read that one shard. To check links, run `merlon check`. To see the registry's slugs, run `merlon refs-list`. [ADR 0002](../../docs/features/adr/0002-remove-refs-lookup.md) records why Merlon Docs has no lookup command.
 
 <!-- merlon-shard: end ../../docs/glossary/refs.md -->
 
@@ -866,7 +866,7 @@ Refs check links. They do not find documents. To find a shard, use host search (
 
 GitHub-style fragment id for a heading in **compiled** Markdown (the part after `#` in `[label](#slug)`). Parent concept: [refs](#refs).
 
-MDCP computes slugs from final heading text after guides are stitched and demoted, with the same rules GitHub uses for README anchors (via `github-slugger`). Duplicate titles in one document get `-1`, `-2` suffixes. Authors should not invent fragments from shard-only titles; [cross-links](#cross-link) must match the compiled slug, and `merlon check` fails when they do not.
+Merlon Docs computes slugs from final heading text after guides are stitched and demoted, with the same rules GitHub uses for README anchors (via `github-slugger`). Duplicate titles in one document get `-1`, `-2` suffixes. Authors should not invent fragments from shard-only titles; [cross-links](#cross-link) must match the compiled slug, and `merlon check` fails when they do not.
 
 <!-- merlon-shard: end ../../docs/glossary/heading-slug.md -->
 
@@ -876,7 +876,7 @@ MDCP computes slugs from final heading text after guides are stitched and demote
 
 A **cross-link** (also **cross-ref**) is a Markdown link whose target is another place in the docs set. It is usually a same-document `[label](#heading-slug)` fragment or a path to another shard that compile may rewrite.
 
-Cross-links are why [refs](#refs) exist. After assemble, the visible heading text and level can change. The [heading slug](#heading-slug) that works in a shard may then differ from the slug in the compiled file. MDCP rewrites these targets and validates the links in each [compiled guide](#compiled-guide). See [Built-in link validation](../../docs/features/link-validation.md).
+Cross-links are why [refs](#refs) exist. After assemble, the visible heading text and level can change. The [heading slug](#heading-slug) that works in a shard may then differ from the slug in the compiled file. Merlon Docs rewrites these targets and validates the links in each [compiled guide](#compiled-guide). See [Built-in link validation](../../docs/features/link-validation.md).
 
 <!-- merlon-shard: end ../../docs/glossary/cross-link.md -->
 
@@ -904,7 +904,7 @@ Contrast with a [guide](#guide), whose shards compile into one output. Compile d
 
 ## locale pack
 
-A **locale pack** is MDCP’s compile-time bundle of natural-language data that is **not** GFM protocol shape. It covers:
+A **locale pack** is Merlon Docs’ compile-time bundle of natural-language data that is **not** part of the GFM format. It covers:
 
 - **Generated wording**: text such as US-English insert captions (`Table 1. …`) and `BROKEN LINK` marker copy
 - **Locale-specific patterns**: optional heading-key patterns for semantic refs
@@ -919,7 +919,7 @@ Default `en-US` (one BCP 47 JSON file per locale under `src/locale/locales/`). L
 
 ## coverage
 
-Documentation **coverage** is the set of markdown files MDCP can account for, and a file in that set is **captured**. [Coverage and the captured set](../../docs/features/coverage-scan.md#coverage-and-the-captured-set) lists which files count.
+Documentation **coverage** is the set of markdown files Merlon Docs can account for, and a file in that set is **captured**. [Coverage and the captured set](../../docs/features/coverage-scan.md#coverage-and-the-captured-set) lists which files count.
 
 The coverage scan walks the repository for markdown files, skips vendored paths, and reports any file that is not captured so authors either fold it into a guide or register it in `standaloneGuides[]`. With `scan.strict: true`, gaps fail `merlon check`.
 
@@ -931,7 +931,7 @@ The coverage scan walks the repository for markdown files, skips vendored paths,
 
 A **guide tier** is one category in an [archetype](#archetype)'s guide layout. Each tier specifies what its shards contain and what they keep out. The default archetype, the Code Repository Archetype, defines four tiers: `features/`, `client/`, `developer/`, and `glossary/`. A tier can include more than one [guide](#guide).
 
-[Default guide layout](../../docs/features/protocol/mdcp-1.0-spec.md#2-default-guide-layout-code-repository-archetype) defines the four tiers. Under its placement test, a shard that consumers need goes in `features/` or `client/`, and a shard that only contributors need goes in `developer/`.
+[Default guide layout](../../docs/features/system/merlon-docs-1.0-spec.md#2-default-guide-layout-code-repository-archetype) defines the four tiers. Under its placement test, a shard that consumers need goes in `features/` or `client/`, and a shard that only contributors need goes in `developer/`.
 
 <!-- merlon-shard: end ../../docs/glossary/guide-tier.md -->
 
@@ -947,7 +947,7 @@ An **orphan** is a top-level shard in a [guide](#guide) directory that the guide
 
 ## shard
 
-A **shard** is a small Markdown file that owns one topic. In MDCP, authors edit shards; `compile` stitches them into [compiled guides](#compiled-guide), such as a package README. Shards are the source of truth, so do not hand-edit generated files.
+A **shard** is a small Markdown file that owns one topic. In Merlon Docs, authors edit shards; `compile` stitches them into [compiled guides](#compiled-guide), such as a package README. Shards are the source of truth, so do not hand-edit generated files.
 
 Think “one concern per file” so people and agents can load only what the task needs. Related: [shard single responsibility](#shard-single-responsibility). Deeper model: [Overview](../../docs/features/overview.md).
 
@@ -959,7 +959,7 @@ Think “one concern per file” so people and agents can load only what the tas
 
 **Shard single responsibility** means each durable documentation shard owns one primary concern, for one [guide tier](#guide-tier), serving one job: explain, instruct how-to, or define and look up. A shard should have one main reason to change.
 
-See [Shard single responsibility and idea mitosis](../../docs/features/protocol/shard-srp-and-mitosis.md) and [idea mitosis](#idea-mitosis).
+See [Shard single responsibility and idea mitosis](../../docs/features/system/shard-srp-and-mitosis.md) and [idea mitosis](#idea-mitosis).
 
 <!-- merlon-shard: end ../../docs/glossary/shard-single-responsibility.md -->
 
@@ -967,7 +967,7 @@ See [Shard single responsibility and idea mitosis](../../docs/features/protocol/
 
 ## archetype
 
-An **archetype**, or battery type, is a documented bundle of guide layout, glossary seeds, optional prompts and extension pointers for one project class. The default, the Code Repository Archetype, is the four [guide tiers](#guide-tier) that [Default guide layout](../../docs/features/protocol/mdcp-1.0-spec.md#2-default-guide-layout-code-repository-archetype) defines. The other archetypes in this repository are archetype skills, `merlon-docs-arch-*` [Agent Skills](#agent-skills), which [Archetypes](../../docs/features/protocol/extensions-and-archetypes.md#archetypes-battery-types) lists, and a team can define its own for another documentation system.
+An **archetype**, or battery type, is a documented bundle of guide layout, glossary seeds, optional prompts and extension pointers for one project class. The default, the Code Repository Archetype, is the four [guide tiers](#guide-tier) that [Default guide layout](../../docs/features/system/merlon-docs-1.0-spec.md#2-default-guide-layout-code-repository-archetype) defines. The other archetypes in this repository are archetype skills, `merlon-docs-arch-*` [Agent Skills](#agent-skills), which [Archetypes](../../docs/features/system/extensions-and-archetypes.md#archetypes-battery-types) lists, and a team can define its own for another documentation system.
 
 The adoption archetypes in [Personas and priority tiers](../../docs/features/personas-and-priority-tiers.md#adoption-archetypes), such as Learner and Author, are reader goals, not layouts.
 
@@ -979,9 +979,9 @@ The adoption archetypes in [Personas and priority tiers](../../docs/features/per
 
 **Agent Skills** is the [open standard](https://agentskills.io) for portable packages of agent instructions. Each package is a directory with a `SKILL.md` file and optional companion files, and agent hosts discover and load it. One package is an **Agent Skill**, usually shortened to **skill**, and several packages are _skills_.
 
-Outside agent tooling, the word skill can mean a person's ability or a general AI capability. In MDCP docs it always means the packaged directory.
+Outside agent tooling, the word skill can mean a person's ability or a general AI capability. In these docs it always means the packaged directory.
 
-MDCP's main skill is `mdcp`, with its source in `skills/merlon-docs/`. It contains the **documentation system** guardrails that direct agents to shard and maintain docs one piece at a time. Optional [archetype](../../docs/features/protocol/extensions-and-archetypes.md#archetypes-battery-types) skills are under `skills/merlon-docs-arch-*`.
+Merlon Docs’ main skill is `merlon-docs`, with its source in `skills/merlon-docs/`. It contains the **documentation system** guardrails that direct agents to shard and maintain docs one piece at a time. Optional [archetype](../../docs/features/system/extensions-and-archetypes.md#archetypes-battery-types) skills are under `skills/merlon-docs-arch-*`.
 
 Install and validation: [Agent Skill](../../docs/features/agent-skill.md).
 

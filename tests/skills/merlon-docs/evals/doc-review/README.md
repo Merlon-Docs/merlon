@@ -1,6 +1,6 @@
-# `mdcp` doc-review workflow live evals
+# `merlon-docs` doc-review workflow live evals
 
-Fixtures and prompts for the optional [skill-creator](../../../../../.agents/skills/skill-creator/SKILL.md) loop against the `mdcp` skill's doc-review workflow. Not a CI gate.
+Fixtures and prompts for the optional [skill-creator](../../../../../.agents/skills/skill-creator/SKILL.md) loop against the `merlon-docs` skill's doc-review workflow. Not a CI gate.
 
 Parent suite: [`tests/skills/merlon-docs/evals/`](../README.md).
 

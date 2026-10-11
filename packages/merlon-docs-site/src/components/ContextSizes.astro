@@ -2,12 +2,12 @@
 // Whole guides versus single shards, in estimated tokens, read at build time from the CSV of
 // the context-size research record. `pnpm bench:context-size` writes a new dated CSV; when a run
 // gets its own record, point this import, RECORD_PATH and RECORD_TITLE at that record.
-import csv from '../../../../docs/features/protocol/research/context-size-dogfood-2026-10-05.csv?raw';
+import csv from '../../../../docs/features/system/research/context-size-dogfood-2026-10-05.csv?raw';
 import { BASE } from '../../site.config.mjs';
 
 // The record's page on this site. The caption links it, as Benefit claims and evidence asks of
 // public copy that uses a record's figure.
-const RECORD_PATH = 'concepts/protocol/research/context-size-dogfood-2026-10-05/';
+const RECORD_PATH = 'concepts/system/research/context-size-dogfood-2026-10-05/';
 const RECORD_TITLE = "Context sizes: this repository's guides against one shard";
 
 const metrics = new Map(

@@ -1,13 +1,13 @@
 # Doc-only workflow
 
-> Loaded by the `mdcp` skill. Its hard rules, QA principles, and **What
-> belongs where** apply throughout. The `mdcp` CLI must be installed.
+> Loaded by the `merlon-docs` skill. Its hard rules, QA principles, and **What
+> belongs where** apply throughout. The `merlon` CLI must be installed.
 
-Act as an expert Technical Writer to author or refactor documentation using MDCP shards.
+Act as an expert Technical Writer to author or refactor documentation using Merlon Docs shards.
 
 ## Role
 
-You are an expert Technical Writer. Your job is to add or revise MDCP shards under the appropriate guides **without altering functional product code**.
+You are an expert Technical Writer. Your job is to add or revise Merlon Docs shards under the appropriate guides **without altering functional product code**.
 
 **Hard scope boundary:** this workflow owns durable docs only. Those are the shards and guide indexes under `docs/**` and standalone guides such as a root `AGENTS.md` or `SECURITY.md`. If the user also asks for bug fixes, code changes, or unit tests, refuse or defer that work to a separate `WORK_ITEM` under the [feature workflow](feature-level.md). Do not “just do both” even when it would be faster.
 
@@ -32,7 +32,7 @@ Collect these via intake (or from the conversation if already stated):
 1. Follow `WORK_ITEM_LOOKUP`. Inspect the repository for scope, acceptance criteria, validation commands, and delivery conventions before editing.
 2. Treat acceptance criteria as the scope boundary — one documentation scope at a time; do not expand into adjacent issues unless `WORK_ITEM` explicitly includes them.
 3. Outline steps from `WORK_ITEM` and repo context. Pull only the shards, docs, and code paths needed for this task (read product code for as-built truth; do not edit it).
-4. Before waiting for human review, include an **Atomic commit groups** section in the plan per the `mdcp` skill's QA principles (id/name, one concern, exact files, conventional commit subject). After approval, commit one group at a time.
+4. Before waiting for human review, include an **Atomic commit groups** section in the plan per the `merlon-docs` skill's QA principles (id/name, one concern, exact files, conventional commit subject). After approval, commit one group at a time.
 
 ### Step 2: Branch and Value Focus
 
@@ -41,7 +41,7 @@ Collect these via intake (or from the conversation if already stated):
 
 ### Step 3: Revise and Write
 
-1. Add or revise MDCP shards under the appropriate guide (`docs/features/`, `docs/developer/`, `docs/client/`), or a standalone guide such as a root `AGENTS.md`.
+1. Add or revise Merlon Docs shards under the appropriate guide (`docs/features/`, `docs/developer/`, `docs/client/`), or a standalone guide such as a root `AGENTS.md`.
 2. Put intent, contracts, and acceptance criteria in shards, **not** code dumps such as sample code or function signatures (the codebase is the source of truth for how something is built). Link a source file only as evidence for a claim. The code evidence compile hook, on by default, resolves such links and adds a line fragment where the label or the link target gives a line range or a symbol.
 3. **Glossary for jargon** — apply the project’s glossary inclusion bar (recorded in the glossary index preamble). For every term that bar says belongs, add or update a `docs/glossary/` entry (one term per shard), link it from the guides that use it, and update `docs/glossary/index.md`. Do not leave unexplained shorthand that fails the bar.
 4. Update each guide's `index.md` for compile order.

@@ -18,7 +18,7 @@ const REPO_ROOT = join(__dirname, '..');
 const DOCS_ROOT = join(REPO_ROOT, 'docs');
 const CONFIG = join(DOCS_ROOT, 'merlon.config.json');
 const CLI = join(REPO_ROOT, 'packages/merlon-docs-cli/dist/cli.js');
-const RESEARCH_DIR = join(DOCS_ROOT, 'features/protocol/research');
+const RESEARCH_DIR = join(DOCS_ROOT, 'features/system/research');
 
 /** Historical pre-P0 baselines — source: GitHub issue #64 (2026-06-18). */
 const PRE_P0 = {

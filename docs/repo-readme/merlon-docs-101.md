@@ -1,6 +1,6 @@
-# MDCP 101
+# Merlon Docs 101
 
-[MDCP](../glossary/mdcp.md) is a **human + AI documentation habit** for technical work: you and your agent keep durable intent in small Markdown files in git, instead of only in chat history.
+[Merlon Docs](../glossary/merlon-docs.md) is a **human + AI documentation habit** for technical work: you and your agent keep durable intent in small Markdown files in git, instead of only in chat history.
 
 ## The problem
 
@@ -22,7 +22,7 @@ flowchart LR
   review --> gate["merlon check / CI"]
 ```
 
-**In a chat-only tool with no access to your repository:** don't install the toolchain yet. Keep notes in your project folder if you have one, or wait until you use an agent that can edit a git repository. Read [Overview](../features/overview.md) and [Vision and roadmap](../features/protocol/00-vision-and-roadmap.md) first.
+**In a chat-only tool with no access to your repository:** don't install the toolchain yet. Keep notes in your project folder if you have one, or wait until you use an agent that can edit a git repository. Read [Overview](../features/overview.md) and [Vision and roadmap](../features/system/00-vision-and-roadmap.md) first.
 
 Otherwise take Path A or Path B in [Get started](./get-started.md).
 

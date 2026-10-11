@@ -24,7 +24,7 @@ export interface LocalePack {
    * Locale-specific semantic key parts from a heading title when the title
    * matches `headingKeyPattern` (en-US example: `ADM Chapter 1` →
    * `{ prefix: 'ADM', number: '1' }`), or null when it does not match.
-   * MDCP does not model chapters — the pattern string is locale data only.
+   * Merlon Docs does not model chapters — the pattern string is locale data only.
    */
   headingKeyFromTitle(title: string): { prefix: string; number: string } | null;
 

@@ -7,7 +7,7 @@ import { MerlonConfigSchema } from '../src/config/schema.js';
 
 /**
  * `merlon.config.schema.json` is maintained by hand for editor completion. The
- * zod schema in `src/config/schema.ts` is what mdcp applies at runtime, and
+ * zod schema in `src/config/schema.ts` is what Merlon Docs applies at runtime, and
  * it silently drops keys it does not know, so a stale key in the JSON file
  * autocompletes an option that does nothing. This test compares the two
  * structurally. Descriptions are ignored. Defaults are compared only where the

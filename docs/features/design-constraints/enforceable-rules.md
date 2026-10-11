@@ -1,6 +1,6 @@
 # Enforceable rules
 
-Authoring constraint for MDCP's own rules: every rule MDCP states is either **gated** or **advisory**, and says which.
+Authoring constraint for Merlon Docs’ own rules: every rule Merlon Docs states is either **gated** or **advisory**, and says which.
 
 ## Rule
 
@@ -17,11 +17,11 @@ Both kinds are legitimate. What is not legitimate is a rule that reads as gated 
 
 In a repository with a human in the commit path, an ungated rule degrades slowly: reviewers catch some violations and the rest accumulate at a survivable rate. In a repository where agents author every commit, an ungated rule does not degrade — it is simply absent. Agents stop when the gate is green, so a green gate is the whole definition of done that the corpus can express.
 
-Measured evidence for this, including a rule that held structurally while failing semantically for two weeks: [Field report: a fully automated repository](../protocol/research/field-report-automated-repository.md).
+Measured evidence for this, including a rule that held structurally while failing semantically for two weeks: [Field report: a fully automated repository](../system/research/field-report-automated-repository.md).
 
-Because of this constraint, MDCP invests in the [check gate](../check-gate.md) more than in skill prose. Prose that no check enforces competes for an agent's context without changing its behavior.
+Because of this constraint, Merlon Docs invests in the [check gate](../check-gate.md) more than in skill prose. Prose that no check enforces competes for an agent's context without changing its behavior.
 
-## Current status of MDCP's own rules
+## Current status of Merlon Docs’ own rules
 
 | Rule                                          | Status                               | Gate                                                                                                                                    |
 | --------------------------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
@@ -48,8 +48,8 @@ The advisory rows are stated in the [Agent Skill](../agent-skill.md#quality-assu
 
 ## Applies to
 
-- Rules stated in the MDCP Agent Skill and its workflows
-- Rules a consuming repository layers on top of MDCP in its own skills or contributor docs
+- Rules stated in the Merlon Docs Agent Skill and its workflows
+- Rules a consuming repository layers on top of Merlon Docs in its own skills or contributor docs
 - Proposed CLI verbs and checks: a proposal that makes an advisory rule partly gated clears the [direct value bar](./direct-value-bar.md) more easily than one that restates the rule
 
 Part of [Design constraints](./index.md).

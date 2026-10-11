@@ -308,7 +308,7 @@ cli
     const config = getConfig(opts);
     const refsPath = resolveRefsPath(getDocsRoot(opts), config.outputDir, config.refs.registryFile);
     const registry = readRefsRegistry(refsPath);
-    // A registry from an earlier mdcp has only the top-level headings, which name no file.
+    // A registry from an earlier release has only the top-level headings, which name no file.
     if (!registry.outputs) {
       console.error(
         `${refsPath} lists no compiled outputs; run \`merlon refs-gen\` to list each heading with its file.`,

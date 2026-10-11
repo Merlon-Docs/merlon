@@ -8,7 +8,7 @@ import {
 } from '../markdown/index.js';
 
 /**
- * Strip mdcp heading adornments before slugging.
+ * Strip Merlon Docs heading adornments before slugging.
  * github-slugger expects plain visible text (html-pipeline `node.text`), not raw Markdown.
  */
 export function headingTextToPlain(text: string): string {

@@ -1,10 +1,10 @@
 # Skill workflows
 
-Normative profile for the **workflows** inside the MDCP Agent Skill that drive shard authoring across the four [guide tiers](../../glossary/guide-tier.md). Parent spec: [MDCP 1.0 (draft)](./mdcp-1.0-spec.md).
+Normative profile for the **workflows** inside the Merlon Docs Agent Skill that drive shard authoring across the four [guide tiers](../../glossary/guide-tier.md). Parent spec: [Merlon Docs 1.0 (draft)](./merlon-docs-1.0-spec.md).
 
 ## Purpose
 
-Workflows are part of the MDCP **authoring protocol** — not host-specific rules. They tell agents how to load a `WORK_ITEM`, which guides to write, and how to validate before merge. People install one skill (`mdcp`) and invoke it as `/merlon-docs` with the task in plain words; the skill picks the workflow from its routing table and loads only that workflow's file.
+Workflows are part of the Merlon Docs **authoring process** — not host-specific rules. They tell agents how to load a `WORK_ITEM`, which guides to write, and how to validate before merge. People install one skill (`mdcp`) and invoke it as `/merlon-docs` with the task in plain words; the skill picks the workflow from its routing table and loads only that workflow's file.
 
 Workflow files live in the skill under `skills/merlon-docs/references/workflows/` (e.g., `feature-level.md`). The canonical catalog is summarized below. **Do not edit** an installed copy of the skill if you want changes to persist — propose upstream or add extensions.
 
@@ -14,7 +14,7 @@ The obligations on this page are advisory, as [Enforceable rules](../design-cons
 
 Every work-item workflow **MUST** open with an **Intake** section listing the fields below. The agent takes each value from the request and the repository first, and asks only for what is still missing when someone can answer. When nobody can answer, as in a headless or scheduled run, it states a default in one line and continues. `WORK_ITEM` is then the request itself. It stops to wait only when the user asked for a plan first, or before a destructive or irreversible step, a real change of scope, or input only the user can give. The skill's **When nobody can answer** section in `SKILL.md` holds these defaults.
 
-The live eval runs behind the headless behavior are in the research record [Skill eval round: measured changes to the mdcp skill](./research/skill-eval-round-2026-10-03.md). A later round, [Skill eval round: harm check after aligning the skill with its docs](./research/skill-eval-round-2026-10-11.md), ran a harm check on the wording aligned with this page and the other docs it repeats. The one difference it found is inside run-to-run noise.
+The live eval runs behind the headless behavior are in the research record [Skill eval round: measured changes to the Merlon Docs skill](./research/skill-eval-round-2026-10-03.md). A later round, [Skill eval round: harm check after aligning the skill with its docs](./research/skill-eval-round-2026-10-11.md), ran a harm check on the wording aligned with this page and the other docs it repeats. The one difference it found is inside run-to-run noise.
 
 Required fields for work-item workflows:
 
@@ -44,7 +44,7 @@ Bootstrap scaffold (getting-started steps 1 to 6) stays out of scope for commit 
 | getting-started     | Bootstrap + first-feature tutorial           | all tiers                                               |
 | feature-level       | Feature engineering                          | `features/`, `client/`, code + tests                    |
 | doc-only            | Technical writing                            | `features/`, `client/`, `developer/`, standalone guides |
-| design-architecture | Architecture as MDCP shards                  | `features/`, `features/adr/`                            |
+| design-architecture | Architecture as Merlon Docs shards           | `features/`, `features/adr/`                            |
 | ux                  | User-centric journeys                        | `client/`, glossary                                     |
 | doc-review          | Whole-set review: merge, split, move, reword | any guide and its index                                 |
 
@@ -61,7 +61,7 @@ Index: [skills.md](../../skills.md). Each workflow also has an optional [live sk
 
 ## Guide placement obligations
 
-Every workflow **MUST** apply the placement test in [Default guide layout](./mdcp-1.0-spec.md#2-default-guide-layout-code-repository-archetype) to each shard it writes. The **Primary guides** column in [Standard workflows](#standard-workflows) shows which guides each workflow writes. A fix for a removed or renamed concept can reach any guide or standalone guide from every workflow, as the [concept removal obligation](#concept-removal-obligation) requires.
+Every workflow **MUST** apply the placement test in [Default guide layout](./merlon-docs-1.0-spec.md#2-default-guide-layout-code-repository-archetype) to each shard it writes. The **Primary guides** column in [Standard workflows](#standard-workflows) shows which guides each workflow writes. A fix for a removed or renamed concept can reach any guide or standalone guide from every workflow, as the [concept removal obligation](#concept-removal-obligation) requires.
 
 ## Glossary obligation (every workflow)
 

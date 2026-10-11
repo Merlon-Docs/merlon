@@ -1,18 +1,18 @@
 # Documentation site
 
-The public docs site at <https://betsalel-williamson.github.io/mdcp/> is an [Astro Starlight](https://starlight.astro.build/) build in [`packages/merlon-docs-site/`](../../packages/merlon-docs-site/). It is a private workspace package with no version. Changesets ignores it, and release tooling never tags or publishes it.
+The public docs site at <https://merlon-docs.github.io/merlon/> is an [Astro Starlight](https://starlight.astro.build/) build in [`packages/merlon-docs-site/`](../../packages/merlon-docs-site/). It is a private workspace package with no version. Changesets ignores it, and release tooling never tags or publishes it.
 
 ## Content comes from shards
 
 The landing page (`packages/merlon-docs-site/src/content/docs/index.mdx`) and the Learn page (`packages/merlon-docs-site/src/content/docs/learn.mdx`) are hand-authored. The other pages are generated at build time by [`packages/merlon-docs-site/scripts/sync-content.mjs`](../../packages/merlon-docs-site/scripts/sync-content.mjs) from these guides:
 
-| Shards              | Site section        | Route            |
-| ------------------- | ------------------- | ---------------- |
-| `docs/client-cli/`  | User guide          | `/guide/`        |
-| `docs/features/`    | Concepts & protocol | `/concepts/`     |
-| `docs/client-core/` | Library API         | `/api/`          |
-| `docs/glossary/`    | Glossary            | `/glossary/`     |
-| `docs/developer/`   | Contributing        | `/contributing/` |
+| Shards              | Site section | Route            |
+| ------------------- | ------------ | ---------------- |
+| `docs/client-cli/`  | User guide   | `/guide/`        |
+| `docs/features/`    | Concepts     | `/concepts/`     |
+| `docs/client-core/` | Library API  | `/api/`          |
+| `docs/glossary/`    | Glossary     | `/glossary/`     |
+| `docs/developer/`   | Contributing | `/contributing/` |
 
 The sync script reads `docs/merlon.config.json` and each guide's `index.md` for sidebar order, and uses each shard's first `#` heading as the page title. These manifest entries become sidebar groups:
 
@@ -25,7 +25,7 @@ The first group whose list links a page claims it. A page other than an `index.m
 The sync script rewrites links for the site:
 
 - Relative `.md` links between published shards become site routes.
-- Compiled cross-links such as `[text](#slug)` resolve through the refs registry (`docs/_build/refs.json`) and the per-guide compiled outputs. The `mdcp-shard` source markers in each compiled file name the shard that defines the slug.
+- Compiled cross-links such as `[text](#slug)` resolve through the refs registry (`docs/_build/refs.json`) and the per-guide compiled outputs. The `merlon-shard` source markers in each compiled file name the shard that defines the slug.
 - Links to other repository files point at the file on GitHub.
 
 The sync fails on any internal link it cannot resolve, and the build then checks every internal link and anchor in the generated HTML. Generated pages, the sidebar file, and Astro output are gitignored. Edit the shard under `docs/`, never the generated page. Each page's edit link opens the shard.

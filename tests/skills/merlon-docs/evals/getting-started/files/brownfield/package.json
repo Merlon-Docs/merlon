@@ -2,5 +2,5 @@
   "name": "merlon-eval-brownfield",
   "version": "0.0.0",
   "private": true,
-  "description": "Brownfield npm fixture for mdcp-getting-started live evals — legacy docs exist, no MDCP layout yet."
+  "description": "Brownfield npm fixture for mdcp-getting-started live evals — legacy docs exist, no Merlon Docs layout yet."
 }

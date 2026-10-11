@@ -19,7 +19,7 @@ import {
   readRefsRegistry,
   refsOutputTexts,
 } from '../src/refs/registry.js';
-import * as mdcp from '../src/index.js';
+import * as merlon from '../src/index.js';
 import { withTmpDir } from './helpers/tmp-dir.js';
 
 const BANNER = '<!-- generated -->\n\n';
@@ -85,7 +85,7 @@ describe('refsOutputTexts', () => {
   });
 
   it('is exported from the package entry point', () => {
-    expect(typeof mdcp.refsOutputTexts).toBe('function');
+    expect(typeof merlon.refsOutputTexts).toBe('function');
   });
 });
 

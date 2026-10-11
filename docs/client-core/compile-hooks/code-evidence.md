@@ -32,7 +32,7 @@ The hook finds fenced code and code spans as the [link passes](../../features/co
 
 ## codeEvidence line ranges
 
-Line ranges are parsed from the **link label** first, then from the path (before any `#` fragment). The hook always emits GitHub-style **`#L…` fragments** (protocol output — not localized).
+Line ranges are parsed from the **link label** first, then from the path (before any `#` fragment). The hook always emits GitHub-style **`#L…` fragments** (a fixed format that isn't localized).
 
 **Language-neutral forms** (always recognized):
 
@@ -43,7 +43,7 @@ Line ranges are parsed from the **link label** first, then from the path (before
 | `:10-20`, `:10`       | `#L10-L20`, `#L10` |
 | bare `1-2`            | `#L1-L2`           |
 
-**Locale word forms** come from the active [locale pack](../../glossary/locale-pack.md) (`lineRangeWords`). Default **en-US** recognizes `line` / `lines` (case-insensitive), for example `line 42` → `#L42` and `lines 12–15` → `#L12-L15`. Other locales may supply different authored words; they are not MDCP protocol vocabulary. See [Locale and language boundary](../../features/design-constraints/locale-and-language.md).
+**Locale word forms** come from the active [locale pack](../../glossary/locale-pack.md) (`lineRangeWords`). Default **en-US** recognizes `line` / `lines` (case-insensitive), for example `line 42` → `#L42` and `lines 12–15` → `#L12-L15`. Other locales may supply different authored words; they are not part of the Merlon Docs format. See [Locale and language boundary](../../features/design-constraints/locale-and-language.md).
 
 If the URL already has a line fragment such as `#L6` or `#L6-L8`, the hook keeps it and writes each `l` in it as `L`, so `#l6-l8` becomes `#L6-L8`.
 

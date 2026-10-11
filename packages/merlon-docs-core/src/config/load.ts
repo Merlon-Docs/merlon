@@ -77,7 +77,7 @@ export function getGuideConfig(config: MerlonConfig, name: string): GuideConfig 
   return config.guides?.find((g) => g.name === name);
 }
 
-/** Registered guide directories under docsRoot, as absolute paths: the mdcp-managed fileset. */
+/** Registered guide directories under docsRoot, as absolute paths: the fileset Merlon Docs manages. */
 export function guideScanDirs(config: MerlonConfig, docsRoot: string): string[] {
   const root = resolve(docsRoot);
   const dirs = new Set<string>();

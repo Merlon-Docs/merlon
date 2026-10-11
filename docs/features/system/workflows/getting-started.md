@@ -1,6 +1,6 @@
 # Getting-started workflow
 
-Product capability: the **getting-started** workflow of the `mdcp` skill bootstraps MDCP
+Product capability: the **getting-started** workflow of the `merlon-docs` skill bootstraps Merlon Docs
 in a greenfield or brownfield repository — config, four-tier guide layout, and
 initial shards — then optionally walks a **first feature** through
 design → feature → UX → doc-only so teams learn the full workflow circuit.
@@ -12,7 +12,7 @@ Workflow file: [`skills/merlon-docs/references/workflows/getting-started.md`](..
 
 ## End-user value
 
-Contributors get a working MDCP layout (guides, compile/check scripts, glossary
+Contributors get a working Merlon Docs layout (guides, compile/check scripts, glossary
 hooks) without inventing structure from scratch. Brownfield repos keep legacy
 docs until review instead of destructive overwrite. The project’s glossary
 **inclusion bar** is recorded up front so later workflows know which terms belong.

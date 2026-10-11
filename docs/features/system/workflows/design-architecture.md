@@ -1,7 +1,7 @@
 # Design-architecture workflow
 
-Product capability: the **design-architecture** workflow of the `mdcp` skill records
-architecture and design decisions as **MDCP shards** so agents and humans can
+Product capability: the **design-architecture** workflow of the `merlon-docs` skill records
+architecture and design decisions as **Merlon Docs shards** so agents and humans can
 load one concern at a time instead of growing one large architecture document.
 
 Workflow file: [`skills/merlon-docs/references/workflows/design-architecture.md`](../../../../skills/merlon-docs/references/workflows/design-architecture.md).
@@ -35,10 +35,10 @@ instead of living only in chat or a thousand-line wiki page.
 - **End-user / client journey and workflow design** — use the [ux workflow](./ux.md).
 - **Docs-only cleanup with no architecture change** — use
   the [doc-only workflow](./doc-only.md).
-- **Bootstrapping MDCP in an empty or legacy repo** — use
+- **Bootstrapping Merlon Docs in an empty or legacy repo** — use
   the [getting-started workflow](./getting-started.md).
 - **Grading “good systems design” brilliance** — out of scope; this workflow owns
-  **MDCP documentation-system** behavior (sharding, indexes, design-doc scope).
+  **Merlon Docs documentation-system** behavior (sharding, indexes, design-doc scope).
 
 When the user asks for end-to-end delivery (design + client guide + code +
 tests) in one session, this workflow **MUST** stay on design shards (or ask to

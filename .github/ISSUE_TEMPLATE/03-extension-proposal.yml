@@ -7,7 +7,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Propose an extension that stays out of protocol core — see [Extensions and archetypes](https://github.com/Merlon-Docs/merlon/blob/main/docs/features/protocol/extensions-and-archetypes.md).
+        Propose an extension that stays out of the system core — see [Extensions and archetypes](https://github.com/Merlon-Docs/merlon/blob/main/docs/features/system/extensions-and-archetypes.md).
 
         Local-only packs under `docs/extensions/` need no upstream issue. Use this form when you want shared guidance or an upstream complementary skill.
 
@@ -30,7 +30,7 @@ body:
     id: proposed-id
     attributes:
       label: Proposed id / prefix
-      description: e.g. merlon-docs-arch-legal-ops, mdcp-format-mkdocs
+      description: e.g. merlon-docs-arch-legal-ops, merlon-docs-format-mkdocs
       placeholder: merlon-docs-arch-…
     validations:
       required: true
@@ -99,7 +99,7 @@ body:
     id: protocol-version
     attributes:
       label: Target protocolVersion
-      description: Four-part protocol version this extension claims to support
+      description: Four-part spec version (`protocolVersion`) this extension claims to support
       placeholder: '0.5.0.0'
     validations:
       required: true

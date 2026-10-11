@@ -1,6 +1,6 @@
 # Doc-review workflow
 
-Product capability: the **doc-review** workflow of the `mdcp` skill reviews a
+Product capability: the **doc-review** workflow of the `merlon-docs` skill reviews a
 docs root as a set instead of shard by shard, then consolidates it. It looks for a rule stated in several shards, a guide index grown into a flat
 list, or a shard serving a second audience or job, then merges, splits, moves,
 rewords, or links them.

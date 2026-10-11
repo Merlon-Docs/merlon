@@ -1,4 +1,4 @@
-# Install the MDCP skill
+# Install the Merlon Docs skill
 
 ## Install
 
@@ -15,12 +15,12 @@ paths depend on the agent — see [Supported Agents](https://github.com/vercel-l
 (for example `.agents/skills/` for Cursor/Amp project installs, `.claude/skills/`
 for Claude Code, `.windsurf/skills/` for Windsurf).
 
-**Zero-install:** copy the `mdcp` skill folder into the skills directory **your
+**Zero-install:** copy the `merlon-docs` skill folder into the skills directory **your
 agent discovers** (same Supported Agents list), not a single fixed path.
 
 ## After install
 
-The `mdcp` skill is the whole pack: it picks the workflow for each task
+The `merlon-docs` skill is the whole pack: it picks the workflow for each task
 (bootstrap, docs-only, design, feature, UX, doc review) and loads only that
 workflow's file. You install only this one skill.
 
@@ -36,9 +36,9 @@ writing shards. After bootstrap succeeds, it can offer a guided first feature
 choose.
 
 The archetype skills under `skills/merlon-docs-arch-*` are internal and not released.
-The consumer install is the `mdcp` skill alone.
+The consumer install is the `merlon-docs` skill alone.
 
 ## CLI still required
 
-The skill relies on the `mdcp` CLI. `cli-and-scripts.md` in this folder says
+The skill relies on the `merlon` CLI. `cli-and-scripts.md` in this folder says
 how to install it and what each command does.

@@ -73,7 +73,7 @@ describe('slugLinkTargets', () => {
   });
 });
 
-// What CommonMark reads as an inline link or image in each text, with the target that mdcp reads:
+// What CommonMark reads as an inline link or image in each text, with the target that Merlon Docs reads:
 // the text from the `(` to the first `)` on the same line.
 describe('scanMarkdownLinks', () => {
   const read = (text: string) =>

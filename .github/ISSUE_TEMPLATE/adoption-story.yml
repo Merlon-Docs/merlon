@@ -1,5 +1,5 @@
 name: Adoption story
-description: Share how mdcp worked in a real repo — qualitative outcomes for other adopters
+description: Share how Merlon Docs worked in a real repo — qualitative outcomes for other adopters
 title: '[Adoption] '
 labels:
   - adoption-story
@@ -7,7 +7,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for sharing a real-world mdcp adoption story. These reports back [Tier C benefit claims](https://github.com/Merlon-Docs/merlon/blob/main/docs/features/protocol/benefit-claims-and-evidence.md) — outcomes we do not put on the README without evidence.
+        Thanks for sharing a real-world Merlon Docs adoption story. These reports back [Tier C benefit claims](https://github.com/Merlon-Docs/merlon/blob/main/docs/features/system/benefit-claims-and-evidence.md) — outcomes we do not put on the README without evidence.
 
         Please describe what you tried and what changed. Rough notes are fine.
 
@@ -17,8 +17,8 @@ body:
       label: Adoption archetype
       description: Which goal best matches your experience? See [personas](https://github.com/Merlon-Docs/merlon/blob/main/docs/features/personas-and-priority-tiers.md#adoption-archetypes).
       options:
-        - Builder — integrated mdcp into repo scripts or CI
-        - Learner — tried mdcp with agent help first
+        - Builder — integrated Merlon Docs into repo scripts or CI
+        - Learner — tried Merlon Docs with agent help first
         - Author — wrote shards; delegated CLI setup
         - Champion — evaluated or sponsored adoption
         - Other / mixed
@@ -29,7 +29,7 @@ body:
     id: merlon-version
     attributes:
       label: merlon-docs-cli version
-      description: e.g. 0.5.0 (from package.json or `mdcp --version`)
+      description: e.g. 0.5.0 (from package.json or `merlon --version`)
       placeholder: '0.5.0'
     validations:
       required: false
@@ -38,7 +38,7 @@ body:
     id: context
     attributes:
       label: Context
-      description: Repo type, team size, docs stack before mdcp — whatever helps readers relate.
+      description: Repo type, team size, docs stack before Merlon Docs — whatever helps readers relate.
       placeholder: e.g. Open-source library, ~20 feature shards, previously one giant CONTRIBUTING.md
     validations:
       required: true

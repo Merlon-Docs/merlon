@@ -1,6 +1,6 @@
 # CLI commands
 
-MDCP relies on the `@merlon-docs/merlon-docs-cli` package to perform documentation operations.
+Merlon Docs relies on the `@merlon-docs/merlon-docs-cli` package to perform documentation operations.
 
 ## What compile / check / refs mean
 

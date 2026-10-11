@@ -1,15 +1,15 @@
 # Glossary
 
-Shared acronyms and terms for all mdcp docs. Spell out a term on first use in a shard and link the short form here. This rule is advisory, applied by authors and in review, and the glossary links in a change's diff are its evidence.
+Shared acronyms and terms for all docs in this repository. Spell out a term on first use in a shard and link the short form here. This rule is advisory, applied by authors and in review, and the glossary links in a change's diff are its evidence.
 
-**Inclusion bar (this repository):** add entries for MDCP-specific jargon, acronyms, and overloaded words that a new contributor or the stated client persona would not reliably understand from everyday English or general software practice alone (such as protocol terms, compile/refs vocabulary, and skill practice terms). Do **not** add entries for common English, universal programming terms, or words that are unambiguous in context for that audience. When unsure, prefer a short glossary entry over leaving shorthand unexplained. See [domain glossary](./domain-glossary.md).
+**Inclusion bar (this repository):** add entries for jargon specific to Merlon Docs, acronyms, and overloaded words that a new contributor or the stated client persona would not reliably understand from everyday English or general software practice alone (such as protocol terms, compile/refs vocabulary, and skill practice terms). Do **not** add entries for common English, universal programming terms, or words that are unambiguous in context for that audience. When unsure, prefer a short glossary entry over leaving shorthand unexplained. See [domain glossary](./domain-glossary.md).
 
 Each term is its own shard under `docs/glossary/`. [Shared glossary](../client-cli/shared-glossary.md) covers how guides pull term shards in and when to use sub-index files.
 
-## Protocol terms
+## Product terms
 
 - [Agent Skills (Agent Skill, skill)](./agent-skills.md)
-- [MDCP](./mdcp.md)
+- [Merlon Docs](./merlon-docs.md)
 
 ## Skill practice
 

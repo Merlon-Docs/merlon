@@ -1,3 +1,3 @@
 # Compile
 
-MDCP compiles guide shards into publishable markdown.
+Merlon Docs compiles guide shards into publishable markdown.

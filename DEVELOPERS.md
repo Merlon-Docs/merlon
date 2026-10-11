@@ -4,18 +4,18 @@
 
 <!-- merlon-shard: start docs/developer/about-this-guide.md -->
 
-**Audience:** contributors and maintainers working on the mdcp monorepo, home of the MarkDown Context Protocol ([MDCP](#mdcp)) Agent Skill and its toolchain.
+**Audience:** contributors and maintainers working on this monorepo, home of the [Merlon Docs](#merlon-docs) Agent Skill and its toolchain.
 
 This is the **developer** guide (`docs/developer/`): how to work on this repository — local setup, package development, sharded documentation in `docs/`, changesets, npm releases, and **Agent Skill authoring** (including [live skill evals](#live-skill-evals)).
 
 **Belongs here:** contributor workflow, validation gates, skill development, optional local eval loops.  
 **Does not belong here:** product capability specs or consumer tutorials (those belong in the [Features Guide](docs/features/index.md) or the client guides).
 
-For what mdcp **does** as a tool (commands, design, consumer migration), read the [Features Guide](docs/features/index.md).
+For what Merlon Docs **does** as a tool (commands, design, consumer migration), read the [Features Guide](docs/features/index.md).
 
 Contributors are expected to follow the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md).
 
-Which guide a shard belongs in: the placement test in [Default guide layout](docs/features/protocol/mdcp-1.0-spec.md#2-default-guide-layout-code-repository-archetype).
+Which guide a shard belongs in: the placement test in [Default guide layout](docs/features/system/merlon-docs-1.0-spec.md#2-default-guide-layout-code-repository-archetype).
 
 <!-- merlon-shard: end docs/developer/about-this-guide.md -->
 
@@ -23,16 +23,16 @@ Which guide a shard belongs in: the placement test in [Default guide layout](doc
 
 ## Glossary
 
-Shared acronyms and terms for all mdcp docs. Spell out a term on first use in a shard and link the short form here. This rule is advisory, applied by authors and in review, and the glossary links in a change's diff are its evidence.
+Shared acronyms and terms for all docs in this repository. Spell out a term on first use in a shard and link the short form here. This rule is advisory, applied by authors and in review, and the glossary links in a change's diff are its evidence.
 
-**Inclusion bar (this repository):** add entries for MDCP-specific jargon, acronyms, and overloaded words that a new contributor or the stated client persona would not reliably understand from everyday English or general software practice alone (such as protocol terms, compile/refs vocabulary, and skill practice terms). Do **not** add entries for common English, universal programming terms, or words that are unambiguous in context for that audience. When unsure, prefer a short glossary entry over leaving shorthand unexplained. See [domain glossary](#domain-glossary).
+**Inclusion bar (this repository):** add entries for jargon specific to Merlon Docs, acronyms, and overloaded words that a new contributor or the stated client persona would not reliably understand from everyday English or general software practice alone (such as protocol terms, compile/refs vocabulary, and skill practice terms). Do **not** add entries for common English, universal programming terms, or words that are unambiguous in context for that audience. When unsure, prefer a short glossary entry over leaving shorthand unexplained. See [domain glossary](#domain-glossary).
 
 Each term is its own shard under `docs/glossary/`. [Shared glossary](./packages/merlon-docs-cli/README.md#shared-glossary) covers how guides pull term shards in and when to use sub-index files.
 
-### Protocol terms
+### Product terms
 
 - [Agent Skills (Agent Skill, skill)](#agent-skills)
-- [MDCP](#mdcp)
+- [Merlon Docs](#merlon-docs)
 
 ### Skill practice
 
@@ -103,7 +103,7 @@ pnpm build
 pnpm vale:sync            # requires Vale on PATH; syncs styles for docs/ and examples/sample-guides/
 ```
 
-`dist/` is gitignored, and `pnpm install` doesn't build it. Run `pnpm build` after a fresh checkout, and again after you edit `packages/*/src`, before any docs script or `mdcp` CLI command. `pnpm vale:sync` downloads the styles, so it needs the network. Run it again when a `.vale.ini` changes.
+`dist/` is gitignored, and `pnpm install` doesn't build it. Run `pnpm build` after a fresh checkout, and again after you edit `packages/*/src`, before any docs script or `merlon` CLI command. `pnpm vale:sync` downloads the styles, so it needs the network. Run it again when a `.vale.ini` changes.
 
 ### Work-item tracking
 
@@ -111,20 +111,20 @@ Agents load tracker issues and delivery conventions from [Agent work-item tracki
 
 ### Daily commands
 
-| Command                  | Purpose                                                                                                       |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------- |
-| `pnpm build`             | Build all packages (`merlon-docs-core`, `merlon-docs-cli`)                                                    |
-| `pnpm test`              | Run every package's tests, then the repo script tests under `scripts/`                                        |
-| `pnpm test:coverage`     | Vitest coverage for `merlon-docs-core` and `merlon-docs-cli` (HTML under `packages/*/coverage/`)              |
-| `pnpm run typecheck`     | TypeScript across packages                                                                                    |
-| `pnpm run lint`          | ESLint on package sources and repo scripts, and on the site with its Astro accessibility rules                |
-| `pnpm run format:check`  | Prettier check                                                                                                |
-| `pnpm run check`         | Full gate including skill:validate and docs:check                                                             |
-| `pnpm skill:update`      | Refresh the vendor-managed installs under `.agents/skills/` from `skills/`                                    |
-| `pnpm skill:dev`         | Install this checkout's `mdcp` skill for Claude Code and Cursor without prompts (cloud session setup runs it) |
-| `pnpm docs:compile:repo` | Regenerate every compiled output ([Guide directories](#guide-directories))                                    |
-| `pnpm docs:check`        | Validate repo docs + `examples/sample-guides`                                                                 |
-| `pnpm formal:check`      | Run the Alloy models under `formal/alloy/` (needs Java 17 or later)                                           |
+| Command                  | Purpose                                                                                                              |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| `pnpm build`             | Build all packages (`merlon-docs-core`, `merlon-docs-cli`)                                                           |
+| `pnpm test`              | Run every package's tests, then the repo script tests under `scripts/`                                               |
+| `pnpm test:coverage`     | Vitest coverage for `merlon-docs-core` and `merlon-docs-cli` (HTML under `packages/*/coverage/`)                     |
+| `pnpm run typecheck`     | TypeScript across packages                                                                                           |
+| `pnpm run lint`          | ESLint on package sources and repo scripts, and on the site with its Astro accessibility rules                       |
+| `pnpm run format:check`  | Prettier check                                                                                                       |
+| `pnpm run check`         | Full gate including skill:validate and docs:check                                                                    |
+| `pnpm skill:update`      | Refresh the vendor-managed installs under `.agents/skills/` from `skills/`                                           |
+| `pnpm skill:dev`         | Install this checkout's `merlon-docs` skill for Claude Code and Cursor without prompts (cloud session setup runs it) |
+| `pnpm docs:compile:repo` | Regenerate every compiled output ([Guide directories](#guide-directories))                                           |
+| `pnpm docs:check`        | Validate repo docs + `examples/sample-guides`                                                                        |
+| `pnpm formal:check`      | Run the Alloy models under `formal/alloy/` (needs Java 17 or later)                                                  |
 
 [Agent Skill development](#do-not-hand-edit-agentsskills) covers refreshing the vendor-managed installs and why nobody hand-edits them.
 
@@ -182,15 +182,15 @@ On either host, work reaches `develop` by pushing a `claude/**` or `land/**` bra
 2. Vale into `/usr/local/bin`, when `vale` isn't on `PATH`. The script pins its own `VALE_VERSION`, the version [Requirements](#requirements) names.
 3. `pnpm run vale:sync`
 4. `pnpm build`
-5. `pnpm run skill:dev`, which installs this checkout's `mdcp` skill for the agent ([Agent Skill development](#agent-skill-development))
+5. `pnpm run skill:dev`, which installs this checkout's `merlon-docs` skill for the agent ([Agent Skill development](#agent-skill-development))
 
-The docs scripts and the `mdcp` CLI work once the script finishes. The script installs neither gitleaks nor Java. Without gitleaks the pre-commit hook prints a warning in place of its scan, and `pnpm formal:check` needs Java 17 or later on `PATH`. `.gitignore` keeps everything under `.claude/` out of the repository except `.claude/settings.json` and `.claude/hooks/session-start.sh`.
+The docs scripts and the `merlon` CLI work once the script finishes. The script installs neither gitleaks nor Java. Without gitleaks the pre-commit hook prints a warning in place of its scan, and `pnpm formal:check` needs Java 17 or later on `PATH`. `.gitignore` keeps everything under `.claude/` out of the repository except `.claude/settings.json` and `.claude/hooks/session-start.sh`.
 
 ### Cursor
 
 A fresh Cursor VM needs the same toolchain as [Local setup](#requirements), plus a few cloud-specific steps:
 
-1. **Startup update script.** `.cursor/environment.json` holds the `install` command that runs on every VM start: it fetches remote refs and runs `pnpm install`, then `pnpm skill:dev` so the agent loads this checkout's `mdcp` skill ([Agent Skill development](#agent-skill-development)). That committed file is the source of truth and overrides any dashboard-saved environment. Keep it minimal: no service startup or build steps.
+1. **Startup update script.** `.cursor/environment.json` holds the `install` command that runs on every VM start: it fetches remote refs and runs `pnpm install`, then `pnpm skill:dev` so the agent loads this checkout's `merlon-docs` skill ([Agent Skill development](#agent-skill-development)). That committed file is the source of truth and overrides any dashboard-saved environment. Keep it minimal: no service startup or build steps.
 2. **Vale peer binary.** Vale is a peer binary that `pnpm install` doesn't fetch. Install the version that [Requirements](#requirements) gives to `/usr/local/bin`, where it persists in the VM snapshot. The exact release command is in [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 3. **gitleaks peer binary.** `pnpm install` doesn't fetch gitleaks either, and the pre-commit hook runs `gitleaks protect --staged` when it is on `PATH`. Install version 8.30.1 to `/usr/local/bin`, where it persists in the VM snapshot. If it goes missing, reinstall from the [gitleaks releases](https://github.com/gitleaks/gitleaks/releases): download `gitleaks_8.30.1_linux_x64.tar.gz` and extract the `gitleaks` binary into `/usr/local/bin` (same pattern as Vale). CI runs its own scan via `gitleaks-action`, so the local install is defense-in-depth.
 4. **Bootstrap.** The update script doesn't build `dist/` or sync the Vale styles. Run the rest of [First-time bootstrap](#first-time-bootstrap) on a new VM, and rebuild as that section says. The synced styles then persist in the snapshot.
@@ -217,42 +217,42 @@ Because the agent cannot open GitHub issues, capture work items as ready-to-past
 ## Repository layout
 
 ```text
-mdcp/
-├── CODE_OF_CONDUCT.md      # Contributor Covenant (committed)
-├── README.md               # Compiled (committed)
-├── DEVELOPERS.md           # Compiled (committed)
-├── presentations/          # Talk deck kept as delivered (not compiled)
-├── skills/                 # Agent Skills install surface only (npx skills add)
-│   ├── mdcp/               # The MDCP skill + workflows (no package.json / CHANGELOG here)
-│   └── merlon-docs-arch-*/        # Internal archetypes (metadata.internal)
-├── tests/skills/           # Live eval fixtures (optional; not publishable packs)
-├── skills.sh.json          # skills.sh repo page layout
-├── .agents/skills/         # Vendor-managed installs + vendored skill-creator, writing-skills
+merlon/
+├── CODE_OF_CONDUCT.md       # Contributor Covenant (committed)
+├── README.md                # Compiled (committed)
+├── DEVELOPERS.md            # Compiled (committed)
+├── presentations/           # Talk deck kept as delivered (not compiled)
+├── skills/                  # Agent Skills install surface only (npx skills add)
+│   ├── merlon-docs/         # The Merlon Docs skill + workflows (no package.json / CHANGELOG here)
+│   └── merlon-docs-arch-*/  # Internal archetypes (metadata.internal)
+├── tests/skills/            # Live eval fixtures (optional; not publishable packs)
+├── skills.sh.json           # skills.sh repo page layout
+├── .agents/skills/          # Vendor-managed installs + vendored skill-creator, writing-skills
 ├── packages/
-│   ├── merlon-docs-core/          # @merlon-docs/merlon-docs-core
-│   ├── merlon-docs-cli/           # @merlon-docs/merlon-docs-cli
-│   ├── merlon-docs-presets/       # @merlon-docs/merlon-docs-presets
-│   ├── merlon-docs-site/          # Starlight docs site (private, unversioned)
-│   └── skill-*/            # Private @merlon-docs/skill-* version carriers + CHANGELOGs
-├── docs/                   # Sharded docs (merlon.config.json) — dogfood target
-│   ├── glossary/           # Shared acronyms and terms (cross-guide, like insert libraries)
-│   ├── features/           # Tool capabilities
-│   ├── developer/          # This guide
-│   ├── client-cli/         # CLI guide
-│   ├── client-core/        # Core library guide
-│   ├── repo-readme/        # Repository landing page
-│   ├── vale-local/         # Dogfood-only Vale styles (MerlonDocs-PandocId)
-│   └── .vale.ini           # Peer Vale config
-├── examples/sample-guides/ # Minimal consumer fixture for tests and tutorials
-├── legacy/                 # Original bash/Python reference implementation
-├── scripts/                # Node and shell code behind the pnpm scripts and hooks, with their *.test.mjs tests
-├── formal/alloy/           # Alloy models of the branch and release guards (pnpm formal:check)
-├── infra/github/           # Terraform for the repository settings
-├── .husky/                 # Git hooks (pre-commit, commit-msg)
-├── .claude/hooks/          # Claude Code session-start hook
-├── .cursor/                # Cursor cloud agent environment
-├── .changeset/             # Changesets for semver releases
-└── .github/workflows/      # CI and release automation
+│   ├── merlon-docs-core/    # @merlon-docs/merlon-docs-core
+│   ├── merlon-docs-cli/     # @merlon-docs/merlon-docs-cli
+│   ├── merlon-docs-presets/ # @merlon-docs/merlon-docs-presets
+│   ├── merlon-docs-site/    # Starlight docs site (private, unversioned)
+│   └── skill-*/             # Private @merlon-docs/skill-* version carriers + CHANGELOGs
+├── docs/                    # Sharded docs (merlon.config.json) — dogfood target
+│   ├── glossary/            # Shared acronyms and terms (cross-guide, like insert libraries)
+│   ├── features/            # Tool capabilities
+│   ├── developer/           # This guide
+│   ├── client-cli/          # CLI guide
+│   ├── client-core/         # Core library guide
+│   ├── repo-readme/         # Repository landing page
+│   ├── vale-local/          # Dogfood-only Vale styles (MerlonDocs-PandocId)
+│   └── .vale.ini            # Peer Vale config
+├── examples/sample-guides/  # Minimal consumer fixture for tests and tutorials
+├── legacy/                  # Original bash/Python reference implementation
+├── scripts/                 # Node and shell code behind the pnpm scripts and hooks, with their *.test.mjs tests
+├── formal/alloy/            # Alloy models of the branch and release guards (pnpm formal:check)
+├── infra/github/            # Terraform for the repository settings
+├── .husky/                  # Git hooks (pre-commit, commit-msg)
+├── .claude/hooks/           # Claude Code session-start hook
+├── .cursor/                 # Cursor cloud agent environment
+├── .changeset/              # Changesets for semver releases
+└── .github/workflows/       # CI and release automation
 ```
 
 [Guide directories](#guide-directories) maps each guide directory under `docs/` to its compiled output and says why `presentations/` is kept as delivered.
@@ -339,11 +339,11 @@ Local runs print a text summary and write HTML/lcov under each package’s `cove
 
 ### merlon-docs-presets
 
-JSONC markdownlint configs plus the shippable `MDCP` Vale style (`vale/MerlonDocs/`). Dogfood-only styles live under [`docs/vale-local/`](docs/vale-local/README.md). Edit preset files directly — no TypeScript build.
+JSONC markdownlint configs plus the shippable `MerlonDocs` Vale style (`vale/MerlonDocs/`). Dogfood-only styles live under [`docs/vale-local/`](docs/vale-local/README.md). Edit preset files directly — no TypeScript build.
 
 ### Repository script tests
 
-Most `*.test.mjs` files under `scripts/` test the script beside them, and `pnpm test` runs them all after the package tests, as [Daily commands](#daily-commands) lists. `scripts/vale-merlon-docs-style.test.mjs` has no script beside it: it runs the `MDCP` Vale style of `merlon-docs-presets` on fixtures. The site's script tests run with the package tests, and [Build and preview](#build-and-preview) gives the command that runs them alone.
+Most `*.test.mjs` files under `scripts/` test the script beside them, and `pnpm test` runs them all after the package tests, as [Daily commands](#daily-commands) lists. `scripts/vale-merlon-docs-style.test.mjs` has no script beside it: it runs the `MerlonDocs` Vale style of `merlon-docs-presets` on fixtures. The site's script tests run with the package tests, and [Build and preview](#build-and-preview) gives the command that runs them alone.
 
 A test that runs git in a throwaway repository removes every `GIT_*` variable from `process.env` first, as `scripts/lib/consumed-changesets.test.mjs` does. A git hook exports `GIT_INDEX_FILE`, and other git-driven runs can export more `GIT_*` variables; while one is set, git in the throwaway repository reads the checkout that runs the tests.
 
@@ -451,7 +451,7 @@ Link lint, broken-link marking, the link passes and `codeEvidence` mask code spa
 
 ## Benchmarks
 
-`pnpm bench:dogfood` times compile and check on this repository's own docs against the [Performance goals](docs/features/protocol/performance.md). `pnpm bench:context-size` measures how much context a whole compiled guide and one shard of those docs take. CI doesn't run either script.
+`pnpm bench:dogfood` times compile and check on this repository's own docs against the [Performance goals](docs/features/system/performance.md). `pnpm bench:context-size` measures how much context a whole compiled guide and one shard of those docs take. CI doesn't run either script.
 
 ### Before you run
 
@@ -465,13 +465,13 @@ pnpm build && pnpm docs:compile:repo
 
 ### Performance benchmark
 
-`pnpm bench:dogfood` runs [`bench-dogfood-performance.mjs`](scripts/bench-dogfood-performance.mjs). It times `merlon compile` and `merlon check` on `docs/` as the median of three CLI runs, and one in-process compile and link lint. It writes `docs/features/protocol/research/benchmark-dogfood-<date>.csv`, one row per operation. [Tier 4](docs/features/protocol/performance.md#tier-4-regression-metrics) of the performance goals says what its ms/link row measures, and how to work out ms/shard by hand from the compile time.
+`pnpm bench:dogfood` runs [`bench-dogfood-performance.mjs`](scripts/bench-dogfood-performance.mjs). It times `merlon compile` and `merlon check` on `docs/` as the median of three CLI runs, and one in-process compile and link lint. It writes `docs/features/system/research/benchmark-dogfood-<date>.csv`, one row per operation. [Tier 4](docs/features/system/performance.md#tier-4-regression-metrics) of the performance goals says what its ms/link row measures, and how to work out ms/shard by hand from the compile time.
 
 ### Context-size benchmark
 
-`pnpm bench:context-size` runs [`bench-context-size.mjs`](scripts/bench-context-size.mjs). It counts the characters and tokens of five compiled outputs and of the shards in the six directories it lists, and it writes `docs/features/protocol/research/context-size-dogfood-<date>.csv`. `--out <path>` writes the CSV elsewhere, and `--no-write` prints the table without writing a file. The [context-size record](docs/features/protocol/research/context-size-dogfood-2026-10-05.md) explains the rows.
+`pnpm bench:context-size` runs [`bench-context-size.mjs`](scripts/bench-context-size.mjs). It counts the characters and tokens of five compiled outputs and of the shards in the six directories it lists, and it writes `docs/features/system/research/context-size-dogfood-<date>.csv`. `--out <path>` writes the CSV elsewhere, and `--no-write` prints the table without writing a file. The [context-size record](docs/features/system/research/context-size-dogfood-2026-10-05.md) explains the rows.
 
-Token counts come from the open-source [gpt-tokenizer](https://github.com/niieani/gpt-tokenizer), with the `o200k_base` encoding by default. [Benefit claims and evidence](docs/features/protocol/benefit-claims-and-evidence.md#context-size) says how to read a token count. Switch the tokenizer to match your own stack. With `--no-write`, the examples below print the table and leave the day's CSV alone:
+Token counts come from the open-source [gpt-tokenizer](https://github.com/niieani/gpt-tokenizer), with the `o200k_base` encoding by default. [Benefit claims and evidence](docs/features/system/benefit-claims-and-evidence.md#context-size) says how to read a token count. Switch the tokenizer to match your own stack. With `--no-write`, the examples below print the table and leave the day's CSV alone:
 
 ```bash
 pnpm bench:context-size --tokenizer cl100k_base --no-write         # another gpt-tokenizer encoding
@@ -485,7 +485,7 @@ The other encodings are `o200k_harmony`, `p50k_base`, `p50k_edit`, `r50k_base` a
 
 Each script puts the UTC date of the run in its CSV's file name, and a second run on the same UTC day overwrites that day's file. Commit a CSV you keep before you run again, and delete the CSV of a run you don't keep.
 
-A run you keep gets a research record beside its CSV, and earlier CSVs and records stay as measured. The new record goes into the records list in [About research records](docs/features/protocol/research/about-research-records.md#records), and the page it feeds links to it. For a context-size record that page is [Benefit claims and evidence](docs/features/protocol/benefit-claims-and-evidence.md#context-size), and its record link moves to the new record, as does the link on this page. The documentation site's context-size table reads one record's CSV, so a new context-size record also changes three things in `packages/merlon-docs-site/src/components/ContextSizes.astro`: the CSV import, `RECORD_PATH` and `RECORD_TITLE`.
+A run you keep gets a research record beside its CSV, and earlier CSVs and records stay as measured. The new record goes into the records list in [About research records](docs/features/system/research/about-research-records.md#records), and the page it feeds links to it. For a context-size record that page is [Benefit claims and evidence](docs/features/system/benefit-claims-and-evidence.md#context-size), and its record link moves to the new record, as does the link on this page. The documentation site's context-size table reads one record's CSV, so a new context-size record also changes three things in `packages/merlon-docs-site/src/components/ContextSizes.astro`: the CSV import, `RECORD_PATH` and `RECORD_TITLE`.
 
 <!-- merlon-shard: end docs/developer/benchmarks.md -->
 
@@ -493,7 +493,7 @@ A run you keep gets a research record beside its CSV, and earlier CSVs and recor
 
 ## Agent work-item tracking
 
-How coding agents load tracker issues and delivery conventions **for this repository**. The work-item workflows of the [MDCP skill](docs/skills.md) point here via `WORK_ITEM_LOOKUP`.
+How coding agents load tracker issues and delivery conventions **for this repository**. The work-item workflows of the [Merlon Docs skill](docs/skills.md) point here via `WORK_ITEM_LOOKUP`.
 
 **This repo’s work-item lookup system uses GitHub** for both **issues** (acceptance, discussion, `Closes #N`) and **project planning** (the Project board below). Do not invent a second tracker or stuff tickets / sprint backlogs into durable `docs/` shards. Load scope from GitHub via this shard.
 
@@ -507,7 +507,7 @@ Issue base URL=https://github.com/Merlon-Docs/merlon/issues/
 WORK_ITEM=enough to resolve the issue — number, URL, or short name/description
 ```
 
-Every open issue must appear on the public [MarkDown Context Protocol project board](https://github.com/users/betsalel-williamson/projects/4).
+Every open issue must appear on the public [Merlon Docs project board](https://github.com/users/betsalel-williamson/projects/4).
 
 [Issue intake and labels](#issue-intake-and-labels) gives the board fields and labels each issue gets, and the checklist for a new issue.
 
@@ -525,7 +525,7 @@ If none of the above apply, inspect enabled MCP tool descriptors or run `gh --he
 
 ### Git and delivery
 
-[Landing on `develop`](#landing-on-develop) owns how a pushed branch reaches `develop`, and [When to add a changeset](#when-to-add-a-changeset) owns release notes. Commit grouping belongs to [Atomic commit groups (plan obligation)](docs/features/protocol/skill-workflows.md#atomic-commit-groups-plan-obligation), and decisions to remove or reject a feature belong to the [architecture decision records](docs/features/adr/index.md). The conventions below tie a landing to its work item:
+[Landing on `develop`](#landing-on-develop) owns how a pushed branch reaches `develop`, and [When to add a changeset](#when-to-add-a-changeset) owns release notes. Commit grouping belongs to [Atomic commit groups (plan obligation)](docs/features/system/skill-workflows.md#atomic-commit-groups-plan-obligation), and decisions to remove or reject a feature belong to the [architecture decision records](docs/features/adr/index.md). The conventions below tie a landing to its work item:
 
 ```text
 Branch names=land/<issue>-<slug> (e.g. land/issue-29-default-compile-hooks); agent sessions use their claude/** branch
@@ -537,9 +537,9 @@ Landing=push the branch; put "Closes #N" in the commit message
 
 ### Workflow best practices
 
-1. **Load scope and stay focused**: the [Required intake](docs/features/protocol/skill-workflows.md#required-intake) rules have an agent load the WORK_ITEM before it edits, with one WORK_ITEM per branch. Treat the acceptance criteria as the boundary unless the WORK_ITEM explicitly expands scope.
+1. **Load scope and stay focused**: the [Required intake](docs/features/system/skill-workflows.md#required-intake) rules have an agent load the WORK_ITEM before it edits, with one WORK_ITEM per branch. Treat the acceptance criteria as the boundary unless the WORK_ITEM explicitly expands scope.
 2. **Branch first**: follow [Git and delivery](#git-and-delivery).
-3. **Plan atomic commit groups**: list them in a coding or multi-concern plan before review, as [Atomic commit groups (plan obligation)](docs/features/protocol/skill-workflows.md#atomic-commit-groups-plan-obligation) requires. After approval, commit one group at a time.
+3. **Plan atomic commit groups**: list them in a coding or multi-concern plan before review, as [Atomic commit groups (plan obligation)](docs/features/system/skill-workflows.md#atomic-commit-groups-plan-obligation) requires. After approval, commit one group at a time.
 4. **Docs describe now**: update shards to match as-built behavior, and keep consumer notices out of durable shards ([Durable docs vs pending changesets](#durable-docs-vs-pending-changesets)).
 5. **Add a changeset**: see [When to add a changeset](#when-to-add-a-changeset).
 6. **Issue intake**: when opening or first touching an issue, complete [New issue intake](#new-issue-intake-required) (labels, board, Track, Status, milestone).
@@ -585,7 +585,7 @@ Pick the Track value from [Track selection](#track-selection).
 
 | Track             | Use for                                                                 |
 | ----------------- | ----------------------------------------------------------------------- |
-| 1.0 Formalization | Protocol ADR, normative spec, schemas, conformance                      |
+| 1.0 Formalization | System ADR, normative spec, schemas, conformance                        |
 | Maintenance       | Bugs, compile/check correctness, agent-process hygiene, adoption polish |
 | Performance       | SLOs, benchmarks, engine spikes (often `priority:defer`)                |
 | Future (V2+)      | MCP server, hosted API, and other post-V1 delivery surfaces             |
@@ -622,7 +622,7 @@ Use **one** mutually exclusive GitHub label so the board and `gh issue list` sta
 2. **Labels**: maintainers or coding agents apply the matching `priority:*` label when triaging (GitHub forms cannot map a dropdown to a label automatically). Replace any previous `priority:*` label so only one remains.
 3. **What to work on next**: prefer open issues labeled `priority:P0`, then `P1`. Skip `priority:defer` until the gate in the issue body is met.
 
-Issue templates live under `.github/ISSUE_TEMPLATE/` (bug report, feedback, adoption story, extension proposal). The adoption-story template has no priority dropdown, because it records qualitative evidence. Extension proposals use the priority dropdown and the `enhancement` type label, and maintainers usually also apply `protocol`. Pull requests use `.github/PULL_REQUEST_TEMPLATE.md`, which asks for protocol/skill version when the change touches those surfaces.
+Issue templates live under `.github/ISSUE_TEMPLATE/` (bug report, feedback, adoption story, extension proposal). The adoption-story template has no priority dropdown, because it records qualitative evidence. Extension proposals use the priority dropdown and the `enhancement` type label, and maintainers usually also apply `protocol`. Pull requests use `.github/PULL_REQUEST_TEMPLATE.md`, which asks for the spec and skill versions when the change touches those surfaces.
 
 #### Other labels (apply on intake)
 
@@ -656,7 +656,7 @@ PROJECT_ID=$(gh api graphql -f query='
 
 ISSUE_NODE=$(gh api graphql -f query='
   query($n:Int!) {
-    repository(owner:"betsalel-williamson", name:"mdcp") {
+    repository(owner:"betsalel-williamson", name:"Merlon Docs") {
       issue(number:$n) { id }
     }
   }' -F n=<N> --jq '.data.repository.issue.id')
@@ -773,7 +773,7 @@ Compile rebases each shard's `../` links relative to the file being assembled, t
 1. Edit shard `.md` files under the relevant guide directory.
 2. If you changed a guide's `index.md` link order, re-run compile — order is read from the manifest. See [Manifest compile order](docs/features/manifest-compile-order.md) when using `compile.sectionsHeading`.
 3. Run `pnpm docs:compile:repo`, then `pnpm docs:check`, which also checks the examples.
-4. Review the change at both levels of [two-level review](docs/features/protocol/shard-srp-and-mitosis.md#two-level-review): each shard on its own, then against the guides, skills, and code that describe the same behavior. To review the docs as a set, run the [doc-review workflow](docs/features/protocol/workflows/doc-review.md).
+4. Review the change at both levels of [two-level review](docs/features/system/shard-srp-and-mitosis.md#two-level-review): each shard on its own, then against the guides, skills, and code that describe the same behavior. To review the docs as a set, run the [doc-review workflow](docs/features/system/workflows/doc-review.md).
 5. Commit shard changes. Regenerated `docs/_build/` (monolith, per-guide outputs, `refs.json`) is gitignored. CI and `pnpm docs:check` compile it locally. Every other output in the guide table is committed, in the same commit as the shard change that regenerates it.
 
 ### Agent context
@@ -784,7 +784,7 @@ Find a shard under `docs/` with host search and read that one shard, as [refs](#
 
 - **markdownlint**: the shard preset on the shards, then the repo's own compiled config, [`docs/compiled-lint.markdownlint-cli2.jsonc`](docs/compiled-lint.markdownlint-cli2.jsonc), on the monolith, `DEVELOPERS.md` and the published READMEs. That config turns off fewer rules than the compiled preset in `@merlon-docs/merlon-docs-presets`, which the examples use.
 - **Vale**: prose lint on the `vale.scanGlobs` directories in the config, which are `glossary/`, `features/`, `developer/`, `client-cli/`, `client-core/` and `repo-readme/`, plus every `standaloneGuides` file. `docs/.vale.ini` opts `CODE_OF_CONDUCT.md` out, because its text is the vendored Contributor Covenant. Vale is not an npm dependency, so install it on `PATH` as [Local setup](#requirements) describes.
-- **Vale `MDCP` / `MerlonDocs-PandocId`**: peer prose rules for unlinked heading mentions and dated claims, plus this repo's local rule against [Pandoc IDs](#headings-and-links). They run in the peer Vale stage of `merlon check`, and `--require-vale` makes a missing Vale fail the run.
+- **Vale `MerlonDocs` / `MerlonDocs-PandocId`**: peer prose rules for unlinked heading mentions and dated claims, plus this repo's local rule against [Pandoc IDs](#headings-and-links). They run in the peer Vale stage of `merlon check`, and `--require-vale` makes a missing Vale fail the run.
 - **link lint**: built-in validation runs on every `docs:check` at the default `"error"` severity. Each publish guide lists `features` in `compile.crossGuideLinks.ignoreGuides`. A cross-guide link to a features shard then keeps its `docs/features/` path, rebased for the output's location, as [Publish-only link policy](docs/features/link-validation.md#publish-only-link-policy) says. A link to a shard that the guide stitches can take an in-document anchor instead ([Same compiled output preference](docs/features/compile-pipeline/cross-guide-links.md#same-compiled-output-preference)).
 
 [First-time bootstrap](#first-time-bootstrap) syncs the Vale styles and says when to sync them again.
@@ -814,7 +814,7 @@ Give the first link to an insert in a guide a paragraph of its own, ahead of any
 
 ### Formatting and linting
 
-`pnpm format` runs Prettier on the repository with the settings in the root `.prettierrc.json`, and `pnpm format:check` fails on a file that Prettier would change. `pnpm docs:check` runs markdownlint and Vale on the docs, and [Linting docs](#linting-docs) says which configs and styles it uses. The starter markdownlint configs and the `MDCP` Vale style come from `@merlon-docs/merlon-docs-presets`, which has no Prettier config.
+`pnpm format` runs Prettier on the repository with the settings in the root `.prettierrc.json`, and `pnpm format:check` fails on a file that Prettier would change. `pnpm docs:check` runs markdownlint and Vale on the docs, and [Linting docs](#linting-docs) says which configs and styles it uses. The starter markdownlint configs and the `MerlonDocs` Vale style come from `@merlon-docs/merlon-docs-presets`, which has no Prettier config.
 
 ---
 
@@ -826,7 +826,7 @@ _Note: GitHub and GitHub Flavored Markdown are trademarks of GitHub, Inc. This p
 
 ## Agent Skill development
 
-Zero-friction MDCP delivery for AI agents uses one portable Agent Skill. Upstream source of truth is [`skills/merlon-docs/SKILL.md`](skills/merlon-docs/SKILL.md). In **this** monorepo, agents load it from `.agents/skills/merlon-docs/`, a [vendor-managed install](#do-not-hand-edit-agentsskills). A consumer's `npx skills add` picks an agent-specific directory instead ([Agent Skill](docs/features/agent-skill.md)). Task workflows (bootstrap, doc-only, design-architecture, feature-level, UX, doc review) live inside that skill under `skills/merlon-docs/references/workflows/`, so consumers install one skill. Archetype skills under `skills/merlon-docs-arch-*` are internal. [Publishing the skill pack](#publishing-the-skill-pack) says which skills are released.
+Zero-friction Merlon Docs delivery for AI agents uses one portable Agent Skill. Upstream source of truth is [`skills/merlon-docs/SKILL.md`](skills/merlon-docs/SKILL.md). In **this** monorepo, agents load it from `.agents/skills/merlon-docs/`, a [vendor-managed install](#do-not-hand-edit-agentsskills). A consumer's `npx skills add` picks an agent-specific directory instead ([Agent Skill](docs/features/agent-skill.md)). Task workflows (bootstrap, doc-only, design-architecture, feature-level, UX, doc review) live inside that skill under `skills/merlon-docs/references/workflows/`, so consumers install one skill. Archetype skills under `skills/merlon-docs-arch-*` are internal. [Publishing the skill pack](#publishing-the-skill-pack) says which skills are released.
 
 ### Vendor-managed installs
 
@@ -863,7 +863,7 @@ Manual invoke (hosts that support slash skills): `/merlon-docs`.
 When changing skill instructions:
 
 1. Edit `skills/merlon-docs/SKILL.md` and its `references/`. Keep the activation body under 500 lines and put depth in `references/`. The limit is advisory, because `pnpm skill:validate` doesn't count lines. A new kind of task gets a workflow file under `skills/merlon-docs/references/workflows/` and a row in the skill's workflow table, not a new skill.
-2. Do **not** invent new protocol in the skill — CLI and schemas stay in packages.
+2. Do **not** invent new format rules in the skill — CLI and schemas stay in packages.
 3. Put archetype guidance in `skills/merlon-docs-arch-*` instead of growing the parent skill.
 4. Refresh installs ([Vendor-managed installs](#vendor-managed-installs)), then run `pnpm skill:validate` and `pnpm docs:check`.
 5. Add a changeset for the skill ([When to add a changeset](#when-to-add-a-changeset)).
@@ -972,10 +972,10 @@ Live eval fixtures live under `tests/skills/<skill>/evals/` so publishable packs
 under `skills/` stay eval-free (`npx skills` / `pnpm skill:validate` only touch
 `skills/`).
 
-- [mdcp](tests/skills/merlon-docs/evals/README.md) — subject `mdcp`; routing and
+- [Merlon Docs](tests/skills/merlon-docs/evals/README.md) — subject `merlon-docs`; routing and
   QA principles; workspace `.agents/skills/merlon-docs-workspace/`
 - One suite per workflow under `tests/skills/merlon-docs/evals/<workflow>/`, each with
-  subject `mdcp`:
+  subject `merlon-docs`:
   [getting-started](tests/skills/merlon-docs/evals/getting-started/README.md),
   [doc-only](tests/skills/merlon-docs/evals/doc-only/README.md),
   [design-architecture](tests/skills/merlon-docs/evals/design-architecture/README.md),
@@ -1003,7 +1003,7 @@ reads the transcript instead of going to the grader. An eval may set `setup` too
 runner to add dated commits after the fixture commit (see the doc-review suite README).
 
 Workflow intake and write obligations stay in
-[Skill workflows](docs/features/protocol/skill-workflows.md).
+[Skill workflows](docs/features/system/skill-workflows.md).
 
 <!-- merlon-shard: end docs/developer/live-skill-evals.md -->
 
@@ -1011,19 +1011,19 @@ Workflow intake and write obligations stay in
 
 ## Documentation site
 
-The public docs site at <https://betsalel-williamson.github.io/mdcp/> is an [Astro Starlight](https://starlight.astro.build/) build in [`packages/merlon-docs-site/`](packages/merlon-docs-site). It is a private workspace package with no version. Changesets ignores it, and release tooling never tags or publishes it.
+The public docs site at <https://merlon-docs.github.io/merlon/> is an [Astro Starlight](https://starlight.astro.build/) build in [`packages/merlon-docs-site/`](packages/merlon-docs-site). It is a private workspace package with no version. Changesets ignores it, and release tooling never tags or publishes it.
 
 ### Content comes from shards
 
 The landing page (`packages/merlon-docs-site/src/content/docs/index.mdx`) and the Learn page (`packages/merlon-docs-site/src/content/docs/learn.mdx`) are hand-authored. The other pages are generated at build time by [`packages/merlon-docs-site/scripts/sync-content.mjs`](packages/merlon-docs-site/scripts/sync-content.mjs) from these guides:
 
-| Shards              | Site section        | Route            |
-| ------------------- | ------------------- | ---------------- |
-| `docs/client-cli/`  | User guide          | `/guide/`        |
-| `docs/features/`    | Concepts & protocol | `/concepts/`     |
-| `docs/client-core/` | Library API         | `/api/`          |
-| `docs/glossary/`    | Glossary            | `/glossary/`     |
-| `docs/developer/`   | Contributing        | `/contributing/` |
+| Shards              | Site section | Route            |
+| ------------------- | ------------ | ---------------- |
+| `docs/client-cli/`  | User guide   | `/guide/`        |
+| `docs/features/`    | Concepts     | `/concepts/`     |
+| `docs/client-core/` | Library API  | `/api/`          |
+| `docs/glossary/`    | Glossary     | `/glossary/`     |
+| `docs/developer/`   | Contributing | `/contributing/` |
 
 The sync script reads `docs/merlon.config.json` and each guide's `index.md` for sidebar order, and uses each shard's first `#` heading as the page title. These manifest entries become sidebar groups:
 
@@ -1036,7 +1036,7 @@ The first group whose list links a page claims it. A page other than an `index.m
 The sync script rewrites links for the site:
 
 - Relative `.md` links between published shards become site routes.
-- Compiled cross-links such as `[text](#slug)` resolve through the refs registry (`docs/_build/refs.json`) and the per-guide compiled outputs. The `mdcp-shard` source markers in each compiled file name the shard that defines the slug.
+- Compiled cross-links such as `[text](#slug)` resolve through the refs registry (`docs/_build/refs.json`) and the per-guide compiled outputs. The `merlon-shard` source markers in each compiled file name the shard that defines the slug.
 - Links to other repository files point at the file on GitHub.
 
 The sync fails on any internal link it cannot resolve, and the build then checks every internal link and anchor in the generated HTML. Generated pages, the sidebar file, and Astro output are gitignored. Edit the shard under `docs/`, never the generated page. Each page's edit link opens the shard.
@@ -1066,7 +1066,7 @@ The site generates its pages into gitignored paths, and the [coverage](#coverage
 
 ## Versioning and releases
 
-mdcp uses [Semantic Versioning 2.0.0](https://semver.org/) and [Changesets](https://github.com/changesets/changesets) for predictable releases. **Each npm package and each Agent Skill versions independently** — a changeset only bumps the items it lists.
+Merlon Docs uses [Semantic Versioning 2.0.0](https://semver.org/) and [Changesets](https://github.com/changesets/changesets) for predictable releases. **Each npm package and each Agent Skill versions independently** — a changeset only bumps the items it lists.
 
 | Item        | Identifier                         | Published to                                                       |
 | ----------- | ---------------------------------- | ------------------------------------------------------------------ |
@@ -1561,27 +1561,29 @@ Even when nothing changes, a maintainer should run a **periodic pass** by hand a
 
 <!-- merlon-shard: end docs/developer/github-actions-security-checklist.md -->
 
-<!-- merlon-shard: start docs/glossary/mdcp.md -->
+<!-- merlon-shard: start docs/glossary/merlon-docs.md -->
 
-## MDCP
+## Merlon Docs
 
-**MarkDown Context Protocol** — a **documentation system** delivered as an [Agent Skill](#agent-skills) and lightweight toolchain. It helps teams who care about durable docs distill mind maps, architecture notes, specs, and product ideas into small Markdown **shards** so intent stays reviewable in git, maintainable as ideas keep arriving, and readable one shard at a time by people and agents.
+**Merlon Docs** is a **documentation system** for software projects, delivered as an [Agent Skill](#agent-skills) and a lightweight toolchain. With people reviewing the result, it helps teams who care about durable docs distill mind maps, architecture notes, specs, and product ideas into small Markdown **shards** so intent stays reviewable in git, maintainable as ideas keep arriving, and readable one shard at a time by people and agents.
 
-[Vision and roadmap](docs/features/protocol/00-vision-and-roadmap.md) says what MDCP does about documentation debt and which teams it serves.
+Formerly MDCP (MarkDown Context Protocol). The old name borrowed the word protocol from the Model Context Protocol. Merlon Docs is a set of processes for recording a project's durable information.
+
+[Vision and roadmap](docs/features/system/00-vision-and-roadmap.md) says what Merlon Docs does about documentation debt and which teams it serves.
 
 The CLI compiles and checks the shards and maintains the [refs](#refs) registry. It works alongside the skill’s behavioral guardrails.
 
-Lowercase `mdcp` names the toolchain (the CLI command and the `@merlon-docs/merlon-docs-*` packages) and the Agent Skill.
+The CLI command is `merlon`, the packages are `@merlon-docs/merlon-docs-*`, and the Agent Skill is `merlon-docs`.
 
-<!-- merlon-shard: end docs/glossary/mdcp.md -->
+<!-- merlon-shard: end docs/glossary/merlon-docs.md -->
 
 <!-- merlon-shard: start docs/glossary/domain-glossary.md -->
 
 ## domain glossary
 
-A **domain glossary** is a repository's own glossary: one shard per term under `docs/glossary/`, with the term as the shard's `#` heading. It holds acronyms and product vocabulary, plus a disambiguation entry where legacy systems use one term for different concepts. A project that migrates existing docs or onboards to MDCP starts its glossary before its large feature shards. Its inclusion bar, recorded in the glossary index, says which terms to add and whose understanding counts: the client persona, contributors or both.
+A **domain glossary** is a repository's own glossary: one shard per term under `docs/glossary/`, with the term as the shard's `#` heading. It holds acronyms and product vocabulary, plus a disambiguation entry where legacy systems use one term for different concepts. A project that migrates existing docs or onboards to Merlon Docs starts its glossary before its large feature shards. Its inclusion bar, recorded in the glossary index, says which terms to add and whose understanding counts: the client persona, contributors or both.
 
-[Glossary obligation](docs/features/protocol/skill-workflows.md#glossary-obligation-every-workflow) says who sets the inclusion bar and when a workflow adds an entry. [Shared glossary](./packages/merlon-docs-cli/README.md#shared-glossary) says how guides stitch the terms and when a large glossary uses sub-index files.
+[Glossary obligation](docs/features/system/skill-workflows.md#glossary-obligation-every-workflow) says who sets the inclusion bar and when a workflow adds an entry. [Shared glossary](./packages/merlon-docs-cli/README.md#shared-glossary) says how guides stitch the terms and when a large glossary uses sub-index files.
 
 <!-- merlon-shard: end docs/glossary/domain-glossary.md -->
 
@@ -1591,9 +1593,9 @@ A **domain glossary** is a repository's own glossary: one shard per term under `
 
 **Agent Skills** is the [open standard](https://agentskills.io) for portable packages of agent instructions. Each package is a directory with a `SKILL.md` file and optional companion files, and agent hosts discover and load it. One package is an **Agent Skill**, usually shortened to **skill**, and several packages are _skills_.
 
-Outside agent tooling, the word skill can mean a person's ability or a general AI capability. In MDCP docs it always means the packaged directory.
+Outside agent tooling, the word skill can mean a person's ability or a general AI capability. In these docs it always means the packaged directory.
 
-MDCP's main skill is `mdcp`, with its source in `skills/merlon-docs/`. It contains the **documentation system** guardrails that direct agents to shard and maintain docs one piece at a time. Optional [archetype](docs/features/protocol/extensions-and-archetypes.md#archetypes-battery-types) skills are under `skills/merlon-docs-arch-*`.
+Merlon Docs’ main skill is `merlon-docs`, with its source in `skills/merlon-docs/`. It contains the **documentation system** guardrails that direct agents to shard and maintain docs one piece at a time. Optional [archetype](docs/features/system/extensions-and-archetypes.md#archetypes-battery-types) skills are under `skills/merlon-docs-arch-*`.
 
 Install and validation: [Agent Skill](docs/features/agent-skill.md).
 
@@ -1605,7 +1607,7 @@ Install and validation: [Agent Skill](docs/features/agent-skill.md).
 
 A plan section of numbered groups that splits coding or multi-concern work into commits of one concern each. After the plan is approved, the agent makes one commit per group instead of one commit for everything.
 
-[Atomic commit groups (plan obligation)](docs/features/protocol/skill-workflows.md#atomic-commit-groups-plan-obligation) lists the fields of each group and the workflows that require the section.
+[Atomic commit groups (plan obligation)](docs/features/system/skill-workflows.md#atomic-commit-groups-plan-obligation) lists the fields of each group and the workflows that require the section.
 
 <!-- merlon-shard: end docs/glossary/atomic-commit-groups.md -->
 
@@ -1621,7 +1623,7 @@ Optional local with/without-skill agent grading via vendored [skill-creator](.ag
 
 ## shard
 
-A **shard** is a small Markdown file that owns one topic. In MDCP, authors edit shards; `compile` stitches them into [compiled guides](#compiled-guide), such as a package README. Shards are the source of truth, so do not hand-edit generated files.
+A **shard** is a small Markdown file that owns one topic. In Merlon Docs, authors edit shards; `compile` stitches them into [compiled guides](#compiled-guide), such as a package README. Shards are the source of truth, so do not hand-edit generated files.
 
 Think “one concern per file” so people and agents can load only what the task needs. Related: [shard single responsibility](#shard-single-responsibility). Deeper model: [Overview](docs/features/overview.md).
 
@@ -1655,7 +1657,7 @@ See [Manifest compile order](docs/features/manifest-compile-order.md).
 
 A **guide tier** is one category in an [archetype](#archetype)'s guide layout. Each tier specifies what its shards contain and what they keep out. The default archetype, the Code Repository Archetype, defines four tiers: `features/`, `client/`, `developer/`, and `glossary/`. A tier can include more than one [guide](#guide).
 
-[Default guide layout](docs/features/protocol/mdcp-1.0-spec.md#2-default-guide-layout-code-repository-archetype) defines the four tiers. Under its placement test, a shard that consumers need goes in `features/` or `client/`, and a shard that only contributors need goes in `developer/`.
+[Default guide layout](docs/features/system/merlon-docs-1.0-spec.md#2-default-guide-layout-code-repository-archetype) defines the four tiers. Under its placement test, a shard that consumers need goes in `features/` or `client/`, and a shard that only contributors need goes in `developer/`.
 
 <!-- merlon-shard: end docs/glossary/guide-tier.md -->
 
@@ -1663,7 +1665,7 @@ A **guide tier** is one category in an [archetype](#archetype)'s guide layout. E
 
 ## archetype
 
-An **archetype**, or battery type, is a documented bundle of guide layout, glossary seeds, optional prompts and extension pointers for one project class. The default, the Code Repository Archetype, is the four [guide tiers](#guide-tier) that [Default guide layout](docs/features/protocol/mdcp-1.0-spec.md#2-default-guide-layout-code-repository-archetype) defines. The other archetypes in this repository are archetype skills, `merlon-docs-arch-*` [Agent Skills](#agent-skills), which [Archetypes](docs/features/protocol/extensions-and-archetypes.md#archetypes-battery-types) lists, and a team can define its own for another documentation system.
+An **archetype**, or battery type, is a documented bundle of guide layout, glossary seeds, optional prompts and extension pointers for one project class. The default, the Code Repository Archetype, is the four [guide tiers](#guide-tier) that [Default guide layout](docs/features/system/merlon-docs-1.0-spec.md#2-default-guide-layout-code-repository-archetype) defines. The other archetypes in this repository are archetype skills, `merlon-docs-arch-*` [Agent Skills](#agent-skills), which [Archetypes](docs/features/system/extensions-and-archetypes.md#archetypes-battery-types) lists, and a team can define its own for another documentation system.
 
 The adoption archetypes in [Personas and priority tiers](docs/features/personas-and-priority-tiers.md#adoption-archetypes), such as Learner and Author, are reader goals, not layouts.
 
@@ -1687,7 +1689,7 @@ Contrast with a [guide](#guide), whose shards compile into one output. Compile d
 
 Do not split only because a file is long. Prefer one primary concern per shard.
 
-See [Shard single responsibility and idea mitosis](docs/features/protocol/shard-srp-and-mitosis.md).
+See [Shard single responsibility and idea mitosis](docs/features/system/shard-srp-and-mitosis.md).
 
 <!-- merlon-shard: end docs/glossary/idea-mitosis.md -->
 
@@ -1697,7 +1699,7 @@ See [Shard single responsibility and idea mitosis](docs/features/protocol/shard-
 
 **Shard single responsibility** means each durable documentation shard owns one primary concern, for one [guide tier](#guide-tier), serving one job: explain, instruct how-to, or define and look up. A shard should have one main reason to change.
 
-See [Shard single responsibility and idea mitosis](docs/features/protocol/shard-srp-and-mitosis.md) and [idea mitosis](#idea-mitosis).
+See [Shard single responsibility and idea mitosis](docs/features/system/shard-srp-and-mitosis.md) and [idea mitosis](#idea-mitosis).
 
 <!-- merlon-shard: end docs/glossary/shard-single-responsibility.md -->
 
@@ -1739,7 +1741,7 @@ See [What compile actually does](docs/features/overview.md#what-compile-actually
 
 A **cross-link** (also **cross-ref**) is a Markdown link whose target is another place in the docs set. It is usually a same-document `[label](#heading-slug)` fragment or a path to another shard that compile may rewrite.
 
-Cross-links are why [refs](#refs) exist. After assemble, the visible heading text and level can change. The [heading slug](#heading-slug) that works in a shard may then differ from the slug in the compiled file. MDCP rewrites these targets and validates the links in each [compiled guide](#compiled-guide). See [Built-in link validation](docs/features/link-validation.md).
+Cross-links are why [refs](#refs) exist. After assemble, the visible heading text and level can change. The [heading slug](#heading-slug) that works in a shard may then differ from the slug in the compiled file. Merlon Docs rewrites these targets and validates the links in each [compiled guide](#compiled-guide). See [Built-in link validation](docs/features/link-validation.md).
 
 <!-- merlon-shard: end docs/glossary/cross-link.md -->
 
@@ -1749,7 +1751,7 @@ Cross-links are why [refs](#refs) exist. After assemble, the visible heading tex
 
 GitHub-style fragment id for a heading in **compiled** Markdown (the part after `#` in `[label](#slug)`). Parent concept: [refs](#refs).
 
-MDCP computes slugs from final heading text after guides are stitched and demoted, with the same rules GitHub uses for README anchors (via `github-slugger`). Duplicate titles in one document get `-1`, `-2` suffixes. Authors should not invent fragments from shard-only titles; [cross-links](#cross-link) must match the compiled slug, and `merlon check` fails when they do not.
+Merlon Docs computes slugs from final heading text after guides are stitched and demoted, with the same rules GitHub uses for README anchors (via `github-slugger`). Duplicate titles in one document get `-1`, `-2` suffixes. Authors should not invent fragments from shard-only titles; [cross-links](#cross-link) must match the compiled slug, and `merlon check` fails when they do not.
 
 <!-- merlon-shard: end docs/glossary/heading-slug.md -->
 
@@ -1757,9 +1759,9 @@ MDCP computes slugs from final heading text after guides are stitched and demote
 
 ## refs
 
-**Refs** (short for **references**) are the organized set of heading [slugs](#heading-slug) and [cross-links](#cross-link) MDCP derives from compiled guides so authors and CI can keep Markdown links coherent after stitch.
+**Refs** (short for **references**) are the organized set of heading [slugs](#heading-slug) and [cross-links](#cross-link) Merlon Docs derives from compiled guides so authors and CI can keep Markdown links coherent after stitch.
 
-The problem refs solve is structural. Stitching shards shifts heading levels and disambiguates duplicate titles, so a hand-guessed `#anchor` or stale path can break after `compile`. MDCP keeps a [refs registry](#refs-registry) and validates links at `check` time so the **compiled** document still targets the right sections and files.
+The problem refs solve is structural. Stitching shards shifts heading levels and disambiguates duplicate titles, so a hand-guessed `#anchor` or stale path can break after `compile`. Merlon Docs keeps a [refs registry](#refs-registry) and validates links at `check` time so the **compiled** document still targets the right sections and files.
 
 ### Related wording
 
@@ -1772,7 +1774,7 @@ The problem refs solve is structural. Stitching shards shifts heading levels and
 | **list refs**                       | Print each compiled output's headings with its file (`merlon refs-list`)            |
 | **check refs**                      | Confirm the registry on disk matches compiled headings (`merlon refs-check`)        |
 
-Refs check links. They do not find documents. To find a shard, use host search (`rg`, IDE search) or the guide `index.md`, then read that one shard. To check links, run `merlon check`. To see the registry's slugs, run `merlon refs-list`. [ADR 0002](docs/features/adr/0002-remove-refs-lookup.md) records why MDCP has no lookup command.
+Refs check links. They do not find documents. To find a shard, use host search (`rg`, IDE search) or the guide `index.md`, then read that one shard. To check links, run `merlon check`. To see the registry's slugs, run `merlon refs-list`. [ADR 0002](docs/features/adr/0002-remove-refs-lookup.md) records why Merlon Docs has no lookup command.
 
 <!-- merlon-shard: end docs/glossary/refs.md -->
 
@@ -1800,7 +1802,7 @@ Read [Cross-guide link rewriting](docs/features/compile-pipeline/cross-guide-lin
 
 ## check
 
-**`merlon check`** is MDCP’s validation gate, run locally and in CI before a merge. See [Check gate](docs/features/check-gate.md) for what it runs.
+**`merlon check`** is Merlon Docs’ validation gate, run locally and in CI before a merge. See [Check gate](docs/features/check-gate.md) for what it runs.
 
 <!-- merlon-shard: end docs/glossary/check.md -->
 
@@ -1816,7 +1818,7 @@ An **orphan** is a top-level shard in a [guide](#guide) directory that the guide
 
 ## coverage
 
-Documentation **coverage** is the set of markdown files MDCP can account for, and a file in that set is **captured**. [Coverage and the captured set](docs/features/coverage-scan.md#coverage-and-the-captured-set) lists which files count.
+Documentation **coverage** is the set of markdown files Merlon Docs can account for, and a file in that set is **captured**. [Coverage and the captured set](docs/features/coverage-scan.md#coverage-and-the-captured-set) lists which files count.
 
 The coverage scan walks the repository for markdown files, skips vendored paths, and reports any file that is not captured so authors either fold it into a guide or register it in `standaloneGuides[]`. With `scan.strict: true`, gaps fail `merlon check`.
 
@@ -1828,7 +1830,7 @@ The coverage scan walks the repository for markdown files, skips vendored paths,
 
 **GitHub Flavored Markdown** ([spec](https://github.github.com/gfm/)) is CommonMark plus GitHub extensions (tables, task lists, fenced code). Not Pandoc, LaTeX, or wikilinks.
 
-MDCP’s authored format contract is GFM, but heading recognition is an **ATX subset**: setext headings are not recognized. See [GFM scope](docs/features/design-constraints/gfm-scope.md#headings).
+Merlon Docs’ authored format contract is GFM, but heading recognition is an **ATX subset**: setext headings are not recognized. See [GFM scope](docs/features/design-constraints/gfm-scope.md#headings).
 
 <!-- merlon-shard: end docs/glossary/gfm.md -->
 
@@ -1844,7 +1846,7 @@ Shard markdown as written before compile, with no preprocessor substitution or t
 
 ## locale pack
 
-A **locale pack** is MDCP’s compile-time bundle of natural-language data that is **not** GFM protocol shape. It covers:
+A **locale pack** is Merlon Docs’ compile-time bundle of natural-language data that is **not** part of the GFM format. It covers:
 
 - **Generated wording**: text such as US-English insert captions (`Table 1. …`) and `BROKEN LINK` marker copy
 - **Locale-specific patterns**: optional heading-key patterns for semantic refs
@@ -1869,6 +1871,6 @@ In this repository, CodeQL’s `js/polynomial-redos` rule flags that class of ri
 
 ## WIIFM
 
-**What's In It For Me**: the reader's benefit, stated before mechanics or toolchain detail. On mdcp landing pages, each [adoption archetype](docs/features/personas-and-priority-tiers.md#adoption-archetypes) gets one WIIFM line, and each line follows the [claim tiers](docs/features/protocol/benefit-claims-and-evidence.md#claim-tiers) in Benefit claims and evidence.
+**What's In It For Me**: the reader's benefit, stated before mechanics or toolchain detail. On Merlon Docs landing pages, each [adoption archetype](docs/features/personas-and-priority-tiers.md#adoption-archetypes) gets one WIIFM line, and each line follows the [claim tiers](docs/features/system/benefit-claims-and-evidence.md#claim-tiers) in Benefit claims and evidence.
 
 <!-- merlon-shard: end docs/glossary/wiifm.md -->

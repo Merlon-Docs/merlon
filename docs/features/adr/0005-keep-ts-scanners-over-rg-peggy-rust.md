@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-07-31
-- **Related:** GitHub issues [#201](https://github.com/Merlon-Docs/merlon/issues/201) (Phase B ReDoS audit), [#200](https://github.com/Merlon-Docs/merlon/issues/200) (Phase A helpers), [#66](https://github.com/Merlon-Docs/merlon/issues/66) (Rust engine lookout), [#230](https://github.com/Merlon-Docs/merlon/pull/230) (prose → Vale); [Safe markdown parsing](../../developer/safe-markdown-parsing.md); [Locale and language boundary](../design-constraints/locale-and-language.md); [Performance goals](../protocol/performance.md)
+- **Related:** GitHub issues [#201](https://github.com/Merlon-Docs/merlon/issues/201) (Phase B ReDoS audit), [#200](https://github.com/Merlon-Docs/merlon/issues/200) (Phase A helpers), [#66](https://github.com/Merlon-Docs/merlon/issues/66) (Rust engine lookout), [#230](https://github.com/Merlon-Docs/merlon/pull/230) (prose → Vale); [Safe markdown parsing](../../developer/safe-markdown-parsing.md); [Locale and language boundary](../design-constraints/locale-and-language.md); [Performance goals](../system/performance.md)
 
 ## Context
 
@@ -41,7 +41,7 @@ We will **not** reintroduce chapter-cue prose lint into `mdcp-core` — that sta
 - New heading / leftover `{#…}` / line-range logic in core prefers imperative scanners (or the shared `markdown/` helpers), not new polynomial-risk regexes and not a second parse stack.
 - Unlinked “See Chapter…” / bare section prose stays in presets Vale `MDCP`; do not add `lintXrefs` back to core.
 - Standard markdown **link** extract/rewrite regexes may remain where Phase B dismissed them; that is separate from this ADR.
-- Performance work follows [Performance goals](../protocol/performance.md). Node benchmarks and profiling come first. Rust is a candidate only as a **batched compile engine**, and calling Rust through FFI once per helper is out of scope.
+- Performance work follows [Performance goals](../system/performance.md). Node benchmarks and profiling come first. Rust is a candidate only as a **batched compile engine**, and calling Rust through FFI once per helper is out of scope.
 - ReDoS duration-budget tests remain the regression control for the core scanner class.
 
 ## Re-evaluate when

@@ -1,5 +1,5 @@
 ---
-// Landing-page hero. Replaces Starlight's default so the splash page can show MDCP's
+// Landing-page hero. Replaces Starlight's default so the splash page can show Merlon Docs’
 // two parts side by side: the AI skill working in an agent, and the CLI checking in CI.
 // Only the splash page sets `hero`, so no other page renders this.
 import { LinkButton } from '@astrojs/starlight/components';
@@ -22,7 +22,7 @@ const installs = [
 
 <div class="merlon-hero">
   <div class="merlon-hero__copy">
-    <p class="merlon-hero__eyebrow">MDCP · Spec 1.0 draft · MIT</p>
+    <p class="merlon-hero__eyebrow">Merlon Docs · Spec 1.0 draft · MIT</p>
     <h1 id={PAGE_TITLE_ID} data-page-title set:html={title} />
     {tagline && <p class="merlon-hero__tagline" set:html={tagline} />}
     {
@@ -74,7 +74,7 @@ const installs = [
       <pre
         class="merlon-pane__body"><span class="merlon-pane__ask"><span aria-hidden="true">&gt; </span>Add a --since flag to the export command.</span>
 
-<span class="merlon-pane__agent">Agent, following the mdcp skill:</span>
+<span class="merlon-pane__agent">Agent, following the Merlon Docs skill:</span>
 <span class="merlon-pane__done" aria-hidden="true">✓</span> Read docs/features/export.md
 <span class="merlon-pane__done" aria-hidden="true">✓</span> Changed src/export.ts
 <span class="merlon-pane__done" aria-hidden="true">✓</span> Updated docs/features/export.md in the same change

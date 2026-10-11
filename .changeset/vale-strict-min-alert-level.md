@@ -8,4 +8,4 @@ Honor `vale.strictMinAlertLevel` in `merlon check` and stop hiding warnings in `
 
 Exit codes are unchanged. Of Vale's alerts, only error-level ones make it exit non-zero. A lower level adds alerts to the output and doesn't fail either command.
 
-The README's Vale section also names the new `MerlonDocs.DatedClaim` rule of the `MDCP` style.
+The README's Vale section also names the new `MerlonDocs.DatedClaim` rule of the `MerlonDocs` style.

@@ -40,12 +40,12 @@ next phase.
 
 Tiny greeting capability — one user-facing outcome, minimal surface.
 
-| Field    | Value                                                                   |
-| -------- | ----------------------------------------------------------------------- |
-| FEATURE  | `hello-greeting`                                                        |
-| PERSONA  | Developers who want a one-line greeting from the library or CLI         |
-| Outcome  | Something callable returns a short greeting string (e.g. `Hello, MDCP`) |
-| Design   | One capability shard (and optional short ADR) — no large system design  |
-| Feature  | Docs + minimal implementation + tests against acceptance criteria       |
-| UX       | Client guide: how PERSONA runs or calls the greeting                    |
-| Doc-only | Glossary/index polish; remove stale bootstrap placeholders              |
+| Field    | Value                                                                          |
+| -------- | ------------------------------------------------------------------------------ |
+| FEATURE  | `hello-greeting`                                                               |
+| PERSONA  | Developers who want a one-line greeting from the library or CLI                |
+| Outcome  | Something callable returns a short greeting string (e.g. `Hello, Merlon Docs`) |
+| Design   | One capability shard (and optional short ADR) — no large system design         |
+| Feature  | Docs + minimal implementation + tests against acceptance criteria              |
+| UX       | Client guide: how PERSONA runs or calls the greeting                           |
+| Doc-only | Glossary/index polish; remove stale bootstrap placeholders                     |

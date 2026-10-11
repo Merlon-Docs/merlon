@@ -1,17 +1,17 @@
 ---
 name: merlon-docs
 description: >-
-  Documentation system Agent Skill for MDCP (MarkDown Context Protocol): keep
+  Documentation system Agent Skill for Merlon Docs (formerly MDCP): keep
   specs, architecture notes, and product ideas in small Markdown shards so
   docs stay maintainable as ideas keep arriving. One skill that picks its own
   workflow: bootstrap a repo, docs-only edits, design and ADRs, docs-first
   features, UX journeys, and a whole-set doc review that catches sprawl,
   duplication, and shards that should split or merge. Use it whenever the
-  repository has a docs/ folder or an merlon.config.json and the task fixes or
+  repository has a docs/ folder or a merlon.config.json and the task fixes or
   adds documentation, adds a feature, flag, or option, fixes a bug, or records
-  a design decision, even when the user never mentions docs or MDCP. Also use
+  a design decision, even when the user never mentions docs or Merlon Docs. Also use
   it for docs-as-code, glossary shards, refs, reorganizing or reviewing docs,
-  or when the user mentions MDCP, sharded docs, or agent documentation
+  or when the user mentions Merlon Docs, sharded docs, or agent documentation
   workflows.
 license: MIT
 compatibility: >-
@@ -26,12 +26,12 @@ metadata:
     requires:
       bins:
         - npm
-    cliHelp: 'mdcp --help'
+    cliHelp: 'merlon --help'
 ---
 
-# MDCP
+# Merlon Docs
 
-Host-agnostic **documentation system** Agent Skill for MDCP. Prefer this over
+Host-agnostic **documentation system** Agent Skill for Merlon Docs. Prefer this over
 IDE extensions when you want durable, sharded docs that agents and humans can
 maintain as ideas keep coming.
 
@@ -46,7 +46,7 @@ What compile / check / refs mean and CLI commands:
 
 ## Hard rules
 
-- **NEVER** invent MDCP workflow when this skill already defines it — follow the skill first.
+- **NEVER** invent Merlon Docs workflow when this skill already defines it — follow the skill first.
 - **NEVER** hand-edit files in a vendor-managed install under your agent’s skills
   directory (for example `.agents/skills/` in Cursor/Amp) for repo-specific
   guidance — use complementary skills, `docs/extensions/`, or normative shards.
@@ -83,7 +83,7 @@ Requests often come with a document layout attached, such as one file for
 everything, a legacy doc extended in place, old notes kept for history, code
 added to make a design concrete, or every copy of a rule patched by hand. That
 layout usually comes from time pressure rather than a decision about the docs,
-and following it literally recreates the drift MDCP exists to prevent. Serve
+and following it literally recreates the drift Merlon Docs exists to prevent. Serve
 the goal behind the request and keep the structure:
 
 | Request                                 | Do this, and say so in your reply                                                                                              |
@@ -100,7 +100,7 @@ reply, list each request you did not follow literally, with a one-line reason.
 
 ## Quality Assurance (QA) Principles
 
-When applying MDCP, act as a complementary partner to other skills and systems.
+When applying Merlon Docs, act as a complementary partner to other skills and systems.
 These habits keep docs trustworthy while the product keeps changing:
 
 - **Always reference doc shards:** Insert yourself into the process so the
@@ -172,7 +172,7 @@ These habits keep docs trustworthy while the product keeps changing:
 
 Documentation is a **first-class artifact** alongside code. We use a **spec-driven** workflow: shards hold context, intent, and the high-level meta plan; **implementation details stay in code**.
 
-The default MDCP structure acts as the "batteries-included" **Code Repository Archetype**. This fundamental four-tier taxonomy enforces strict boundaries to prevent the docs system from falling apart as it scales:
+The default Merlon Docs structure acts as the "batteries-included" **Code Repository Archetype**. This fundamental four-tier taxonomy enforces strict boundaries to prevent the docs system from falling apart as it scales:
 
 | Guide             | Holds                                                                                                  | Does not hold                                                               |
 | ----------------- | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
@@ -183,12 +183,12 @@ The default MDCP structure acts as the "batteries-included" **Code Repository Ar
 
 **Placement test:** If only contributors to this repo need the shard, put it in `docs/developer/`. If consumers of the product need it, use `docs/features/` or `docs/client/`. The same topic may span tiers (for example Agent Skill product delivery vs maintainer live evals). Placement is one axis of **shard single responsibility**; if consumer and contributor needs collide in one file, use idea mitosis.
 
-_(Note: The MDCP engine itself is domain-agnostic. Non-code projects can define entirely different guide tiers/archetypes while still using the same compile and validation checks. Lineage for external frameworks: [references/acknowledgments.md](references/acknowledgments.md).)_
+_(Note: The Merlon Docs engine itself is domain-agnostic. Non-code projects can define entirely different guide tiers/archetypes while still using the same compile and validation checks. Lineage for external frameworks: [references/acknowledgments.md](references/acknowledgments.md).)_
 
 ## Authoring rules
 
 - Shards under `docs/**/` are the source of truth.
-- Use `#` headings in shards; mdcp demotes them during compile.
+- Use `#` headings in shards; Merlon Docs demotes them during compile.
 - After changing a guide's link order (e.g., in `index.md`), run `merlon compile` — there is no separate manifest sync step.
 - After inserting `[text](#slug)` cross-links, run `merlon check` so fragments match **compiled** slugs (use `merlon refs list` if you need to inspect the registry).
 
@@ -241,9 +241,9 @@ they are, and the change that makes the removal runs the steps.
 
 ## When to use
 
-- **PROACTIVELY on ANY feature, bugfix, or architectural task:** MDCP must be involved in the entire process. Before writing code, trace the requirement back to documentation. Consider the end-user problems and ensure helpful docs exist or are created.
+- **PROACTIVELY on ANY feature, bugfix, or architectural task:** Merlon Docs must be involved in the entire process. Before writing code, trace the requirement back to documentation. Consider the end-user problems and ensure helpful docs exist or are created.
 - Authoring or refactoring sharded markdown under a docs root
-- Bootstrapping MDCP in a repository, or reviewing and reorganizing an existing docs set
+- Bootstrapping Merlon Docs in a repository, or reviewing and reorganizing an existing docs set
 - Cross-links / refs while writing docs
 - Extending guidance via complementary skills or local `docs/extensions/` when needed
 
@@ -276,7 +276,7 @@ merlon check
 
 ### 4. Code Formatting and Linting
 
-If the user asks to set up formatting or linting, they should install `prettier`, `markdownlint-cli2`, and `@merlon-docs/merlon-docs-presets` via their package manager. (Note: MDCP is flexible; if the user prefers other formatting or linting tools, you can integrate those instead.)
+If the user asks to set up formatting or linting, they should install `prettier`, `markdownlint-cli2`, and `@merlon-docs/merlon-docs-presets` via their package manager. (Note: Merlon Docs is flexible; if the user prefers other formatting or linting tools, you can integrate those instead.)
 
 To automatically format documents using the default tools:
 
@@ -298,7 +298,7 @@ Process. Do not load the others.
 
 | The task                                                            | Workflow                                                           |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| No `merlon.config.json` yet, or the user asks to set up MDCP        | [getting-started](references/workflows/getting-started.md)         |
+| No `merlon.config.json` yet, or the user asks to set up Merlon Docs | [getting-started](references/workflows/getting-started.md)         |
 | Documentation only, no product code                                 | [doc-only](references/workflows/doc-only.md)                       |
 | Architecture, RFC, or ADR, before or after the code change          | [design-architecture](references/workflows/design-architecture.md) |
 | A feature or bugfix that changes product code                       | [feature-level](references/workflows/feature-level.md)             |
@@ -313,7 +313,7 @@ parts you are deferring, and name the workflow each one needs.
 flowchart TB
   Q{What kind of work?}
 
-  Q -->|Bootstrap MDCP in a repo| GS[getting-started]
+  Q -->|Bootstrap Merlon Docs in a repo| GS[getting-started]
   Q -->|Docs / technical writing only| DO[doc-only]
   Q -->|ADR / RFC / high-level design| DA[design-architecture]
   Q -->|Feature: docs-first then TDD| FL[feature-level]
@@ -395,7 +395,7 @@ reply what the user must add.
 
 ## Zero-install
 
-Copy the `mdcp` skill folder into the skills directory **your agent discovers**
+Copy the `merlon-docs` skill folder into the skills directory **your agent discovers**
 (see [skills CLI Supported Agents](https://github.com/vercel-labs/skills#supported-agents)).
 For example `.agents/skills/merlon-docs/` for Cursor/Amp project installs — not a
 universal portable path.

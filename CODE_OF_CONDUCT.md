@@ -2,7 +2,7 @@
 
 ## Our Pledge
 
-We as members, contributors, and mdcp project maintainers pledge to make participation in our
+We as members, contributors, and Merlon Docs project maintainers pledge to make participation in our
 community a harassment-free experience for everyone, regardless of age, body
 size, visible or invisible disability, ethnicity, sex characteristics, gender
 identity and expression, level of experience, education, socio-economic status,
@@ -38,12 +38,12 @@ Examples of unacceptable behavior include:
 
 ## Enforcement Responsibilities
 
-mdcp project maintainers are responsible for clarifying and enforcing our standards of
+Merlon Docs project maintainers are responsible for clarifying and enforcing our standards of
 acceptable behavior and will take appropriate and fair corrective action in
 response to any behavior that they deem inappropriate, threatening, offensive,
 or harmful.
 
-mdcp project maintainers have the right and responsibility to remove, edit, or reject
+Merlon Docs project maintainers have the right and responsibility to remove, edit, or reject
 comments, commits, code, wiki edits, issues, and other contributions that are
 not aligned to this Code of Conduct, and will communicate reasons for moderation
 decisions when appropriate.
@@ -59,18 +59,18 @@ representative at an online or offline event.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the mdcp project maintainers responsible for enforcement by
+reported to the Merlon Docs project maintainers responsible for enforcement by
 [opening a GitHub issue](https://github.com/Merlon-Docs/merlon/issues/new)
 or contacting repository owners via GitHub. Prefer a private channel if the report
 includes sensitive details.
 All complaints will be reviewed and investigated promptly and fairly.
 
-All mdcp project maintainers are obligated to respect the privacy and security of the
+All Merlon Docs project maintainers are obligated to respect the privacy and security of the
 reporter of any incident.
 
 ## Enforcement Guidelines
 
-mdcp project maintainers will follow these Community Impact Guidelines in determining
+Merlon Docs project maintainers will follow these Community Impact Guidelines in determining
 the consequences for any action they deem in violation of this Code of Conduct:
 
 ### 1. Correction
@@ -78,7 +78,7 @@ the consequences for any action they deem in violation of this Code of Conduct:
 **Community Impact**: Use of inappropriate language or other behavior deemed
 unprofessional or unwelcome in the community.
 
-**Consequence**: A private, written warning from mdcp project maintainers, providing
+**Consequence**: A private, written warning from Merlon Docs project maintainers, providing
 clarity around the nature of the violation and an explanation of why the
 behavior was inappropriate. A public apology may be requested.
 

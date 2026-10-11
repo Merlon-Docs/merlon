@@ -4,4 +4,4 @@ Packages and skills version independently, and the [pre-1.0 policy](../developer
 
 ## Get involved
 
-Open a [GitHub issue](https://github.com/Merlon-Docs/merlon/issues) for feedback and bugs. To share how your team uses MDCP, open an issue from the [adoption-story template](https://github.com/Merlon-Docs/merlon/issues/new?template=adoption-story.yml).
+Open a [GitHub issue](https://github.com/Merlon-Docs/merlon/issues) for feedback and bugs. To share how your team uses Merlon Docs, open an issue from the [adoption-story template](https://github.com/Merlon-Docs/merlon/issues/new?template=adoption-story.yml).

@@ -1,6 +1,6 @@
 # Agent Skill development
 
-Zero-friction MDCP delivery for AI agents uses one portable Agent Skill. Upstream source of truth is [`skills/merlon-docs/SKILL.md`](../../skills/merlon-docs/SKILL.md). In **this** monorepo, agents load it from `.agents/skills/merlon-docs/`, a [vendor-managed install](#do-not-hand-edit-agentsskills). A consumer's `npx skills add` picks an agent-specific directory instead ([Agent Skill](../features/agent-skill.md)). Task workflows (bootstrap, doc-only, design-architecture, feature-level, UX, doc review) live inside that skill under `skills/merlon-docs/references/workflows/`, so consumers install one skill. Archetype skills under `skills/merlon-docs-arch-*` are internal. [Publishing the skill pack](#publishing-the-skill-pack) says which skills are released.
+Zero-friction Merlon Docs delivery for AI agents uses one portable Agent Skill. Upstream source of truth is [`skills/merlon-docs/SKILL.md`](../../skills/merlon-docs/SKILL.md). In **this** monorepo, agents load it from `.agents/skills/merlon-docs/`, a [vendor-managed install](#do-not-hand-edit-agentsskills). A consumer's `npx skills add` picks an agent-specific directory instead ([Agent Skill](../features/agent-skill.md)). Task workflows (bootstrap, doc-only, design-architecture, feature-level, UX, doc review) live inside that skill under `skills/merlon-docs/references/workflows/`, so consumers install one skill. Archetype skills under `skills/merlon-docs-arch-*` are internal. [Publishing the skill pack](#publishing-the-skill-pack) says which skills are released.
 
 ## Vendor-managed installs
 
@@ -37,7 +37,7 @@ Manual invoke (hosts that support slash skills): `/merlon-docs`.
 When changing skill instructions:
 
 1. Edit `skills/merlon-docs/SKILL.md` and its `references/`. Keep the activation body under 500 lines and put depth in `references/`. The limit is advisory, because `pnpm skill:validate` doesn't count lines. A new kind of task gets a workflow file under `skills/merlon-docs/references/workflows/` and a row in the skill's workflow table, not a new skill.
-2. Do **not** invent new protocol in the skill — CLI and schemas stay in packages.
+2. Do **not** invent new format rules in the skill — CLI and schemas stay in packages.
 3. Put archetype guidance in `skills/merlon-docs-arch-*` instead of growing the parent skill.
 4. Refresh installs ([Vendor-managed installs](#vendor-managed-installs)), then run `pnpm skill:validate` and `pnpm docs:check`.
 5. Add a changeset for the skill ([When to add a changeset](./versioning-and-releases.md#when-to-add-a-changeset)).

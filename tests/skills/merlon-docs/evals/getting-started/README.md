@@ -1,6 +1,6 @@
-# `mdcp` getting-started workflow live evals
+# `merlon-docs` getting-started workflow live evals
 
-Fixtures and prompts for the optional [skill-creator](../../../../../.agents/skills/skill-creator/SKILL.md) loop against the `mdcp` skill's getting-started workflow. Not a CI gate.
+Fixtures and prompts for the optional [skill-creator](../../../../../.agents/skills/skill-creator/SKILL.md) loop against the `merlon-docs` skill's getting-started workflow. Not a CI gate.
 
 Parent suite: [`tests/skills/merlon-docs/evals/`](../README.md).
 
@@ -11,7 +11,7 @@ Parent suite: [`tests/skills/merlon-docs/evals/`](../README.md).
 | `evals.json`             | Prompts, `expected_output`, and named `assertions` for bootstrap checks |
 | `files/greenfield-npm/`  | Empty npm project (no docs root) — evals 1 and 3                        |
 | `files/greenfield-pnpm/` | Empty pnpm project (no docs root) — eval 2                              |
-| `files/brownfield/`      | Legacy monolith docs, no MDCP layout — eval 4                           |
+| `files/brownfield/`      | Legacy monolith docs, no Merlon Docs layout — eval 4                    |
 
 ## What the suite covers
 

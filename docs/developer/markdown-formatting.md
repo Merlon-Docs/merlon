@@ -19,7 +19,7 @@ Give the first link to an insert in a guide a paragraph of its own, ahead of any
 
 ## Formatting and linting
 
-`pnpm format` runs Prettier on the repository with the settings in the root `.prettierrc.json`, and `pnpm format:check` fails on a file that Prettier would change. `pnpm docs:check` runs markdownlint and Vale on the docs, and [Linting docs](./docs-dogfooding.md#linting-docs) says which configs and styles it uses. The starter markdownlint configs and the `MDCP` Vale style come from `@merlon-docs/merlon-docs-presets`, which has no Prettier config.
+`pnpm format` runs Prettier on the repository with the settings in the root `.prettierrc.json`, and `pnpm format:check` fails on a file that Prettier would change. `pnpm docs:check` runs markdownlint and Vale on the docs, and [Linting docs](./docs-dogfooding.md#linting-docs) says which configs and styles it uses. The starter markdownlint configs and the `MerlonDocs` Vale style come from `@merlon-docs/merlon-docs-presets`, which has no Prettier config.
 
 ---
 

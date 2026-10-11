@@ -1,6 +1,6 @@
 # Personas and priority tiers
 
-mdcp splits, compiles, and validates sharded Markdown for repos where **LLMs help write docs**, **humans review them**, and **compiled output serves feature work and end-user guides**.
+Merlon Docs splits, compiles, and validates sharded Markdown for repos where **LLMs help write docs**, **humans review them**, and **compiled output serves feature work and end-user guides**.
 
 ## Audience priority
 
@@ -14,14 +14,14 @@ Public pages speak first to the people who can make documentation a required pol
 
 Each archetype is a goal. Interns and students map to **Learner**, technical writers and domain SMEs to **Author**, and foundation reviewers to **Champion**. The landing page names the primary audience's roles. Archetype tables and WIIFM lines stay goal-based. This rule is advisory: whoever writes or reviews landing copy applies it, and the landing copy's diff is its evidence. Each archetype gets one [WIIFM](../glossary/wiifm.md) line (landing-safe):
 
-| Archetype    | Goal                                     | WIIFM (landing-safe)                                                                                  | Typical path                                                           |
-| ------------ | ---------------------------------------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| **Builder**  | Integrate mdcp into repo scripts and CI  | One gate for humans, agents, and CI; when each change touches one shard, a doc PR touches fewer files | Paste prompt or [run the bootstrap](./agent-skill.md#install-surfaces) |
-| **Learner**  | Try mdcp before mastering every CLI flag | Paste a prompt; agent runs setup                                                                      | Getting started prompt                                                 |
-| **Author**   | Own content, not the toolchain           | One topic per file; load the section that matches the task                                            | Paste prompt + usage model                                             |
-| **Champion** | Evaluate or sponsor adoption             | Judge fit from the vision and the evidence before setup                                               | Vision and claims shards                                               |
+| Archetype    | Goal                                            | WIIFM (landing-safe)                                                                                  | Typical path                                                           |
+| ------------ | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| **Builder**  | Integrate Merlon Docs into repo scripts and CI  | One gate for humans, agents, and CI; when each change touches one shard, a doc PR touches fewer files | Paste prompt or [run the bootstrap](./agent-skill.md#install-surfaces) |
+| **Learner**  | Try Merlon Docs before mastering every CLI flag | Paste a prompt; agent runs setup                                                                      | Getting started prompt                                                 |
+| **Author**   | Own content, not the toolchain                  | One topic per file; load the section that matches the task                                            | Paste prompt + usage model                                             |
+| **Champion** | Evaluate or sponsor adoption                    | Judge fit from the vision and the evidence before setup                                               | Vision and claims shards                                               |
 
-Paths: [CLI README](../../packages/merlon-docs-cli/README.md), [getting-started workflow](../../skills/merlon-docs/references/workflows/getting-started.md), [usage model](./protocol/usage-model.md), [vision](./protocol/00-vision-and-roadmap.md), [claims policy](./protocol/benefit-claims-and-evidence.md).
+Paths: [CLI README](../../packages/merlon-docs-cli/README.md), [getting-started workflow](../../skills/merlon-docs/references/workflows/getting-started.md), [usage model](./system/usage-model.md), [vision](./system/00-vision-and-roadmap.md), [claims policy](./system/benefit-claims-and-evidence.md).
 
 Once a pipeline exists, adoption archetypes map to **tool operator personas** below (for example Author → LLM doc author; Builder → wires CI `check`).
 
@@ -29,15 +29,15 @@ Once a pipeline exists, adoption archetypes map to **tool operator personas** be
 
 The signals below help spot each archetype. A job title they name stays off landing pages unless Audience priority above lists it:
 
-- **Champion**: a CPTO/CTO or platform lead who assesses whether MDCP's shard contract fits agentic delivery governance, and who reads the vision and claims shards before CLI setup.
+- **Champion**: a CPTO/CTO or platform lead who assesses whether Merlon Docs’ shard contract fits agentic delivery governance, and who reads the vision and claims shards before CLI setup.
 - **Builder**: wires `merlon check` into CI after Champion sign-off.
 - **Author / Learner**: the roles mapped to them above, such as a technical writer or a student.
 
-Maintainers dogfooding the mdcp monorepo are **not** an adoption archetype — see [This repository](../repo-readme/this-repository.md) and [DEVELOPERS.md](../../DEVELOPERS.md).
+Maintainers dogfooding the Merlon Docs monorepo are **not** an adoption archetype — see [This repository](../repo-readme/this-repository.md) and [DEVELOPERS.md](../../DEVELOPERS.md).
 
 ### Messaging guardrails
 
-Public copy, landing pages included, follows the [claim tiers](./protocol/benefit-claims-and-evidence.md#claim-tiers) in Benefit claims and evidence.
+Public copy, landing pages included, follows the [claim tiers](./system/benefit-claims-and-evidence.md#claim-tiers) in Benefit claims and evidence.
 
 ### Publish landing style
 
@@ -46,11 +46,11 @@ Reference: [`docs/repo-readme/`](../repo-readme/index.md) → `README.md`.
 - What this tool is (one-liner + vision link for evaluators), then [WIIFM](../glossary/wiifm.md); four archetypes max
 - WIIFM table does not replace the vision shard for Champions
 - Dual equal get-started paths (A/B); Champion eval path in get-started; routing explains fit, not priority
-- Want to know more = archetype link hub; keep landing scannable — Mermaid only in the short **MDCP 101** section (not elsewhere on the landing)
+- Want to know more = archetype link hub; keep landing scannable — Mermaid only in the short **Merlon Docs 101** section (not elsewhere on the landing)
 
 This style is advisory ([Enforceable rules](./design-constraints/enforceable-rules.md)): no check reads the order of `docs/repo-readme/` or its WIIFM lines. Whoever edits `docs/repo-readme/` applies it, and the README diff is its evidence.
 
-The evidence behind the vision link and the Champion eval path is in [Field report: a first external evaluator](./protocol/research/field-report-first-evaluator.md).
+The evidence behind the vision link and the Champion eval path is in [Field report: a first external evaluator](./system/research/field-report-first-evaluator.md).
 
 ## Tool operator personas
 
@@ -69,4 +69,4 @@ Capabilities are ranked in three tiers, most important first:
 2. **An agent can write docs in shards safely.** This tier covers manifest link order, shard split, and the orphan check.
 3. **A human reviewer can trust the output.** This tier covers peer linters and compile hooks.
 
-Below the tiers are the enablers: `merlon.config.json` wires all commands, and the optional `@merlon-docs/merlon-docs-presets` package holds the starter markdownlint configs and the MDCP Vale style. Commands for each capability are in the [Feature catalog](./feature-catalog.md).
+Below the tiers are the enablers: `merlon.config.json` wires all commands, and the optional `@merlon-docs/merlon-docs-presets` package holds the starter markdownlint configs and the Merlon Docs Vale style. Commands for each capability are in the [Feature catalog](./feature-catalog.md).
