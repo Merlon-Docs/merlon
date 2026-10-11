@@ -31,6 +31,12 @@ Product documentation for **what mdcp is designed to do**: the problems it solve
 
 - [Agent Skill](./agent-skill.md)
 - [Skill workflows](./protocol/skill-workflows.md)
+- [Getting-started workflow](./protocol/workflows/getting-started.md)
+- [Feature-level workflow](./protocol/workflows/feature-level.md)
+- [Doc-only workflow](./protocol/workflows/doc-only.md)
+- [Design-architecture workflow](./protocol/workflows/design-architecture.md)
+- [UX workflow](./protocol/workflows/ux.md)
+- [Doc-review workflow](./protocol/workflows/doc-review.md)
 
 ## Decisions and constraints
 
