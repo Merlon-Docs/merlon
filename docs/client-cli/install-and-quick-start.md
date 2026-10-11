@@ -29,10 +29,6 @@ Several commands run peer tools that you install in your repository, such as mar
 
 Before **1.0.0**, this package has **no API stability guarantee**: CLI commands, flags, the `mdcp.config.json` schema and compile output can change in any `0.x.y` release, under the [pre-1.0 policy](../developer/versioning-and-releases.md#pre-10-policy-0xy). Read the changelog and release notes of each MDCP package you use before upgrading. They hold the upgrade notes for earlier releases, which the feature catalog doesn't repeat.
 
-### Get involved
-
-Visit [github.com/betsalel-williamson/mdcp](https://github.com/betsalel-williamson/mdcp), **star** the repo to follow progress, **share** it if it helps your team, and **open or comment on [GitHub Issues](https://github.com/betsalel-williamson/mdcp/issues)** with feedback, adoption stories, or reviews. Explore [DORA AI Capabilities](https://dora.dev/ai/) and join the community at [dora.community/join](https://dora.community/join) for SDLC best practices.
-
 ## Quick start
 
 1. Create `mdcp.config.json` in your docs root. Start with this minimal config for two guides, `overview` and `admin-guide`. [Minimal config](./config-essentials.md#minimal-config) says what each field does:
