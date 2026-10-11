@@ -136,7 +136,7 @@ These habits keep docs trustworthy while the product keeps changing:
 - **Capture ambiguity:** Identify ambiguous terms or language and write the
   clarified details into specific shards.
 - **Shard single responsibility:** Each durable shard has one primary concern,
-  for one audience tier, serving one job (explain **or** instruct how-to **or**
+  for one audience, serving one job (explain **or** instruct how-to **or**
   define/look up — not several). If you cannot state that responsibility in one
   sentence, split or narrow the shard before shipping it. Depth:
   [references/shard-responsibility.md](references/shard-responsibility.md).
