@@ -38,6 +38,7 @@ These rules are advisory ([Enforceable rules](../../design-constraints/enforceab
 
 Newest first, with the date each record gives:
 
+- [Skill eval round: harm check after aligning the skill with its docs](./skill-eval-round-2026-10-11.md) (2026-10-11)
 - [Context sizes: this repository's guides against one shard](./context-size-dogfood-2026-10-05.md) (2026-10-05)
 - [Skill eval round: measured changes to the mdcp skill](./skill-eval-round-2026-10-03.md) (2026-10-03)
 - [Field report: a fully automated repository](./field-report-automated-repository.md) (2026-09)
