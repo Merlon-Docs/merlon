@@ -1,6 +1,6 @@
 # Coverage in check
 
-`mdcp check` reports markdown files that no guide accounts for, so nothing drifts out of your documentation set unnoticed. By default the report is non-fatal. Set `scan.strict: true` when CI should fail on gaps.
+`merlon check` reports markdown files that no guide accounts for, so nothing drifts out of your documentation set unnoticed. By default the report is non-fatal. Set `scan.strict: true` when CI should fail on gaps.
 
 ## What it reports
 
@@ -9,7 +9,7 @@
 - **Summary**: when gaps exist, a one-line `coverage:` count.
 
 ```bash
-mdcp check --config docs/mdcp.config.json --docs-root docs
+merlon check --config docs/merlon.config.json --docs-root docs
 ```
 
 The full captured / standalone inventory lives in core (`computeCoverage`); use that API when you need a machine-readable result. For the capability contract, see [Documentation coverage scan](../features/coverage-scan.md).

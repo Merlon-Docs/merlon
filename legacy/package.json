@@ -1,5 +1,5 @@
 {
-  "name": "mdcp-legacy-example",
+  "name": "merlon-legacy-example",
   "private": true,
   "description": "Lint, format, and link-check sharded markdown guides",
   "scripts": {

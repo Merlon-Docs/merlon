@@ -25,9 +25,9 @@ Agents load tracker issues and delivery conventions from [Agent work-item tracki
 
 | Command                  | Purpose                                                                                                       |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------- |
-| `pnpm build`             | Build all packages (`mdcp-core`, `mdcp-cli`)                                                                  |
+| `pnpm build`             | Build all packages (`merlon-docs-core`, `merlon-docs-cli`)                                                    |
 | `pnpm test`              | Run every package's tests, then the repo script tests under `scripts/`                                        |
-| `pnpm test:coverage`     | Vitest coverage for `mdcp-core` and `mdcp-cli` (HTML under `packages/*/coverage/`)                            |
+| `pnpm test:coverage`     | Vitest coverage for `merlon-docs-core` and `merlon-docs-cli` (HTML under `packages/*/coverage/`)              |
 | `pnpm run typecheck`     | TypeScript across packages                                                                                    |
 | `pnpm run lint`          | ESLint on package sources and repo scripts, and on the site with its Astro accessibility rules                |
 | `pnpm run format:check`  | Prettier check                                                                                                |
@@ -55,20 +55,20 @@ The pre-commit hook runs three steps in order, and the commit-msg hook runs one:
 
 The affected checks run by staged path:
 
-| Staged paths                                                                                                 | Extra checks                                                                   |
-| ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
-| `packages/mdcp-core/**`                                                                                      | typecheck, build, `vitest related` on changed files                            |
-| `packages/mdcp-cli/**`                                                                                       | core build (dependency), then cli typecheck, build, test                       |
-| `packages/mdcp-presets/**`                                                                                   | JSONC preset validation                                                        |
-| `docs/**`, `DEVELOPERS.md`, `packages/*/README.md`                                                           | core and CLI build, `docs:compile:repo`, then `mdcp check --warn-broken-links` |
-| Root config (`package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `eslint.config.mjs`, `tsconfig*.json`) | repo-wide typecheck + `format:check`                                           |
-| `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `packages/*/package.json`                           | `pnpm audit --audit-level=high`                                                |
+| Staged paths                                                                                                 | Extra checks                                                                     |
+| ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| `packages/merlon-docs-core/**`                                                                               | typecheck, build, `vitest related` on changed files                              |
+| `packages/merlon-docs-cli/**`                                                                                | core build (dependency), then cli typecheck, build, test                         |
+| `packages/merlon-docs-presets/**`                                                                            | JSONC preset validation                                                          |
+| `docs/**`, `DEVELOPERS.md`, `packages/*/README.md`                                                           | core and CLI build, `docs:compile:repo`, then `merlon check --warn-broken-links` |
+| Root config (`package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `eslint.config.mjs`, `tsconfig*.json`) | repo-wide typecheck + `format:check`                                             |
+| `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `packages/*/package.json`                           | `pnpm audit --audit-level=high`                                                  |
 
 The docs check in the hook skips `docs:lint:changeset-links`, and a broken link only warns there. Run `pnpm docs:check` before you push. When the audit fails, resolve the advisory as [Overrides and the release-age gate](./security-incident-triage.md#overrides-and-the-release-age-gate) describes before you commit the manifest change. A merge commit passes commitlint with git's default `Merge branch …` subject, and fails with a hand-written `merge: …` subject, because `merge` isn't a commit type.
 
 ## CI and the land gate
 
-CI's Check job runs the steps of `pnpm run check`, except that it tests only mdcp-core, mdcp-cli and the repository scripts. The site's tests run in the Pages workflow. Before those steps it runs `pnpm run verify:peers`, which confirms that markdownlint-cli2 and Vale are on `PATH`, and the dependency audit `pnpm audit --audit-level=high`. A new high advisory, even on a devDependency, fails the audit, and the build and test steps after it don't run. [Overrides and the release-age gate](./security-incident-triage.md#overrides-and-the-release-age-gate) says how to resolve one. Before `docs:check` it runs `pnpm run prepare:docs`, which repeats the peer check and syncs the Vale styles. Last, it recompiles every guide and fails if `git diff` shows a change.
+CI's Check job runs the steps of `pnpm run check`, except that it tests only merlon-docs-core, merlon-docs-cli and the repository scripts. The site's tests run in the Pages workflow. Before those steps it runs `pnpm run verify:peers`, which confirms that markdownlint-cli2 and Vale are on `PATH`, and the dependency audit `pnpm audit --audit-level=high`. A new high advisory, even on a devDependency, fails the audit, and the build and test steps after it don't run. [Overrides and the release-age gate](./security-incident-triage.md#overrides-and-the-release-age-gate) says how to resolve one. Before `docs:check` it runs `pnpm run prepare:docs`, which repeats the peer check and syncs the Vale styles. Last, it recompiles every guide and fails if `git diff` shows a change.
 
 The other CI jobs run beside Check. The Coverage job runs `pnpm test:coverage`, as [Test code coverage](./packages-and-tests.md#test-code-coverage) describes, and the Formal models job runs `pnpm formal:check`. On pull requests the Changeset job runs the changeset checks that [When to add a changeset](./versioning-and-releases.md#when-to-add-a-changeset) describes.
 

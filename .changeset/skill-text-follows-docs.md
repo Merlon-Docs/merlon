@@ -1,5 +1,5 @@
 ---
-'@bwilliamson/skill-mdcp': patch
+'@merlon-docs/skill-merlon-docs': patch
 ---
 
 The skill's text follows the docs it repeats. The doc-only, design-architecture, feature-level and ux workflows no longer branch from `main`. They update the integration branch that the delivery conventions at `WORK_ITEM_LOOKUP` name, or the default branch when they name none, and branch from it.

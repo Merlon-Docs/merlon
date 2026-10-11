@@ -95,7 +95,7 @@ Compile also follows inline `.md` links inside the shards it stitches. A guide c
 
 The walk reads a label and a target as the [link passes](./compile-pipeline/link-passes.md) do. It reads each shard's raw text, so it also follows an inline link written in a code span or a fenced code block. The walk skips a reference-style link and a path in backticks, so either one can refer to a shard that the guide doesn't compile. No link pass rewrites either form, and the path stays as written in the compiled output.
 
-That walk serves shards in guide subdirectories and under `compile.scopeRoot`. The manifest must link every top-level shard in the guide directory directly, because the [orphan check](#orphan-check-scope) reads only the manifest. A top-level shard that only another shard links still compiles, and `mdcp check` reports it as an orphan.
+That walk serves shards in guide subdirectories and under `compile.scopeRoot`. The manifest must link every top-level shard in the guide directory directly, because the [orphan check](#orphan-check-scope) reads only the manifest. A top-level shard that only another shard links still compiles, and `merlon check` reports it as an orphan.
 
 When the manifest links no shards, compile takes the other top-level `.md` files in the guide directory in file-name order, leaving out any `shards.md`.
 
@@ -107,12 +107,12 @@ The orphan check compares each guide directory in `compileOrder` with the shards
 - a manifest link to a file that doesn't exist
 - a guide directory that doesn't exist, or a manifest that is missing or can't be read
 
-The check doesn't follow links from shard to shard, and it doesn't read guide subdirectories or `compile.scopeRoot`. When the manifest links no shards, every top-level file compiles through the file-name fallback, and the check reports none of them for that guide. `mdcp check` runs it first and stops on any issue, as [Check gate stages](./check-gate.md#check-gate-stages) says. [Relationship to the orphan check](./coverage-scan.md#relationship-to-the-orphan-check) says which unlinked shards neither the orphan check nor the coverage scan reports.
+The check doesn't follow links from shard to shard, and it doesn't read guide subdirectories or `compile.scopeRoot`. When the manifest links no shards, every top-level file compiles through the file-name fallback, and the check reports none of them for that guide. `merlon check` runs it first and stops on any issue, as [Check gate stages](./check-gate.md#check-gate-stages) says. [Relationship to the orphan check](./coverage-scan.md#relationship-to-the-orphan-check) says which unlinked shards neither the orphan check nor the coverage scan reports.
 
 ## Workflow
 
 1. Edit shard files and `index.md` link order as needed.
-2. Run `mdcp compile` — there is no separate manifest sync step.
-3. Run `mdcp check` — orphan validation uses the same manifest rules as compile.
+2. Run `merlon compile` — there is no separate manifest sync step.
+3. Run `merlon check` — orphan validation uses the same manifest rules as compile.
 
-Code: `manifestTextForSections` and `sectionFiles` in `packages/mdcp-core/src/compile/section-manifest.ts`.
+Code: `manifestTextForSections` and `sectionFiles` in `packages/merlon-docs-core/src/compile/section-manifest.ts`.

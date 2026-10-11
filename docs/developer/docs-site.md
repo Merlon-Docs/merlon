@@ -1,10 +1,10 @@
 # Documentation site
 
-The public docs site at <https://betsalel-williamson.github.io/mdcp/> is an [Astro Starlight](https://starlight.astro.build/) build in [`packages/mdcp-site/`](../../packages/mdcp-site/). It is a private workspace package with no version. Changesets ignores it, and release tooling never tags or publishes it.
+The public docs site at <https://betsalel-williamson.github.io/mdcp/> is an [Astro Starlight](https://starlight.astro.build/) build in [`packages/merlon-docs-site/`](../../packages/merlon-docs-site/). It is a private workspace package with no version. Changesets ignores it, and release tooling never tags or publishes it.
 
 ## Content comes from shards
 
-The landing page (`packages/mdcp-site/src/content/docs/index.mdx`) and the Learn page (`packages/mdcp-site/src/content/docs/learn.mdx`) are hand-authored. The other pages are generated at build time by [`packages/mdcp-site/scripts/sync-content.mjs`](../../packages/mdcp-site/scripts/sync-content.mjs) from these guides:
+The landing page (`packages/merlon-docs-site/src/content/docs/index.mdx`) and the Learn page (`packages/merlon-docs-site/src/content/docs/learn.mdx`) are hand-authored. The other pages are generated at build time by [`packages/merlon-docs-site/scripts/sync-content.mjs`](../../packages/merlon-docs-site/scripts/sync-content.mjs) from these guides:
 
 | Shards              | Site section        | Route            |
 | ------------------- | ------------------- | ---------------- |
@@ -14,7 +14,7 @@ The landing page (`packages/mdcp-site/src/content/docs/index.mdx`) and the Learn
 | `docs/glossary/`    | Glossary            | `/glossary/`     |
 | `docs/developer/`   | Contributing        | `/contributing/` |
 
-The sync script reads `docs/mdcp.config.json` and each guide's `index.md` for sidebar order, and uses each shard's first `#` heading as the page title. These manifest entries become sidebar groups:
+The sync script reads `docs/merlon.config.json` and each guide's `index.md` for sidebar order, and uses each shard's first `#` heading as the page title. These manifest entries become sidebar groups:
 
 - A page entry with nested items, other than a sub-index, groups its page and those items.
 - A sub-index (`index.md`) shows its page as the overview, then the entries nested under it whose pages are in its directory. Nested entries outside its directory follow the group at the same level. When it has no nested entries in its directory, it shows the pages its own list links under its directory that no earlier entry has placed.
@@ -36,7 +36,7 @@ The sync fails on any internal link it cannot resolve, and the build then checks
 pnpm site:dev     # build packages, compile docs, sync, then astro dev
 pnpm site:build   # same steps, then astro build and the dist link check
 pnpm site:a11y    # axe-core WCAG 2.2 A and AA checks on the built site
-pnpm --filter @bwilliamson/mdcp-site test   # unit tests of the site scripts
+pnpm --filter @merlon-docs/merlon-docs-site test   # unit tests of the site scripts
 ```
 
 The first two commands run `pnpm build` and `pnpm docs:compile:repo` first, because the sync needs the CLI build and the refs registry. `pnpm site:a11y` checks the `dist/` that `pnpm site:build` wrote. It opens a sample of pages in a local Chrome, in both themes at desktop and phone widths, and fails on any violation. Set `CHROME_PATH` to use another Chrome or Chromium binary.
@@ -47,4 +47,4 @@ The first two commands run `pnpm build` and `pnpm docs:compile:repo` first, beca
 
 ## Coverage scan
 
-The site generates its pages into gitignored paths, and the [coverage](../glossary/coverage.md) scan honors `.gitignore`, so generated pages never show up as uncaptured files. The scan only reads `.md` files, so the hand-authored `index.mdx` and `learn.mdx` pages are outside `mdcp check`. The post-build link check covers their links instead. No `scan.ignore` entry is needed.
+The site generates its pages into gitignored paths, and the [coverage](../glossary/coverage.md) scan honors `.gitignore`, so generated pages never show up as uncaptured files. The scan only reads `.md` files, so the hand-authored `index.mdx` and `learn.mdx` pages are outside `merlon check`. The post-build link check covers their links instead. No `scan.ignore` entry is needed.

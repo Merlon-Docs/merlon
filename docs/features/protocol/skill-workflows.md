@@ -4,9 +4,9 @@ Normative profile for the **workflows** inside the MDCP Agent Skill that drive s
 
 ## Purpose
 
-Workflows are part of the MDCP **authoring protocol** — not host-specific rules. They tell agents how to load a `WORK_ITEM`, which guides to write, and how to validate before merge. People install one skill (`mdcp`) and invoke it as `/mdcp` with the task in plain words; the skill picks the workflow from its routing table and loads only that workflow's file.
+Workflows are part of the MDCP **authoring protocol** — not host-specific rules. They tell agents how to load a `WORK_ITEM`, which guides to write, and how to validate before merge. People install one skill (`mdcp`) and invoke it as `/merlon-docs` with the task in plain words; the skill picks the workflow from its routing table and loads only that workflow's file.
 
-Workflow files live in the skill under `skills/mdcp/references/workflows/` (e.g., `feature-level.md`). The canonical catalog is summarized below. **Do not edit** an installed copy of the skill if you want changes to persist — propose upstream or add extensions.
+Workflow files live in the skill under `skills/merlon-docs/references/workflows/` (e.g., `feature-level.md`). The canonical catalog is summarized below. **Do not edit** an installed copy of the skill if you want changes to persist — propose upstream or add extensions.
 
 The obligations on this page are advisory, as [Enforceable rules](../design-constraints/enforceable-rules.md) uses the word, and that page lists the partial gates some of them have. The agent following the skill applies them. Its plan and the branch's commits are the evidence a session leaves, and the optional [live skill evals](../../developer/live-skill-evals.md) measure the skill against them outside CI.
 
@@ -57,7 +57,7 @@ Goals and hard boundaries for each workflow (what it is / is not):
 - [UX workflow](./workflows/ux.md)
 - [Doc-review workflow](./workflows/doc-review.md)
 
-Index: [skills.md](../../skills.md). Each workflow also has an optional [live skill eval](../../developer/live-skill-evals.md) suite under `tests/skills/mdcp/evals/`.
+Index: [skills.md](../../skills.md). Each workflow also has an optional [live skill eval](../../developer/live-skill-evals.md) suite under `tests/skills/merlon-docs/evals/`.
 
 ## Guide placement obligations
 
@@ -86,7 +86,7 @@ an optional afterthought for doc-only or UX alone.
 
 A workflow whose change removes or renames a component, flag or command in the
 product, or a term in the docs, **MUST** follow the skill's
-[Removing or renaming a concept](../../../skills/mdcp/SKILL.md#removing-or-renaming-a-concept)
+[Removing or renaming a concept](../../../skills/merlon-docs/SKILL.md#removing-or-renaming-a-concept)
 steps before it commits. So **MUST** a workflow whose change, such as an ADR
 written after the removal, finds docs that still describe a component, flag or
 command that the product no longer has. Docs describe a concept for as long as
@@ -104,9 +104,9 @@ test fixture as it is, because neither is a durable doc of the repo.
 ## Entrypoint chain
 
 ```text
-/mdcp <feature request> → feature-level workflow → intake questions → shards → mdcp check
-/mdcp <design request>  → design-architecture workflow → intake → feature/ADR shards → mdcp check
-/mdcp review the docs   → doc-review workflow → mdcp review → decisions → shards → mdcp check
+/merlon-docs <feature request> → feature-level workflow → intake questions → shards → merlon check
+/merlon-docs <design request>  → design-architecture workflow → intake → feature/ADR shards → merlon check
+/merlon-docs review the docs   → doc-review workflow → merlon review → decisions → shards → merlon check
 ```
 
 The chosen workflow collects `WORK_ITEM_LOOKUP` via intake for scope.

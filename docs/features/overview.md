@@ -40,10 +40,10 @@ flowchart TB
   end
 
   subgraph mdcp["MDCP"]
-    cli["@bwilliamson/mdcp-cli"]
-    core["@bwilliamson/mdcp-core"]
-    presets["@bwilliamson/mdcp-presets"]
-    config["mdcp.config.json"]
+    cli["@merlon-docs/merlon-docs-cli"]
+    core["@merlon-docs/merlon-docs-core"]
+    presets["@merlon-docs/merlon-docs-presets"]
+    config["merlon.config.json"]
   end
 
   subgraph outputs["Generated outputs"]
@@ -73,11 +73,11 @@ flowchart TB
   shards --> validate
 ```
 
-| Package                         | Role                                                                                           |
-| ------------------------------- | ---------------------------------------------------------------------------------------------- |
-| **`@bwilliamson/mdcp-cli`**     | Command-line entry point: `compile`, `check`, `review`, `shard`, `refs`, peer linter wrappers. |
-| **`@bwilliamson/mdcp-core`**    | Library behind the CLI: compile/assemble, refs, validation, shard orchestration, hooks.        |
-| **`@bwilliamson/mdcp-presets`** | Starter markdownlint configs and the `MDCP` Vale style (opt-in via config / `.vale.ini`).      |
+| Package                                | Role                                                                                           |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| **`@merlon-docs/merlon-docs-cli`**     | Command-line entry point: `compile`, `check`, `review`, `shard`, `refs`, peer linter wrappers. |
+| **`@merlon-docs/merlon-docs-core`**    | Library behind the CLI: compile/assemble, refs, validation, shard orchestration, hooks.        |
+| **`@merlon-docs/merlon-docs-presets`** | Starter markdownlint configs and the `MDCP` Vale style (opt-in via config / `.vale.ini`).      |
 
 The CLI is a thin wrapper over core. Integrators (CI, editors, agents) can call core directly or shell out to the CLI.
 
@@ -86,16 +86,16 @@ The CLI is a thin wrapper over core. Integrators (CI, editors, agents) can call 
 Understanding this sequence explains why most commands exist:
 
 ```text
-  [optional] mdcp shard          Split a source document into guide shards (md-tree)
+  [optional] merlon shard          Split a source document into guide shards (md-tree)
            ↓
   Edit shards + index.md
            ↓
-  mdcp compile                 Assemble outputs, rewrite links, write refs.json
+  merlon compile                 Assemble outputs, rewrite links, write refs.json
            ↓
-  mdcp check                   Run the validation gate
+  merlon check                   Run the validation gate
 ```
 
-**Split** (`mdcp shard`) is the inverse path. Use it to bootstrap shards from an existing source document, not on every edit cycle.
+**Split** (`merlon shard`) is the inverse path. Use it to bootstrap shards from an existing source document, not on every edit cycle.
 
 ## What compile actually does
 
@@ -112,11 +112,11 @@ Guides with `compile.outputFile` are **excluded from the monolith** so you can p
 
 ## What validation checks
 
-`mdcp check` runs a fixed order of stages, from the orphan check to the coverage scan. A failure in one of the first three stops the run at once, while most later stages report a failure and let the run go on. [Check gate](./check-gate.md) lists the stages and when each one runs.
+`merlon check` runs a fixed order of stages, from the orphan check to the coverage scan. A failure in one of the first three stops the run at once, while most later stages report a failure and let the run go on. [Check gate](./check-gate.md) lists the stages and when each one runs.
 
 ## Config as the wiring layer
 
-`mdcp.config.json` is the single contract between your repo layout and every command:
+`merlon.config.json` is the single contract between your repo layout and every command:
 
 - **`compileOrder`**: which guides exist and in what order they appear in the monolith.
 - **`guides[].compile`**: per-guide manifest name, hooks, publish path, title, scope root, etc.
@@ -124,7 +124,7 @@ Guides with `compile.outputFile` are **excluded from the monolith** so you can p
 - **`refs`**: registry file path and slug algorithm.
 - **`lint` / `vale`**: peer linter config paths and scan globs.
 
-This repository uses MDCP on its own docs under `docs/`, and its `docs/mdcp.config.json` is an example of a multi-output layout. [Guide directories](../developer/docs-dogfooding.md#guide-directories) lists the output each of its guides compiles to.
+This repository uses MDCP on its own docs under `docs/`, and its `docs/merlon.config.json` is an example of a multi-output layout. [Guide directories](../developer/docs-dogfooding.md#guide-directories) lists the output each of its guides compiles to.
 
 ## Where to go next
 

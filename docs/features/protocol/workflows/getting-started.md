@@ -5,9 +5,9 @@ in a greenfield or brownfield repository — config, four-tier guide layout, and
 initial shards — then optionally walks a **first feature** through
 design → feature → UX → doc-only so teams learn the full workflow circuit.
 
-Workflow file: [`skills/mdcp/references/workflows/getting-started.md`](../../../../skills/mdcp/references/workflows/getting-started.md)
+Workflow file: [`skills/merlon-docs/references/workflows/getting-started.md`](../../../../skills/merlon-docs/references/workflows/getting-started.md)
 (tutorial script:
-[`skills/mdcp/references/workflows/first-feature-tutorial.md`](../../../../skills/mdcp/references/workflows/first-feature-tutorial.md)).
+[`skills/merlon-docs/references/workflows/first-feature-tutorial.md`](../../../../skills/merlon-docs/references/workflows/first-feature-tutorial.md)).
 [Skill workflows](../skill-workflows.md) covers the shared workflow contract: intake, guide placement, and the glossary.
 
 ## End-user value
@@ -21,20 +21,20 @@ before handing off to normal delivery.
 
 ## What this workflow is for
 
-| Obligation                  | As-built expectation                                                                                                             |
-| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Bootstrap intake            | Collect `FEATURE`, `PERSONA`, and `EXPERIENCE` (novice vs expert); ask only when someone can answer, else default to expert      |
-| Inspect repo state          | Detect greenfield vs brownfield; discover package manager and existing docs before scaffolding                                   |
-| Install toolchain           | Add CLI/presets with the repo’s package manager; wire `mdcp compile` / `mdcp check` into scripts                                 |
-| Scaffold four-tier guides   | Create `docs/features/`, `docs/client/`, `docs/developer/`, `docs/glossary/` with indexes and starter shards                     |
-| Glossary inclusion bar      | With the end user, record the project inclusion bar in the glossary index preamble (what terms do / do not belong)               |
-| Seed domain terms           | Add initial glossary entries that the inclusion bar allows; link from starter shards                                             |
-| Brownfield migration        | Scaffold **alongside** legacy docs; mark migrated legacy files ready to archive, never auto-delete                               |
-| Experience-adaptive depth   | Novice: tutorial shards and concept pauses; expert: concise FEATURE starters only                                                |
-| Validate                    | Run `mdcp compile` / `mdcp check` until clean; with Vale installed and no prose linting asked for, add a placeholder `.vale.ini` |
-| First-feature tutorial      | After bootstrap, offer walkthrough (default yes for novice); resolve `EXAMPLE_MODE`; run workflow phases in order                |
-| EXAMPLE_MODE                | **recommended** (`hello-greeting`) or **bring-your-own** (user FEATURE / PERSONA; one small slice)                               |
-| Hand off when tutorial skip | State next steps for feature-level, doc-only, design-architecture, or UX                                                         |
+| Obligation                  | As-built expectation                                                                                                                 |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Bootstrap intake            | Collect `FEATURE`, `PERSONA`, and `EXPERIENCE` (novice vs expert); ask only when someone can answer, else default to expert          |
+| Inspect repo state          | Detect greenfield vs brownfield; discover package manager and existing docs before scaffolding                                       |
+| Install toolchain           | Add CLI/presets with the repo’s package manager; wire `merlon compile` / `merlon check` into scripts                                 |
+| Scaffold four-tier guides   | Create `docs/features/`, `docs/client/`, `docs/developer/`, `docs/glossary/` with indexes and starter shards                         |
+| Glossary inclusion bar      | With the end user, record the project inclusion bar in the glossary index preamble (what terms do / do not belong)                   |
+| Seed domain terms           | Add initial glossary entries that the inclusion bar allows; link from starter shards                                                 |
+| Brownfield migration        | Scaffold **alongside** legacy docs; mark migrated legacy files ready to archive, never auto-delete                                   |
+| Experience-adaptive depth   | Novice: tutorial shards and concept pauses; expert: concise FEATURE starters only                                                    |
+| Validate                    | Run `merlon compile` / `merlon check` until clean; with Vale installed and no prose linting asked for, add a placeholder `.vale.ini` |
+| First-feature tutorial      | After bootstrap, offer walkthrough (default yes for novice); resolve `EXAMPLE_MODE`; run workflow phases in order                    |
+| EXAMPLE_MODE                | **recommended** (`hello-greeting`) or **bring-your-own** (user FEATURE / PERSONA; one small slice)                                   |
+| Hand off when tutorial skip | State next steps for feature-level, doc-only, design-architecture, or UX                                                             |
 
 ## What this workflow is not
 
@@ -63,16 +63,16 @@ day-to-day workflow.
 
 A successful getting-started session typically:
 
-1. Leaves a configured docs root (`mdcp.config.json`, compile/check scripts)
+1. Leaves a configured docs root (`merlon.config.json`, compile/check scripts)
 2. Creates or updates the four-tier guide layout with discoverable indexes
 3. Records the project glossary inclusion bar in the glossary (end-user agreed)
 4. Seeds any initial domain terms the inclusion bar allows
 5. Preserves brownfield legacy files (archive banners only, no auto-delete)
-6. Passes `mdcp check` (and repo docs validation)
+6. Passes `merlon check` (and repo docs validation)
 7. Offers the first-feature tutorial (or clear handoff if skipped)
 8. When the tutorial runs: completes design → feature → UX → doc-only for the
-   chosen example, with `mdcp check` between phases
+   chosen example, with `merlon check` between phases
 
 Optional local with/without-skill grading for this workflow:
-[getting-started workflow live evals](../../../../tests/skills/mdcp/evals/getting-started/README.md)
+[getting-started workflow live evals](../../../../tests/skills/merlon-docs/evals/getting-started/README.md)
 (maintainer workflow — not a CI gate). See [Live skill evals](../../../developer/live-skill-evals.md).

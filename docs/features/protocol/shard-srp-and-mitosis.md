@@ -4,7 +4,7 @@ MDCP treats documentation as library science for software product intent: settle
 
 The focal rule is **[shard single responsibility](../../glossary/shard-single-responsibility.md) for a documentation shard**. How shards assemble into guides is secondary. Frameworks that informed this thinking are listed in [Acknowledgments](./acknowledgments.md) — they are provenance, not the instruction set.
 
-The `mdcp` skill states these rules for agents, in the QA principles of `SKILL.md` and in [`skills/mdcp/references/shard-responsibility.md`](../../../skills/mdcp/references/shard-responsibility.md), because every install gets a copy of those files. [Agent Skill](../agent-skill.md#quality-assurance-qa-principles) names the skill as their owner. This page explains the rules in more depth. No check compares the three copies with each other or with the glossary entry [shard single responsibility](../../glossary/shard-single-responsibility.md), so keeping the four in step is advisory ([Enforceable rules](../design-constraints/enforceable-rules.md)): whoever changes a rule changes all four, and the change's review is the evidence.
+The `mdcp` skill states these rules for agents, in the QA principles of `SKILL.md` and in [`skills/merlon-docs/references/shard-responsibility.md`](../../../skills/merlon-docs/references/shard-responsibility.md), because every install gets a copy of those files. [Agent Skill](../agent-skill.md#quality-assurance-qa-principles) names the skill as their owner. This page explains the rules in more depth. No check compares the three copies with each other or with the glossary entry [shard single responsibility](../../glossary/shard-single-responsibility.md), so keeping the four in step is advisory ([Enforceable rules](../design-constraints/enforceable-rules.md)): whoever changes a rule changes all four, and the change's review is the evidence.
 
 ## Single responsibility rule
 
@@ -20,7 +20,7 @@ A documentation shard has **one primary concern**, for **one audience**, serving
 
 **Complete for that job:** the shard is finished when a reader can use it for its job without the rest of the compiled guide _and_ without being misled. Completeness is not a line-count budget. Glossary leaves may be three lines; a single contract may need a longer section and still be one responsibility.
 
-These rules are advisory: `mdcp check` passes a shard with two responsibilities. [`mdcp review`](../../client-cli/commands-reference.md#sprawl-review) flags candidates with three of its signals: `long-shard`, `similar-titles` and `duplicate-paragraph`, and with `--strict` it exits 1 on any finding. The [doc-review workflow](./workflows/doc-review.md) decides each candidate, and its commits are the evidence.
+These rules are advisory: `merlon check` passes a shard with two responsibilities. [`merlon review`](../../client-cli/commands-reference.md#sprawl-review) flags candidates with three of its signals: `long-shard`, `similar-titles` and `duplicate-paragraph`, and with `--strict` it exits 1 on any finding. The [doc-review workflow](./workflows/doc-review.md) decides each candidate, and its commits are the evidence.
 
 ## Splitting a shard (idea mitosis)
 
@@ -91,7 +91,7 @@ Mixing two jobs in one shard is a mitosis signal. Named lineage: [Acknowledgment
 
 ## Extensions beyond this archetype
 
-Go-to-market documentation, such as marketing and sales docs, belongs to a separate internal archetype (`mdcp-arch-gtm`) outside the Code Repository Archetype. See [Extensions and archetypes](./extensions-and-archetypes.md).
+Go-to-market documentation, such as marketing and sales docs, belongs to a separate internal archetype (`merlon-docs-arch-gtm`) outside the Code Repository Archetype. See [Extensions and archetypes](./extensions-and-archetypes.md).
 
 ## Acceptance
 

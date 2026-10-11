@@ -1,4 +1,4 @@
-title = "mdcp gitleaks config"
+title = "merlon gitleaks config"
 
 [extend]
 useDefault = true

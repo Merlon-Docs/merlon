@@ -11,15 +11,15 @@ Agents forget. Chat threads disappear. Giant READMEs and dump files overwhelm bo
 1. **You** decide what must stay true (product intent, constraints, glossary).
 2. **The agent** drafts or updates small **[shards](../glossary/shard.md)** (one topic per file) _before_ coding.
 3. **You** review those shards in pull requests (PRs) — you do not need to be a Markdown expert on day one.
-4. **`mdcp check`** (locally or in CI) proves links and compile still work.
+4. **`merlon check`** (locally or in CI) proves links and compile still work.
 
 ### Prompt loop
 
 ```mermaid
 flowchart LR
-  you["You: paste or /mdcp …"] --> agent["Agent: shards + config"]
+  you["You: paste or /merlon-docs …"] --> agent["Agent: shards + config"]
   agent --> review["You: review in git/PR"]
-  review --> gate["mdcp check / CI"]
+  review --> gate["merlon check / CI"]
 ```
 
 **In a chat-only tool with no access to your repository:** don't install the toolchain yet. Keep notes in your project folder if you have one, or wait until you use an agent that can edit a git repository. Read [Overview](../features/overview.md) and [Vision and roadmap](../features/protocol/00-vision-and-roadmap.md) first.
@@ -44,11 +44,11 @@ You feel the benefit on the **second session** — when prior decisions are stil
 ```mermaid
 flowchart TB
   skill["Agent Skill: how agents work with docs"] --> shards["Shards: small Markdown topics in git"]
-  shards --> cli["CLI: mdcp check, the validation gate"]
+  shards --> cli["CLI: merlon check, the validation gate"]
 ```
 
-- **[Agent Skill](https://agentskills.io)** ([definition](../glossary/agent-skills.md)): instructions your agent follows (`/mdcp`, which picks a workflow for each task).
+- **[Agent Skill](https://agentskills.io)** ([definition](../glossary/agent-skills.md)): instructions your agent follows (`/merlon-docs`, which picks a workflow for each task).
 - **[Shards](../glossary/shard.md)**: source of truth. Compiled READMEs are generated, so do not hand-edit them.
-- **CLI**: `mdcp compile` builds the guides and [`mdcp check`](../glossary/check.md) validates the docs system as it grows. Both run on the Core library.
+- **CLI**: `merlon compile` builds the guides and [`merlon check`](../glossary/check.md) validates the docs system as it grows. Both run on the Core library.
 
 [The Toolchain](./the-toolchain.md) lists the three surfaces and their installs, and [Overview](../features/overview.md) explains the deeper model.

@@ -1,11 +1,11 @@
 ---
-'@bwilliamson/mdcp-core': minor
-'@bwilliamson/mdcp-cli': patch
+'@merlon-docs/merlon-docs-core': minor
+'@merlon-docs/merlon-docs-cli': patch
 ---
 
 Match compiled `.md` links to compile outputs by path, not file name
 
-`mdcp check` skipped a compiled `.md` link whenever its file name matched any
+`merlon check` skipped a compiled `.md` link whenever its file name matched any
 output of the run. With the root `README.md` as an output, a link to a package
 `README.md` passed even when that file was gone or its `#fragment` named no
 heading. Publish-only output had a similar fallback that took an allowed publish

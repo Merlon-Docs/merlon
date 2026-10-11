@@ -21,7 +21,7 @@ Each archetype is a goal. Interns and students map to **Learner**, technical wri
 | **Author**   | Own content, not the toolchain           | One topic per file; load the section that matches the task                                            | Paste prompt + usage model                                             |
 | **Champion** | Evaluate or sponsor adoption             | Judge fit from the vision and the evidence before setup                                               | Vision and claims shards                                               |
 
-Paths: [CLI README](../../packages/mdcp-cli/README.md), [getting-started workflow](../../skills/mdcp/references/workflows/getting-started.md), [usage model](./protocol/usage-model.md), [vision](./protocol/00-vision-and-roadmap.md), [claims policy](./protocol/benefit-claims-and-evidence.md).
+Paths: [CLI README](../../packages/merlon-docs-cli/README.md), [getting-started workflow](../../skills/merlon-docs/references/workflows/getting-started.md), [usage model](./protocol/usage-model.md), [vision](./protocol/00-vision-and-roadmap.md), [claims policy](./protocol/benefit-claims-and-evidence.md).
 
 Once a pipeline exists, adoption archetypes map to **tool operator personas** below (for example Author → LLM doc author; Builder → wires CI `check`).
 
@@ -30,7 +30,7 @@ Once a pipeline exists, adoption archetypes map to **tool operator personas** be
 The signals below help spot each archetype. A job title they name stays off landing pages unless Audience priority above lists it:
 
 - **Champion**: a CPTO/CTO or platform lead who assesses whether MDCP's shard contract fits agentic delivery governance, and who reads the vision and claims shards before CLI setup.
-- **Builder**: wires `mdcp check` into CI after Champion sign-off.
+- **Builder**: wires `merlon check` into CI after Champion sign-off.
 - **Author / Learner**: the roles mapped to them above, such as a technical writer or a student.
 
 Maintainers dogfooding the mdcp monorepo are **not** an adoption archetype — see [This repository](../repo-readme/this-repository.md) and [DEVELOPERS.md](../../DEVELOPERS.md).
@@ -69,4 +69,4 @@ Capabilities are ranked in three tiers, most important first:
 2. **An agent can write docs in shards safely.** This tier covers manifest link order, shard split, and the orphan check.
 3. **A human reviewer can trust the output.** This tier covers peer linters and compile hooks.
 
-Below the tiers are the enablers: `mdcp.config.json` wires all commands, and the optional `@bwilliamson/mdcp-presets` package holds the starter markdownlint configs and the MDCP Vale style. Commands for each capability are in the [Feature catalog](./feature-catalog.md).
+Below the tiers are the enablers: `merlon.config.json` wires all commands, and the optional `@merlon-docs/merlon-docs-presets` package holds the starter markdownlint configs and the MDCP Vale style. Commands for each capability are in the [Feature catalog](./feature-catalog.md).

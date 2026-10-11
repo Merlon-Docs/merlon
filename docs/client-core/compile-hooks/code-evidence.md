@@ -104,7 +104,7 @@ Opt out: `"hooks": { "codeEvidence": false }`. See [Default compile hooks](../..
 
 ## codeEvidence compile example
 
-Shard input (`docs/review/claim.md`): <!-- mdcp-paths: illustrative -->
+Shard input (`docs/review/claim.md`): <!-- merlon-paths: illustrative -->
 
 ```markdown
 Evidence: [`countItems`](../../src/counts.ts)
@@ -112,7 +112,7 @@ Evidence: [`countItems`](../../src/counts.ts)
 See [access.rules L6-L8](../../config/access.rules).
 ```
 
-Compiled output, when the first line of `src/counts.ts` with the word `countItems` is line 6 and the guide's output is `architecture-review.md` at the repository root: <!-- mdcp-paths: illustrative -->
+Compiled output, when the first line of `src/counts.ts` with the word `countItems` is line 6 and the guide's output is `architecture-review.md` at the repository root: <!-- merlon-paths: illustrative -->
 
 ```markdown
 Evidence: [`countItems`](src/counts.ts#L6)

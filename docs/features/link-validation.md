@@ -4,21 +4,21 @@ Specification for first-party internal link validation at compile and check. The
 
 ## Link validation purpose
 
-Internal markdown links can compile cleanly but still be broken in published output — dead `#anchor` fragments after heading demotion, missing shard files, or cross-guide rewrite collisions on publish paths (for example `packages/mdcp-cli/README.md`).
+Internal markdown links can compile cleanly but still be broken in published output — dead `#anchor` fragments after heading demotion, missing shard files, or cross-guide rewrite collisions on publish paths (for example `packages/merlon-docs-cli/README.md`).
 
-`mdcp compile` and `mdcp check` validate links in the compiled outputs, and `mdcp check` adds the standalone guides. A broken link fails both commands with IDE-clickable `path:line:` diagnostics unless warn mode is on. Compile also marks a dead `#fragment` with a **`BROKEN LINK`** marker by default. The shard phase is for API callers.
+`merlon compile` and `merlon check` validate links in the compiled outputs, and `merlon check` adds the standalone guides. A broken link fails both commands with IDE-clickable `path:line:` diagnostics unless warn mode is on. Compile also marks a dead `#fragment` with a **`BROKEN LINK`** marker by default. The shard phase is for API callers.
 
 Validated target classes are `.md` paths, `#fragment` anchors and **file paths**. A target with a known extension, such as `.ts`, `.yaml` or `.csv`, names a repository file, so an unresolved one is a defect. Any other target, such as a bare word or a directory path, stays unvalidated, because nothing tells a stale one from an illustrative one.
 
 The extensions come from a built-in code list and a built-in data list. Link validation checks that a file with either kind of extension exists. The [code evidence hook](../client-core/compile-hooks/code-evidence.md) uses the same lists and says how it treats each kind. `lint.codeExtensions` and `lint.dataExtensions` add extensions for stacks the built-in lists leave out.
 
-For external URLs, `mdcp links` runs the optional peer `markdown-link-check`.
+For external URLs, `merlon links` runs the optional peer `markdown-link-check`.
 
 ## No placeholder links
 
 Every internal link must resolve, so link a planned page in the change that adds it. A placeholder reads as a real reference and leads nowhere.
 
-Link validation reads each inline link written as `[label](target)` on one line, except in a code span or fenced code. So a dead link in an HTML comment or an indented code block still fails `mdcp check`. It reads a label and a target as [Link passes](./compile-pipeline/link-passes.md) says, so in a linked image, `[![Diagram](./d.png)](./page.md)`, it checks `./page.md`. It never checks the src of an image, whatever extensions the config lists. Link validation skips reference-style links, HTML `<a>` elements and labels that wrap onto the next line. A title or angle brackets become part of the target, so link validation skips the link or fails it although the target exists.
+Link validation reads each inline link written as `[label](target)` on one line, except in a code span or fenced code. So a dead link in an HTML comment or an indented code block still fails `merlon check`. It reads a label and a target as [Link passes](./compile-pipeline/link-passes.md) says, so in a linked image, `[![Diagram](./d.png)](./page.md)`, it checks `./page.md`. It never checks the src of an image, whatever extensions the config lists. Link validation skips reference-style links, HTML `<a>` elements and labels that wrap onto the next line. A title or angle brackets become part of the target, so link validation skips the link or fails it although the target exists.
 
 ## BROKEN LINK marker
 
@@ -60,11 +60,11 @@ See [publish-relative rewrite](./compile-pipeline/publish-relative-links.md) for
 
 ## Validation phases
 
-| Phase      | When                                       | Validates                                                                                                                           |
-| ---------- | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Shard      | `lintLinks` with `lintShards` (API only)   | Unresolved `.md` and source-file paths; same-shard `#fragment` vs demoted heading slugs                                             |
-| Standalone | `lintLinks` with `scanRoot` (`mdcp check`) | Same checks as shard phase, over every file matched by `standaloneGuides`                                                           |
-| Compiled   | After assemble                             | `#fragment` vs the headings and the slugs broken-link marking used; relative `.md` and source-file paths from output file directory |
+| Phase      | When                                         | Validates                                                                                                                           |
+| ---------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Shard      | `lintLinks` with `lintShards` (API only)     | Unresolved `.md` and source-file paths; same-shard `#fragment` vs demoted heading slugs                                             |
+| Standalone | `lintLinks` with `scanRoot` (`merlon check`) | Same checks as shard phase, over every file matched by `standaloneGuides`                                                           |
+| Compiled   | After assemble                               | `#fragment` vs the headings and the slugs broken-link marking used; relative `.md` and source-file paths from output file directory |
 
 Broken-link marking and each phase skip a link in fenced code or a code span, as the [link passes](./compile-pipeline/link-passes.md) do. The compiled phase skips a BROKEN LINK marker in fenced code, but reports one in a code span.
 
@@ -72,7 +72,7 @@ A `.md` target names another output of the same run only when its resolved path 
 
 The compiled phase reads each output as compile writes it, banner included, so the line in a diagnostic is a line of that file. A `#fragment` in an output has to match one of its headings or a slug from the set that broken-link marking used. A slug that only another guide's compiled guide has is a dead anchor, even when the monolith has that heading. So is the slug of a shard that the output doesn't stitch, even when the shard is in the directory of the output's guide. A fragment on a link to another output of the run has to match a heading of that output. A finding id or a declared `{#id}` doesn't, because the heading there takes its anchor from its text. So `architecture-review.md#find-004` is a dead anchor, though compile writes that link for a link to the finding's shard. [Link index limits](./compile-pipeline/cross-guide-links.md#link-index-limits) says which slug a link to a shard takes in an output without the shard's section, and when that slug matches another heading there. [Monolith link lint](./monolith-link-lint.md) says how the monolith is checked, and when an issue there repeats one in a compiled guide.
 
-Co-compiled transitive targets are the shards in a guide's [`linkedSectionFiles`](./manifest-compile-order.md#linked-shards-and-the-file-name-fallback) outside its directory. A `./` or `../` link to one rewrites like any other cross-guide link, as [Cross-guide resolution](./compile-pipeline/cross-guide-links.md#cross-guide-resolution) describes. [Index ownership](./compile-pipeline/cross-guide-links.md#index-ownership) there assigns each shard to one guide. Validation treats remaining raw `../file.md` (or `./file.md`) to those co-compiled paths as broken when the publish-only link policy requires a compiled target. <!-- mdcp-paths: illustrative -->
+Co-compiled transitive targets are the shards in a guide's [`linkedSectionFiles`](./manifest-compile-order.md#linked-shards-and-the-file-name-fallback) outside its directory. A `./` or `../` link to one rewrites like any other cross-guide link, as [Cross-guide resolution](./compile-pipeline/cross-guide-links.md#cross-guide-resolution) describes. [Index ownership](./compile-pipeline/cross-guide-links.md#index-ownership) there assigns each shard to one guide. Validation treats remaining raw `../file.md` (or `./file.md`) to those co-compiled paths as broken when the publish-only link policy requires a compiled target. <!-- merlon-paths: illustrative -->
 
 ## Standalone guide validation
 
@@ -120,13 +120,13 @@ Warn mode: global `--warn-broken-links` or `lint.links.severity: "warn"`. Resolu
 
 Per-guide: `guides[].compile.links.markBroken`.
 
-[Check gate](./check-gate.md) says where link validation runs in `mdcp check`.
+[Check gate](./check-gate.md) says where link validation runs in `merlon check`.
 
 ## Diagnostic shape
 
 Each issue starts with the file and line where link lint found it. The reason and target follow, then the guide the issue belongs to, when it has one. In the monolith, that guide is the one whose copy contains the line. A compiled output's line is a line of the written file. On a line with a BROKEN LINK marker, the reason is `dead anchor` and the target is the whole line. Link lint reports that line once and doesn't check the other links on it.
 
-`mdcp check` prints these lines for a docs root at `/repo/docs` where guide a's `intro.md` has `First see [x](../b/topic.md#nope).` on line 3 and `Then see [x](#nope).` on line 5, and the standalone guide `AGENTS.md` links `./gone.md`:
+`merlon check` prints these lines for a docs root at `/repo/docs` where guide a's `intro.md` has `First see [x](../b/topic.md#nope).` on line 3 and `Then see [x](#nope).` on line 5, and the standalone guide `AGENTS.md` links `./gone.md`:
 
 ```text
 link: /repo/docs/AGENTS.md:3: missing file "./gone.md"
@@ -180,7 +180,7 @@ link: /repo/docs/_build/a.md:5: dead anchor "#nope" (compiled guide "a")
 - A diagnostic's line counts the banner, so it points at a line of the written file
 - A section link in the monolith points at its section heading when an earlier guide in the monolith has a heading with the same title
 - A guide in the monolith rebases paths and source tags in its compiled guide relative to that file, and in the monolith relative to the monolith, wherever the monolith is
-- `mdcp check` / `mdcp compile` exit **1** on broken links by default
+- `merlon check` / `merlon compile` exit **1** on broken links by default
 - `--warn-broken-links` exits **0** with `link-warn:` diagnostics
 - Config parses link validation defaults
 

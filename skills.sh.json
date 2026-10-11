@@ -4,8 +4,8 @@
   "groupings": [
     {
       "title": "Documentation system",
-      "description": "MDCP: one skill that picks its workflow for bootstrap, docs-only, design, feature, UX, and doc review.",
-      "skills": ["mdcp"]
+      "description": "Merlon Docs: one skill that picks its workflow for bootstrap, docs-only, design, feature, UX, and doc review.",
+      "skills": ["merlon-docs"]
     }
   ]
 }

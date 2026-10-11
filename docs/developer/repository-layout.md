@@ -8,24 +8,24 @@ mdcp/
 ├── presentations/          # Talk deck kept as delivered (not compiled)
 ├── skills/                 # Agent Skills install surface only (npx skills add)
 │   ├── mdcp/               # The MDCP skill + workflows (no package.json / CHANGELOG here)
-│   └── mdcp-arch-*/        # Internal archetypes (metadata.internal)
+│   └── merlon-docs-arch-*/        # Internal archetypes (metadata.internal)
 ├── tests/skills/           # Live eval fixtures (optional; not publishable packs)
 ├── skills.sh.json          # skills.sh repo page layout
 ├── .agents/skills/         # Vendor-managed installs + vendored skill-creator, writing-skills
 ├── packages/
-│   ├── mdcp-core/          # @bwilliamson/mdcp-core
-│   ├── mdcp-cli/           # @bwilliamson/mdcp-cli
-│   ├── mdcp-presets/       # @bwilliamson/mdcp-presets
-│   ├── mdcp-site/          # Starlight docs site (private, unversioned)
-│   └── skill-*/            # Private @bwilliamson/skill-* version carriers + CHANGELOGs
-├── docs/                   # Sharded docs (mdcp.config.json) — dogfood target
+│   ├── merlon-docs-core/          # @merlon-docs/merlon-docs-core
+│   ├── merlon-docs-cli/           # @merlon-docs/merlon-docs-cli
+│   ├── merlon-docs-presets/       # @merlon-docs/merlon-docs-presets
+│   ├── merlon-docs-site/          # Starlight docs site (private, unversioned)
+│   └── skill-*/            # Private @merlon-docs/skill-* version carriers + CHANGELOGs
+├── docs/                   # Sharded docs (merlon.config.json) — dogfood target
 │   ├── glossary/           # Shared acronyms and terms (cross-guide, like insert libraries)
 │   ├── features/           # Tool capabilities
 │   ├── developer/          # This guide
 │   ├── client-cli/         # CLI guide
 │   ├── client-core/        # Core library guide
 │   ├── repo-readme/        # Repository landing page
-│   ├── vale-local/         # Dogfood-only Vale styles (MDCP-PandocId)
+│   ├── vale-local/         # Dogfood-only Vale styles (MerlonDocs-PandocId)
 │   └── .vale.ini           # Peer Vale config
 ├── examples/sample-guides/ # Minimal consumer fixture for tests and tutorials
 ├── legacy/                 # Original bash/Python reference implementation
@@ -45,4 +45,4 @@ mdcp/
 
 ## Published packages
 
-The table in [Versioning and releases](./versioning-and-releases.md) lists each published item, its identifier and where it publishes. [Release schedule](./versioning-and-releases.md#release-schedule-release-pr-from-develop-to-main) covers the carrier package that versions a skill. The `mdcp-presets` README is hand-authored. The root `README.md` and the CLI and core READMEs are **compiled** from shards.
+The table in [Versioning and releases](./versioning-and-releases.md) lists each published item, its identifier and where it publishes. [Release schedule](./versioning-and-releases.md#release-schedule-release-pr-from-develop-to-main) covers the carrier package that versions a skill. The `merlon-docs-presets` README is hand-authored. The root `README.md` and the CLI and core READMEs are **compiled** from shards.

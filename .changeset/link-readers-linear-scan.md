@@ -1,5 +1,5 @@
 ---
-'@bwilliamson/mdcp-core': patch
+'@merlon-docs/merlon-docs-core': patch
 ---
 
 Read inline links in linear time in link lint and the link passes

@@ -30,7 +30,7 @@ Developer Guide. Product Agent Skill delivery stays in
   `.agents/skills/` loads it like skill-creator.
 - **`skills-lock.json`**: pins each vendored skill and records its source
 - **`pnpm skill:evals:view [N]`**: writes a static viewer for iteration N (default 1)
-  of the top-level suite's workspace to `.agents/skills/mdcp-workspace/iteration-N/viewer.html`,
+  of the top-level suite's workspace to `.agents/skills/merlon-docs-workspace/iteration-N/viewer.html`,
   and opens it where the `open` command exists. Elsewhere it prints the path to open.
   It doesn't open a workflow suite's workspace.
 - **`.agents/skills/*-workspace/`**: per-iteration run outputs (gitignored via
@@ -48,17 +48,17 @@ Live eval fixtures live under `tests/skills/<skill>/evals/` so publishable packs
 under `skills/` stay eval-free (`npx skills` / `pnpm skill:validate` only touch
 `skills/`).
 
-- [mdcp](../../tests/skills/mdcp/evals/README.md) — subject `mdcp`; routing and
-  QA principles; workspace `.agents/skills/mdcp-workspace/`
-- One suite per workflow under `tests/skills/mdcp/evals/<workflow>/`, each with
+- [mdcp](../../tests/skills/merlon-docs/evals/README.md) — subject `mdcp`; routing and
+  QA principles; workspace `.agents/skills/merlon-docs-workspace/`
+- One suite per workflow under `tests/skills/merlon-docs/evals/<workflow>/`, each with
   subject `mdcp`:
-  [getting-started](../../tests/skills/mdcp/evals/getting-started/README.md),
-  [doc-only](../../tests/skills/mdcp/evals/doc-only/README.md),
-  [design-architecture](../../tests/skills/mdcp/evals/design-architecture/README.md),
-  [feature-level](../../tests/skills/mdcp/evals/feature-level/README.md),
-  [ux](../../tests/skills/mdcp/evals/ux/README.md),
-  [doc-review](../../tests/skills/mdcp/evals/doc-review/README.md); workspace
-  `.agents/skills/mdcp-<workflow>-workspace/`
+  [getting-started](../../tests/skills/merlon-docs/evals/getting-started/README.md),
+  [doc-only](../../tests/skills/merlon-docs/evals/doc-only/README.md),
+  [design-architecture](../../tests/skills/merlon-docs/evals/design-architecture/README.md),
+  [feature-level](../../tests/skills/merlon-docs/evals/feature-level/README.md),
+  [ux](../../tests/skills/merlon-docs/evals/ux/README.md),
+  [doc-review](../../tests/skills/merlon-docs/evals/doc-review/README.md); workspace
+  `.agents/skills/merlon-docs-<workflow>-workspace/`
 
 Each suite README holds operational run steps and discrimination notes. This
 shard is the maintainer index.

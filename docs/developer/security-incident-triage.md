@@ -1,6 +1,6 @@
 # Security-incident triage
 
-Maintainer runbook for dependency advisories and “burn a bad release” decisions on `@bwilliamson/mdcp-*`. Vulnerability **reporting** stays in [SECURITY.md](../../SECURITY.md); this shard covers **triage and remediation**.
+Maintainer runbook for dependency advisories and “burn a bad release” decisions on `@merlon-docs/merlon-docs-*`. Vulnerability **reporting** stays in [SECURITY.md](../../SECURITY.md); this shard covers **triage and remediation**.
 
 ## Classify impact first
 
@@ -8,7 +8,7 @@ Before changing lockfiles, deprecating versions, or cutting a release, decide wh
 
 | Impact class                    | Typical signal                                                                                | Default response                                                                                       |
 | ------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| **Published / prod**            | Affects `@bwilliamson/mdcp-*` runtime deps or ships in the npm tarball                        | Patch, release, and (when consumers may have installed a bad version) deprecate that version           |
+| **Published / prod**            | Affects `@merlon-docs/merlon-docs-*` runtime deps or ships in the npm tarball                 | Patch, release, and (when consumers may have installed a bad version) deprecate that version           |
 | **Transitive dev-only tooling** | Only under root `devDependencies` (e.g. Slidev, lint/test helpers); `pnpm audit --prod` clean | Prefer a workspace **override** or upstream bump; do **not** deprecate or unpublish published packages |
 
 Quick checks:
@@ -19,7 +19,7 @@ pnpm audit --audit-level=moderate # full tree including presentation tooling
 pnpm why <package>                # which path pulls the vulnerable package
 ```
 
-CI fails when `pnpm audit --audit-level=high` finds a high or critical advisory (see [CI and the land gate](./local-setup.md#ci-and-the-land-gate)). Moderate noise in **dev-only** trees is hygiene, not an automatic security release of `@bwilliamson/mdcp-*`.
+CI fails when `pnpm audit --audit-level=high` finds a high or critical advisory (see [CI and the land gate](./local-setup.md#ci-and-the-land-gate)). Moderate noise in **dev-only** trees is hygiene, not an automatic security release of `@merlon-docs/merlon-docs-*`.
 
 ### Overrides and the release-age gate
 
@@ -43,8 +43,8 @@ Do **not** unpublish solely to silence an advisory when a patched successor exis
 Example deprecate (maintainer machine, 2FA as required by npm):
 
 ```bash
-npm deprecate @bwilliamson/mdcp-cli@<bad-version> "Security issue; use >=<fixed-version>"
-# Repeat for mdcp-core / mdcp-presets when those versions share the defect
+npm deprecate @merlon-docs/merlon-docs-cli@<bad-version> "Security issue; use >=<fixed-version>"
+# Repeat for merlon-docs-core / merlon-docs-presets when those versions share the defect
 ```
 
 ## When unpublish (or npm Support) is appropriate

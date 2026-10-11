@@ -2,7 +2,7 @@
 
 Normative specification for the MarkDown Context Protocol ([MDCP](../../glossary/mdcp.md)).
 
-> The reference implementation leads and this text follows it. Protocol versioning is independent of package semver. Agent entrypoint is the parent **Agent Skill** (`/mdcp`).
+> The reference implementation leads and this text follows it. Protocol versioning is independent of package semver. Agent entrypoint is the parent **Agent Skill** (`/merlon-docs`).
 
 ## 1. Introduction
 
@@ -25,11 +25,11 @@ The tiers keep a growing docs set coherent. Contributor workflow stays out of co
 
 **Placement test:** if consumers of the product need the shard, it belongs in `features/` or `client/`. If only contributors to the repository need it, it belongs in `developer/`. Split a shard that mixes consumer material with contributor-only material ([idea mitosis](./shard-srp-and-mitosis.md#split-when)).
 
-Each guide **MUST** have a manifest (`index.md` or `shards.md`) defining compile order. The Orphans stage of `mdcp check` fails a guide without a readable manifest, as the [Check gate](../check-gate.md#check-gate-stages) specifies.
+Each guide **MUST** have a manifest (`index.md` or `shards.md`) defining compile order. The Orphans stage of `merlon check` fails a guide without a readable manifest, as the [Check gate](../check-gate.md#check-gate-stages) specifies.
 
 Glossary terms **SHOULD** be one shard per entry. [Shared glossary](../../client-cli/shared-glossary.md) says how guides stitch the terms through `compile.scopeRoot` and when a large glossary groups them into sub-index files.
 
-Other documentation systems **MAY** introduce their own [archetypes](./extensions-and-archetypes.md#archetypes-battery-types) with different guide tiers on the same `mdcp compile` and `mdcp check` mechanics.
+Other documentation systems **MAY** introduce their own [archetypes](./extensions-and-archetypes.md#archetypes-battery-types) with different guide tiers on the same `merlon compile` and `merlon check` mechanics.
 
 ## 3. Compile and validation
 
@@ -38,7 +38,7 @@ The normative clauses for compile and validation are the twelve shards that the 
 - [Manifest compile order](../manifest-compile-order.md): the order a guide's manifest gives its shards in compiled output
 - [Default compile hooks](../default-compile-hooks.md): the hooks that run on each shard unless a guide switches them off
 - [Compile pipeline](../compile-pipeline/index.md): the assembly steps that run whatever `compile.hooks` says, link rewriting and table re-alignment among them
-- [Check gate](../check-gate.md): the stages of `mdcp check`, the validation gate
+- [Check gate](../check-gate.md): the stages of `merlon check`, the validation gate
 - [Link validation](../link-validation.md): the internal links and anchors that must resolve
 - [Refs registry path](../refs-registry-path.md): where compile writes the refs registry and where commands read it
 - [Source tags and default banner](../source-tags-and-banner.md): the source tags and the warning banner compile writes into each output unless the config switches them off
@@ -52,7 +52,7 @@ Work-item workflows **MUST** resolve `WORK_ITEM` and `WORK_ITEM_LOOKUP` before e
 
 ## 5. Skills and immutability
 
-The mdcp Agent Skill installed in an agent's skills directory **MUST NOT** be hand-edited for repo-specific content. The rule is advisory ([Enforceable rules](../design-constraints/enforceable-rules.md)), because `mdcp check` reads the docs root and never an installed skill. Whoever changes the repository applies it, and the change's review is the evidence. Project overlays belong in `docs/extensions/`, registered as [Extensions directory](./extensions-and-archetypes.md#extensions-directory) says, or in repo shards. [Extensions and archetypes](./extensions-and-archetypes.md) covers extension packs and archetypes.
+The mdcp Agent Skill installed in an agent's skills directory **MUST NOT** be hand-edited for repo-specific content. The rule is advisory ([Enforceable rules](../design-constraints/enforceable-rules.md)), because `merlon check` reads the docs root and never an installed skill. Whoever changes the repository applies it, and the change's review is the evidence. Project overlays belong in `docs/extensions/`, registered as [Extensions directory](./extensions-and-archetypes.md#extensions-directory) says, or in repo shards. [Extensions and archetypes](./extensions-and-archetypes.md) covers extension packs and archetypes.
 
 ## 6. Agent context delivery
 

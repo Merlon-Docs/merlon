@@ -56,7 +56,7 @@ overrides:
   # @changesets/cli → launch-editor → shell-quote (dev-only release tooling).
   # GHSA-pqg4-j6r4-53mv: command injection in quote(), patched >=1.11.0.
   shell-quote@<1.11.0: 1.11.0
-  # mdcp-site → astro → sharp (dev-only docs site build).
+  # merlon-docs-site → astro → sharp (dev-only docs site build).
   # GHSA-wq5f-xc86-pv6w / CVE-2026-96889: librsvg dependency, patched >=0.35.5.
   sharp@<0.35.5: 0.35.5
 # Unfixable advisories (no patched version published yet). Ignore so
@@ -66,7 +66,7 @@ overrides:
 # - GHSA-vfj7-8cjw-p6xm: braces <=3.0.3, no patched version (slidev → chokidar 3,
 #   dev-only presentation tooling). Added 2026-10-03; recheck 2026-11-03.
 # - GHSA-ch52-4w7c-c8xp: http-cache-semantics <=4.2.0, no patched version
-#   (mdcp-site → astro, dev-only docs site build). Added 2026-10-03; recheck 2026-11-03.
+#   (merlon-docs-site → astro, dev-only docs site build). Added 2026-10-03; recheck 2026-11-03.
 audit:
   ignore:
     - GHSA-w3rx-r6r6-pgpr

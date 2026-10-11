@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * One-shot: add all mdcp repo issues to GitHub project #4 and set Status + Track.
+ * One-shot: add all Merlon Docs repo issues to GitHub project #4 and set Status + Track.
  * Usage: node scripts/populate-github-project.mjs [--dry-run]
  */
 import { execSync } from 'node:child_process';
 
 const DRY_RUN = process.argv.includes('--dry-run');
-const REPO = 'betsalel-williamson/mdcp'; // eslint-disable-line @typescript-eslint/no-unused-vars
+const REPO = 'Merlon-Docs/merlon'; // eslint-disable-line @typescript-eslint/no-unused-vars
 const PROJECT_ID = 'PVT_kwHOAJLCJ84BbroI';
 const STATUS_FIELD = 'PVTSSF_lAHOAJLCJ84BbroIzhWaeqg';
 const TRACK_FIELD = 'PVTSSF_lAHOAJLCJ84BbroIzhWafDI';
@@ -68,7 +68,7 @@ function fetchIssues() {
   for (;;) {
     const after = cursor ? `, after: "${cursor}"` : '';
     const data = graphql(
-      `{ repository(owner: "betsalel-williamson", name: "mdcp") { issues(first: 100, states: [OPEN, CLOSED]${after}) { pageInfo { hasNextPage endCursor } nodes { id number title state labels(first: 20) { nodes { name } } } } } }`,
+      `{ repository(owner: "Merlon-Docs", name: "merlon") { issues(first: 100, states: [OPEN, CLOSED]${after}) { pageInfo { hasNextPage endCursor } nodes { id number title state labels(first: 20) { nodes { name } } } } } }`,
     );
     const batch = data.data.repository.issues;
     for (const node of batch.nodes) {

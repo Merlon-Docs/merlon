@@ -51,12 +51,12 @@ const isDirectRun =
 if (isDirectRun) {
   const defaults = [
     {
-      name: 'mdcp-core',
-      summaryPath: 'packages/mdcp-core/coverage/coverage-summary.json',
+      name: 'merlon-docs-core',
+      summaryPath: 'packages/merlon-docs-core/coverage/coverage-summary.json',
     },
     {
-      name: 'mdcp-cli',
-      summaryPath: 'packages/mdcp-cli/coverage/coverage-summary.json',
+      name: 'merlon-docs-cli',
+      summaryPath: 'packages/merlon-docs-cli/coverage/coverage-summary.json',
     },
   ];
   formatCoverageJobSummary(defaults)

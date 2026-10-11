@@ -33,7 +33,7 @@ Measured on October 3, 2026 against the skill as it stood before the changes. Th
 
 ## Eval gaps closed
 
-Added to `tests/skills/mdcp/evals/` in the same change:
+Added to `tests/skills/merlon-docs/evals/` in the same change:
 
 - A doc-review suite (4 evals) with a sprawl fixture. `mdcp review` reports two findings on the fixture, and the
   reviewer lenses have to find two more.

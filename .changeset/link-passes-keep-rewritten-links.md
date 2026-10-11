@@ -1,5 +1,5 @@
 ---
-'@bwilliamson/mdcp-core': patch
+'@merlon-docs/merlon-docs-core': patch
 ---
 
 Compile no longer lets a later link pass rewrite a link that the cross-guide or publish-relative pass already wrote.

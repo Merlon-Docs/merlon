@@ -7,10 +7,10 @@ How coding agents load tracker issues and delivery conventions **for this reposi
 ## Tracker
 
 ```text
-Host=GitHub (betsalel-williamson/mdcp)
-Issues=https://github.com/betsalel-williamson/mdcp/issues/  (record WORK_ITEMs here)
+Host=GitHub (Merlon-Docs/merlon)
+Issues=https://github.com/Merlon-Docs/merlon/issues/  (record WORK_ITEMs here)
 Project board=https://github.com/users/betsalel-williamson/projects/4  (project plan / delivery board)
-Issue base URL=https://github.com/betsalel-williamson/mdcp/issues/
+Issue base URL=https://github.com/Merlon-Docs/merlon/issues/
 WORK_ITEM=enough to resolve the issue — number, URL, or short name/description
 ```
 

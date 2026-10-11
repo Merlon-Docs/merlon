@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-10-01
-- **Related:** PR [#281](https://github.com/betsalel-williamson/mdcp/pull/281); [Doc-review workflow](../protocol/workflows/doc-review.md); [`mdcp review`](../../client-cli/commands-reference.md#sprawl-review); [Enforceable rules](../design-constraints/enforceable-rules.md); [ADR 0006](./0006-one-skill-with-workflows.md)
+- **Related:** PR [#281](https://github.com/Merlon-Docs/merlon/pull/281); [Doc-review workflow](../protocol/workflows/doc-review.md); [`mdcp review`](../../client-cli/commands-reference.md#sprawl-review); [Enforceable rules](../design-constraints/enforceable-rules.md); [ADR 0006](./0006-one-skill-with-workflows.md)
 
 ## Context
 

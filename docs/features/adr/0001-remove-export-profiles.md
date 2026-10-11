@@ -18,7 +18,7 @@ Remove the `mdcp export` verb and the `--llm`, `--llms-index`, and `--fetch` pro
 - Host search and one-shard reads for context
 - `mdcp compile` / `mdcp check` for authored docs and CI
 
-Consumer migration and breaking-change notice live in the package [CHANGELOG](../../../packages/mdcp-cli/CHANGELOG.md) (0.5.0), not in feature-catalog shards.
+Consumer migration and breaking-change notice live in the package [CHANGELOG](../../../packages/merlon-docs-cli/CHANGELOG.md) (0.5.0), not in feature-catalog shards.
 
 ## Consequences
 

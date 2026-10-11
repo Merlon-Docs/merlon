@@ -8,21 +8,21 @@ import {
 
 describe('isPackagesPackageJsonPath', () => {
   it('accepts packages/<name>/package.json', () => {
-    assert.equal(isPackagesPackageJsonPath('packages/mdcp-core/package.json'), true);
-    assert.equal(isPackagesPackageJsonPath('packages/mdcp-cli/package.json'), true);
+    assert.equal(isPackagesPackageJsonPath('packages/merlon-docs-core/package.json'), true);
+    assert.equal(isPackagesPackageJsonPath('packages/merlon-docs-cli/package.json'), true);
   });
 
   it('rejects other paths', () => {
     assert.equal(isPackagesPackageJsonPath('package.json'), false);
-    assert.equal(isPackagesPackageJsonPath('packages/mdcp-core/src/index.ts'), false);
-    assert.equal(isPackagesPackageJsonPath('packages/mdcp-core/README.md'), false);
+    assert.equal(isPackagesPackageJsonPath('packages/merlon-docs-core/src/index.ts'), false);
+    assert.equal(isPackagesPackageJsonPath('packages/merlon-docs-core/README.md'), false);
     assert.equal(isPackagesPackageJsonPath('packages/nested/pkg/package.json'), false);
   });
 });
 
 describe('onlyDevDependenciesDiffer', () => {
   const base = {
-    name: '@bwilliamson/mdcp-core',
+    name: '@merlon-docs/merlon-docs-core',
     version: '0.6.1',
     dependencies: { zod: '^4.4.3' },
     devDependencies: { '@types/node': '^25.9.3' },
@@ -69,26 +69,26 @@ describe('onlyDevDependenciesDiffer', () => {
 
 describe('isDevDependencyOnlyPackageChange', () => {
   const pkgs = {
-    'packages/mdcp-core/package.json': {
+    'packages/merlon-docs-core/package.json': {
       before: {
-        name: '@bwilliamson/mdcp-core',
+        name: '@merlon-docs/merlon-docs-core',
         dependencies: { zod: '^4.4.3' },
         devDependencies: { '@types/node': '^25.9.3' },
       },
       after: {
-        name: '@bwilliamson/mdcp-core',
+        name: '@merlon-docs/merlon-docs-core',
         dependencies: { zod: '^4.4.3' },
         devDependencies: { '@types/node': '^26.1.1' },
       },
     },
-    'packages/mdcp-cli/package.json': {
+    'packages/merlon-docs-cli/package.json': {
       before: {
-        name: '@bwilliamson/mdcp-cli',
+        name: '@merlon-docs/merlon-docs-cli',
         dependencies: { commander: '^15.0.0' },
         devDependencies: { '@types/node': '^25.9.3' },
       },
       after: {
-        name: '@bwilliamson/mdcp-cli',
+        name: '@merlon-docs/merlon-docs-cli',
         dependencies: { commander: '^15.0.0' },
         devDependencies: { '@types/node': '^26.1.1' },
       },
@@ -102,7 +102,7 @@ describe('isDevDependencyOnlyPackageChange', () => {
   it('returns true for package.json-only devDependency bumps', () => {
     assert.equal(
       isDevDependencyOnlyPackageChange(
-        ['packages/mdcp-core/package.json', 'packages/mdcp-cli/package.json'],
+        ['packages/merlon-docs-core/package.json', 'packages/merlon-docs-cli/package.json'],
         readPair,
       ),
       true,
@@ -112,7 +112,7 @@ describe('isDevDependencyOnlyPackageChange', () => {
   it('returns false when a non-package.json file under packages/ changed', () => {
     assert.equal(
       isDevDependencyOnlyPackageChange(
-        ['packages/mdcp-core/package.json', 'packages/mdcp-core/src/index.ts'],
+        ['packages/merlon-docs-core/package.json', 'packages/merlon-docs-core/src/index.ts'],
         readPair,
       ),
       false,
@@ -121,11 +121,11 @@ describe('isDevDependencyOnlyPackageChange', () => {
 
   it('returns false when a production dependency changed', () => {
     const read = (path) => {
-      if (path === 'packages/mdcp-core/package.json') {
+      if (path === 'packages/merlon-docs-core/package.json') {
         return {
-          before: pkgs['packages/mdcp-core/package.json'].before,
+          before: pkgs['packages/merlon-docs-core/package.json'].before,
           after: {
-            ...pkgs['packages/mdcp-core/package.json'].after,
+            ...pkgs['packages/merlon-docs-core/package.json'].after,
             dependencies: { zod: '^4.5.0' },
           },
         };
@@ -133,14 +133,14 @@ describe('isDevDependencyOnlyPackageChange', () => {
       return readPair(path);
     };
     assert.equal(
-      isDevDependencyOnlyPackageChange(['packages/mdcp-core/package.json'], read),
+      isDevDependencyOnlyPackageChange(['packages/merlon-docs-core/package.json'], read),
       false,
     );
   });
 
   it('returns false when package.json is missing at base or head', () => {
     assert.equal(
-      isDevDependencyOnlyPackageChange(['packages/mdcp-core/package.json'], () => null),
+      isDevDependencyOnlyPackageChange(['packages/merlon-docs-core/package.json'], () => null),
       false,
     );
   });

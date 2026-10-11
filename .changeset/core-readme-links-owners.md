@@ -1,6 +1,6 @@
 ---
-'@bwilliamson/mdcp-core': patch
-'@bwilliamson/mdcp-cli': patch
+'@merlon-docs/merlon-docs-core': patch
+'@merlon-docs/merlon-docs-cli': patch
 ---
 
 The core README links each rule's owner instead of restating it. Config API and the compile hooks overview link Default compile hooks in the Features Guide for the forms `compile.hooks` takes. The overview's "Opt out per hook" and "Explicit override" subsections are gone, so links to `#opt-out-per-hook` or `#explicit-override` should point at that spec's Configuration section. The rule for the strip after stitching is stated once, under "stripAnchors purpose".

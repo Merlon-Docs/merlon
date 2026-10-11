@@ -17,7 +17,7 @@ Remove `mdcp refs lookup` and the `lookupHeadings` export. Prefer:
 - Host search and one-shard reads for doc discovery
 - `mdcp check` (and optional `mdcp refs-list`) for cross-link / slug integrity against the [refs registry](../../glossary/refs-registry.md)
 
-Consumer notice of the breaking API removal lives in the package [CHANGELOG](../../../packages/mdcp-cli/CHANGELOG.md) (0.5.0), not in feature-catalog shards.
+Consumer notice of the breaking API removal lives in the package [CHANGELOG](../../../packages/merlon-docs-cli/CHANGELOG.md) (0.5.0), not in feature-catalog shards.
 
 ## Consequences
 

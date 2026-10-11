@@ -6,13 +6,16 @@ import { after, describe, it } from 'node:test';
 import { loadTokenizer, parseArgs, summarize } from './bench-context-size.mjs';
 
 describe('bench-context-size', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'mdcp-bench-'));
+  const dir = mkdtempSync(join(tmpdir(), 'merlon-bench-'));
   after(() => rmSync(dir, { recursive: true, force: true }));
 
   it('defaults to o200k_base and reads the environment', () => {
     assert.equal(parseArgs([]).tokenizer, 'o200k_base');
-    assert.equal(parseArgs([], { MDCP_TOKENIZER: 'cl100k_base' }).tokenizer, 'cl100k_base');
-    assert.equal(parseArgs(['--tokenizer', 'chars4'], { MDCP_TOKENIZER: 'x' }).tokenizer, 'chars4');
+    assert.equal(parseArgs([], { MERLON_TOKENIZER: 'cl100k_base' }).tokenizer, 'cl100k_base');
+    assert.equal(
+      parseArgs(['--tokenizer', 'chars4'], { MERLON_TOKENIZER: 'x' }).tokenizer,
+      'chars4',
+    );
     assert.equal(parseArgs(['--no-write']).write, false);
     assert.throws(() => parseArgs(['--bogus']), /Unknown argument/);
   });

@@ -5,7 +5,7 @@ docs root as a set instead of shard by shard, then consolidates it. It looks for
 list, or a shard serving a second audience or job, then merges, splits, moves,
 rewords, or links them.
 
-Workflow file: [`skills/mdcp/references/workflows/doc-review.md`](../../../../skills/mdcp/references/workflows/doc-review.md).
+Workflow file: [`skills/merlon-docs/references/workflows/doc-review.md`](../../../../skills/merlon-docs/references/workflows/doc-review.md).
 [Skill workflows](../skill-workflows.md) covers the shared workflow contract: intake, atomic commit groups, guide placement, the glossary, and concept removal.
 
 ## End-user value
@@ -15,15 +15,15 @@ place, so an update cannot leave a stale copy behind. Agents load one shard
 that is complete for its job instead of three partial ones.
 
 Sprawl is gradual, so the person who should notice it rarely does. The skill
-runs `mdcp review` at the end of a workflow when one of the
-[sprawl triggers](../../../../skills/mdcp/SKILL.md#6-sprawl-triggers) in
+runs `merlon review` at the end of a workflow when one of the
+[sprawl triggers](../../../../skills/merlon-docs/SKILL.md#6-sprawl-triggers) in
 `SKILL.md` matches. When the review reports findings, the skill offers this
 workflow without being asked.
 
 ## Weekly review routine
 
 For projects whose docs change in most weeks, the skill also recommends a
-weekly routine that runs this workflow once per guide (`mdcp review --guide <name>`,
+weekly routine that runs this workflow once per guide (`merlon review --guide <name>`,
 then a read of that guide) to settle where each duplicated rule belongs. Most
 weeks means commits in at least three different weeks of
 `git log --since="4 weeks ago" -- docs/`. For one-off projects or projects that
@@ -50,11 +50,11 @@ none.
 
 | Obligation               | As-built expectation                                                                                              |
 | ------------------------ | ----------------------------------------------------------------------------------------------------------------- |
-| Mechanical pass first    | Run `mdcp compile`, `mdcp check`, and `mdcp review`; fix check failures before judging review findings            |
+| Mechanical pass first    | Run `merlon compile`, `merlon check`, and `merlon review`; fix check failures before judging review findings      |
 | Reviewer lenses          | Read as product manager, staff engineer, technical writer, and designer                                           |
 | One decision per finding | Merge, split, move, reword, link, delete, or leave, with a one-line reason                                        |
 | Atomic commit groups     | One concern per group: moves, then merges and splits, then rewording, then index changes                          |
-| Links keep working       | Every move, merge, or split updates incoming links in the same commit; `mdcp check` passes after each group       |
+| Links keep working       | Every move, merge, or split updates incoming links in the same commit; `merlon check` passes after each group     |
 | Raise the floor          | A finding that keeps recurring becomes a `review` threshold, a glossary entry, or a prose rule                    |
 | Weekly routine           | Docs that change most weeks; a trigger and run evidence, or labeled advisory; one run per guide, duplicates first |
 
@@ -71,13 +71,13 @@ none.
 
 A successful review session typically:
 
-1. Reports each `mdcp review` finding with the action taken or the reason it
+1. Reports each `merlon review` finding with the action taken or the reason it
    stays
 2. Leaves every guide index readable as a map, grouped under headings once it
    passes about a dozen entries
 3. States each rule in one shard, with other shards linking to it
-4. Passes `mdcp check` after every commit group
+4. Passes `merlon check` after every commit group
 
 Optional local with/without-skill grading for this workflow:
-[doc-review workflow live evals](../../../../tests/skills/mdcp/evals/doc-review/README.md)
+[doc-review workflow live evals](../../../../tests/skills/merlon-docs/evals/doc-review/README.md)
 (maintainer workflow, not a CI gate). See [Live skill evals](../../../developer/live-skill-evals.md).

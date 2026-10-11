@@ -10,7 +10,7 @@ For operators working **outside version control**, or who want a recoverable cop
 
 ## Overwrite default
 
-`mdcp compile` **overwrites** existing output files with no backup. No existence check, no sibling `.bak` files next to tracked publish targets.
+`merlon compile` **overwrites** existing output files with no backup. No existence check, no sibling `.bak` files next to tracked publish targets.
 
 ## Opt-in backup
 
@@ -32,10 +32,10 @@ When the target does not exist, write directly — no backup directory created.
 | Piece           | Default                          | Resolved from                                                               |
 | --------------- | -------------------------------- | --------------------------------------------------------------------------- |
 | Backup root     | `.caches/backups`                | `outputDir` ([Path layout](../client-cli/config-essentials.md#path-layout)) |
-| Backup file key | docsRoot-relative path to target | e.g. `_build/guides.md`, `../packages/mdcp-cli/README.md`                   |
+| Backup file key | docsRoot-relative path to target | e.g. `_build/guides.md`, `../packages/merlon-docs-cli/README.md`            |
 | Extension       | `''`                             | `backup.ext` or `--backup-ext`                                              |
 
-With `--docs-root docs`, the default `outputDir` and two compile targets, `_build/guides.md` and the publish output `../packages/mdcp-cli/README.md`:
+With `--docs-root docs`, the default `outputDir` and two compile targets, `_build/guides.md` and the publish output `../packages/merlon-docs-cli/README.md`:
 
 ```text
 docs/_build/                       ← outputDir
@@ -44,10 +44,10 @@ docs/_build/                       ← outputDir
     refs.json                      ← refs registry (always)
     backups/                       ← backup root
       _build/guides.md             ← prior guides.md (key _build/guides.md)
-    packages/mdcp-cli/README.md    ← prior publish output (key ../packages/mdcp-cli/README.md)
+    packages/merlon-docs-cli/README.md    ← prior publish output (key ../packages/merlon-docs-cli/README.md)
 ```
 
-The backup of a publish output outside the docs root climbs out of the backup root, one directory for each `../` at the start of its key. With the default `backup.dir`, a key with one `../` puts the backup under `.caches/`, beside `backups/`. With a one-level `backup.dir` such as `archive`, that backup lands under `outputDir`, at `docs/_build/packages/mdcp-cli/README.md`, and a key with two `../` segments puts it outside `outputDir`, in the docs root.
+The backup of a publish output outside the docs root climbs out of the backup root, one directory for each `../` at the start of its key. With the default `backup.dir`, a key with one `../` puts the backup under `.caches/`, beside `backups/`. With a one-level `backup.dir` such as `archive`, that backup lands under `outputDir`, at `docs/_build/packages/merlon-docs-cli/README.md`, and a key with two `../` segments puts it outside `outputDir`, in the docs root.
 
 Delete `_build/` to clean generated output and the backups under it. When `outputDir` is `.`, list `.caches/` in `.gitignore`, because the cache tree then sits in the docs root itself.
 
@@ -91,7 +91,7 @@ Commands affected: `compile`, `refs-gen`, `lint`, `links`, `check`.
 - Backup path uses the docsRoot-relative key: the backup of a publish output under the docs root goes into the backup tree, not beside the tracked file
 - Custom `backup.dir` and `backup.ext` respected
 - Config `backup` object parses with defaults (`enabled: false`, `dir: '.caches/backups'`, `ext: ''`)
-- CLI `mdcp compile --backup` creates cache backup on re-compile
+- CLI `merlon compile --backup` creates cache backup on re-compile
 
 ## Related
 

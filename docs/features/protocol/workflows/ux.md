@@ -6,7 +6,7 @@ steps to accomplish X) — documented primarily in **client-guide shards**.
 Interfaces and UI implementation are in scope when they serve those flows, not
 as the sole focus.
 
-Workflow file: [`skills/mdcp/references/workflows/ux.md`](../../../../skills/mdcp/references/workflows/ux.md).
+Workflow file: [`skills/merlon-docs/references/workflows/ux.md`](../../../../skills/merlon-docs/references/workflows/ux.md).
 [Skill workflows](../skill-workflows.md) covers the shared workflow contract: intake, atomic commit groups, guide placement, the glossary, and concept removal.
 
 ## End-user value
@@ -61,6 +61,6 @@ A successful UX session typically:
 5. Links `WORK_ITEM` in review
 
 Live evals (optional, not a CI gate):
-[ux workflow live evals](../../../../tests/skills/mdcp/evals/ux/README.md).
+[ux workflow live evals](../../../../tests/skills/merlon-docs/evals/ux/README.md).
 See [Live skill evals](../../../developer/live-skill-evals.md) for maintainer
 eval conventions.

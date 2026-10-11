@@ -4,7 +4,7 @@ Product capability: the **design-architecture** workflow of the `mdcp` skill rec
 architecture and design decisions as **MDCP shards** so agents and humans can
 load one concern at a time instead of growing one large architecture document.
 
-Workflow file: [`skills/mdcp/references/workflows/design-architecture.md`](../../../../skills/mdcp/references/workflows/design-architecture.md).
+Workflow file: [`skills/merlon-docs/references/workflows/design-architecture.md`](../../../../skills/merlon-docs/references/workflows/design-architecture.md).
 [Skill workflows](../skill-workflows.md) covers the shared workflow contract: intake, atomic commit groups, guide placement, the glossary, and concept removal.
 
 ## End-user value
@@ -15,15 +15,15 @@ instead of living only in chat or a thousand-line wiki page.
 
 ## What this workflow is for
 
-| Obligation                  | As-built expectation                                                                                    |
-| --------------------------- | ------------------------------------------------------------------------------------------------------- |
-| One design scope            | Create a branch for one `WORK_ITEM` before drafting design shards; do not mix unrelated designs         |
-| Capture architecture intent | Draft system diagrams, API/data contracts, and boundaries as shards under `docs/features/`              |
-| Land durable decisions      | Record accepted choices as ADRs under `docs/features/adr/` when the repo uses that layout               |
-| Keep docs sharded           | Prefer **one primary concern per shard**; update feature/ADR `index.md` so new shards are discoverable  |
-| Brownfield hygiene          | Split or retire legacy architecture docs and superseded plans; keep a replaced ADR, marked superseded   |
-| Stay design-doc scoped      | No product/CLI/TypeScript implementation, no unit tests as delivery, no primary `docs/client/` work     |
-| Skill QA                    | Current intended architecture only; no large code dumps in shards; run repo `mdcp check` / docs scripts |
+| Obligation                  | As-built expectation                                                                                      |
+| --------------------------- | --------------------------------------------------------------------------------------------------------- |
+| One design scope            | Create a branch for one `WORK_ITEM` before drafting design shards; do not mix unrelated designs           |
+| Capture architecture intent | Draft system diagrams, API/data contracts, and boundaries as shards under `docs/features/`                |
+| Land durable decisions      | Record accepted choices as ADRs under `docs/features/adr/` when the repo uses that layout                 |
+| Keep docs sharded           | Prefer **one primary concern per shard**; update feature/ADR `index.md` so new shards are discoverable    |
+| Brownfield hygiene          | Split or retire legacy architecture docs and superseded plans; keep a replaced ADR, marked superseded     |
+| Stay design-doc scoped      | No product/CLI/TypeScript implementation, no unit tests as delivery, no primary `docs/client/` work       |
+| Skill QA                    | Current intended architecture only; no large code dumps in shards; run repo `merlon check` / docs scripts |
 
 ## What this workflow is not
 
@@ -56,5 +56,5 @@ A successful design-architecture session typically:
 6. Links `WORK_ITEM` in review
 
 Optional local with/without-skill grading for this workflow:
-[design-architecture workflow live evals](../../../../tests/skills/mdcp/evals/design-architecture/README.md)
+[design-architecture workflow live evals](../../../../tests/skills/merlon-docs/evals/design-architecture/README.md)
 (maintainer workflow — not a CI gate). See [Live skill evals](../../../developer/live-skill-evals.md).

@@ -1,6 +1,6 @@
 # Quick example
 
-This script compiles every guide and writes the outputs, then regenerates the refs registry from them. Run it from the directory that holds `docs/mdcp.config.json`.
+This script compiles every guide and writes the outputs, then regenerates the refs registry from them. Run it from the directory that holds `docs/merlon.config.json`.
 
 ```typescript
 import { join } from 'node:path';
@@ -14,9 +14,9 @@ import {
   refsOutputTexts,
   resolveRefsPath,
   genRefsFromCompiled,
-} from '@bwilliamson/mdcp-core';
+} from '@merlon-docs/merlon-docs-core';
 
-const config = loadConfig('docs/mdcp.config.json', process.cwd());
+const config = loadConfig('docs/merlon.config.json', process.cwd());
 const docsRoot = join(process.cwd(), 'docs');
 
 const options = {

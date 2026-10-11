@@ -4,6 +4,6 @@
 
 Outside agent tooling, the word skill can mean a person's ability or a general AI capability. In MDCP docs it always means the packaged directory.
 
-MDCP's main skill is `mdcp`, with its source in `skills/mdcp/`. It contains the **documentation system** guardrails that direct agents to shard and maintain docs one piece at a time. Optional [archetype](../features/protocol/extensions-and-archetypes.md#archetypes-battery-types) skills are under `skills/mdcp-arch-*`.
+MDCP's main skill is `mdcp`, with its source in `skills/merlon-docs/`. It contains the **documentation system** guardrails that direct agents to shard and maintain docs one piece at a time. Optional [archetype](../features/protocol/extensions-and-archetypes.md#archetypes-battery-types) skills are under `skills/merlon-docs-arch-*`.
 
 Install and validation: [Agent Skill](../features/agent-skill.md).

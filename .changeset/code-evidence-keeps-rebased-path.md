@@ -1,5 +1,5 @@
 ---
-'@bwilliamson/mdcp-core': patch
+'@merlon-docs/merlon-docs-core': patch
 ---
 
 The publish-relative pass no longer rewrites a link that `codeEvidence` already rebased.

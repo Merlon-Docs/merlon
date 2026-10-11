@@ -43,7 +43,7 @@ resolveRefsPath('/docs', '.', 'refs.json');
 `buildSlugRegistry` reads only headings outside fenced code blocks, which it finds with the [fence scan](../features/compile-pipeline/fence-scan.md). A `# comment` in a shell example doesn't get a slug, and it doesn't change the guide that later headings belong to. Compile numbers [section slugs](../features/compile-pipeline/section-slugs.md) through the same reader, so a rewritten section link and the registry agree, apart from the limits that page lists. Heading demotion, in compile and in `demoteHeadings`, leaves each line that the same scan reads as code as written. [Fence scan limits](../features/compile-pipeline/fence-scan.md#fence-scan-limits) says when demotion and `buildSlugRegistry` can disagree about a shard.
 
 ```typescript
-import { githubSlugify, headingTextToPlain } from '@bwilliamson/mdcp-core';
+import { githubSlugify, headingTextToPlain } from '@merlon-docs/merlon-docs-core';
 
 headingTextToPlain('**Authored GFM** `{#gfm}`');
 // → 'Authored GFM'
@@ -63,7 +63,7 @@ CLI authoring rules: [Cross-links and refs — heading slugs](../client-cli/cros
 | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | `checkOrphansForGuides`                                                                                                                                  | Detect unlinked or missing shard files; a relative `dir` resolves against the process cwd                                             |
 | `lintLinks`                                                                                                                                              | Internal markdown link validation                                                                                                     |
-| `reviewDocs`                                                                                                                                             | Sprawl signals behind `mdcp review` (`formatReviewReport` renders the text report)                                                    |
+| `reviewDocs`                                                                                                                                             | Sprawl signals behind `merlon review` (`formatReviewReport` renders the text report)                                                  |
 | `computeCoverage`                                                                                                                                        | Markdown files no guide captures, behind the `check` coverage report                                                                  |
 | `probeDocumentPaths`                                                                                                                                     | Backtick-path resolution behind `lint.paths` (`ILLUSTRATIVE_MARKER` opts out)                                                         |
 | `DEFAULT_CODE_EXTENSIONS`, `DEFAULT_DATA_EXTENSIONS`, `codeExtensionSet`, `dataExtensionSet`, `fileExtensionSet`, `hasCodeExtension`, `hasFileExtension` | The code and data extensions that link validation and `codeEvidence` read, with `lint.codeExtensions` and `lint.dataExtensions` added |

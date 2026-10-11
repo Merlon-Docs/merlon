@@ -60,7 +60,7 @@ representative at an online or offline event.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the mdcp project maintainers responsible for enforcement by
-[opening a GitHub issue](https://github.com/betsalel-williamson/mdcp/issues/new)
+[opening a GitHub issue](https://github.com/Merlon-Docs/merlon/issues/new)
 or contacting repository owners via GitHub. Prefer a private channel if the report
 includes sensitive details.
 All complaints will be reviewed and investigated promptly and fairly.

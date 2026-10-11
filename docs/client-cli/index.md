@@ -1,6 +1,6 @@
-# @bwilliamson/mdcp-cli
+# @merlon-docs/merlon-docs-cli
 
-- [@bwilliamson/mdcp-cli](#table-of-contents)
+- [@merlon-docs/merlon-docs-cli](#table-of-contents)
   - [About](./about.md)
 
 ## Get started

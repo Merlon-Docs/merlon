@@ -45,10 +45,10 @@ Terraform writes its state to `infra/github/terraform.tfstate`, and `infra/githu
 With admin `gh` auth, read the live review settings, or repair them without Terraform:
 
 ```bash
-gh api repos/betsalel-williamson/mdcp/branches/main/protection \
+gh api repos/Merlon-Docs/merlon/branches/main/protection \
   --jq '.required_pull_request_reviews | {require_code_owner_reviews}'
 
-gh api -X PATCH repos/betsalel-williamson/mdcp/branches/main/protection/required_pull_request_reviews \
+gh api -X PATCH repos/Merlon-Docs/merlon/branches/main/protection/required_pull_request_reviews \
   -F require_code_owner_reviews=true \
   -F required_approving_review_count=0
 ```

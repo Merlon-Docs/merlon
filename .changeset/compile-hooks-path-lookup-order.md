@@ -1,5 +1,5 @@
 ---
-'@bwilliamson/mdcp-core': patch
+'@merlon-docs/merlon-docs-core': patch
 ---
 
 Path lookup order, `docs/features/compile-pipeline/path-lookup-order.md` in the Features Guide's Compile pipeline group, states each pass's path lookup order once, in a table that matches the code. The per-hook lists it replaces were wrong. No pass tries the shard's parent directory. The publish-relative rewrite tries `compile.scopeRoot` before the guide directory. `codeEvidence`, `inlineInserts` and the cross-guide rewrite try the working directory and its parent before `compile.scopeRoot`.

@@ -34,7 +34,7 @@ Token counts in that record, and in any figure like it, are rough estimates for 
 
 ## Evidence elsewhere
 
-- **`mdcp check` catches orphans and broken links**: the [Check gate](../check-gate.md) spec and the CLI smoke tests
+- **`merlon check` catches orphans and broken links**: the [Check gate](../check-gate.md) spec and the CLI smoke tests
 - **OpenAPI analogy**: the design intent is in [Scope and positioning](./01-scope-and-positioning.md#openapi-analogy). MDCP doesn't claim membership in a standards body.
 
 ## Adoption anecdotes

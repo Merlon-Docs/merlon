@@ -1,6 +1,6 @@
 ---
-'@bwilliamson/mdcp-core': minor
-'@bwilliamson/mdcp-cli': patch
+'@merlon-docs/merlon-docs-core': minor
+'@merlon-docs/merlon-docs-cli': patch
 ---
 
 Assemble a guide in the monolith once for its compiled guide and once for the monolith
@@ -13,7 +13,7 @@ so they broke whenever the monolith was in another directory. A link
 between two guides in the monolith compiled to a `#slug` that the linking
 guide's compiled guide doesn't have, so compile replaced it with a BROKEN LINK
 marker in both files and exited 1. In the monolith itself, a section link could
-point at an earlier guide's heading with the same title, and `mdcp check`
+point at an earlier guide's heading with the same title, and `merlon check`
 passed.
 
 Compile now assembles such a guide twice. Its compiled guide rebases paths and
@@ -59,7 +59,7 @@ monolith: `guideFile` only when the owner stitches the shard, and
 `monolithSlug` only when some copy in the monolith stitches it.
 `assembleGuide` and `rewriteCrossGuideFileLinks` take a `monolithFile` option.
 
-`mdcp compile` and `mdcp check` change with it. A link between two guides in the
+`merlon compile` and `merlon check` change with it. A link between two guides in the
 monolith no longer fails them, and a link that compile marks only in the
 monolith now does.
 

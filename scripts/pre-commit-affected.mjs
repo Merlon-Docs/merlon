@@ -32,33 +32,33 @@ let coreBuilt = false;
 
 function ensureCoreBuild() {
   if (!coreBuilt) {
-    run('pnpm --filter @bwilliamson/mdcp-core run build');
+    run('pnpm --filter @merlon-docs/merlon-docs-core run build');
     coreBuilt = true;
   }
 }
 
-if (matches(files, 'packages/mdcp-core/')) {
-  run('pnpm --filter @bwilliamson/mdcp-core run typecheck');
-  run('pnpm --filter @bwilliamson/mdcp-core run build');
+if (matches(files, 'packages/merlon-docs-core/')) {
+  run('pnpm --filter @merlon-docs/merlon-docs-core run typecheck');
+  run('pnpm --filter @merlon-docs/merlon-docs-core run build');
   const corePaths = files
-    .filter((f) => f.startsWith('packages/mdcp-core/'))
-    .map((f) => f.slice('packages/mdcp-core/'.length));
+    .filter((f) => f.startsWith('packages/merlon-docs-core/'))
+    .map((f) => f.slice('packages/merlon-docs-core/'.length));
   if (corePaths.length > 0) {
     run(
-      `pnpm --filter @bwilliamson/mdcp-core exec vitest related --run ${corePaths.map((p) => `"${p}"`).join(' ')}`,
+      `pnpm --filter @merlon-docs/merlon-docs-core exec vitest related --run ${corePaths.map((p) => `"${p}"`).join(' ')}`,
     );
   }
   coreBuilt = true;
 }
 
-if (matches(files, 'packages/mdcp-cli/')) {
+if (matches(files, 'packages/merlon-docs-cli/')) {
   ensureCoreBuild();
-  run('pnpm --filter @bwilliamson/mdcp-cli run typecheck');
-  run('pnpm --filter @bwilliamson/mdcp-cli run build');
-  run('pnpm --filter @bwilliamson/mdcp-cli run test');
+  run('pnpm --filter @merlon-docs/merlon-docs-cli run typecheck');
+  run('pnpm --filter @merlon-docs/merlon-docs-cli run build');
+  run('pnpm --filter @merlon-docs/merlon-docs-cli run test');
 }
 
-if (matches(files, 'packages/mdcp-presets/')) {
+if (matches(files, 'packages/merlon-docs-presets/')) {
   run('node scripts/validate-presets.mjs');
 }
 
@@ -69,10 +69,10 @@ const docsChanged =
 
 if (docsChanged) {
   ensureCoreBuild();
-  run('pnpm --filter @bwilliamson/mdcp-cli run build');
+  run('pnpm --filter @merlon-docs/merlon-docs-cli run build');
   run('pnpm run docs:compile:repo');
   run(
-    'node packages/mdcp-cli/dist/cli.js check --config docs/mdcp.config.json --docs-root docs --require-lint --require-vale --warn-broken-links',
+    'node packages/merlon-docs-cli/dist/cli.js check --config docs/merlon.config.json --docs-root docs --require-lint --require-vale --warn-broken-links',
   );
 }
 

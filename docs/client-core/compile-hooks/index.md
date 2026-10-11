@@ -30,10 +30,10 @@ The Features Guide's [Compile pipeline](../../features/compile-pipeline/index.md
 
 ## Extension pattern
 
-A custom hook runs only in a process that registers it with `registerCompileHook` before it calls `compileGuideResults` or `compileGuides`. Importing the core registers the built-in hooks and `identity`, which returns the body unchanged. The mdcp CLI doesn't load a custom hook, so `mdcp compile` and `mdcp check` compile without one. Register yours in your own build script:
+A custom hook runs only in a process that registers it with `registerCompileHook` before it calls `compileGuideResults` or `compileGuides`. Importing the core registers the built-in hooks and `identity`, which returns the body unchanged. The mdcp CLI doesn't load a custom hook, so `merlon compile` and `merlon check` compile without one. Register yours in your own build script:
 
 ```typescript
-import { registerCompileHook } from '@bwilliamson/mdcp-core';
+import { registerCompileHook } from '@merlon-docs/merlon-docs-core';
 
 registerCompileHook('myHook', (ctx) => {
   return ctx.body.replace(/TODO/g, 'DONE');
@@ -52,7 +52,7 @@ A hook gets a `CompileHookContext` and returns the new body. Assembly always set
 | `guideName`      | The configured name of the guide being compiled                                                                                |
 | `filename`       | The shard's file name                                                                                                          |
 | `sourceFile`     | The shard's absolute path                                                                                                      |
-| `config`         | The config the caller passed as `CompileOptions.config` (an `MdcpConfigInput`), or `{}`                                        |
+| `config`         | The config the caller passed as `CompileOptions.config` (an `MerlonConfigInput`), or `{}`                                      |
 | `outputFile`     | Optional. The absolute path of the guide's [link base](../../features/compile-pipeline/publish-relative-links.md#when-it-runs) |
 | `outputBasename` | Optional. The file name of `outputFile`                                                                                        |
 | `scopeRoot`      | Optional. The absolute `compile.scopeRoot`, unset when the guide doesn't set it                                                |

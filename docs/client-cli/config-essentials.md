@@ -1,15 +1,15 @@
 # Config essentials
 
-`mdcp.config.json` names the guides to compile and where their outputs go. This page covers the paths every command resolves from and a minimal config with its path layout. [Config reference](./config-reference.md) is the lookup material for every key.
+`merlon.config.json` names the guides to compile and where their outputs go. This page covers the paths every command resolves from and a minimal config with its path layout. [Config reference](./config-reference.md) is the lookup material for every key.
 
 ## `--config` vs `--docs-root`
 
 These two global options answer different questions:
 
-| Option            | Resolved from                                                                       | Purpose                            |
-| ----------------- | ----------------------------------------------------------------------------------- | ---------------------------------- |
-| **`--config`**    | **Invocation directory**, where you run the command (repo root in most npm scripts) | Locates `mdcp.config.json` on disk |
-| **`--docs-root`** | **Invocation directory**, which is also the docs root when you omit the option      | Root of guide directories          |
+| Option            | Resolved from                                                                       | Purpose                              |
+| ----------------- | ----------------------------------------------------------------------------------- | ------------------------------------ |
+| **`--config`**    | **Invocation directory**, where you run the command (repo root in most npm scripts) | Locates `merlon.config.json` on disk |
+| **`--docs-root`** | **Invocation directory**, which is also the docs root when you omit the option      | Root of guide directories            |
 
 `--config` is never prefixed with `--docs-root`. A command run from the repository root without `--docs-root` treats the root as the docs root, so repo-root scripts pass `--docs-root docs`. [Path layout](#path-layout) describes the docs root.
 
@@ -18,8 +18,8 @@ These two global options answer different questions:
 ```json
 {
   "scripts": {
-    "docs:compile": "mdcp compile --config docs/mdcp.config.json --docs-root docs",
-    "docs:check": "mdcp check --config docs/mdcp.config.json --docs-root docs --require-lint"
+    "docs:compile": "merlon compile --config docs/merlon.config.json --docs-root docs",
+    "docs:check": "merlon check --config docs/merlon.config.json --docs-root docs --require-lint"
   }
 }
 ```
@@ -28,8 +28,8 @@ These two global options answer different questions:
 
 ```bash
 cd docs
-mdcp compile
-mdcp compile --config mdcp.config.json --docs-root .
+merlon compile
+merlon compile --config merlon.config.json --docs-root .
 ```
 
 ### Programmatic API
@@ -38,7 +38,7 @@ The core library takes the same two bases, and [Config API](../client-core/api-c
 
 ## Minimal config
 
-Step 1 of [Quick start](./install-and-quick-start.md#quick-start) shows a minimal `mdcp.config.json` for two guides, `overview` and `admin-guide`. The fields it leaves out take their defaults, so that config writes `overview.md` and `admin-guide.md` to `_build/` under the docs root and builds no monolith. [Path layout](#path-layout) gives each default and says how each path resolves.
+Step 1 of [Quick start](./install-and-quick-start.md#quick-start) shows a minimal `merlon.config.json` for two guides, `overview` and `admin-guide`. The fields it leaves out take their defaults, so that config writes `overview.md` and `admin-guide.md` to `_build/` under the docs root and builds no monolith. [Path layout](#path-layout) gives each default and says how each path resolves.
 
 | Field                | Purpose                                                             |
 | -------------------- | ------------------------------------------------------------------- |
@@ -66,7 +66,7 @@ Two roots (NPM-style):
 
 ```text
 docs/                          ← --docs-root
-  mdcp.config.json
+  merlon.config.json
   features/                    ← guide "features" (shards)
   client-cli/                  ← guide "client-cli"
   styles/                      ← support dir (not in compileOrder)
@@ -104,7 +104,7 @@ When `compile.outputFile` is omitted:
 | 1                        | `guide.md`                     |
 | 2+                       | `{name}.md` per guide          |
 
-When `compile.outputFile` is set, that guide writes only to that path (for example npm README publish via `../../packages/foo/README.md`) and is excluded from an optional monolith. <!-- mdcp-paths: illustrative -->
+When `compile.outputFile` is set, that guide writes only to that path (for example npm README publish via `../../packages/foo/README.md`) and is excluded from an optional monolith. <!-- merlon-paths: illustrative -->
 
 ### Optional monolith
 

@@ -4,7 +4,7 @@ Authoring constraint for MDCP's own rules: every rule MDCP states is either **ga
 
 ## Rule
 
-A documentation rule is **gated** when a check can fail on it — `mdcp check`, a peer linter, or a named CI step. A rule is **advisory** when correctness depends on a reader's judgement.
+A documentation rule is **gated** when a check can fail on it — `merlon check`, a peer linter, or a named CI step. A rule is **advisory** when correctness depends on a reader's judgement.
 
 Both kinds are legitimate. What is not legitimate is a rule that reads as gated and is not, because that is the shape that silently stops holding:
 
@@ -23,26 +23,26 @@ Because of this constraint, MDCP invests in the [check gate](../check-gate.md) m
 
 ## Current status of MDCP's own rules
 
-| Rule                                          | Status                               | Gate                                                                                                                                  |
-| --------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
-| A shard in a guide directory is in a manifest | Gated                                | Orphan check                                                                                                                          |
-| Internal links and anchors resolve            | Gated                                | Built-in link validation                                                                                                              |
-| Compiled output matches the shards            | Gated                                | CI runs `docs:compile`, then `git diff --exit-code`                                                                                   |
-| The refs registry on disk matches the compile | Gated when `refs.json` is committed  | A CI step that runs `mdcp refs-check` before any compile, or the compile-and-diff gate of the previous row with `refs.json` committed |
-| Every markdown file is accounted for          | Gated when `scan.strict: true`       | Coverage scan                                                                                                                         |
-| Markdown structure and en-US prose cues       | Gated when peer linters are required | Peer linters                                                                                                                          |
-| Shards describe the product as it works now   | **Advisory**                         | Partial: source-file links, `lint.paths`, Vale                                                                                        |
-| One primary concern per shard                 | **Advisory**                         | None                                                                                                                                  |
-| No implementation detail in durable docs      | **Advisory**                         | None                                                                                                                                  |
-| No temporary information or backlogs in docs  | **Advisory**                         | Partial: this repo's changeset-link lint, Vale                                                                                        |
-| Current docs drop a removed or old name       | **Advisory**                         | Partial: `lint.paths`, link validation                                                                                                |
-| A review routine states trigger and evidence  | **Advisory**                         | None                                                                                                                                  |
+| Rule                                          | Status                               | Gate                                                                                                                                    |
+| --------------------------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| A shard in a guide directory is in a manifest | Gated                                | Orphan check                                                                                                                            |
+| Internal links and anchors resolve            | Gated                                | Built-in link validation                                                                                                                |
+| Compiled output matches the shards            | Gated                                | CI runs `docs:compile`, then `git diff --exit-code`                                                                                     |
+| The refs registry on disk matches the compile | Gated when `refs.json` is committed  | A CI step that runs `merlon refs-check` before any compile, or the compile-and-diff gate of the previous row with `refs.json` committed |
+| Every markdown file is accounted for          | Gated when `scan.strict: true`       | Coverage scan                                                                                                                           |
+| Markdown structure and en-US prose cues       | Gated when peer linters are required | Peer linters                                                                                                                            |
+| Shards describe the product as it works now   | **Advisory**                         | Partial: source-file links, `lint.paths`, Vale                                                                                          |
+| One primary concern per shard                 | **Advisory**                         | None                                                                                                                                    |
+| No implementation detail in durable docs      | **Advisory**                         | None                                                                                                                                    |
+| No temporary information or backlogs in docs  | **Advisory**                         | Partial: this repo's changeset-link lint, Vale                                                                                          |
+| Current docs drop a removed or old name       | **Advisory**                         | Partial: `lint.paths`, link validation                                                                                                  |
+| A review routine states trigger and evidence  | **Advisory**                         | None                                                                                                                                    |
 
-[Stale registry check](../refs-registry-path.md#stale-registry-check) says why the refs stage of `mdcp check` can't gate the refs row, and which CI steps catch a stale file.
+[Stale registry check](../refs-registry-path.md#stale-registry-check) says why the refs stage of `merlon check` can't gate the refs row, and which CI steps catch a stale file.
 
-The [check gate](../check-gate.md) lists the `mdcp check` stages behind most gated rows. Their own specs are the [orphan check](../manifest-compile-order.md#orphan-check-scope), [link validation](../link-validation.md), the [documentation coverage scan](../coverage-scan.md) and the [peer linters](./peer-linters.md) page.
+The [check gate](../check-gate.md) lists the `merlon check` stages behind most gated rows. Their own specs are the [orphan check](../manifest-compile-order.md#orphan-check-scope), [link validation](../link-validation.md), the [documentation coverage scan](../coverage-scan.md) and the [peer linters](./peer-linters.md) page.
 
-A partial gate checks one fragment of an advisory rule. Link validation fails on a link to a missing source file. With `lint.paths.severity` set to `error`, `mdcp check` also fails on a backtick path that resolves nowhere. With peer Vale required, the `MDCP.DatedClaim` rule fails on `as of <date>`, a claim pinned to its date, and on `until <date>`, a temporary note. The rule checks the files Vale scans, which [In-scope guide fileset](../../client-cli/optional-linters.md#in-scope-guide-fileset) lists. A shard outside those paths, such as a glossary that only `compile.scopeRoot` reaches, is not checked. The path probe skips such a glossary too, because it reads only the guide directories in `compileOrder` and the standalone guides. The path probe is specified in [path resolution](../path-resolution.md), and the Vale rule in [Locale and language boundary](./locale-and-language.md).
+A partial gate checks one fragment of an advisory rule. Link validation fails on a link to a missing source file. With `lint.paths.severity` set to `error`, `merlon check` also fails on a backtick path that resolves nowhere. With peer Vale required, the `MerlonDocs.DatedClaim` rule fails on `as of <date>`, a claim pinned to its date, and on `until <date>`, a temporary note. The rule checks the files Vale scans, which [In-scope guide fileset](../../client-cli/optional-linters.md#in-scope-guide-fileset) lists. A shard outside those paths, such as a glossary that only `compile.scopeRoot` reaches, is not checked. The path probe skips such a glossary too, because it reads only the guide directories in `compileOrder` and the standalone guides. The path probe is specified in [path resolution](../path-resolution.md), and the Vale rule in [Locale and language boundary](./locale-and-language.md).
 
 The advisory rows are stated in the [Agent Skill](../agent-skill.md#quality-assurance-qa-principles). They are the rows worth moving, in whole or in fragments, as checks become possible.
 

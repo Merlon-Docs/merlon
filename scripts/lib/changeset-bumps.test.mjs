@@ -11,8 +11,8 @@ describe('changeset-bumps', () => {
     writeFileSync(
       join(dir, 'one.md'),
       `---
-'@bwilliamson/mdcp-cli': minor
-"@bwilliamson/skill-mdcp": patch
+'@merlon-docs/merlon-docs-cli': minor
+"@merlon-docs/skill-merlon-docs": patch
 ---
 
 Notes
@@ -22,8 +22,8 @@ Notes
     const parsed = parseChangesetBumps(dir);
     assert.equal(parsed.length, 1);
     assert.deepEqual(parsed[0].bumps, {
-      '@bwilliamson/mdcp-cli': 'minor',
-      '@bwilliamson/skill-mdcp': 'patch',
+      '@merlon-docs/merlon-docs-cli': 'minor',
+      '@merlon-docs/skill-merlon-docs': 'patch',
     });
   });
 
@@ -32,7 +32,7 @@ Notes
     writeFileSync(
       join(dir, 'break.md'),
       `---
-'@bwilliamson/mdcp-core': major
+'@merlon-docs/merlon-docs-core': major
 ---
 
 breaking
@@ -41,7 +41,7 @@ breaking
     writeFileSync(
       join(dir, 'ok.md'),
       `---
-'@bwilliamson/mdcp-cli': patch
+'@merlon-docs/merlon-docs-cli': patch
 ---
 
 fine
@@ -49,7 +49,7 @@ fine
     );
     const majors = findMajorBumps(dir);
     assert.equal(majors.length, 1);
-    assert.equal(majors[0].package, '@bwilliamson/mdcp-core');
+    assert.equal(majors[0].package, '@merlon-docs/merlon-docs-core');
     assert.equal(majors[0].file, 'break.md');
   });
 });

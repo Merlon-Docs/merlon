@@ -28,8 +28,8 @@ MDCP covers authoring and how agents query shards. Pandoc and static site genera
 Suited to the **Learner** and **Author** [adoption archetypes](../personas-and-priority-tiers.md#adoption-archetypes). Public copy must follow [Benefit claims and evidence](./benefit-claims-and-evidence.md).
 
 1. Install the parent Agent Skill with [its install command](../agent-skill.md#install-surfaces) before or alongside CLI setup.
-2. Use your existing agent (with `/mdcp`) to shard an existing source document and plan glossary entries.
-3. Wire mdcp, compile, and validate (`mdcp compile` / `mdcp check`).
+2. Use your existing agent (with `/merlon-docs`) to shard an existing source document and plan glossary entries.
+3. Wire mdcp, compile, and validate (`merlon compile` / `merlon check`).
 
 ## When to adopt MDCP
 
@@ -52,4 +52,4 @@ Suited to the **Learner** and **Author** [adoption archetypes](../personas-and-p
 | ------------------------------------------------------------------------------- | ------------------------------------------------------------ |
 | [Getting-started workflow](./workflows/getting-started.md) + one config session | Replaces bespoke compile scripts                             |
 | Shard + manifest workflow                                                       | When each change touches one shard, a PR touches fewer files |
-| `mdcp compile` and `mdcp check`                                                 | Same gate for human, agent, and CI                           |
+| `merlon compile` and `merlon check`                                             | Same gate for human, agent, and CI                           |

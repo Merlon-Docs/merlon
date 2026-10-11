@@ -6,7 +6,7 @@
 import { readdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
-export const SKILL_PACKAGE_SCOPE = '@bwilliamson/skill-';
+export const SKILL_PACKAGE_SCOPE = '@merlon-docs/skill-';
 export const SKILL_CARRIER_DIR_PREFIX = 'skill-';
 
 export function skillPackageName(skillId) {

@@ -7,7 +7,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for sharing a real-world mdcp adoption story. These reports back [Tier C benefit claims](https://github.com/betsalel-williamson/mdcp/blob/main/docs/features/protocol/benefit-claims-and-evidence.md) — outcomes we do not put on the README without evidence.
+        Thanks for sharing a real-world mdcp adoption story. These reports back [Tier C benefit claims](https://github.com/Merlon-Docs/merlon/blob/main/docs/features/protocol/benefit-claims-and-evidence.md) — outcomes we do not put on the README without evidence.
 
         Please describe what you tried and what changed. Rough notes are fine.
 
@@ -15,7 +15,7 @@ body:
     id: archetype
     attributes:
       label: Adoption archetype
-      description: Which goal best matches your experience? See [personas](https://github.com/betsalel-williamson/mdcp/blob/main/docs/features/personas-and-priority-tiers.md#adoption-archetypes).
+      description: Which goal best matches your experience? See [personas](https://github.com/Merlon-Docs/merlon/blob/main/docs/features/personas-and-priority-tiers.md#adoption-archetypes).
       options:
         - Builder — integrated mdcp into repo scripts or CI
         - Learner — tried mdcp with agent help first
@@ -26,9 +26,9 @@ body:
       required: true
 
   - type: input
-    id: mdcp-version
+    id: merlon-version
     attributes:
-      label: mdcp-cli version
+      label: merlon-docs-cli version
       description: e.g. 0.5.0 (from package.json or `mdcp --version`)
       placeholder: '0.5.0'
     validations:

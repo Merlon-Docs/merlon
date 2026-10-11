@@ -4,7 +4,7 @@ Product capability: the **doc-only** workflow of the `mdcp` skill authors or ref
 MDCP shards as a technical-writer pass — durable guide content without changing
 functional product code.
 
-Workflow file: [`skills/mdcp/references/workflows/doc-only.md`](../../../../skills/mdcp/references/workflows/doc-only.md).
+Workflow file: [`skills/merlon-docs/references/workflows/doc-only.md`](../../../../skills/merlon-docs/references/workflows/doc-only.md).
 [Skill workflows](../skill-workflows.md) covers the shared workflow contract: intake, atomic commit groups, guide placement, the glossary, and concept removal.
 
 ## End-user value
@@ -19,7 +19,7 @@ durable docs so search stays trustworthy.
 | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Docs-only branch       | One docs scope per branch, in `docs/features/`, `docs/client/`, `docs/developer/` and standalone guides                                                                                 |
 | Contracts not samples  | Put intent, contracts, and acceptance in shards, not code dumps; link a source file only as evidence for a claim ([code evidence](../../../client-core/compile-hooks/code-evidence.md)) |
-| Indexes and validation | Update guide `index.md` files; run `mdcp check` (do not hand-edit compile output or `refs.json`)                                                                                        |
+| Indexes and validation | Update guide `index.md` files; run `merlon check` (do not hand-edit compile output or `refs.json`)                                                                                      |
 | Current docs only      | Remove superseded workflows, planning backlogs, and pending `.changeset/*.md` links from durable shards                                                                                 |
 | Hard scope boundary    | No `src/` edits, unit tests, or “just fix the code too”; defer code work to feature-level                                                                                               |
 
@@ -49,8 +49,8 @@ A successful doc-only session typically:
 2. Updates guide indexes so shards are discoverable
 3. Leaves `packages/` / product `src/` unchanged
 4. Describes current product behavior only
-5. Passes repo docs validation (`mdcp check` / docs scripts)
+5. Passes repo docs validation (`merlon check` / docs scripts)
 
 Optional local with/without-skill grading for this workflow:
-[doc-only workflow live evals](../../../../tests/skills/mdcp/evals/doc-only/README.md)
+[doc-only workflow live evals](../../../../tests/skills/merlon-docs/evals/doc-only/README.md)
 (maintainer workflow — not a CI gate). See [Live skill evals](../../../developer/live-skill-evals.md).

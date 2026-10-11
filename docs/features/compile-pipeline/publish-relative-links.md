@@ -6,11 +6,11 @@ Specification for assembly-time rebasing of shard-relative file links to each gu
 
 Shards are authored with paths relative to the shard's own directory in the guide tree:
 
-- `../features/foo.md` from `docs/developer/` <!-- mdcp-paths: illustrative -->
-- `../../features/foo.md` from `docs/client-core/compile-hooks/` <!-- mdcp-paths: illustrative -->
+- `../features/foo.md` from `docs/developer/` <!-- merlon-paths: illustrative -->
+- `../../features/foo.md` from `docs/client-core/compile-hooks/` <!-- merlon-paths: illustrative -->
 - `../../.nvmrc` from `docs/developer/` (repo root)
 
-Those paths work while readers open shards under `docs/`. They break when the content compiles to a **publish output** in another directory, such as `DEVELOPERS.md` at the repo root or `packages/mdcp-cli/README.md`.
+Those paths work while readers open shards under `docs/`. They break when the content compiles to a **publish output** in another directory, such as `DEVELOPERS.md` at the repo root or `packages/merlon-docs-cli/README.md`.
 
 A stitched document doesn't record which shard each `../` hop came from. Nested shards use different `../` depths, and publish outputs sit in different directories, such as the repo root and `packages/*/`. String substitution after stitch can't rebase those paths. The pass resolves and rebases each one **per shard**, before stitch:
 
@@ -32,7 +32,7 @@ So a guide in the monolith is assembled twice. Its own [compiled guide](../../gl
 
 The pass runs per shard for every guide, after the other per-shard [link passes](./link-passes.md). It is named for [publish outputs](../../glossary/publish-output.md), but it rebases links in every compiled guide and in the monolith.
 
-Code: `rewritePublishRelativeLinks` in `packages/mdcp-core/src/compile/publish-links.ts`, invoked from `assembleGuide` with the guide's link base as `publishOutputFile`.
+Code: `rewritePublishRelativeLinks` in `packages/merlon-docs-core/src/compile/publish-links.ts`, invoked from `assembleGuide` with the guide's link base as `publishOutputFile`.
 
 ## Publish-relative matching
 
@@ -57,7 +57,7 @@ The pass finds the target in the order [Path lookup order](./path-lookup-order.m
 relative(dirname(linkBase), resolvedAbsolute) + optional #fragment
 ```
 
-An empty relative path means the target is the directory that contains the link base, and the pass writes `./` for it. That covers a `../`-only target and a named one, such as `../../pkg/` from `docs/pkg/` compiled into `pkg/README.md`. <!-- mdcp-paths: illustrative -->
+An empty relative path means the target is the directory that contains the link base, and the pass writes `./` for it. That covers a `../`-only target and a named one, such as `../../pkg/` from `docs/pkg/` compiled into `pkg/README.md`. <!-- merlon-paths: illustrative -->
 
 `linkBase` is the absolute path of the guide's [link base](#when-it-runs).
 
@@ -69,23 +69,23 @@ The pass **does not** transform:
 - Same-document `#fragment` links
 - Link syntax in fenced code or in a code span
 - `./section.md` and other `./` paths (cross-guide or intra-guide handle `.md`; publish-relative only matches `../`)
-- A link that the cross-guide pass rewrote, whose path is already relative to the link base, such as `../../README.md#setup` in a guide published to `packages/a/README.md` <!-- mdcp-paths: illustrative -->
+- A link that the cross-guide pass rewrote, whose path is already relative to the link base, such as `../../README.md#setup` in a guide published to `packages/a/README.md` <!-- merlon-paths: illustrative -->
 - A link that [`codeEvidence`](../../client-core/compile-hooks/code-evidence.md) rebased, whose path is relative to the link base too. From the shard's directory, the path can lead to another file with the same name.
 - Unresolvable paths (left unchanged)
 
 ## Examples from this repository
 
-Config: [`docs/mdcp.config.json`](../../mdcp.config.json). Every guide except `features` sets `compile.outputFile`, and the examples below show two of them. [`ignoreGuides` interaction](#ignoreguides-interaction) shows a third.
+Config: [`docs/merlon.config.json`](../../merlon.config.json). Every guide except `features` sets `compile.outputFile`, and the examples below show two of them. [`ignoreGuides` interaction](#ignoreguides-interaction) shows a third.
 
 **`developer` → `DEVELOPERS.md` (repo root)**
 
-| Shard input (`docs/developer/…`) | Compiled in `DEVELOPERS.md`    |
-| -------------------------------- | ------------------------------ |
-| `../../.nvmrc`                   | `.nvmrc`                       |
-| `../features/agent-skill.md`     | `docs/features/agent-skill.md` |
-| `../../packages/mdcp-site/`      | `packages/mdcp-site`           |
+| Shard input (`docs/developer/…`)   | Compiled in `DEVELOPERS.md`    |
+| ---------------------------------- | ------------------------------ |
+| `../../.nvmrc`                     | `.nvmrc`                       |
+| `../features/agent-skill.md`       | `docs/features/agent-skill.md` |
+| `../../packages/merlon-docs-site/` | `packages/merlon-docs-site`    |
 
-**`client-core/compile-hooks/` → `packages/mdcp-core/README.md`**
+**`client-core/compile-hooks/` → `packages/merlon-docs-core/README.md`**
 
 Nested shards use more `../` segments in source, and per-shard resolution gives each one the right path from the README:
 

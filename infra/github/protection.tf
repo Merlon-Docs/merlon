@@ -1,5 +1,5 @@
 resource "github_branch_protection" "main" {
-  repository_id = github_repository.mdcp.node_id
+  repository_id = github_repository.merlon.node_id
   pattern       = "main"
 
   enforce_admins                  = false

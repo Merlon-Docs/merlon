@@ -1,5 +1,5 @@
 ---
-'@bwilliamson/mdcp-core': patch
+'@merlon-docs/merlon-docs-core': patch
 ---
 
 The publish-relative pass now rebases a shard's own link to an output of the run, such as `../../README.md` or `../../DEVELOPERS.md#setup`, like a link to any other file. It counts each compiled guide as existing before compile writes it, and the monolith too when a guide is stitched into it. A first compile then rebases the link as later ones do. When every guide sets `compile.outputFile`, the run never writes the configured monolith. The pass then treats a path to the monolith as missing, even when an earlier run left the file on disk. Such a link used to keep its shard-relative path on a fresh tree and be rebased once the file was there.

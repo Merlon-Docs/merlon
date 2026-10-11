@@ -14,7 +14,7 @@
  *                               (characters ÷ 4, no tokenizer at all)
  *   --tokenizer-module <path>   your own counter: an ES module whose default export,
  *                               or named export countTokens, maps text to a number
- *   MDCP_TOKENIZER, MDCP_TOKENIZER_MODULE   the same, from the environment
+ *   MERLON_TOKENIZER, MERLON_TOKENIZER_MODULE   the same, from the environment
  *
  * Other flags: --out <csv> (default docs/features/protocol/research/context-size-dogfood-<date>.csv,
  * a new file for each day's run), --no-write (print only). A run worth keeping gets its own
@@ -41,7 +41,7 @@ export const ENCODINGS = [
   'gpt2',
 ];
 
-/** Shard directories measured as "one shard", one per guide in docs/mdcp.config.json. */
+/** Shard directories measured as "one shard", one per guide in docs/merlon.config.json. */
 const SHARD_DIRS = [
   'features',
   'developer',
@@ -55,15 +55,15 @@ const SHARD_DIRS = [
 const GUIDES = [
   ['monolith', 'docs/_build/guides.md'],
   ['developer', 'DEVELOPERS.md'],
-  ['client_cli', 'packages/mdcp-cli/README.md'],
-  ['client_core', 'packages/mdcp-core/README.md'],
+  ['client_cli', 'packages/merlon-docs-cli/README.md'],
+  ['client_core', 'packages/merlon-docs-core/README.md'],
   ['repo_readme', 'README.md'],
 ];
 
 export function parseArgs(argv, env = {}, recordedAt = new Date().toISOString().slice(0, 10)) {
   const opts = {
-    tokenizer: env.MDCP_TOKENIZER || 'o200k_base',
-    tokenizerModule: env.MDCP_TOKENIZER_MODULE || null,
+    tokenizer: env.MERLON_TOKENIZER || 'o200k_base',
+    tokenizerModule: env.MERLON_TOKENIZER_MODULE || null,
     out: join(RESEARCH_DIR, `context-size-dogfood-${recordedAt}.csv`),
     write: true,
   };

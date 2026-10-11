@@ -74,6 +74,6 @@ Set `compile.hooks` to a string array to replace the default pipeline entirely:
 
 ## Implementation
 
-`resolveCompileHooks` in `packages/mdcp-core/src/config/resolve-compile-hooks.ts` merges guide config into an effective hook name list before `assembleGuide` calls `applyCompileHooks`. Constant `DEFAULT_COMPILE_HOOKS` documents the default order.
+`resolveCompileHooks` in `packages/merlon-docs-core/src/config/resolve-compile-hooks.ts` merges guide config into an effective hook name list before `assembleGuide` calls `applyCompileHooks`. Constant `DEFAULT_COMPILE_HOOKS` documents the default order.
 
 Hook specs are in the [Compile hooks overview](../client-core/compile-hooks/index.md).

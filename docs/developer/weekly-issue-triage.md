@@ -37,15 +37,15 @@ No auto-close until you confirm.
 
 ```bash
 # Open issues (labels + milestone)
-gh issue list --repo betsalel-williamson/mdcp --state open --limit 100 \
+gh issue list --repo Merlon-Docs/merlon --state open --limit 100 \
   --json number,title,labels,milestone,updatedAt
 
 # Priority queue
-gh issue list --repo betsalel-williamson/mdcp --state open --label "priority:P0"
-gh issue list --repo betsalel-williamson/mdcp --state open --label "priority:P1"
+gh issue list --repo Merlon-Docs/merlon --state open --label "priority:P0"
+gh issue list --repo Merlon-Docs/merlon --state open --label "priority:P1"
 
 # Issues on the current delivery milestone (replace <milestone> with its title)
-gh issue list --repo betsalel-williamson/mdcp --milestone "<milestone>" --state open
+gh issue list --repo Merlon-Docs/merlon --milestone "<milestone>" --state open
 ```
 
 Compare the open-issue set to the board (Project UI filter, or GraphQL `projectV2.items`) and add gaps via [Add an issue to the board](./issue-intake-and-labels.md#add-an-issue-to-the-board-gh).

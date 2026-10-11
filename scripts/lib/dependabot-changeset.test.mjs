@@ -60,8 +60,8 @@ describe('renderChangeset', () => {
 describe('paths', () => {
   it('names the changeset after the PR and matches package manifests only', () => {
     assert.equal(changesetPath(276), '.changeset/dependabot-pr-276.md');
-    assert.ok(PACKAGE_JSON_PATH.test('packages/mdcp-core/package.json'));
+    assert.ok(PACKAGE_JSON_PATH.test('packages/merlon-docs-core/package.json'));
     assert.ok(!PACKAGE_JSON_PATH.test('package.json'));
-    assert.ok(!PACKAGE_JSON_PATH.test('packages/mdcp-core/src/package.json'));
+    assert.ok(!PACKAGE_JSON_PATH.test('packages/merlon-docs-core/src/package.json'));
   });
 });

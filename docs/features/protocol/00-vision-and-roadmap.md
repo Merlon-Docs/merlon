@@ -19,21 +19,21 @@ MDCP does not magically erase documentation debt. It helps head it off by puttin
 | Document before build/migrate  | Capture context in shards before greenfield work or migrations                                                          |
 | Granular, safe context         | Read one shard at a time, found with host search, as [refs](../../glossary/refs.md) says                                |
 | Direct value only              | Ship capabilities that close a unique gap                                                                               |
-| Skill + open toolchain         | Delivered as an Agent Skill; CLI/`mdcp-core` implement compile and check without locking you into a host                |
+| Skill + open toolchain         | Delivered as an Agent Skill; CLI/`merlon-docs-core` implement compile and check without locking you into a host         |
 | Extensions over core           | [`docs/extensions/`](./extensions-and-archetypes.md#extensions-directory) locally; shared packs in complementary skills |
 
 Filter for new capabilities: [Direct value bar](../design-constraints/direct-value-bar.md).
 
 ## Phased delivery
 
-| Phase  | Surface                                                                                                 | Access model                                                                                                           |
-| ------ | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| **V1** | The mdcp **Agent Skill** (`skills/mdcp` via `npx skills add`) + `mdcp compile`/`check` + task workflows | **V1 transport:** [repo access](./01-scope-and-positioning.md#documentation-domain-vs-transport) (git clone, SSH, IDE) |
-| **V2** | MDCP MCP server (shard read, glossary search)                                                           | Repo access                                                                                                            |
-| **V3** | Hosted context API (OpenAPI spec, API keys, polyglot clients)                                           | Opt-in publish                                                                                                         |
+| Phase  | Surface                                                                                                          | Access model                                                                                                           |
+| ------ | ---------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **V1** | The mdcp **Agent Skill** (`skills/merlon-docs` via `npx skills add`) + `merlon compile`/`check` + task workflows | **V1 transport:** [repo access](./01-scope-and-positioning.md#documentation-domain-vs-transport) (git clone, SSH, IDE) |
+| **V2** | MDCP MCP server (shard read, glossary search)                                                                    | Repo access                                                                                                            |
+| **V3** | Hosted context API (OpenAPI spec, API keys, polyglot clients)                                                    | Opt-in publish                                                                                                         |
 
 ```text
-  V1 authoring     shards → compile → check → Agent Skill (/mdcp)
+  V1 authoring     shards → compile → check → Agent Skill (/merlon-docs)
         ↓
   V2 delivery      MCP adapter (optional)
         ↓

@@ -38,7 +38,7 @@ DORA 2022 and 2023 didn't find a direct effect of documentation quality on softw
 
 There's no substitute for knowing the system. When a project leaves its intent, features and operating knowledge unwritten, from the technical parts to the non-technical ones, the software is released with gaps that someone later pays for.
 
-MDCP is a keystone AI skill for that one cause. It gives the knowledge a place to live that people and agents both read, in small shards that change in the same pull request as the code. `mdcp check` keeps the structure intact. Whether the words are true still depends on the agent following the skill and on human review. See [Usage model](./usage-model.md) for the workflow.
+MDCP is a keystone AI skill for that one cause. It gives the knowledge a place to live that people and agents both read, in small shards that change in the same pull request as the code. `merlon check` keeps the structure intact. Whether the words are true still depends on the agent following the skill and on human review. See [Usage model](./usage-model.md) for the workflow.
 
 ## Related
 

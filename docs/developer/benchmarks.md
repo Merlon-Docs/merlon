@@ -10,11 +10,11 @@
 pnpm build && pnpm docs:compile:repo
 ```
 
-`pnpm bench:dogfood` also runs `mdcp check` with the peer linters required. It needs Vale on `PATH` and the styles that `pnpm vale:sync` installs, as [Local setup](./local-setup.md#first-time-bootstrap) describes, and `pnpm install` provides markdownlint-cli2.
+`pnpm bench:dogfood` also runs `merlon check` with the peer linters required. It needs Vale on `PATH` and the styles that `pnpm vale:sync` installs, as [Local setup](./local-setup.md#first-time-bootstrap) describes, and `pnpm install` provides markdownlint-cli2.
 
 ## Performance benchmark
 
-`pnpm bench:dogfood` runs [`bench-dogfood-performance.mjs`](../../scripts/bench-dogfood-performance.mjs). It times `mdcp compile` and `mdcp check` on `docs/` as the median of three CLI runs, and one in-process compile and link lint. It writes `docs/features/protocol/research/benchmark-dogfood-<date>.csv`, one row per operation. [Tier 4](../features/protocol/performance.md#tier-4-regression-metrics) of the performance goals says what its ms/link row measures, and how to work out ms/shard by hand from the compile time.
+`pnpm bench:dogfood` runs [`bench-dogfood-performance.mjs`](../../scripts/bench-dogfood-performance.mjs). It times `merlon compile` and `merlon check` on `docs/` as the median of three CLI runs, and one in-process compile and link lint. It writes `docs/features/protocol/research/benchmark-dogfood-<date>.csv`, one row per operation. [Tier 4](../features/protocol/performance.md#tier-4-regression-metrics) of the performance goals says what its ms/link row measures, and how to work out ms/shard by hand from the compile time.
 
 ## Context-size benchmark
 
@@ -28,10 +28,10 @@ pnpm bench:context-size --tokenizer chars4 --no-write              # characters 
 pnpm bench:context-size --tokenizer-module ./count.mjs --no-write  # your counter: export countTokens(text)
 ```
 
-The other encodings are `o200k_harmony`, `p50k_base`, `p50k_edit`, `r50k_base` and `gpt2`. A counter module maps text to a number through its `countTokens` export or its default export. The script resolves a counter module's path and the `--out` path against the directory it runs in, which under pnpm is the repository root. `MDCP_TOKENIZER` and `MDCP_TOKENIZER_MODULE` set the same choices from the environment. `--tokenizer` overrides `MDCP_TOKENIZER`, and `--tokenizer-module` overrides `MDCP_TOKENIZER_MODULE`. A counter module from either source wins over an encoding, so unset `MDCP_TOKENIZER_MODULE` before you compare encodings with `--tokenizer`.
+The other encodings are `o200k_harmony`, `p50k_base`, `p50k_edit`, `r50k_base` and `gpt2`. A counter module maps text to a number through its `countTokens` export or its default export. The script resolves a counter module's path and the `--out` path against the directory it runs in, which under pnpm is the repository root. `MERLON_TOKENIZER` and `MERLON_TOKENIZER_MODULE` set the same choices from the environment. `--tokenizer` overrides `MERLON_TOKENIZER`, and `--tokenizer-module` overrides `MERLON_TOKENIZER_MODULE`. A counter module from either source wins over an encoding, so unset `MERLON_TOKENIZER_MODULE` before you compare encodings with `--tokenizer`.
 
 ## Keeping a run
 
 Each script puts the UTC date of the run in its CSV's file name, and a second run on the same UTC day overwrites that day's file. Commit a CSV you keep before you run again, and delete the CSV of a run you don't keep.
 
-A run you keep gets a research record beside its CSV, and earlier CSVs and records stay as measured. The new record goes into the records list in [About research records](../features/protocol/research/about-research-records.md#records), and the page it feeds links to it. For a context-size record that page is [Benefit claims and evidence](../features/protocol/benefit-claims-and-evidence.md#context-size), and its record link moves to the new record, as does the link on this page. The documentation site's context-size table reads one record's CSV, so a new context-size record also changes three things in `packages/mdcp-site/src/components/ContextSizes.astro`: the CSV import, `RECORD_PATH` and `RECORD_TITLE`.
+A run you keep gets a research record beside its CSV, and earlier CSVs and records stay as measured. The new record goes into the records list in [About research records](../features/protocol/research/about-research-records.md#records), and the page it feeds links to it. For a context-size record that page is [Benefit claims and evidence](../features/protocol/benefit-claims-and-evidence.md#context-size), and its record link moves to the new record, as does the link on this page. The documentation site's context-size table reads one record's CSV, so a new context-size record also changes three things in `packages/merlon-docs-site/src/components/ContextSizes.astro`: the CSV import, `RECORD_PATH` and `RECORD_TITLE`.

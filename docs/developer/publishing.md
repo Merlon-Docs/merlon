@@ -6,7 +6,7 @@ Consumers install the Agent Skill as [Get started](../repo-readme/get-started.md
 
 ## Prerequisites
 
-- npm account **`bwilliamson`** with access to publish `@bwilliamson/*`
+- npm account **`bwilliamson`** with access to publish `@merlon-docs/*`
 - **2FA enabled** on npm (auth-and-writes)
 - **`RELEASE_GITHUB_TOKEN`**, a secret of the `release` environment, as [Release token](#release-token) describes
 - `pnpm install` at repo root
@@ -22,7 +22,7 @@ A package's first npm publish runs from your machine with `npm login`, before Tr
 The release job in `release.yml` runs in the `release` environment. [Repository settings](./repository-settings.md) lists its reviewers and deployment branches.
 
 1. Each package → **Settings** → **Trusted Publisher** → **GitHub Actions**
-2. Repository: `betsalel-williamson/mdcp`
+2. Repository: `Merlon-Docs/merlon`
 3. Workflow filename: `release.yml`
 
 ## Tokens

@@ -16,10 +16,10 @@ import {
 
 describe('skill-packages', () => {
   it('maps skill ids to scoped private package names and carrier dirs', () => {
-    assert.equal(skillPackageName('mdcp'), '@bwilliamson/skill-mdcp');
-    assert.equal(skillCarrierDirName('mdcp-ux'), 'skill-mdcp-ux');
-    assert.equal(skillIdFromPackageName('@bwilliamson/skill-mdcp-ux'), 'mdcp-ux');
-    assert.equal(skillIdFromPackageName('@bwilliamson/mdcp-cli'), null);
+    assert.equal(skillPackageName('merlon-docs'), '@merlon-docs/skill-merlon-docs');
+    assert.equal(skillCarrierDirName('merlon-docs-ux'), 'skill-merlon-docs-ux');
+    assert.equal(skillIdFromPackageName('@merlon-docs/skill-merlon-docs-ux'), 'merlon-docs-ux');
+    assert.equal(skillIdFromPackageName('@merlon-docs/merlon-docs-cli'), null);
   });
 
   it('rewrites metadata.version without corrupting the YAML fence', () => {
@@ -53,7 +53,7 @@ metadata:
     writeFileSync(join(root, 'skills', 'alpha', 'SKILL.md'), '---\nname: a\n---\n');
     writeFileSync(
       join(root, 'packages', 'skill-alpha', 'package.json'),
-      JSON.stringify({ name: '@bwilliamson/skill-alpha', version: '1.0.0', private: true }),
+      JSON.stringify({ name: '@merlon-docs/skill-alpha', version: '1.0.0', private: true }),
     );
     assert.deepEqual(listSkillDirs(root), ['alpha']);
     assert.deepEqual(listSkillCarrierIds(root), ['alpha']);

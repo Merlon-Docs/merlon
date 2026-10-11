@@ -1,6 +1,6 @@
 # Config reference
 
-This page is the lookup material for `mdcp.config.json`. It gives the feature keys' defaults and the page that documents each key, then the `review` thresholds, the schema-only fields and the JSON Schema file. [Config essentials](./config-essentials.md) covers the minimal config and the paths every command resolves from.
+This page is the lookup material for `merlon.config.json`. It gives the feature keys' defaults and the page that documents each key, then the `review` thresholds, the schema-only fields and the JSON Schema file. [Config essentials](./config-essentials.md) covers the minimal config and the paths every command resolves from.
 
 ## Feature settings
 
@@ -50,7 +50,7 @@ This table links the page that documents each key:
 
 ## Review thresholds
 
-`mdcp review` reads optional thresholds from a top-level `review` object. Each value is a positive integer, and omitted keys keep their defaults.
+`merlon review` reads optional thresholds from a top-level `review` object. Each value is a positive integer, and omitted keys keep their defaults.
 
 ```json
 {
@@ -68,7 +68,7 @@ This table links the page that documents each key:
 | `review.maxShardWords`     | `2500`  | Most prose words one shard holds before `long-shard` fires                            |
 | `review.minDuplicateWords` | `25`    | Fewest words a paragraph needs before `duplicate-paragraph` compares it across shards |
 
-`mdcp review` also honors `scan.ignore` and `scan.root`, so paths the coverage scan skips stay out of the review. [Sprawl review](./commands-reference.md#sprawl-review) in Commands reference defines each signal.
+`merlon review` also honors `scan.ignore` and `scan.root`, so paths the coverage scan skips stay out of the review. [Sprawl review](./commands-reference.md#sprawl-review) in Commands reference defines each signal.
 
 ## Schema-only fields
 
@@ -79,4 +79,4 @@ This table links the page that documents each key:
 
 ## Full schema and sample config
 
-[`mdcp.config.schema.json`](../../packages/mdcp-core/mdcp.config.schema.json), a file in the mdcp repository that the npm packages leave out, is the JSON Schema for every key. The [sample guides' config](../../examples/sample-guides/mdcp.config.json) is a longer example. Its paths resolve only from the mdcp repository root, so copy single keys from it.
+[`merlon.config.schema.json`](../../packages/merlon-docs-core/merlon.config.schema.json), a file in the mdcp repository that the npm packages leave out, is the JSON Schema for every key. The [sample guides' config](../../examples/sample-guides/merlon.config.json) is a longer example. Its paths resolve only from the mdcp repository root, so copy single keys from it.

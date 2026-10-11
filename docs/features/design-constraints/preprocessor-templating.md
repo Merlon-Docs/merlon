@@ -5,7 +5,7 @@ MDCP does not run **preprocessor** or **templating** steps on shard source — n
 Those concerns belong in a separate tool or pipeline stage in the consumer repo:
 
 ```text
-preprocess (optional) → mdcp compile / check → postprocess (optional)
+preprocess (optional) → merlon compile / check → postprocess (optional)
 ```
 
 Run preprocessing **before** shards are authored or committed (or regenerate shards from templates in CI). Run postprocessing **after** MDCP produces compiled output when you need transforms on the assembled artifact.
@@ -15,7 +15,7 @@ Run preprocessing **before** shards are authored or committed (or regenerate sha
 - `{{variable}}` / `{{ env.VAR }}` substitution in shard bodies
 - Template engines (Handlebars, Nunjucks, Jinja-style `{% if %}` blocks)
 - Parameterized partial includes beyond MDCP's captioned insert inlining ([`inlineInserts`](../../client-core/compile-hooks/inline-inserts.md))
-- Build-time code generation that mutates shard markdown prior to `mdcp compile`
+- Build-time code generation that mutates shard markdown prior to `merlon compile`
 
 **Not compile hooks:** [`guides[].compile.hooks`](../../client-core/compile-hooks/index.md) assemble [authored GFM](../../glossary/authored-gfm.md) — link rewrites, insert inlining, and similar — not a template engine.
 

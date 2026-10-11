@@ -1,6 +1,6 @@
-# @bwilliamson/mdcp-core
+# @merlon-docs/merlon-docs-core
 
-- [@bwilliamson/mdcp-core](#table-of-contents)
+- [@merlon-docs/merlon-docs-core](#table-of-contents)
   - [About](./about.md)
 
 ## Get started

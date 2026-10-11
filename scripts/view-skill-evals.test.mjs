@@ -16,6 +16,6 @@ describe('view-skill-evals.sh', () => {
     // names the path it looked for.
     const run = spawnSync('bash', [script, '3'], { cwd: dir, encoding: 'utf8' });
     assert.equal(run.status, 1);
-    assert.match(run.stdout, /'\.agents\/skills\/mdcp-workspace\/iteration-3' not found/);
+    assert.match(run.stdout, /'\.agents\/skills\/merlon-docs-workspace\/iteration-3' not found/);
   });
 });

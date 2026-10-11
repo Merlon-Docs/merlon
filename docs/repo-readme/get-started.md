@@ -16,7 +16,7 @@ If you are deciding whether a team should adopt MDCP, read two pages before anyo
 Install the mdcp Agent Skill into your repository with the [`skills` CLI](https://www.skills.sh/docs/cli), which [skills.sh](https://skills.sh) also uses:
 
 ```bash
-npx skills add betsalel-williamson/mdcp --skill mdcp
+npx skills add Merlon-Docs/merlon --skill merlon-docs
 ```
 
 _This copies the skill into your agent's skills directory. The [`skills` CLI](https://www.skills.sh/docs/cli) picks the directory from `--agent` or by detecting the agent, and its docs list the path for each agent. Commit the copy to git so every teammate and agent shares the same documentation discipline._
@@ -24,11 +24,11 @@ _This copies the skill into your agent's skills directory. The [`skills` CLI](ht
 Then start a bootstrap session:
 
 ```text
-/mdcp help me get started
+/merlon-docs help me get started
 ```
 
 The bootstrap session starts by asking for the feature, the reader persona and your experience level. Then it helps wire config, guide layout, and validation. After bootstrap, it offers an optional **first feature** walk through design → feature → UX → doc-only (recommended example or your own), which you take or skip. Once the pipeline exists, the skill tells agents to read the shard for a task, compile the docs and validate references before they change the system.
 
 ## Path B: run the CLI in scripts and CI
 
-Install [`@bwilliamson/mdcp-cli`](../../packages/mdcp-cli/README.md) as a dev dependency and follow its [Quick start](../../packages/mdcp-cli/README.md#quick-start), which starts from a config for two guides and ends with the `docs:compile` and `docs:check` scripts that CI runs.
+Install [`@merlon-docs/merlon-docs-cli`](../../packages/merlon-docs-cli/README.md) as a dev dependency and follow its [Quick start](../../packages/merlon-docs-cli/README.md#quick-start), which starts from a config for two guides and ends with the `docs:compile` and `docs:check` scripts that CI runs.

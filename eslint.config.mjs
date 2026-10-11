@@ -15,8 +15,8 @@ export default tseslint.config(
       'legacy/**',
       '.agents/**',
       // Docs site: Astro cache and content generated from docs/ shards.
-      'packages/mdcp-site/.astro/**',
-      'packages/mdcp-site/.generated/**',
+      'packages/merlon-docs-site/.astro/**',
+      'packages/merlon-docs-site/.generated/**',
     ],
   },
   {
@@ -40,7 +40,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['packages/mdcp-site/**/*.mjs'],
+    files: ['packages/merlon-docs-site/**/*.mjs'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',

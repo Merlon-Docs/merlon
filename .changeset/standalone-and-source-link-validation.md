@@ -1,11 +1,11 @@
 ---
-'@bwilliamson/mdcp-core': minor
-'@bwilliamson/mdcp-cli': minor
+'@merlon-docs/merlon-docs-core': minor
+'@merlon-docs/merlon-docs-cli': minor
 ---
 
 Validate source-file link targets and link-lint standalone guides
 
-`mdcp check` now fails on a link whose target names a source file that does not
+`merlon check` now fails on a link whose target names a source file that does not
 resolve, in shard sources and in compiled output. Previously any target not
 ending in `.md` was skipped, so a link to a deleted module passed the gate
 indefinitely.

@@ -2,12 +2,12 @@
 
 mdcp uses [Semantic Versioning 2.0.0](https://semver.org/) and [Changesets](https://github.com/changesets/changesets) for predictable releases. **Each npm package and each Agent Skill versions independently** — a changeset only bumps the items it lists.
 
-| Item        | Identifier                  | Published to                                                       |
-| ----------- | --------------------------- | ------------------------------------------------------------------ |
-| CLI         | `@bwilliamson/mdcp-cli`     | npm + GitHub Release                                               |
-| Core        | `@bwilliamson/mdcp-core`    | npm + GitHub Release                                               |
-| Presets     | `@bwilliamson/mdcp-presets` | npm + GitHub Release                                               |
-| Agent Skill | `@bwilliamson/skill-<id>`   | GitHub Release only (private carrier under `packages/skill-<id>/`) |
+| Item        | Identifier                         | Published to                                                       |
+| ----------- | ---------------------------------- | ------------------------------------------------------------------ |
+| CLI         | `@merlon-docs/merlon-docs-cli`     | npm + GitHub Release                                               |
+| Core        | `@merlon-docs/merlon-docs-core`    | npm + GitHub Release                                               |
+| Presets     | `@merlon-docs/merlon-docs-presets` | npm + GitHub Release                                               |
+| Agent Skill | `@merlon-docs/skill-<id>`          | GitHub Release only (private carrier under `packages/skill-<id>/`) |
 
 Independent versioning is configured in [`.changeset/config.json`](../../.changeset/config.json) (`fixed` is empty). Dependents of a bumped workspace package still get a **patch** internal dependency update (`updateInternalDependencies`).
 
@@ -69,12 +69,12 @@ A notice to consumers about removed or breaking behavior goes in the changeset. 
 
 Run `pnpm changeset` when a change touches a published item:
 
-- any file under `packages/mdcp-core/` → `@bwilliamson/mdcp-core`
-- any file under `packages/mdcp-cli/` → `@bwilliamson/mdcp-cli`
-- any file under `packages/mdcp-presets/` → `@bwilliamson/mdcp-presets`
-- any file under `skills/<id>/` or `packages/skill-<id>/` → `@bwilliamson/skill-<id>`
+- any file under `packages/merlon-docs-core/` → `@merlon-docs/merlon-docs-core`
+- any file under `packages/merlon-docs-cli/` → `@merlon-docs/merlon-docs-cli`
+- any file under `packages/merlon-docs-presets/` → `@merlon-docs/merlon-docs-presets`
+- any file under `skills/<id>/` or `packages/skill-<id>/` → `@merlon-docs/skill-<id>`
 
-Every file in those paths counts, tests and compiled READMEs included, so a shard edit that changes `packages/mdcp-cli/README.md` or `packages/mdcp-core/README.md` needs a changeset for that package. The skill carriers count although they are private, because `.changeset/config.json` sets `privatePackages.version`. A change that edits only `devDependencies` in a package's `package.json` is exempt. `packages/mdcp-site/` is never published, and Changesets ignores it.
+Every file in those paths counts, tests and compiled READMEs included, so a shard edit that changes `packages/merlon-docs-cli/README.md` or `packages/merlon-docs-core/README.md` needs a changeset for that package. The skill carriers count although they are private, because `.changeset/config.json` sets `privatePackages.version`. A change that edits only `devDependencies` in a package's `package.json` is exempt. `packages/merlon-docs-site/` is never published, and Changesets ignores it.
 
 The land gate and CI on pull requests both run `pnpm changeset:reject-major` and `pnpm changeset:status`. For a package path, the status check fails unless the branch adds or edits a changeset. For `skills/<id>/` it fails only when no changeset is pending, so add one for the skill even when `develop` already has others. The status check passes any branch that consumed a changeset, and then it doesn't check the branch's own package changes either. A branch consumed one when its diff from the base deletes a changeset, as release and sync diffs do, or when its commits since the base include a release commit that deleted one. That release commit counts even when the changeset was never on the base, which happens to a sync when the hotfix sync before it didn't land.
 

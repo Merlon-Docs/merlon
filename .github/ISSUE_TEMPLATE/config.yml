@@ -1,5 +1,5 @@
 blank_issues_enabled: true
 contact_links:
   - name: Code of Conduct reports
-    url: https://github.com/betsalel-williamson/mdcp/issues/new
+    url: https://github.com/Merlon-Docs/merlon/issues/new
     about: For CoC enforcement, open an issue or contact repository owners privately on GitHub.

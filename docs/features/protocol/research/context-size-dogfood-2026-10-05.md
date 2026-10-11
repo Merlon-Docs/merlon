@@ -25,17 +25,17 @@ Measured on October 5, 2026, at commit `f5033db`. This record is not updated aft
 
 Measured, in characters and in `o200k_base` tokens:
 
-| What was measured                       | File or set                    | Characters | Tokens (estimate) |
-| --------------------------------------- | ------------------------------ | ---------- | ----------------- |
-| The monolith                            | `docs/_build/guides.md`        | 282,975    | 61,941            |
-| The developer guide                     | `DEVELOPERS.md`                | 140,938    | 29,939            |
-| The core guide                          | `packages/mdcp-core/README.md` | 81,349     | 18,387            |
-| The CLI guide                           | `packages/mdcp-cli/README.md`  | 59,408     | 13,459            |
-| The repository README                   | `README.md`                    | 10,366     | 2,537             |
-| The largest shard                       | one of 132                     | 20,490     | 4,505             |
-| 90th percentile, each column separately | 132 shards                     | 8,832      | 1,868             |
-| Median, each column separately          | 132 shards                     | 2,696      | 651               |
-| Features median, each column separately | 53 shards                      | 4,319      | 864               |
+| What was measured                       | File or set                           | Characters | Tokens (estimate) |
+| --------------------------------------- | ------------------------------------- | ---------- | ----------------- |
+| The monolith                            | `docs/_build/guides.md`               | 282,975    | 61,941            |
+| The developer guide                     | `DEVELOPERS.md`                       | 140,938    | 29,939            |
+| The core guide                          | `packages/merlon-docs-core/README.md` | 81,349     | 18,387            |
+| The CLI guide                           | `packages/merlon-docs-cli/README.md`  | 59,408     | 13,459            |
+| The repository README                   | `README.md`                           | 10,366     | 2,537             |
+| The largest shard                       | one of 132                            | 20,490     | 4,505             |
+| 90th percentile, each column separately | 132 shards                            | 8,832      | 1,868             |
+| Median, each column separately          | 132 shards                            | 2,696      | 651               |
+| Features median, each column separately | 53 shards                             | 4,319      | 864               |
 
 The mean is 3,839 characters and 832 tokens per shard. The features median is 1.5% of the monolith by characters and 1.4% by estimated tokens.
 

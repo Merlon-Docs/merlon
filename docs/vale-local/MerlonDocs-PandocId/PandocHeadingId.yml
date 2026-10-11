@@ -1,0 +1,8 @@
+extends: existence
+message: "Remove Pandoc ID '%s'; Merlon Docs uses GFM auto-slugs from heading text."
+link: https://github.com/Merlon-Docs/merlon/blob/main/docs/features/design-constraints/locale-and-language.md
+level: error
+scope: heading
+nonword: true
+tokens:
+  - '\{#[A-Za-z0-9][A-Za-z0-9_-]*\}'

@@ -1,0 +1,49 @@
+{
+  "name": "@merlon-docs/merlon-docs-presets",
+  "version": "0.8.0",
+  "description": "Starter markdownlint and Vale presets for MarkDown Context Protocol consumers",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Merlon-Docs/merlon.git",
+    "directory": "packages/merlon-docs-presets"
+  },
+  "bugs": {
+    "url": "https://github.com/Merlon-Docs/merlon/issues"
+  },
+  "homepage": "https://github.com/Merlon-Docs/merlon/tree/main/packages/merlon-docs-presets#readme",
+  "keywords": [
+    "markdown",
+    "markdownlint",
+    "vale",
+    "merlon-docs",
+    "mdcp",
+    "presets"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "files": [
+    "*.jsonc",
+    "vale/**",
+    "vale/package/**",
+    "README.md"
+  ],
+  "exports": {
+    "./markdownlint-shards.markdownlint-cli2.jsonc": "./markdownlint-shards.markdownlint-cli2.jsonc",
+    "./markdownlint-compiled.markdownlint-cli2.jsonc": "./markdownlint-compiled.markdownlint-cli2.jsonc",
+    "./vale/merlon.vale.ini": "./vale/merlon.vale.ini",
+    "./vale/MerlonDocs/*": "./vale/MerlonDocs/*",
+    "./vale/package/.vale.ini": "./vale/package/.vale.ini",
+    "./vale/package/styles/MerlonDocs/*": "./vale/package/styles/MerlonDocs/*"
+  },
+  "scripts": {
+    "prepublishOnly": "node ../../scripts/validate-presets.mjs"
+  }
+}

@@ -1,6 +1,6 @@
 ---
-'@bwilliamson/mdcp-core': patch
-'@bwilliamson/mdcp-cli': patch
+'@merlon-docs/merlon-docs-core': patch
+'@merlon-docs/merlon-docs-cli': patch
 ---
 
 Cross-guide link rewriting, `docs/features/compile-pipeline/cross-guide-links.md` in the Features Guide's Compile pipeline group, now states how `compile.crossGuideLinks.ignoreGuides` and same compiled output preference interact. Compile behaves as before.

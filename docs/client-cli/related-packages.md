@@ -1,7 +1,7 @@
 # Related packages
 
-- [`@bwilliamson/mdcp-core`](https://www.npmjs.com/package/@bwilliamson/mdcp-core): the programmatic compile, refs, and validation API
-- [`@bwilliamson/mdcp-presets`](https://www.npmjs.com/package/@bwilliamson/mdcp-presets): starter markdownlint configs for shards and compiled output, and the MDCP Vale style
+- [`@merlon-docs/merlon-docs-core`](https://www.npmjs.com/package/@merlon-docs/merlon-docs-core): the programmatic compile, refs, and validation API
+- [`@merlon-docs/merlon-docs-presets`](https://www.npmjs.com/package/@merlon-docs/merlon-docs-presets): starter markdownlint configs for shards and compiled output, and the MDCP Vale style
 
 ## Further reading
 

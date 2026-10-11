@@ -11,7 +11,7 @@
 | Problem         | Runtime tool and data access for AI hosts | Author, compile, and validate documentation context                     |
 | Interaction     | JSON-RPC session                          | Files on disk + batch CLI                                               |
 | Source of truth | Server-defined                            | **Shards in version control (git in V1)**; compiled output is generated |
-| Validation      | Server-defined                            | One validation gate, `mdcp check`                                       |
+| Validation      | Server-defined                            | One validation gate, `merlon check`                                     |
 
 ## Why MDCP is not an MCP server
 
@@ -45,7 +45,7 @@ OpenAPI defines HTTP API contracts. MDCP defines **documentation context contrac
 | Layer                     | Owner                                                                                                  |
 | ------------------------- | ------------------------------------------------------------------------------------------------------ |
 | Normative spec (MDCP 1.0) | `docs/features/` (protocol/ plus the compile and check specs)                                          |
-| Protocol artifacts        | Schema files in `packages/mdcp-core/`                                                                  |
+| Protocol artifacts        | Schema files in `packages/merlon-docs-core/`                                                           |
 | Extension packs           | complementary skills + local [`docs/extensions/`](./extensions-and-archetypes.md#extensions-directory) |
-| Reference implementation  | `@bwilliamson/mdcp-cli`, `@bwilliamson/mdcp-core`                                                      |
+| Reference implementation  | `@merlon-docs/merlon-docs-cli`, `@merlon-docs/merlon-docs-core`                                        |
 | Delivery adapters (V2/V3) | MCP server, hosted API                                                                                 |

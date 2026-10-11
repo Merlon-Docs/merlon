@@ -4,11 +4,11 @@ Instructions for coding agents in this repository. `CLAUDE.md` is a symlink to t
 
 ## Project
 
-This is the mdcp monorepo: a documentation-system Agent Skill plus a TypeScript toolchain in pnpm workspaces. The application is the `mdcp` CLI in `packages/mdcp-cli`, built on `packages/mdcp-core` and driven through `pnpm` scripts. The repository deploys no server, only the static docs site. Locally, `pnpm site:dev` serves that site and `pnpm presentation:serve` serves the slide deck.
+This is the mdcp monorepo: a documentation-system Agent Skill plus a TypeScript toolchain in pnpm workspaces. The application is the `mdcp` CLI in `packages/merlon-docs-cli`, built on `packages/merlon-docs-core` and driven through `pnpm` scripts. The repository deploys no server, only the static docs site. Locally, `pnpm site:dev` serves that site and `pnpm presentation:serve` serves the slide deck.
 
 ## Shard discipline (critical)
 
-Documentation is sharded under `docs/`. Shards are the source of truth and compiled output is generated. **Never hand-edit compiled files.** Edit the source shard under `docs/` and run `pnpm docs:compile:repo`. A file with `<!-- mdcp-shard: start ... -->` markers is compiled output, and each marker gives the path of its source shard. [Guide directories](docs/developer/docs-dogfooding.md#guide-directories) lists every compiled output and its shard directory. CI recompiles every guide and fails when `git diff` shows a stale compiled file.
+Documentation is sharded under `docs/`. Shards are the source of truth and compiled output is generated. **Never hand-edit compiled files.** Edit the source shard under `docs/` and run `pnpm docs:compile:repo`. A file with `<!-- merlon-shard: start ... -->` markers is compiled output, and each marker gives the path of its source shard. [Guide directories](docs/developer/docs-dogfooding.md#guide-directories) lists every compiled output and its shard directory. CI recompiles every guide and fails when `git diff` shows a stale compiled file.
 
 ## Before you run anything
 

@@ -9,7 +9,7 @@ MDCP is designed for **full programs** (hundreds of shards across multiple guide
 | Actor                    | Hot path                        | Expectation                                        |
 | ------------------------ | ------------------------------- | -------------------------------------------------- |
 | LLM doc author           | edit shard → `check`            | Compile+check under a few seconds during authoring |
-| CI                       | `mdcp check --require-lint`     | PR gate completes before reviewer context switches |
+| CI                       | `merlon check --require-lint`   | PR gate completes before reviewer context switches |
 | Agent (context consumer) | Host search → single-shard read | No mdcp target, because this path doesn't run mdcp |
 
 The [usage model](./usage-model.md) prefers granular context (one shard at a time). Performance work keeps that model viable as repos grow.
@@ -51,7 +51,7 @@ The core stages are orphans, compile, refs, built-in links and coverage, the [Ch
 | File reads / shard              | → 1                                             |
 | Compile invocations per `check` | → 1                                             |
 
-For the last two rows the benchmark writes a fixed 1, so only unit tests can catch a regression there. [`shard-cache.test.ts`](../../../packages/mdcp-core/test/shard-cache.test.ts) fails when a compile reads a shard file more than once, and [`compile-workspace.test.ts`](../../../packages/mdcp-cli/test/compile-workspace.test.ts) fails when one command compiles more than once.
+For the last two rows the benchmark writes a fixed 1, so only unit tests can catch a regression there. [`shard-cache.test.ts`](../../../packages/merlon-docs-core/test/shard-cache.test.ts) fails when a compile reads a shard file more than once, and [`compile-workspace.test.ts`](../../../packages/merlon-docs-cli/test/compile-workspace.test.ts) fails when one command compiles more than once.
 
 A guide in the [monolith](../../glossary/monolith.md) is assembled once for its compiled guide and once for the monolith, because paths and section slugs differ between the two files. Shard reads stay at one per shard. The second assembly can push ms/shard past the 20% limit in the table above, and the double assembly is an accepted exception to that limit.
 

@@ -6,7 +6,7 @@
 | -------------------------------- | ---------------------------------------------- |
 | `shardFromMonolith`, `runMdTree` | Split a source document into guide directories |
 
-`shardFromMonolith` reads a source document such as a legacy README, not the compiled monolith. It splits the source at its H1 headings. Each `mappings` entry either picks H1 sections for one guide (`h1Index` or `mergeH1Indices`) and splits them as [Map the document to guides](../client-cli/consumer-migration.md#map-the-document-to-guides) describes, or copies an existing directory (`directoryPath`). `mdcp shard` builds the mappings from each guide's `source` config.
+`shardFromMonolith` reads a source document such as a legacy README, not the compiled monolith. It splits the source at its H1 headings. Each `mappings` entry either picks H1 sections for one guide (`h1Index` or `mergeH1Indices`) and splits them as [Map the document to guides](../client-cli/consumer-migration.md#map-the-document-to-guides) describes, or copies an existing directory (`directoryPath`). `merlon shard` builds the mappings from each guide's `source` config.
 
 ## Peer tools
 

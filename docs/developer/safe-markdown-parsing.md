@@ -1,6 +1,6 @@
 # Safe markdown parsing
 
-Maintainer note on the `mdcp-core` parsers for headings, fences, broken-link markers and links. It says why they are shared **language-agnostic** helpers and hand-written scanners instead of ad-hoc regular expressions, and which regexes remain in the package. The table reader has its own page, [Tables after link rewriting](../features/compile-pipeline/tables-after-link-rewriting.md). [ADR 0005](../features/adr/0005-keep-ts-scanners-over-rg-peggy-rust.md) records how the rule came about and why the scanners stay in TypeScript.
+Maintainer note on the `merlon-docs-core` parsers for headings, fences, broken-link markers and links. It says why they are shared **language-agnostic** helpers and hand-written scanners instead of ad-hoc regular expressions, and which regexes remain in the package. The table reader has its own page, [Tables after link rewriting](../features/compile-pipeline/tables-after-link-rewriting.md). [ADR 0005](../features/adr/0005-keep-ts-scanners-over-rg-peggy-rust.md) records how the rule came about and why the scanners stay in TypeScript.
 
 ## Why this is necessary
 
@@ -10,10 +10,10 @@ Everyday docs rarely hit the pathological case, but open alerts block a clean se
 
 ## Shared linear helpers
 
-The helpers in `packages/mdcp-core/src/markdown/` run in linear time. They cover these jobs:
+The helpers in `packages/merlon-docs-core/src/markdown/` run in linear time. They cover these jobs:
 
 - parsing each heading line with `parseHeading` (ATX kind today; see [GFM scope](../features/design-constraints/gfm-scope.md#headings)) and writing it back as ATX with `formatHeadingAsAtx`
-- stripping leftover Pandoc IDs (`{#…}`) when cleaning compiled output, as defensive cleanup (the Vale style `MDCP-PandocId` reports an error on a heading that has one)
+- stripping leftover Pandoc IDs (`{#…}`) when cleaning compiled output, as defensive cleanup (the Vale style `MerlonDocs-PandocId` reports an error on a heading that has one)
 - producing plain heading text for language-agnostic [heading slug](../glossary/heading-slug.md) generation
 - tracking fenced code blocks line by line, masking non-prose regions and counting words for prose checks
 
@@ -25,11 +25,11 @@ Link validation finds broken-link markers with `findTemplateMatches`, a scanner 
 
 The manifest walk and the `inlineInserts` hook read a whole manifest or shard body with `scanMarkdownLinks` in `compile/link-scan.ts`, the scanner that [Link idioms](#link-idioms) describes. The walk also reads `](#slug)` links with `slugLinkTargets` in that file. It returns what the regex `\]\(#([^)]+)\)` matches, a target that can span lines, in time that grows linearly with the text.
 
-`codeEvidence` reads line ranges such as `L6-L8` or `lines 12–15` with `lineRangeFromText`, an imperative scanner in `compile/hooks/line-range.ts`. It takes its words from the locale pack. The hook trims the backticks around a link label with a loop, and `shardLintPaths` uses one too, for the slashes at the end of a `shardsGlobs` entry that starts with `../`. Public package APIs keep their names, and call sites delegate to the helpers. Duration-budget tests in `packages/mdcp-core/test/redos-budget.test.ts` run the helpers and scanners on pump inputs, so a regex that brings the class back fails CI.
+`codeEvidence` reads line ranges such as `L6-L8` or `lines 12–15` with `lineRangeFromText`, an imperative scanner in `compile/hooks/line-range.ts`. It takes its words from the locale pack. The hook trims the backticks around a link label with a loop, and `shardLintPaths` uses one too, for the slashes at the end of a `shardsGlobs` entry that starts with `../`. Public package APIs keep their names, and call sites delegate to the helpers. Duration-budget tests in `packages/merlon-docs-core/test/redos-budget.test.ts` run the helpers and scanners on pump inputs, so a regex that brings the class back fails CI.
 
 ## Regex sites that remain
 
-A regex in `packages/mdcp-core/src/` falls under this rule:
+A regex in `packages/merlon-docs-core/src/` falls under this rule:
 
 - **Keep** a pattern that is clearly linear.
 - **Rewrite** a pattern next to the CodeQL class, such as `\s*` or overlapping optional groups next to digits, as a scanner with a duration-budget test.
@@ -81,4 +81,4 @@ Link lint, broken-link marking, the link passes and `codeEvidence` mask code spa
 - Prefer the shared helpers for new heading or slug logic; do not add new polynomial-risk regexes for those jobs.
 - Prefer imperative scanners when adding line-range style matchers (optional whitespace next to digits or overlapping alternatives). Authored **word** cues for line ranges belong in the locale pack; keep `L` / `:` forms and `#L…` output language-neutral in the scanner.
 - Prefer GFM auto-slugs. Don't author Pandoc IDs on headings, since Vale reports an error on one in this repo. Compile still strips them from legacy content.
-- Don't reintroduce `lintXrefs` or chapter-cue regexes in `mdcp-core`. Unlinked chapter and section cues in prose are Vale's job, as [Locale and language boundary](../features/design-constraints/locale-and-language.md) describes.
+- Don't reintroduce `lintXrefs` or chapter-cue regexes in `merlon-docs-core`. Unlinked chapter and section cues in prose are Vale's job, as [Locale and language boundary](../features/design-constraints/locale-and-language.md) describes.

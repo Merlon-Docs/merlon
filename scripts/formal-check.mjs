@@ -53,7 +53,7 @@ async function ensureJar() {
   writeFileSync(jar, bytes);
 }
 
-const out = mkdtempSync(join(tmpdir(), 'mdcp-alloy-'));
+const out = mkdtempSync(join(tmpdir(), 'merlon-alloy-'));
 
 /** Run the Alloy CLI with its scratch files kept inside `out`. */
 function alloy(args) {

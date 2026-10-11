@@ -23,5 +23,5 @@ pnpm run vale:sync
 # --- Build (dist/ is gitignored, required before CLI/docs scripts) ---
 pnpm build
 
-# --- Agent Skill: install this checkout's mdcp skill, so agents use the latest ---
+# --- Agent Skill: install this checkout's merlon-docs skill, so agents use the latest ---
 pnpm run skill:dev

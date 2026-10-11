@@ -28,7 +28,7 @@ The scan walks the scan root for `*.md`, removes ignored vendor paths, then subt
 
 ### Compiled guides are captured, not standalone
 
-A compiled guide's output file is captured automatically as an output target, and generated files such as `README.md`, `DEVELOPERS.md` and the package READMEs don't appear as uncaptured. **Do not list a compiled guide output in `standaloneGuides[]`.** It is already accounted for, and `standaloneGuides[]` is only for files that no compile step produces. This rule is advisory, applied by whoever edits the config, and the `standaloneGuides[]` entries in the config diff are its evidence. A duplicate entry is captured like any other, and `mdcp check` passes with it.
+A compiled guide's output file is captured automatically as an output target, and generated files such as `README.md`, `DEVELOPERS.md` and the package READMEs don't appear as uncaptured. **Do not list a compiled guide output in `standaloneGuides[]`.** It is already accounted for, and `standaloneGuides[]` is only for files that no compile step produces. This rule is advisory, applied by whoever edits the config, and the `standaloneGuides[]` entries in the config diff are its evidence. A duplicate entry is captured like any other, and `merlon check` passes with it.
 
 The two sets are distinct: a file compiled from shards belongs to the guide output set, while `standaloneGuides[]` holds hand-authored single files. A compiled guide is never a standalone guide.
 
@@ -40,19 +40,19 @@ The scan honors the repository `.gitignore` by default, so paths already exclude
 
 ## Check surface
 
-`mdcp check` runs the coverage scan and prints each uncaptured path (`uncaptured: …`) plus any `standaloneGuides[]` entries that match no file (`missing-standalone: …`). When gaps exist, it also prints a one-line `coverage:` summary.
+`merlon check` runs the coverage scan and prints each uncaptured path (`uncaptured: …`) plus any `standaloneGuides[]` entries that match no file (`missing-standalone: …`). When gaps exist, it also prints a one-line `coverage:` summary.
 
 The scan doesn't follow symbolic links, so a `standaloneGuides[]` entry whose path is a symlink is reported as `missing-standalone`. Register the file the link points to instead.
 
-By default the report is non-fatal. Set `scan.strict: true` so `mdcp check` exits `1` on uncaptured files or missing standalone entries. Turn it on in CI once every file is registered.
+By default the report is non-fatal. Set `scan.strict: true` so `merlon check` exits `1` on uncaptured files or missing standalone entries. Turn it on in CI once every file is registered.
 
 Machine-readable inventory (captured / uncaptured / standalone / missing) is available from core via `computeCoverage`.
 
-| Condition                        | `mdcp check` exit contribution |
-| -------------------------------- | ------------------------------ |
-| No gaps                          | none                           |
-| Gaps, `scan.strict` false/absent | none (warning lines only)      |
-| Gaps, `scan.strict: true`        | fails check                    |
+| Condition                        | `merlon check` exit contribution |
+| -------------------------------- | -------------------------------- |
+| No gaps                          | none                             |
+| Gaps, `scan.strict` false/absent | none (warning lines only)        |
+| Gaps, `scan.strict: true`        | fails check                      |
 
 ## Relationship to the orphan check
 
@@ -60,7 +60,7 @@ The coverage scan does not replace the [orphan check](./manifest-compile-order.m
 
 | Check         | Scope                                                                                                  | Severity                                   |
 | ------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------ |
-| Orphan check  | A top-level shard in a guide directory missing from its manifest, or a manifest link to a missing file | Error (fails `mdcp check`)                 |
+| Orphan check  | A top-level shard in a guide directory missing from its manifest, or a manifest link to a missing file | Error (fails `merlon check`)               |
 | Coverage scan | Any markdown file under the repo that no guide accounts for                                            | Warning, or error when `scan.strict: true` |
 
 The orphan check stays a hard error because a shard in a guide directory is clearly meant to compile. The coverage scan is a warning because an uncaptured file may be intentional until registered as standalone.
@@ -87,7 +87,7 @@ The orphan check stays a hard error because a shard in a guide directory is clea
 | `scan.gitignore`   | `true`               | Honor repo-root `.gitignore` inside git; scan-root only otherwise |
 | `scan.ignore`      | `[]`                 | Extra directories or globs to skip, added to the built-in skips   |
 | `scan.root`        | invocation directory | Root the scan walks for markdown files                            |
-| `scan.strict`      | `false`              | Fail `mdcp check` on coverage gaps                                |
+| `scan.strict`      | `false`              | Fail `merlon check` on coverage gaps                              |
 
 ## Coverage scan acceptance criteria
 
@@ -99,7 +99,7 @@ The orphan check stays a hard error because a shard in a guide directory is clea
 - The scan honors `.gitignore` by default (repo-root `.gitignore` when inside a git working tree; `scan.root` `.gitignore` only when not); `scan.gitignore: false` disables it.
 - Built-in defaults (`.git`, `node_modules`, `.agents`) are always skipped; `scan.ignore` extends them.
 - A `standaloneGuides[]` entry matching no file is reported as missing.
-- `mdcp check` prints uncaptured and missing-standalone paths; with `scan.strict: true` those gaps fail the gate.
+- `merlon check` prints uncaptured and missing-standalone paths; with `scan.strict: true` those gaps fail the gate.
 - The coverage scan doesn't change what the orphan check reports.
 
 ## Coverage scan related

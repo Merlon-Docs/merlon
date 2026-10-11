@@ -4,14 +4,14 @@
 
 Every command accepts:
 
-| Option                | Default            | Purpose                                                                          |
-| --------------------- | ------------------ | -------------------------------------------------------------------------------- |
-| `-c, --config <path>` | `mdcp.config.json` | Config file path, resolved from the **invocation directory** (not `--docs-root`) |
-| `--docs-root <path>`  | current directory  | Docs root — one subdirectory per guide shard tree                                |
-| `--warn-broken-links` | off                | Report broken internal links but exit 0 (overrides `lint.links.severity`)        |
-| `--backup`            | off                | Move existing output files to the cache before overwriting them                  |
-| `--backup-dir <path>` | from config        | Backup directory, relative to `outputDir` or absolute                            |
-| `--backup-ext <ext>`  | from config        | Suffix for backup file names                                                     |
+| Option                | Default              | Purpose                                                                          |
+| --------------------- | -------------------- | -------------------------------------------------------------------------------- |
+| `-c, --config <path>` | `merlon.config.json` | Config file path, resolved from the **invocation directory** (not `--docs-root`) |
+| `--docs-root <path>`  | current directory    | Docs root — one subdirectory per guide shard tree                                |
+| `--warn-broken-links` | off                  | Report broken internal links but exit 0 (overrides `lint.links.severity`)        |
+| `--backup`            | off                  | Move existing output files to the cache before overwriting them                  |
+| `--backup-dir <path>` | from config          | Backup directory, relative to `outputDir` or absolute                            |
+| `--backup-ext <ext>`  | from config          | Suffix for backup file names                                                     |
 
 Repo-root npm scripts pass both `--config` and `--docs-root`, as [`--config` vs `--docs-root`](./config-essentials.md#--config-vs---docs-root) explains.
 
@@ -19,38 +19,38 @@ Repo-root npm scripts pass both `--config` and `--docs-root`, as [`--config` vs 
 
 ```bash
 # Compile every guide from its shards (link order from each guide's manifest, index.md by default)
-mdcp compile
+merlon compile
 
 # Run the full validation gate
-mdcp check
+merlon check
 ```
 
-`mdcp compile` and `mdcp check` exit **1** when broken internal links are found (default). Use `--warn-broken-links` to surface `link-warn:` diagnostics without failing CI. See [Link validation](../features/link-validation.md).
+`merlon compile` and `merlon check` exit **1** when broken internal links are found (default). Use `--warn-broken-links` to surface `link-warn:` diagnostics without failing CI. See [Link validation](../features/link-validation.md).
 
-When a continuing stage of `mdcp check` fails, the run ends with a stderr **failure summary** of the failed steps and how to fix each one, unless coverage stops it first under `scan.strict: true`. A CI log then shows why the run failed, even after a peer's own success lines. [Check gate](../features/check-gate.md) lists the stages in order and says which of them stop the run.
+When a continuing stage of `merlon check` fails, the run ends with a stderr **failure summary** of the failed steps and how to fix each one, unless coverage stops it first under `scan.strict: true`. A CI log then shows why the run failed, even after a peer's own success lines. [Check gate](../features/check-gate.md) lists the stages in order and says which of them stop the run.
 
 ## Command summary
 
-| Command                                              | When you need it                                                                                                                                                             |
-| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mdcp compile`                                       | Regenerate compiled outputs and `refs.json` under `outputDir` (exits 1 on broken links by default)                                                                           |
-| `mdcp check`                                         | Run the full validation gate (exits 1 when any stage fails)                                                                                                                  |
-| `mdcp review`                                        | Report documentation sprawl signals across guide shards (report-only; `--strict` to fail)                                                                                    |
-| `mdcp shard`                                         | Split a source document into shards (requires top-level `source` and a `source` on each guide; see [Consumer migration](./consumer-migration.md#map-the-document-to-guides)) |
-| `mdcp refs-gen`, `mdcp refs-check`, `mdcp refs-list` | Generate, verify or list the refs registry, as [Refs subcommands](#refs-subcommands) describes                                                                               |
-| `mdcp lint`                                          | markdownlint-cli2 on shards and compiled output (peer, if installed)                                                                                                         |
-| `mdcp prose`                                         | Vale prose lint (peer, if installed)                                                                                                                                         |
-| `mdcp links`                                         | markdown-link-check on compiled output (peer, if installed)                                                                                                                  |
-| `mdcp fix`                                           | Prettier + markdownlint `--fix`; needs a markdownlint-cli2 config with `globs` and always exits 0 ([Optional linters](./optional-linters.md))                                |
+| Command                                                    | When you need it                                                                                                                                                             |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `merlon compile`                                           | Regenerate compiled outputs and `refs.json` under `outputDir` (exits 1 on broken links by default)                                                                           |
+| `merlon check`                                             | Run the full validation gate (exits 1 when any stage fails)                                                                                                                  |
+| `merlon review`                                            | Report documentation sprawl signals across guide shards (report-only; `--strict` to fail)                                                                                    |
+| `merlon shard`                                             | Split a source document into shards (requires top-level `source` and a `source` on each guide; see [Consumer migration](./consumer-migration.md#map-the-document-to-guides)) |
+| `merlon refs-gen`, `merlon refs-check`, `merlon refs-list` | Generate, verify or list the refs registry, as [Refs subcommands](#refs-subcommands) describes                                                                               |
+| `merlon lint`                                              | markdownlint-cli2 on shards and compiled output (peer, if installed)                                                                                                         |
+| `merlon prose`                                             | Vale prose lint (peer, if installed)                                                                                                                                         |
+| `merlon links`                                             | markdown-link-check on compiled output (peer, if installed)                                                                                                                  |
+| `merlon fix`                                               | Prettier + markdownlint `--fix`; needs a markdownlint-cli2 config with `globs` and always exits 0 ([Optional linters](./optional-linters.md))                                |
 
 ## Sprawl review
 
-`mdcp review` reads every shard compile reads for the guides in `compileOrder`, including nested shards and each guide manifest (`index.md` by default), and reports signals that a shard or index needs a human or agent to look at it. It never writes files and skips paths matched by `scan.ignore`. The signals point at [idea mitosis](../glossary/idea-mitosis.md) candidates; deciding whether to split, merge, or regroup stays with the reviewer (see [Shard single responsibility and idea mitosis](../features/protocol/shard-srp-and-mitosis.md)).
+`merlon review` reads every shard compile reads for the guides in `compileOrder`, including nested shards and each guide manifest (`index.md` by default), and reports signals that a shard or index needs a human or agent to look at it. It never writes files and skips paths matched by `scan.ignore`. The signals point at [idea mitosis](../glossary/idea-mitosis.md) candidates; deciding whether to split, merge, or regroup stays with the reviewer (see [Shard single responsibility and idea mitosis](../features/protocol/shard-srp-and-mitosis.md)).
 
 ```bash
-mdcp review --config docs/mdcp.config.json --docs-root docs
-mdcp review --config docs/mdcp.config.json --docs-root docs --json
-mdcp review --config docs/mdcp.config.json --docs-root docs --guide client-cli
+merlon review --config docs/merlon.config.json --docs-root docs
+merlon review --config docs/merlon.config.json --docs-root docs --json
+merlon review --config docs/merlon.config.json --docs-root docs --guide client-cli
 ```
 
 | Signal                | Fires when                                                                                                                                                              | Fix                                                                               |
@@ -72,14 +72,14 @@ Text output groups findings by signal and lists docs-root-relative paths. `--jso
 
 With `--guide`, a duplicate paragraph is reported when any copy sits in that guide, so duplication across guides still shows up. The shard count covers that guide only. An unknown guide name exits 1 and lists the guide names.
 
-Without `--strict`, `mdcp review` exits 0. Thresholds live under `review` in config, as [Review thresholds](./config-reference.md#review-thresholds) shows.
+Without `--strict`, `merlon review` exits 0. Thresholds live under `review` in config, as [Review thresholds](./config-reference.md#review-thresholds) shows.
 
 ## Refs subcommands
 
-| Command           | Purpose                                                                                                      |
-| ----------------- | ------------------------------------------------------------------------------------------------------------ |
-| `mdcp refs-gen`   | Generate `refs.json` from compiled output                                                                    |
-| `mdcp refs-check` | Verify `refs.json` matches compiled output                                                                   |
-| `mdcp refs-list`  | List each compiled output's heading slugs and file (`--format json` or `table`; run it after `mdcp compile`) |
+| Command             | Purpose                                                                                                        |
+| ------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `merlon refs-gen`   | Generate `refs.json` from compiled output                                                                      |
+| `merlon refs-check` | Verify `refs.json` matches compiled output                                                                     |
+| `merlon refs-list`  | List each compiled output's heading slugs and file (`--format json` or `table`; run it after `merlon compile`) |
 
-[Cross-links and refs](./cross-links-and-refs.md) shows where `mdcp refs-list` fits after compile and check, and [Refs](../glossary/refs.md) explains what refs are for.
+[Cross-links and refs](./cross-links-and-refs.md) shows where `merlon refs-list` fits after compile and check, and [Refs](../glossary/refs.md) explains what refs are for.
