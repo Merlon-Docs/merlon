@@ -29,7 +29,7 @@ The skill picks a workflow for each authoring job and loads only that file. Cata
 [UX](./protocol/workflows/ux.md),
 [Doc-review](./protocol/workflows/doc-review.md).
 
-Optional local with/without-skill grading for each workflow is maintainer work — see [Live skill evals](../developer/live-skill-evals.md). Not a CI gate.
+[Live skill evals](../developer/live-skill-evals.md), which grade each workflow with and without the skill, are maintainer work.
 
 ## Validation gate
 

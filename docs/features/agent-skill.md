@@ -56,7 +56,7 @@ Then start bootstrap:
 
 Zero-install: copy `skills/mdcp/` from this repository into the skills directory your host discovers ([Supported Agents](https://github.com/vercel-labs/skills#supported-agents)).
 
-Qualitative checks of skill behavior (with vs without the skill) are maintainer workflow — see [Live skill evals](../developer/live-skill-evals.md). The static CI gate is `pnpm skill:validate`.
+Grading agent runs with the skill and without it is the maintainer-side work of [live skill evals](../developer/live-skill-evals.md).
 
 ## Quality Assurance (QA) Principles
 
@@ -83,12 +83,7 @@ Depth on single responsibility, mitosis, and two-level review:
 
 Primary discovery: [skills.sh](https://skills.sh) via `npx skills`. skills.sh has no submit API, and it indexes the [repo page](https://skills.sh/betsalel-williamson/mdcp) from anonymous install telemetry. Do not publish a VS Code Marketplace VSIX for this delivery path.
 
-Landing identity for skills.sh:
-
-- Root [README](../../README.md) includes the [install-count badge](https://www.skills.sh/docs#badge) (`https://skills.sh/b/betsalel-williamson/mdcp`) and `npx skills add` install commands.
-- Repo-root [`skills.sh.json`](../../skills.sh.json) lists `mdcp` in the **Documentation system** group on the [skills.sh repo page](https://www.skills.sh/docs/customize).
-
-Maintainer detail: [Publishing the skill pack](../developer/agent-skill.md#publishing-the-skill-pack) says which skills are released, and
+Maintainer detail: [Publishing the skill pack](../developer/agent-skill.md#publishing-the-skill-pack) says which skills are released and what the root README holds as the skill's landing identity on skills.sh, and
 [`skills.sh.json` (repo page layout)](../developer/agent-skill.md#skillsshjson-repo-page-layout) says what that file controls.
 
 ## Agent Skill acceptance criteria

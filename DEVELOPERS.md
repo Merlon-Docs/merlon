@@ -877,9 +877,7 @@ The [Agent Skill acceptance criteria](docs/features/agent-skill.md#agent-skill-a
 | `pnpm skill:validate` | Frontmatter fence lint + [skills-ref](https://agentskills.io/specification) validate on all skills under `skills/` |
 | `pnpm docs:check`     | Docs compile + lint gate after shard edits                                                                         |
 
-`pnpm skill:validate` runs in local `pnpm check`, the land gate, PR CI, and during **`pnpm release:main`** after skill version sync (hard fail before the release commit / publish). It is not a [live skill eval](#live-skill-eval).
-
-[Live skill evals](#live-skill-evals) covers the optional local loop, which grades agent runs with and without the skill and never runs in CI.
+`pnpm skill:validate` runs in local `pnpm check`, the land gate, PR CI, and during **`pnpm release:main`** after skill version sync (hard fail before the release commit / publish). It is not a [live skill eval](#live-skill-eval). [Live skill evals](#live-skill-evals) covers those evals, an optional local loop that grades agent runs with and without the skill.
 
 ### Publishing the skill pack
 
@@ -887,7 +885,7 @@ The [Agent Skill acceptance criteria](docs/features/agent-skill.md#agent-skill-a
 
 Archetype skills (`skills/mdcp-arch-*`) are not ready to release. Until one is released on purpose, its `SKILL.md` sets `metadata.internal: true`, and the skill stays out of [`skills.sh.json`](skills.sh.json) and out of consumer install docs. The `skills` CLI leaves internal skills out of its default discovery, so maintainers install them locally with `INSTALL_INTERNAL_SKILLS=1`. Releasing a skill removes `metadata.internal` and adds the skill's `name:` to the **Documentation system** group in `skills.sh.json`, in the same change. These rules are advisory, because `pnpm skill:validate` doesn't read `skills.sh.json`.
 
-Install telemetry refreshes the repo page on skills.sh ([Ecosystem publication](docs/features/agent-skill.md#ecosystem-publication)); an install with `DISABLE_TELEMETRY=1`, such as `pnpm skill:dev`, doesn't count. Skill versions and release notes follow [Versioning and releases](#versioning-and-releases).
+The root [README](README.md) holds the skill's landing identity on skills.sh: the [install-count badge](https://www.skills.sh/docs#badge) (`https://skills.sh/b/betsalel-williamson/mdcp`) and the `npx skills add` install command. Install telemetry refreshes the badge and the [repo page](https://skills.sh/betsalel-williamson/mdcp), and an install with `DISABLE_TELEMETRY=1`, such as `pnpm skill:dev`, doesn't count. [`skills.sh.json`](#skillsshjson-repo-page-layout) places it on that page. Skill versions and release notes follow [Versioning and releases](#versioning-and-releases).
 
 ### `skills.sh.json` (repo page layout)
 
@@ -918,8 +916,7 @@ pnpm skill:validate         CI/static gate on skills/ (not on skills.sh.json)
 
 The **Documentation system** group lists the skills that [Publishing the skill pack](#publishing-the-skill-pack) releases. Live eval suites never belong in this file ([Live skill evals](#live-skill-evals)). When the released skills or their names change, update this file in the same change.
 
-Consumer-facing landing identity (badge, README install commands) stays in
-[Agent Skill](docs/features/agent-skill.md#ecosystem-publication).
+[Ecosystem publication](docs/features/agent-skill.md#ecosystem-publication) in Agent Skill is the consumer-facing statement of how the skill is discovered.
 
 <!-- mdcp-shard: end docs/developer/agent-skill.md -->
 
@@ -1616,7 +1613,7 @@ A plan section of numbered groups that splits coding or multi-concern work into 
 
 ## live skill eval
 
-Optional local with/without-skill agent grading via vendored [skill-creator](.agents/skills/skill-creator/SKILL.md). Maintainer home: [Live skill evals](#live-skill-evals). Never a CI gate in this repository — contrast with `pnpm skill:validate` (skills-ref) in CI.
+Optional local with/without-skill agent grading via vendored [skill-creator](.agents/skills/skill-creator/SKILL.md). Its maintainer home is [Live skill evals](#live-skill-evals).
 
 <!-- mdcp-shard: end docs/glossary/live-skill-eval.md -->
 
