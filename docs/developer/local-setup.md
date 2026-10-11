@@ -44,32 +44,32 @@ Optional locally: `brew install gitleaks` (CI always scans).
 
 ## Git hooks
 
-The pre-commit hook runs three steps in order, and the commit-msg hook runs one:
+`pnpm install` sets up three hooks. The pre-commit hook is fast and works offline, so it never builds, runs tests or reaches the network. The pre-push hook runs the full gate and may take minutes.
 
-| Hook       | Step            | What runs                                                                           |
-| ---------- | --------------- | ----------------------------------------------------------------------------------- |
-| pre-commit | lint-staged     | Prettier and ESLint on staged files (including `.jsonc`)                            |
-| pre-commit | affected checks | `scripts/pre-commit-affected.mjs`, with the checks the staged paths call for        |
-| pre-commit | gitleaks        | `gitleaks protect --staged` when gitleaks is on `PATH`, and a warning when it isn't |
-| commit-msg | commitlint      | The Conventional Commits rules of `@commitlint/config-conventional`                 |
+| Hook       | Step            | What runs                                                                            |
+| ---------- | --------------- | ------------------------------------------------------------------------------------ |
+| pre-commit | lint-staged     | Prettier and ESLint on staged files (including `.jsonc`)                             |
+| pre-commit | affected checks | `scripts/pre-commit-affected.mjs`, with the offline checks the staged paths call for |
+| pre-commit | gitleaks        | `gitleaks protect --staged` when gitleaks is on `PATH`, and a warning when it isn't  |
+| commit-msg | commitlint      | The Conventional Commits rules of `@commitlint/config-conventional`                  |
+| pre-push   | full gate       | `scripts/pre-push.mjs`, with the checks the [land gate](#ci-and-the-land-gate) runs  |
 
 The affected checks run by staged path:
 
-| Staged paths                                                                                                 | Extra checks                                                                     |
-| ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
-| `packages/merlon-docs-core/**`                                                                               | typecheck, build, `vitest related` on changed files                              |
-| `packages/merlon-docs-cli/**`                                                                                | core build (dependency), then cli typecheck, build, test                         |
-| `packages/merlon-docs-presets/**`                                                                            | JSONC preset validation                                                          |
-| `docs/**`, `DEVELOPERS.md`, `packages/*/README.md`                                                           | core and CLI build, `docs:compile:repo`, then `merlon check --warn-broken-links` |
-| Root config (`package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `eslint.config.mjs`, `tsconfig*.json`) | repo-wide typecheck + `format:check`                                             |
-| `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `packages/*/package.json`                           | `pnpm audit --audit-level=high`                                                  |
+| Staged paths                                    | Extra checks               |
+| ----------------------------------------------- | -------------------------- |
+| TypeScript under `packages/merlon-docs-core/**` | merlon-docs-core typecheck |
+| TypeScript under `packages/merlon-docs-cli/**`  | merlon-docs-cli typecheck  |
+| `packages/merlon-docs-presets/**`               | JSONC preset validation    |
 
-The docs check in the hook skips `docs:lint:changeset-links`, and a broken link only warns there. Run `pnpm docs:check` before you push. When the audit fails, resolve the advisory as [Overrides and the release-age gate](./security-incident-triage.md#overrides-and-the-release-age-gate) describes before you commit the manifest change. A merge commit passes commitlint with git's default `Merge branch …` subject, and fails with a hand-written `merge: …` subject, because `merge` isn't a commit type.
+The pre-push hook runs the land gate's steps in its order, from `pnpm run verify:peers` and the dependency audit through `pnpm run docs:compile` and the `git diff` check. It then runs `pnpm formal:check` when the push changes the formal models, and the changeset checks against the merge base with `develop` on the remote you push to. It needs Vale and the network, and Java when it runs the models. It checks the commit you have checked out, so it stops when you push another branch or have uncommitted changes. `git push --no-verify` skips it.
+
+CI doesn't rely on any hook, since a contributor may skip them or never install them. When the audit fails, resolve the advisory as [Overrides and the release-age gate](./security-incident-triage.md#overrides-and-the-release-age-gate) describes. A merge commit passes commitlint with git's default `Merge branch …` subject, and fails with a hand-written `merge: …` subject, because `merge` isn't a commit type.
 
 ## CI and the land gate
 
 CI's Check job runs the steps of `pnpm run check`, except that it tests only merlon-docs-core, merlon-docs-cli and the repository scripts. The site's tests run in the Pages workflow. Before those steps it runs `pnpm run verify:peers`, which confirms that markdownlint-cli2 and Vale are on `PATH`, and the dependency audit `pnpm audit --audit-level=high`. A new high advisory, even on a devDependency, fails the audit, and the build and test steps after it don't run. [Overrides and the release-age gate](./security-incident-triage.md#overrides-and-the-release-age-gate) says how to resolve one. Before `docs:check` it runs `pnpm run prepare:docs`, which repeats the peer check and syncs the Vale styles. Last, it recompiles every guide and fails if `git diff` shows a change.
 
-The other CI jobs run beside Check. The Coverage job runs `pnpm test:coverage`, as [Test code coverage](./packages-and-tests.md#test-code-coverage) describes, and the Formal models job runs `pnpm formal:check`. On pull requests the Changeset job runs the changeset checks that [When to add a changeset](./versioning-and-releases.md#when-to-add-a-changeset) describes.
+CI skips a draft pull request and runs when the PR is marked ready, as [Pull requests](./versioning-and-releases.md#pull-requests) describes. The other CI jobs run beside Check. The Coverage job runs `pnpm test:coverage`, as [Test code coverage](./packages-and-tests.md#test-code-coverage) describes, and the Formal models job runs `pnpm formal:check`. On pull requests the Changeset job runs the changeset checks that [When to add a changeset](./versioning-and-releases.md#when-to-add-a-changeset) describes.
 
 The land gate's test step is the full `pnpm test`, so it also runs the site's tests. [Landing on `develop`](./versioning-and-releases.md#landing-on-develop) says what else it runs and what it pushes.

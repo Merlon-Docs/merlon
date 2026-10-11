@@ -132,33 +132,33 @@ Optional locally: `brew install gitleaks` (CI always scans).
 
 ### Git hooks
 
-The pre-commit hook runs three steps in order, and the commit-msg hook runs one:
+`pnpm install` sets up three hooks. The pre-commit hook is fast and works offline, so it never builds, runs tests or reaches the network. The pre-push hook runs the full gate and may take minutes.
 
-| Hook       | Step            | What runs                                                                           |
-| ---------- | --------------- | ----------------------------------------------------------------------------------- |
-| pre-commit | lint-staged     | Prettier and ESLint on staged files (including `.jsonc`)                            |
-| pre-commit | affected checks | `scripts/pre-commit-affected.mjs`, with the checks the staged paths call for        |
-| pre-commit | gitleaks        | `gitleaks protect --staged` when gitleaks is on `PATH`, and a warning when it isn't |
-| commit-msg | commitlint      | The Conventional Commits rules of `@commitlint/config-conventional`                 |
+| Hook       | Step            | What runs                                                                            |
+| ---------- | --------------- | ------------------------------------------------------------------------------------ |
+| pre-commit | lint-staged     | Prettier and ESLint on staged files (including `.jsonc`)                             |
+| pre-commit | affected checks | `scripts/pre-commit-affected.mjs`, with the offline checks the staged paths call for |
+| pre-commit | gitleaks        | `gitleaks protect --staged` when gitleaks is on `PATH`, and a warning when it isn't  |
+| commit-msg | commitlint      | The Conventional Commits rules of `@commitlint/config-conventional`                  |
+| pre-push   | full gate       | `scripts/pre-push.mjs`, with the checks the [land gate](#ci-and-the-land-gate) runs  |
 
 The affected checks run by staged path:
 
-| Staged paths                                                                                                 | Extra checks                                                                     |
-| ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
-| `packages/merlon-docs-core/**`                                                                               | typecheck, build, `vitest related` on changed files                              |
-| `packages/merlon-docs-cli/**`                                                                                | core build (dependency), then cli typecheck, build, test                         |
-| `packages/merlon-docs-presets/**`                                                                            | JSONC preset validation                                                          |
-| `docs/**`, `DEVELOPERS.md`, `packages/*/README.md`                                                           | core and CLI build, `docs:compile:repo`, then `merlon check --warn-broken-links` |
-| Root config (`package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `eslint.config.mjs`, `tsconfig*.json`) | repo-wide typecheck + `format:check`                                             |
-| `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `packages/*/package.json`                           | `pnpm audit --audit-level=high`                                                  |
+| Staged paths                                    | Extra checks               |
+| ----------------------------------------------- | -------------------------- |
+| TypeScript under `packages/merlon-docs-core/**` | merlon-docs-core typecheck |
+| TypeScript under `packages/merlon-docs-cli/**`  | merlon-docs-cli typecheck  |
+| `packages/merlon-docs-presets/**`               | JSONC preset validation    |
 
-The docs check in the hook skips `docs:lint:changeset-links`, and a broken link only warns there. Run `pnpm docs:check` before you push. When the audit fails, resolve the advisory as [Overrides and the release-age gate](#overrides-and-the-release-age-gate) describes before you commit the manifest change. A merge commit passes commitlint with git's default `Merge branch …` subject, and fails with a hand-written `merge: …` subject, because `merge` isn't a commit type.
+The pre-push hook runs the land gate's steps in its order, from `pnpm run verify:peers` and the dependency audit through `pnpm run docs:compile` and the `git diff` check. It then runs `pnpm formal:check` when the push changes the formal models, and the changeset checks against the merge base with `develop` on the remote you push to. It needs Vale and the network, and Java when it runs the models. It checks the commit you have checked out, so it stops when you push another branch or have uncommitted changes. `git push --no-verify` skips it.
+
+CI doesn't rely on any hook, since a contributor may skip them or never install them. When the audit fails, resolve the advisory as [Overrides and the release-age gate](#overrides-and-the-release-age-gate) describes. A merge commit passes commitlint with git's default `Merge branch …` subject, and fails with a hand-written `merge: …` subject, because `merge` isn't a commit type.
 
 ### CI and the land gate
 
 CI's Check job runs the steps of `pnpm run check`, except that it tests only merlon-docs-core, merlon-docs-cli and the repository scripts. The site's tests run in the Pages workflow. Before those steps it runs `pnpm run verify:peers`, which confirms that markdownlint-cli2 and Vale are on `PATH`, and the dependency audit `pnpm audit --audit-level=high`. A new high advisory, even on a devDependency, fails the audit, and the build and test steps after it don't run. [Overrides and the release-age gate](#overrides-and-the-release-age-gate) says how to resolve one. Before `docs:check` it runs `pnpm run prepare:docs`, which repeats the peer check and syncs the Vale styles. Last, it recompiles every guide and fails if `git diff` shows a change.
 
-The other CI jobs run beside Check. The Coverage job runs `pnpm test:coverage`, as [Test code coverage](#test-code-coverage) describes, and the Formal models job runs `pnpm formal:check`. On pull requests the Changeset job runs the changeset checks that [When to add a changeset](#when-to-add-a-changeset) describes.
+CI skips a draft pull request and runs when the PR is marked ready, as [Pull requests](#pull-requests) describes. The other CI jobs run beside Check. The Coverage job runs `pnpm test:coverage`, as [Test code coverage](#test-code-coverage) describes, and the Formal models job runs `pnpm formal:check`. On pull requests the Changeset job runs the changeset checks that [When to add a changeset](#when-to-add-a-changeset) describes.
 
 The land gate's test step is the full `pnpm test`, so it also runs the site's tests. [Landing on `develop`](#landing-on-develop) says what else it runs and what it pushes.
 
@@ -1092,10 +1092,16 @@ Pushing to a branch named `claude/**` or `land/**` runs the [land workflow](.git
 - **Evidence lives with the work.** Put what was measured or verified in the commit message, or in a research record for larger results. The run summary lists the commits each landing brought in.
 - **A failed gate lands nothing.** Fix the branch and push again, and do the same when it conflicts with `develop`. Only one run waits behind the running one, so a newer landing or sync cancels the waiting run. When that happens, or when `develop` moved during the run, re-run all jobs of the workflow, or push a new commit to the branch. After `develop` moves, re-running only the failed job reuses the old `develop` and fails again. Pushing a branch whose tip hasn't changed doesn't start a run.
 - **Landings run one at a time**, and each one pushes only the tree that passed its gate. A clean sync from `main` goes through the same gate. Other paths move `develop` without the gate. A merged PR, from Dependabot or from the sync when `main` conflicts, does unless a branch rule makes PRs into `develop` up to date, and a maintainer can push directly unless a rule blocks it. When a PR's base changes from `main` to `develop`, CI runs again against `develop`. [Formal models](#landing-and-release) shows which guards close each of those paths.
-- **The gate doesn't wait for scans.** Gitleaks scans every `claude/**` and `land/**` push, in parallel with the land run, and every pull request. The landing is pushed with the workflow's own `GITHUB_TOKEN`, and GitHub doesn't start workflows for such pushes. The scan's push trigger lists only `claude/**` and `land/**`, so the release commit's push to `main` and a push to a `hotfix/*` branch aren't scanned until they reach a pull request. The `Scan` check that `main`'s branch rule requires runs on the pull request. CodeQL and Zizmor first see landed work on the release PR. A finding from any of the three is fixed forward on `develop`.
+- **The gate doesn't wait for scans.** Gitleaks scans every `claude/**` and `land/**` push, in parallel with the land run, and every pull request that isn't a draft. The landing is pushed with the workflow's own `GITHUB_TOKEN`, and GitHub doesn't start workflows for such pushes. The scan's push trigger lists only `claude/**` and `land/**`, so the release commit's push to `main` and a push to a `hotfix/*` branch aren't scanned until they reach a pull request. The `Scan` check that `main`'s branch rule requires runs on the pull request. CodeQL and Zizmor first see landed work on the release PR. A finding from any of the three is fixed forward on `develop`.
 - **Review happens once**, on the release PR from `develop` to `main`.
 
 Dependabot still opens PRs against `develop`, because its changes come from outside the project.
+
+#### Pull requests
+
+Open a pull request as a draft, and mark it ready once, when its work is done. CI, CodeQL, Zizmor and the gitleaks scan skip a draft, so a push to a draft runs only the Release source check. Marking the PR ready runs them, and each push after that runs them again. GitHub won't merge a draft, so the skipped runs can't let one merge. Moving a ready PR back to draft and marking it ready again repeats the full run, so leave a PR in draft until it is ready. Dependabot opens its PRs as ready, and CI runs on them at once.
+
+CI doesn't assume that a contributor ran the [git hooks](#git-hooks). The pre-push hook runs the land gate's checks before a push, which catches a failure before CI spends a run on it.
 
 `main` stays the repository's default branch because skills.sh installs from it, so GitHub proposes `main` as the base of a new PR. The **Release source** check fails any PR into `main` whose head is not `develop` or `hotfix/*`, and blocks the merge where `main`'s branch rule requires it. It runs from its own [workflow](.github/workflows/release-source.yml), which runs only on PRs into `main`, including a PR whose base changes to `main`.
 
@@ -1105,7 +1111,7 @@ There is **no calendar cadence** and **no Version Packages PR**. A release is a 
 
 1. Changesets reach `develop` with the landings they describe ([When to add a changeset](#when-to-add-a-changeset)). The release workflow versions and publishes only after a release PR reaches `main`.
 2. When `develop` is tested and ready, confirm that the pending `.changeset/*.md` files list only the packages and skills that should bump, and that each unreleased skill is still internal, as [Publishing the skill pack](#publishing-the-skill-pack) requires. Then open a PR from `develop` to `main` and merge it with a **merge commit**. Squashing would give `main` history that `develop` lacks.
-3. The merge runs the [release workflow](.github/workflows/release.yml) (`pnpm release:main`), which needs the `RELEASE_GITHUB_TOKEN` secret described in [Publishing](#publishing). The **Release plan** job posts the pending changesets (and any **missing GitHub Releases**) to the run summary. Read that summary on the latest run to review the bumps and release notes, then approve the **`release` environment** there. The version job **resets to the current `origin/main` tip** (so post-approval work includes all merged changesets), then **sequentially**: applies changesets → syncs skill `metadata.version` → runs `pnpm skill:validate` → builds (so husky can run) → commits `chore: release` → **pushes to `main`** → runs the dependency audit `pnpm audit --audit-level=high` → publishes public packages to npm → **pushes tags** → creates GitHub Releases (including skill carriers).
+3. The merge runs the [release workflow](.github/workflows/release.yml) (`pnpm release:main`), which needs the `RELEASE_GITHUB_TOKEN` secret described in [Publishing](#publishing). The **Release plan** job posts the pending changesets (and any **missing GitHub Releases**) to the run summary. Read that summary on the latest run to review the bumps and release notes, then approve the **`release` environment** there. The version job **resets to the current `origin/main` tip** (so post-approval work includes all merged changesets), then **sequentially**: applies changesets → syncs skill `metadata.version` → runs `pnpm skill:validate` → builds → runs `pnpm typecheck` and `pnpm test` → commits `chore: release` → **pushes to `main`** → runs the dependency audit `pnpm audit --audit-level=high` → publishes public packages to npm → **pushes tags** → creates GitHub Releases (including skill carriers).
 4. Every push to `main` runs the [sync workflow](.github/workflows/sync-develop.yml), which merges `main`, with the release commit and any hotfix, back into `develop`. A clean merge is pushed to the `land/sync-main` branch, and the sync dispatches the land workflow on it. The merge goes to `develop` only after it passes the gate. If the gate fails, `develop` doesn't get `main`'s commits until someone fixes the failure. They can merge `main` into a `land/**` branch other than `land/sync-main` and fix it there, or land the fix on `develop` and run **Sync develop** again. The next sync overwrites `land/sync-main`, so a fix pushed there is lost. A conflict opens a PR from `main` to `develop` instead. Resolve it the same way, by merging `main` into a `land/**` branch other than `land/sync-main`. The PR itself can't take the fix, because its head is the protected `main`. Once `develop` contains `main`, the PR closes as merged.
 5. Check that each bumped item, skill carriers included, has a GitHub Release and that npm shows the new version of each public package. Then confirm that the land workflow's run on `land/sync-main` put the release commit on `develop`. A landing queued after it can cancel it while it waits, and it fails when `develop` moves during the run. In either case, re-run all of its jobs or run **Sync develop** again.
 6. When a workflow change reached `develop` after the previous sync, check that the sync's push to `land/sync-main` went through. The sync pushes with `GITHUB_TOKEN`, which can't be given the `workflows` permission, and its force-push includes every workflow change `develop` gained since that sync. If the push was refused, reset `land/sync-main` to `develop` with your own access and run **Sync develop** again. Its push then includes only what `main` adds.
@@ -1187,7 +1193,7 @@ The trace lists the states in order. In each state, `Step.kind` names the event 
 
 ### Landing and release
 
-`formal/alloy/landing.als` models the events that move `develop` or `main`. A landing and the sync from `main` move `develop`, the release commit moves `main`, and a PR merge or a maintainer's direct push can move either branch. It also models CI on pull requests, including a PR whose base branch changes after it opens.
+`formal/alloy/landing.als` models the events that move `develop` or `main`. A landing and the sync from `main` move `develop`, the release commit moves `main`, and a PR merge or a maintainer's direct push can move either branch. It also models CI on pull requests, including a PR whose base branch changes after it opens and a PR that opens as a draft.
 
 The model checks three properties. Each one is true only while all of its guards are in place, and for each guard a check finds a run that breaks the property without it. A guard is either a branch rule, which is a [repository setting](#repository-settings) that no workflow can enforce, or a choice in a workflow under `.github/workflows/`.
 
@@ -1200,9 +1206,12 @@ No test pins a workflow guard. The only check that one is still in place is the 
 | People cannot push `develop` directly         | Branch rule | A maintainer's push puts untested work on `develop`                                             |
 | A PR into `develop` must be up to date        | Branch rule | A Dependabot PR merged after `develop` moved puts a merge no CI run tested on `develop`         |
 | CI runs again when a PR's base changes        | Workflow    | A PR tested against `main` and then moved to `develop` merges on that old run                   |
+| CI runs when a draft PR is marked ready       | Workflow    | A PR opened as a draft merges on the skipped run that counts as passing, untested               |
 | The sync from `main` runs through a land gate | Workflow    | The sync puts the release commit, or its merge with newer `develop` work, on `develop` untested |
 
-Both workflow guards are in place. GitHub's up-to-date rule asks only that a PR's head contain the base branch's latest commit. It does not ask which base CI last ran against. GitHub proposes `main` as the base of a new PR, and the Release source check asks its author to move it to `develop`. Without a new run, the PR could then merge on its run against `main`. CI in `.github/workflows/ci.yml` also runs on the `edited` event that a base change sends. Moving the PR starts a run against `develop`. No job in it has an `if` that skips an edit, because a skipped run counts as passing and would replace an earlier failure. A title edit reruns CI too.
+All three workflow guards are in place. GitHub's up-to-date rule asks only that a PR's head contain the base branch's latest commit. It does not ask which base CI last ran against. GitHub proposes `main` as the base of a new PR, and the Release source check asks its author to move it to `develop`. Without a new run, the PR could then merge on its run against `main`. CI in `.github/workflows/ci.yml` also runs on the `edited` event that a base change sends. Moving the PR starts a run against `develop`. No job in it has an `if` that skips an edit to a ready PR, because a skipped run counts as passing and would replace an earlier failure. A title edit reruns CI too.
+
+Every job in CI skips a draft PR, as [Pull requests](#pull-requests) describes. That skipped run counts as passing too, and GitHub merges no draft, so the run that counts is the one that starts when the PR is marked ready. CI in `.github/workflows/ci.yml` runs on the `ready_for_review` event for that reason. Without it, a draft PR marked ready would merge on its skipped run.
 
 The sync in `.github/workflows/sync-develop.yml` pushes a clean merge to the `land/sync-main` branch and dispatches the land workflow on it. A push made with the workflow's own `GITHUB_TOKEN` doesn't start a workflow, but a dispatch does. The land gate then tests the merge like any other landing, and `develop` moves only when the gate passes. Without that gate, an untested merge that broke `develop` would fail every later landing until someone fixed `develop`.
 
@@ -1215,9 +1224,10 @@ Only the land workflow pushes `develop`, with that `GITHUB_TOKEN`. So both branc
 | People cannot push `main` directly             | Branch rule | A maintainer's push puts untested work on `main`                               |
 | A PR into `main` must be up to date            | Branch rule | A release PR merged after `main` moved puts a merge no CI run tested on `main` |
 | CI runs again when a PR's base changes         | Workflow    | A PR tested against `develop` and then moved to `main` merges on that old run  |
+| CI runs when a draft PR is marked ready        | Workflow    | A hotfix PR opened as a draft merges on its skipped run, untested              |
 | The release job runs the gate before it pushes | Workflow    | The version commit reaches `main` with less than a landing's gate behind it    |
 
-The CI guard is in place, as for `develop`, and the release job's gate is not. Before the release job in `.github/workflows/release.yml` pushes the version commit, it builds and validates the skills, and the pre-commit hook checks the packages it bumped, which is less than the gate a landing runs. The job also pushes with a maintainer's personal access token. A rule that blocks direct pushes to `main` would block the release as well. Exempting the maintainer whose token the job uses would let that maintainer push by hand too. Closing that path needs an identity for the release job that the rule can exempt on its own.
+The two CI guards are in place, as for `develop`, and the release job's gate is not. Before the release job in `.github/workflows/release.yml` pushes the version commit, it builds and validates the skills and runs the typecheck and the unit tests, which is less than the gate a landing runs. The job also pushes with a maintainer's personal access token. A rule that blocks direct pushes to `main` would block the release as well. Exempting the maintainer whose token the job uses would let that maintainer push by hand too. Closing that path needs an identity for the release job that the rule can exempt on its own.
 
 #### `main` only merges `develop` or `hotfix/*`
 
@@ -1231,7 +1241,7 @@ The third guard is in place. `.github/workflows/release-source.yml` runs on the 
 
 #### Scenarios and bounds
 
-With every guard on, the model also runs scenarios that show the checks above are not vacuous. A landing is followed by a release PR. The release commit syncs back to `develop`. A Dependabot PR merges into `develop` after a landing moves it, and a hotfix merged into `main` reaches `develop`.
+With every guard on, the model also runs scenarios that show the checks above are not vacuous. A landing is followed by a release PR. The release commit syncs back to `develop`. A Dependabot PR merges into `develop` after a landing moves it, and a hotfix merged into `main` reaches `develop`. A PR that opens as a draft merges into `develop` after it is marked ready.
 
 Every check covers traces of up to seven steps over six commits and one pull request. A passing check means no counterexample exists within that bound, which is large enough for each counterexample above to appear. The model assumes merges are clean and that force-push to `develop` and `main` is blocked. A pushed branch may move to any commit, as the sync's force-push of `land/sync-main` does. It also assumes a code owner approves whenever a rule requires it, and that no branch changes the workflow that checks it. A pushed branch runs its own copy of the land workflow, and a PR runs its own copy of CI and Release source. On a PR into `main`, code owner review of `.github/` is what catches such a change. A landing's copy of the land workflow runs before anyone reviews it.
 
@@ -1469,7 +1479,7 @@ gh api -X PATCH repos/Merlon-Docs/merlon/branches/main/protection/required_pull_
 
 `protection.tf` doesn't list Release source among the required checks on `main`. [Formal models](#main-only-merges-develop-or-hotfix) says what goes wrong without that rule.
 
-CodeQL and Zizmor run on every pull request and on each push to `main`:
+CodeQL and Zizmor run on every pull request that isn't a draft and on each push to `main`:
 
 - **CodeQL**, the `Analyze` job, analyzes `javascript-typescript` for the package sources and `actions` for workflow queries in one run, and uploads SARIF to code scanning. [Safe markdown parsing](#safe-markdown-parsing) says how a ReDoS finding on a library regex gets fixed.
 - **Zizmor** scans the workflow files for misconfigurations. The job fails on a finding and annotates the pull request.
@@ -1537,8 +1547,8 @@ When a risk closes, update its row to `reviewed` or `not a concern` with the dat
 | Dependabot for Actions                  | `reviewed (2026-07-27)`      | Configured for weekly updates.                                                                                                                                                                                                                                                                                             |
 | Dependabot cooldown                     | `reviewed (2026-07-27)`      | Explicit 7-day cooldown on `npm` and `github-actions`.                                                                                                                                                                                                                                                                     |
 | Artifact / cache poisoning              | `reviewed (2026-10-05)`      | `release.yml`, `pages.yml` and `dependabot-changeset.yml` turn the dependency cache off, because they publish, deploy or push with a PAT. CI and the land workflow cache the pnpm store.                                                                                                                                   |
-| Secret scanning                         | `reviewed (2026-10-11)`      | Gitleaks scans every `claude/**` and `land/**` push and every pull request, and `infra/github/protection.tf` declares its `Scan` job as a required check on `main`. [Landing on `develop`](#landing-on-develop) says which pushes it misses.                                                                               |
-| Static analysis (CodeQL/Zizmor)         | `reviewed (2026-10-05)`      | CodeQL (`javascript-typescript` + `actions`) and Zizmor run on every pull request. Neither is a required check ([Required checks and scanners](#required-checks-and-scanners)).                                                                                                                                            |
+| Secret scanning                         | `reviewed (2026-10-11)`      | Gitleaks scans every `claude/**` and `land/**` push and every pull request that isn't a draft, and `infra/github/protection.tf` declares its `Scan` job as a required check on `main`. [Landing on `develop`](#landing-on-develop) says which pushes it misses.                                                            |
+| Static analysis (CodeQL/Zizmor)         | `reviewed (2026-10-05)`      | CodeQL (`javascript-typescript` + `actions`) and Zizmor run on every pull request that isn't a draft. Neither is a required check ([Required checks and scanners](#required-checks-and-scanners)).                                                                                                                         |
 | AI-in-CI                                | `not a concern (2026-07-27)` | No AI assistants used in CI.                                                                                                                                                                                                                                                                                               |
 | **Incident Response**                   |                              |                                                                                                                                                                                                                                                                                                                            |
 | Incident response plan                  | `reviewed (2026-07-27)`      | Covered in `SECURITY.md` and triage docs.                                                                                                                                                                                                                                                                                  |
@@ -1555,7 +1565,7 @@ Re-run the affected rows when any of the following change:
 - Dependabot or secret-scanning configuration
 - Release mechanics ([Publishing](#publishing): OIDC, environments, npm trust)
 
-The [Zizmor](#required-checks-and-scanners) job checks part of that review for workflow-file changes, because it fails on a workflow misconfiguration. It scans every pull request, Dependabot's among them, and each push to `main`. Its first scan of a workflow change that lands through the land workflow, or that a maintainer pushes to `develop` directly, is on the release PR ([Landing on `develop`](#landing-on-develop)).
+The [Zizmor](#required-checks-and-scanners) job checks part of that review for workflow-file changes, because it fails on a workflow misconfiguration. It scans every pull request that isn't a draft, Dependabot's among them, and each push to `main`. Its first scan of a workflow change that lands through the land workflow, or that a maintainer pushes to `develop` directly, is on the release PR ([Landing on `develop`](#landing-on-develop)).
 
 Even when nothing changes, a maintainer should run a **periodic pass** by hand about once a quarter so third-party action advisories and OWASP guidance updates do not drift unnoticed. A full pass gives every dated row a new date, so an oldest date more than a quarter old shows that a pass is overdue.
 

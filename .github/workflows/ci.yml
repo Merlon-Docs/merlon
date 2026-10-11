@@ -8,12 +8,16 @@ on:
   pull_request:
     # Any target branch (stacked feature PRs, not only main).
     # Changeset checks use github.event.pull_request.base.sha — never a hardcoded branch name.
+    # PRs open as drafts, and every job skips a draft. GitHub won't merge
+    # a draft, so the skipped run it records, which counts as passing for a
+    # required check, can't let one merge. `ready_for_review` runs CI once
+    # when the PR is marked ready, and later pushes run it again.
     # `edited` fires when a PR's base changes, so a PR moved to another base is
     # tested against that base before it can merge. It also fires on title and
-    # body edits. No job-level `if` skips those: a skipped run counts as passing
-    # for a required check and would replace an earlier failed run. The
-    # concurrency group below cancels the run an edit makes stale.
-    types: [opened, synchronize, reopened, edited]
+    # body edits. No job-level `if` skips those on a ready PR: a skipped run
+    # counts as passing for a required check and would replace an earlier
+    # failed run. The concurrency group below cancels the run an edit makes stale.
+    types: [opened, synchronize, reopened, edited, ready_for_review]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -30,6 +34,7 @@ jobs:
   check:
     name: Check
     runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     permissions:
       contents: read
     steps:
@@ -93,6 +98,7 @@ jobs:
   coverage:
     name: Coverage
     runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     permissions:
       contents: read
     steps:
@@ -154,7 +160,7 @@ jobs:
   changeset:
     name: Changeset
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && !github.event.pull_request.draft
     permissions:
       contents: read
     steps:
@@ -189,6 +195,7 @@ jobs:
   formal:
     name: Formal models
     runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     permissions:
       contents: read
     steps:

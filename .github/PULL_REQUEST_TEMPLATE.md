@@ -1,3 +1,5 @@
+<!-- Open this PR as a draft. Mark it ready once, when the work is done, and CI runs then. -->
+
 ## Summary
 
 <!-- What does this PR change, and why? -->
@@ -16,6 +18,7 @@
 - [ ] Docs shards updated when behavior or contributor workflow changed (`pnpm docs:check`)
 - [ ] Tests / validation green for the surfaces touched
 - [ ] Changeset added when a published package’s user-facing behavior changes
+- [ ] Opened as a draft, and marked ready only when the work is done
 
 ## Test plan
 

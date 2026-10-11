@@ -31,6 +31,10 @@ pnpm formal:check        # the Alloy models in formal/alloy/
 
 [Local setup](docs/developer/local-setup.md) says how CI's checks differ from `pnpm run check`.
 
+## Pull requests and hooks
+
+Open every pull request as a draft, and mark it ready once, when the work is done. CI skips drafts, as [Pull requests](docs/developer/versioning-and-releases.md#pull-requests) explains. The pre-commit hook runs fast offline checks, and the pre-push hook runs the full gate. [Git hooks](docs/developer/local-setup.md#git-hooks) lists what each one runs.
+
 ## Developer guides
 
 - [Versioning and releases](docs/developer/versioning-and-releases.md) covers how work reaches `develop` and how releases reach `main`.

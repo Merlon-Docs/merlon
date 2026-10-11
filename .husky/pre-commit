@@ -1,8 +1,9 @@
+# Fast and offline. The pre-push hook runs the full gate.
 pnpm exec lint-staged
 node scripts/pre-commit-affected.mjs
 
 if command -v gitleaks >/dev/null 2>&1; then
   gitleaks protect --staged --redact --verbose
 else
-  echo "warning: gitleaks not installed — run: brew install gitleaks" >&2
+  echo "warning: gitleaks not installed, so staged secrets are not scanned" >&2
 fi

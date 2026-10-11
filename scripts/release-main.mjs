@@ -250,6 +250,10 @@ run('pnpm exec changeset version');
 run('node scripts/sync-skill-versions.mjs');
 run('pnpm skill:validate');
 run('pnpm build');
+// The pre-commit hook no longer builds or tests, so the release checks the bumped packages here.
+run('pnpm typecheck');
+run('pnpm test');
+run('node scripts/validate-presets.mjs');
 
 const after = readWorkspacePackages(root);
 const bumped = [];
