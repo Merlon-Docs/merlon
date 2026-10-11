@@ -3,7 +3,7 @@ import { basename, dirname, relative, resolve, isAbsolute } from 'node:path';
 import { defaultSearchRoots, resolveRelativeFile } from './hooks/path-resolve.js';
 import { maskInlineCode } from '../links/extract.js';
 import { createQuotedFenceScanner } from '../markdown/index.js';
-import { createNextIndexReader, scanInlineLinks } from './link-scan.js';
+import { createNextIndexReader, replaceLinkTargets, scanMarkdownLinks } from './link-scan.js';
 import type { GuideLinkIndex, GuideLinkEntry } from './guide-link-index.js';
 import { sectionBodyForSlug, slugForDemotedSection } from './section-slug.js';
 import { assignSectionSlugs, type SectionSlugContext, type ShardCache } from './shard-cache.js';
@@ -41,19 +41,20 @@ export function unmarkLinkTargets(markdown: string): string {
   return markdown.replaceAll(`](${WRITTEN_LINK_MARK}`, '](');
 }
 
-/** Reads the target of a link in `text` from its first index to its `)`, as `scanInlineLinks` asks. */
+/** Reads the target of a link in `text` from its first index to its `)`. */
 type TargetReader<T> = (targetStart: number, close: number) => T | undefined;
 
 /**
  * Apply a link target reader line-wise with inline-code masking (labels may contain `]` inside
- * backticks). Each line gets a reader of its own from `reader`, and `replace` gets the text of each
- * link that reader accepts, as the line wrote it, and the value the reader gave. Lines of fenced
- * code stay as written, in a blockquote too, as `extractLinks` skips them.
+ * backticks). Each line gets a reader of its own from `reader`, which `scanMarkdownLinks` gives
+ * each link and image of the line in the order of their targets. `rewrite` gets the value the
+ * reader gave and returns the new target, or undefined to leave the link as written. Lines of
+ * fenced code stay as written, in a blockquote too, as `extractLinks` skips them.
  */
 function rewriteMarkdownLinkLines<T>(
   markdown: string,
   reader: (masked: string) => TargetReader<T>,
-  replace: (originalMatch: string, value: T) => string,
+  rewrite: (value: T) => string | undefined,
 ): string {
   const lines = markdown.split('\n');
   const inFence = createQuotedFenceScanner();
@@ -63,13 +64,14 @@ function rewriteMarkdownLinkLines<T>(
       if (inFence(line)) return line;
 
       const masked = maskInlineCode(line);
-      let out = '';
-      let last = 0;
-      for (const { start, close, value } of scanInlineLinks(masked, reader(masked))) {
-        out += line.slice(last, start) + replace(line.slice(start, close + 1), value);
-        last = close + 1;
-      }
-      return out + line.slice(last);
+      const links = scanMarkdownLinks(masked);
+      if (links.length === 0) return line;
+      const read = reader(masked);
+      const targets = links.map((link) => {
+        const value = read(link.labelEnd + 2, link.close);
+        return value === undefined ? undefined : rewrite(value);
+      });
+      return replaceLinkTargets(line, links, targets).text;
     })
     .join('\n');
 }
@@ -110,8 +112,7 @@ function mdTargetParts(
 /**
  * The targets the intra-guide pass reads: a path that ends in `.md`, doesn't start with `http:`,
  * `https:`, a `/` or whitespace, and holds at least one character before its `.md`, then an
- * optional `#fragment`. These are the targets that
- * `/\[[^\]]*\]\(((?!https?:)(?:\.\/)?[^)#/\s][^)#]*\.md)(#[^)]*)?\)/` matched.
+ * optional `#fragment`: each target that `(?!https?:)(?:\.\/)?[^#/\s][^#]*\.md(#.*)?` matches whole.
  */
 function intraGuideTargets(text: string): TargetReader<MdLinkTarget> {
   const nextHash = createNextIndexReader(text, '#');
@@ -126,8 +127,7 @@ function intraGuideTargets(text: string): TargetReader<MdLinkTarget> {
  * run of `../`, then an optional `#fragment`. The rest of the path after `./` holds at least four
  * characters and opens with neither a `/` nor whitespace. So does the rest after the run, unless the
  * run holds two `../` or more, since the last `../` can then be that rest. These are the targets
- * that `/\[[^\]]*\]\(((?!https?:)(?:(?:\.\.\/)+|\.\/)[^)#/\s][^)#]*\.md)(#[^)]*)?\)/`
- * matched.
+ * that `(?:(?:\.\.\/)+|\.\/)[^#/\s][^#]*\.md(#.*)?` matches whole.
  */
 function crossGuideTargets(text: string): TargetReader<MdLinkTarget> {
   const nextHash = createNextIndexReader(text, '#');
@@ -148,18 +148,11 @@ function crossGuideTargets(text: string): TargetReader<MdLinkTarget> {
 
 /**
  * The targets the publish-relative pass reads: each one that starts with `../`, such as `../` or
- * `../../` alone. These are the targets that `/\[[^\]]*\]\(((?:\.\.\/)+[^)]*)\)/` matched.
+ * `../../` alone.
  */
 function publishRelativeTargets(text: string): TargetReader<string> {
   return (targetStart, close) =>
     text.startsWith('../', targetStart) ? text.slice(targetStart, close) : undefined;
-}
-
-function linkPrefixFromMatch(originalMatch: string, url: string): string {
-  const marker = `](${url}`;
-  const idx = originalMatch.indexOf(marker);
-  if (idx === -1) return originalMatch.slice(0, originalMatch.lastIndexOf('(') + 1);
-  return originalMatch.slice(0, idx + 2);
 }
 
 /** Map shard file paths to the slug each section's opening heading gets in the compiled guide. */
@@ -236,19 +229,19 @@ export function rewritePublishRelativeLinks(
   const outputAbs = resolve(options.currentOutputFile);
   if (!isAbsolute(outputAbs)) return markdown;
 
-  return rewriteMarkdownLinkLines(markdown, publishRelativeTargets, (originalMatch, target) => {
+  return rewriteMarkdownLinkLines(markdown, publishRelativeTargets, (target) => {
     const { path: filePart, suffix } = parseLinkPath(target);
-    if (!filePart) return originalMatch;
+    if (!filePart) return undefined;
 
     const resolved = resolvePublishLinkTarget(filePart, options);
-    if (!resolved) return originalMatch;
-    if (skipPublishRelativeRewrite(resolved, options)) return originalMatch;
+    if (!resolved) return undefined;
+    if (skipPublishRelativeRewrite(resolved, options)) return undefined;
 
     const fromDir = dirname(outputAbs);
     // A target in the link base's own directory relativizes to '', which would leave an empty href.
     const rel = relative(fromDir, resolve(resolved)).replace(/\\/g, '/') || './';
     const mark = options.markWritten ? WRITTEN_LINK_MARK : '';
-    return `${linkPrefixFromMatch(originalMatch, target)}${mark}${rel}${suffix})`;
+    return `${mark}${rel}${suffix}`;
   });
 }
 
@@ -263,12 +256,12 @@ export function rewriteIntraGuideFileLinks(
   guideDir: string,
   options?: IntraGuideLinkRewriteOptions,
 ): string {
-  return rewriteMarkdownLinkLines(markdown, intraGuideTargets, (originalMatch, link) => {
+  return rewriteMarkdownLinkLines(markdown, intraGuideTargets, (link) => {
     const { file, fragment } = link;
     // An earlier pass wrote this target relative to the link base, not to a shard.
-    if (file.startsWith(WRITTEN_LINK_MARK)) return originalMatch;
+    if (file.startsWith(WRITTEN_LINK_MARK)) return undefined;
     const normalized = file.replace(/^\.\//, '');
-    if (options?.sourceFile && normalized.startsWith('../')) return originalMatch;
+    if (options?.sourceFile && normalized.startsWith('../')) return undefined;
     let slug: string | undefined;
 
     if (options?.sourceFile) {
@@ -287,9 +280,8 @@ export function rewriteIntraGuideFileLinks(
         }
       }
     }
-    if (!slug) return originalMatch;
-    if (fragment) return `${linkPrefixFromMatch(originalMatch, file)}#${fragment.slice(1)})`;
-    return `${linkPrefixFromMatch(originalMatch, file)}#${slug})`;
+    if (!slug) return undefined;
+    return fragment ? `#${fragment.slice(1)}` : `#${slug}`;
   });
 }
 
@@ -375,7 +367,7 @@ function sectionAnchor(
 }
 
 function formatCrossGuideTarget(
-  prefix: string,
+  mark: string,
   fragment: string | undefined,
   entry: GuideLinkEntry,
   options: CrossGuideLinkRewriteOptions,
@@ -390,7 +382,7 @@ function formatCrossGuideTarget(
     options.currentOutputFile === undefined;
 
   if (sameGuide || sameOutputFile || sameBasenameLegacy) {
-    return `${prefix}#${sectionAnchor(entry, fragment, sameOutputFile || sameBasenameLegacy)})`;
+    return `${mark}#${sectionAnchor(entry, fragment, sameOutputFile || sameBasenameLegacy)}`;
   }
 
   // A monolith guide's own compiled guide links another monolith guide's compiled guide.
@@ -405,14 +397,14 @@ function formatCrossGuideTarget(
   if (options.currentOutputFile) {
     const fromDir = dirname(options.currentOutputFile);
     if (dirname(toFile) === fromDir) {
-      return `${prefix}${basename(toFile)}#${anchor})`;
+      return `${mark}${basename(toFile)}#${anchor}`;
     }
     let rel = relative(fromDir, toFile).replace(/\\/g, '/');
     if (!rel.startsWith('.')) rel = `./${rel}`;
-    return `${prefix}${rel}#${anchor})`;
+    return `${mark}${rel}#${anchor}`;
   }
 
-  return `${prefix}${toGuideFile ? basename(toFile) : entry.outputBasename}#${anchor})`;
+  return `${mark}${toGuideFile ? basename(toFile) : entry.outputBasename}#${anchor}`;
 }
 
 function crossGuidePass(
@@ -420,17 +412,12 @@ function crossGuidePass(
   options: CrossGuideLinkRewriteOptions,
   mark: string,
 ): string {
-  return rewriteMarkdownLinkLines(markdown, crossGuideTargets, (originalMatch, link) => {
+  return rewriteMarkdownLinkLines(markdown, crossGuideTargets, (link) => {
     const { file, fragment } = link;
     const entry = resolveIndexedMarkdownLink(file, options);
-    if (!entry) return originalMatch;
-    if (options.ignoreGuides?.includes(entry.guideName)) return originalMatch;
-    return formatCrossGuideTarget(
-      `${linkPrefixFromMatch(originalMatch, file)}${mark}`,
-      fragment,
-      entry,
-      options,
-    );
+    if (!entry) return undefined;
+    if (options.ignoreGuides?.includes(entry.guideName)) return undefined;
+    return formatCrossGuideTarget(mark, fragment, entry, options);
   });
 }
 

@@ -18,7 +18,7 @@ For external URLs, `mdcp links` runs the optional peer `markdown-link-check`.
 
 Every internal link must resolve, so link a planned page in the change that adds it. A placeholder reads as a real reference and leads nowhere.
 
-Link validation reads each inline link written as `[label](target)` on one line, except in a code span or fenced code. So a dead link in an HTML comment or an indented code block still fails `mdcp check`. It skips images, reference-style links, HTML `<a>` elements, labels that wrap onto the next line and labels that contain brackets. In a linked image, `[![Diagram](./d.png)](./page.md)`, it reads only `./d.png`, and compile doesn't rewrite `./page.md`. A title or angle brackets become part of the target, so link validation skips the link or fails it although the target exists. Write each internal link inline on one line, with no image or other brackets in the label and no title or angle brackets around the target.
+Link validation reads each inline link written as `[label](target)` on one line, except in a code span or fenced code. So a dead link in an HTML comment or an indented code block still fails `mdcp check`. It reads a label and a target as [Link passes](../client-core/compile-hooks/index.md#link-passes) says, so in a linked image, `[![Diagram](./d.png)](./page.md)`, it checks `./page.md`. It never checks the src of an image, whatever extensions the config lists. Link validation skips reference-style links, HTML `<a>` elements and labels that wrap onto the next line. A title or angle brackets become part of the target, so link validation skips the link or fails it although the target exists.
 
 ## BROKEN LINK marker
 
@@ -39,7 +39,7 @@ Compile marks a link only when its target after the link passes is a `#fragment`
 | Broken target   | The `#fragment` the link has after the link passes        |
 | Reason          | `dead anchor in compiled guide`, in the en-US locale pack |
 
-The original target comes from the shard link at the same place among the links with that label, and each marker replaces its own link where it stands. So of two links with one label, each marker gives the target its own link was written with, and a link that a compiled guide and the monolith both mark gets the same marker in both.
+The label and the original target come from the shard link at the same place among the links with that label, compared without the src of any image in it, which a link pass can rebase. Each marker replaces its own link where it stands, so of two links with one label, each gives the target its own link was written with. A link that a compiled guide and the monolith both mark gets the same marker in both.
 
 Disable markers per guide with `compile.links.markBroken: false`. `lint.links.enabled` can still fail check.
 

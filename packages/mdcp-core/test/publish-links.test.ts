@@ -278,9 +278,9 @@ describe('publish link rewriting', () => {
     });
   });
 
-  // Link validation reads only the image src of a linked image, so no link pass may rewrite the
-  // outer target either (docs/features/link-validation.md, "No placeholder links").
-  describe('a linked image keeps its outer target', () => {
+  // A label can hold an image, so each pass reads a linked image's outer target as a link and the
+  // image's own src as an image (docs/features/link-validation.md, "No placeholder links").
+  describe("a linked image's outer target", () => {
     it('in the intra-guide pass', () => {
       const guideDir = '/fake/guide';
       const slugByPath = new Map([[resolve(guideDir, 'page.md'), 'page']]);
@@ -290,10 +290,10 @@ describe('publish link rewriting', () => {
         slugByPath,
         guideDir,
       );
-      expect(out).toBe('[![Diagram](./d.png)](./page.md)\n[Plain](#page)\n');
+      expect(out).toBe('[![Diagram](./d.png)](#page)\n[Plain](#page)\n');
     });
 
-    it('in the publish-relative pass', () => {
+    it('in the publish-relative pass, with the src of the image in it', () => {
       withTmpDir('mdcp-linked-image-rel-', (work) => {
         const docsDeveloper = join(work, 'docs', 'developer');
         mkdirSync(docsDeveloper, { recursive: true });
@@ -301,11 +301,12 @@ describe('publish link rewriting', () => {
         writeFileSync(join(work, 'package.json'), '{}');
         writeFileSync(join(work, 'docs', 'mdcp.config.json'), '{}');
         writeFileSync(join(work, 'docs', 'features', 'page.md'), '# Page\n');
+        writeFileSync(join(work, 'docs', 'features', 'd.png'), 'png');
         const shard = join(docsDeveloper, 'guide.md');
         writeFileSync(shard, '# Guide\n');
 
         const out = rewritePublishRelativeLinks(
-          '[![Diagram](./d.png)](../features/page.md)\n[Plain](../features/page.md)\n',
+          '[![Diagram](../features/d.png)](../features/page.md)\n[Plain](../features/page.md)\n',
           {
             sourceFile: shard,
             guideDir: docsDeveloper,
@@ -313,7 +314,7 @@ describe('publish link rewriting', () => {
           },
         );
         expect(out).toBe(
-          '[![Diagram](./d.png)](../features/page.md)\n[Plain](docs/features/page.md)\n',
+          '[![Diagram](docs/features/d.png)](docs/features/page.md)\n[Plain](docs/features/page.md)\n',
         );
       });
     });
@@ -347,7 +348,7 @@ describe('publish link rewriting', () => {
 
         const features = results.find((r) => r.name === 'features')!.text;
         expect(features).toContain('[Plain](README.md#api)');
-        expect(features).toContain('[![Diagram](./d.png)](../client-core/api.md)');
+        expect(features).toContain('[![Diagram](./d.png)](README.md#api)');
       });
     });
   });

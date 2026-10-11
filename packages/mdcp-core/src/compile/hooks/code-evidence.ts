@@ -4,7 +4,12 @@ import type { CompileHook, CompileHookState } from '../hooks.js';
 import { markLinkTarget } from '../publish-links.js';
 import { maskInlineCode } from '../../links/extract.js';
 import { createQuotedFenceScanner } from '../../markdown/index.js';
-import { scanInlineLinks } from '../link-scan.js';
+import {
+  nestedLinkIndexes,
+  piecesBetween,
+  replaceLinkTargets,
+  scanMarkdownLinks,
+} from '../link-scan.js';
 import {
   codeExtensionSet,
   defaultSearchRoots,
@@ -92,15 +97,13 @@ function outputPathForLink(pathPart: string, resolved: string | null, outputFile
   return posixRelative(dirname(outputFile), resolved);
 }
 
-/** A link as the hook writes it, and whether the hook rebased its path for the output. */
+/** A link's target as the hook writes it, and whether the hook rebased its path for the output. */
 interface EvidenceLink {
-  label: string;
   target: string;
   rebased: boolean;
 }
 
 function evidenceLink(
-  label: string,
   pathPart: string,
   resolved: string | null,
   outputFile: string | undefined,
@@ -108,27 +111,26 @@ function evidenceLink(
 ): EvidenceLink {
   const path = outputPathForLink(pathPart, resolved, outputFile);
   const target = fragment ? `${path}#${fragment}` : path;
-  return { label, target, rebased: Boolean(resolved && outputFile) };
+  return { target, rebased: Boolean(resolved && outputFile) };
 }
 
 function rewriteEvidenceLink(
   label: string,
   target: string,
-  guideDir: string,
-  searchRoots: string[],
+  resolveFile: (pathPart: string) => string | null,
   outputFile?: string,
   extensions?: EvidenceExtensions,
 ): EvidenceLink {
   const [pathPart, fragment] = target.split('#');
-  if (!isRepoFilePath(pathPart, extensions?.file)) return { label, target, rebased: false };
+  if (!isRepoFilePath(pathPart, extensions?.file)) return { target, rebased: false };
 
   const existingLine = fragment?.match(/^L\d+(?:-L\d+)?$/i);
   if (existingLine) {
-    const resolved = resolveRelativeFile(pathPart, guideDir, searchRoots);
-    return evidenceLink(label, pathPart, resolved, outputFile, fragment.toUpperCase());
+    const resolved = resolveFile(pathPart);
+    return evidenceLink(pathPart, resolved, outputFile, fragment.toUpperCase());
   }
 
-  const resolved = resolveRelativeFile(pathPart, guideDir, searchRoots);
+  const resolved = resolveFile(pathPart);
 
   // A symbol names a line in code. In a data file the same match is an
   // occurrence rather than a declaration, so a data link is rebased and left
@@ -148,40 +150,98 @@ function rewriteEvidenceLink(
   // path still has to be rebased, or a link correct in the shard breaks in
   // output published from another directory. `outputPathForLink` leaves an
   // unresolvable path alone.
-  return evidenceLink(label, pathPart, resolved, outputFile, lineFrag ?? undefined);
-}
-
-type ReplaceEvidenceLink = (match: string, label: string, target: string) => string;
-
-/** `text`, which holds no fenced code, with each link outside a code span replaced. */
-function replaceProseLinks(text: string, replace: ReplaceEvidenceLink): string {
-  // Masking keeps each index, so a link in `masked` is at the same place in `text`.
-  const masked = text.split('\n').map(maskInlineCode).join('\n');
-  // Any link with a target of at least one character, an image too.
-  const links = scanInlineLinks(masked, (targetStart, close) => close > targetStart || undefined);
-  let out = '';
-  let last = 0;
-  for (const { start, labelEnd, close } of links) {
-    const label = text.slice(start + 1, labelEnd);
-    const target = text.slice(labelEnd + 2, close);
-    out += text.slice(last, start) + replace(text.slice(start, close + 1), label, target);
-    last = close + 1;
-  }
-  return out + text.slice(last);
+  return evidenceLink(pathPart, resolved, outputFile, lineFrag ?? undefined);
 }
 
 /**
- * `body` with each link the hook reads replaced by what `replace` returns for it. `replace` gets the
- * link's label and target. The hook skips fenced code, in a blockquote too, and code spans, as the
- * link passes and link lint do. A link can still span lines between two fences, so a label that
- * prose wrapping breaks keeps its link.
+ * A link the hook reads, as the body wrote it. Images nest, so the label of an image holds every
+ * image inside it, and on a line of nested images those labels add up to the square of the line's
+ * length. So `text` and `label` leave out the links and images in the label, and each index of the
+ * body is in the `text` of one link at most.
  */
-function replaceEvidenceLinks(body: string, replace: ReplaceEvidenceLink): string {
+interface ProseLink {
+  /** The link's text with each link and image in its label cut out. Marking tells links apart by it. */
+  text: string;
+  /**
+   * The label as written, or, when it holds links or images, the text around them, each piece
+   * trimmed and the pieces that hold text joined by a space.
+   */
+  label: string;
+  target: string;
+}
+
+/** The new target of a link, or undefined to leave it as written. */
+type RewriteEvidenceTarget = (link: ProseLink) => string | undefined;
+
+/** Stands for each link or image cut out of a link's text. */
+const CUT = '\u0000';
+
+/**
+ * `text`, which holds no fenced code, with the target of each link outside a code span that
+ * `rewrite` gives a new one for replaced. `linkTexts` gets the text of each link in the result, as
+ * `ProseLink.text` gives it.
+ */
+function rewriteProseLinks(
+  text: string,
+  rewrite: RewriteEvidenceTarget,
+  linkTexts: string[],
+): string {
+  // Masking keeps each index, so a link in `masked` is at the same place in `text`.
+  const masked = text.split('\n').map(maskInlineCode).join('\n');
+  // Each link and image with a target of at least one character.
+  const links = scanMarkdownLinks(masked).filter((link) => link.close > link.labelEnd + 2);
+  const nested = nestedLinkIndexes(links);
+  // The pieces of `source` from `from` to `to` around the links and images right inside link `i`,
+  // which `at` places in `source`.
+  const around = (source: string, at: [number, number][], i: number, from: number, to: number) =>
+    piecesBetween(
+      source,
+      from,
+      to,
+      nested[i].map((j) => at[j]),
+    );
+  const spans = links.map((link): [number, number] => [link.start, link.close + 1]);
+  const targets = links.map((link, i) => {
+    const labelStart = link.start + (link.image ? 2 : 1);
+    const label =
+      nested[i].length === 0
+        ? text.slice(labelStart, link.labelEnd)
+        : around(text, spans, i, labelStart, link.labelEnd)
+            .map((piece) => piece.trim())
+            .filter((piece) => piece !== '')
+            .join(' ');
+    return rewrite({
+      text: around(text, spans, i, ...spans[i]).join(CUT),
+      label,
+      target: text.slice(link.labelEnd + 2, link.close),
+    });
+  });
+  const result = replaceLinkTargets(text, links, targets);
+  for (let i = 0; i < links.length; i++) {
+    linkTexts.push(around(result.text, result.spans, i, ...result.spans[i]).join(CUT));
+  }
+  return result.text;
+}
+
+/**
+ * `body` with the target of each link the hook reads replaced by what `rewrite` returns for it.
+ * `rewrite` gets each link and image in the order of their targets, so an image in the label of a
+ * link comes before the link, and `linkTexts` lists the text each has in the result, as
+ * `ProseLink.text` gives it, in that order.
+ * The hook skips fenced code, in a blockquote too, and code spans, as the link passes and link lint
+ * do. A label can still wrap onto the next line between two fences, so a label that prose wrapping
+ * breaks keeps its link.
+ */
+function replaceEvidenceLinks(
+  body: string,
+  rewrite: RewriteEvidenceTarget,
+): { body: string; linkTexts: string[] } {
   const inFence = createQuotedFenceScanner();
   const out: string[] = [];
+  const linkTexts: string[] = [];
   let prose: string[] = [];
   const flush = () => {
-    if (prose.length > 0) out.push(replaceProseLinks(prose.join('\n'), replace));
+    if (prose.length > 0) out.push(rewriteProseLinks(prose.join('\n'), rewrite, linkTexts));
     prose = [];
   };
   for (const line of body.split('\n')) {
@@ -193,10 +253,13 @@ function replaceEvidenceLinks(body: string, replace: ReplaceEvidenceLink): strin
     }
   }
   flush();
-  return out.join('\n');
+  return { body: out.join('\n'), linkTexts };
 }
 
-/** A link the hook rebased: the text it wrote, and how many of its links before it have that text. */
+/**
+ * A link the hook rebased: the text it wrote, as `ProseLink.text` gives it, and how many of its
+ * links before it have that text.
+ */
 export interface RebasedEvidenceLink {
   text: string;
   occurrence: number;
@@ -233,11 +296,11 @@ export function recordRebasedEvidenceLinks(hookState: CompileHookState): Rebased
  * a path the hook already rebased for the output alone. The hook writes no mark itself, so neither
  * a direct caller nor a hook after it sees one.
  *
- * A link is marked when it has the text the hook wrote and the same place among the links with
- * that text, in document order. So a shard's own link with that text, which the hook left as
- * written, stays unmarked. A hook after it that changes that text leaves the link unmarked. One
- * that adds or removes a link with the same text above it, such as an insert that `inlineInserts`
- * places there, moves the mark onto another link with that text.
+ * A link is marked when it has the text the hook wrote, with the links and images in its label cut
+ * out, and the same place among the links with that text, in document order. So a shard's own link
+ * with that text, which the hook left as written, stays unmarked. A hook after it that changes that
+ * text leaves the link unmarked. One that adds or removes a link with the same text above it, such
+ * as an insert that `inlineInserts` places there, moves the mark onto another link with that text.
  */
 export function markRebasedEvidenceLinks(
   body: string,
@@ -246,9 +309,9 @@ export function markRebasedEvidenceLinks(
   if (rebased.length === 0) return body;
   const marked = new Set(rebased.map((link) => `${link.occurrence}:${link.text}`));
   const occurrence = occurrenceCounter();
-  return replaceEvidenceLinks(body, (match, label: string, target: string) =>
-    marked.has(`${occurrence(match)}:${match}`) ? `[${label}](${markLinkTarget(target)})` : match,
-  );
+  return replaceEvidenceLinks(body, ({ text, target }) =>
+    marked.has(`${occurrence(text)}:${text}`) ? markLinkTarget(target) : undefined,
+  ).body;
 }
 
 export const codeEvidenceHook: CompileHook = (ctx) => {
@@ -258,26 +321,33 @@ export const codeEvidenceHook: CompileHook = (ctx) => {
     file: fileExtensionSet(ctx.config.lint),
     code: codeExtensionSet(ctx.config.lint),
   };
+  // A shard can repeat a path in many links, so the hook looks each path up once.
+  const resolvedPaths = new Map<string, string | null>();
+  const resolveFile = (pathPart: string) => {
+    let resolved = resolvedPaths.get(pathPart);
+    if (resolved === undefined) {
+      resolved = resolveRelativeFile(pathPart, guideDir, searchRoots);
+      resolvedPaths.set(pathPart, resolved);
+    }
+    return resolved;
+  };
   const rebased = ctx.hookState ? rebasedLinksByState.get(ctx.hookState) : undefined;
+  const rebasedAt: boolean[] = [];
+
+  const result = replaceEvidenceLinks(ctx.body, ({ label, target }) => {
+    if (!isRepoFilePath(target.split('#')[0], extensions.file)) {
+      rebasedAt.push(false);
+      return undefined;
+    }
+    const link = rewriteEvidenceLink(label, target, resolveFile, ctx.outputFile, extensions);
+    rebasedAt.push(link.rebased);
+    return link.target;
+  });
   // Every link the hook writes counts, so marking can tell a rebased link from one with its text.
   const occurrence = occurrenceCounter();
-
-  return replaceEvidenceLinks(ctx.body, (match, label: string, target: string) => {
-    if (!isRepoFilePath(target.split('#')[0], extensions.file)) {
-      occurrence(match);
-      return match;
-    }
-    const link = rewriteEvidenceLink(
-      label,
-      target,
-      guideDir,
-      searchRoots,
-      ctx.outputFile,
-      extensions,
-    );
-    const text = `[${link.label}](${link.target})`;
+  result.linkTexts.forEach((text, i) => {
     const before = occurrence(text);
-    if (link.rebased) rebased?.push({ text, occurrence: before });
-    return text;
+    if (rebasedAt[i]) rebased?.push({ text, occurrence: before });
   });
+  return result.body;
 };

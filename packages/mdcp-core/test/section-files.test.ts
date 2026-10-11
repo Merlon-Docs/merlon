@@ -76,9 +76,9 @@ describe('sectionFiles', () => {
     ]);
   });
 
-  // A label runs to its first `]` and a target to its first `)`, across line breaks. A label that
-  // holds a `]` before its end isn't a link. The path ends at the last `.md` that the `)` or a
-  // `#fragment` follows.
+  // A label is read as CommonMark reads it: it can wrap onto the next line and hold balanced
+  // brackets, and a bracket after a backslash is text. A target runs to its first `)`, on the same
+  // line. The path ends at the last `.md` that the `)` or a `#fragment` follows.
   it('reads manifest links across CRLF and wrapped lines and ends each path at its last .md', () => {
     writeFileSync(
       join(work.path, 'index.md'),
@@ -86,18 +86,20 @@ describe('sectionFiles', () => {
         '# Guide',
         '- [One](./one.md)\r',
         '- [Two\r\nlines](two.md#part)',
-        '- [a [b] c](skipped.md)',
+        '- [a [b] c](bracketed.md)',
         '- [Three](three.md.md) and \\[Four](four.md#x.md)',
         '- [Five](#five) [Gone](#gone) [Toc](#table-of-contents) [Six](six.md#)',
         '',
       ].join('\n'),
     );
-    for (const name of ['one', 'two', 'skipped', 'three.md', 'four', 'five', 'six']) {
+    for (const name of ['one', 'two', 'bracketed', 'three.md', 'four', 'five', 'six']) {
       writeFileSync(join(work.path, `${name}.md`), `# ${name}\n`);
     }
 
     expect(sectionFiles(work.path)).toEqual(
-      ['one', 'two', 'three.md', 'four', 'six', 'five'].map((n) => resolve(work.path, `${n}.md`)),
+      ['one', 'two', 'bracketed', 'three.md', 'six', 'five'].map((n) =>
+        resolve(work.path, `${n}.md`),
+      ),
     );
   });
 

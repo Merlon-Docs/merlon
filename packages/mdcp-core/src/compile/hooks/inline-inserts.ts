@@ -4,7 +4,7 @@ import { getLocalePack, type LocalePack } from '../../locale/index.js';
 import { githubSlugify } from '../../refs/slugs.js';
 import type { CompileHook, CompileHookState, InlineInsertsHookState } from '../hooks.js';
 import { hookSearchRoots, resolveRelativeFile } from './path-resolve.js';
-import { createMdSuffixReader, scanInlineLinks } from '../link-scan.js';
+import { createMdSuffixReader, scanMarkdownLinks } from '../link-scan.js';
 
 /**
  * Insert library directories: `diagrams/`, `tables/`, `figures/`, `media/` and `inserts/`, and
@@ -175,23 +175,28 @@ function insertLibraryPathStart(text: string, start: number): number {
 /**
  * Each link in `body` into an insert library: a target that starts with a library directory, then
  * a path whose first character is not `#` or whitespace, ending in `.md` in any case, with an
- * optional `#fragment` that is not empty.
+ * optional `#fragment` that is not empty. `scanMarkdownLinks` reads the links, so a label can hold
+ * an image or balanced brackets. An image isn't a link, so its src is never an insert reference.
  */
 export function findInsertLinks(body: string): InsertLinkRef[] {
   const mdSuffix = createMdSuffixReader(body, { ignoreCase: true, minFragment: 1 });
-  const links = scanInlineLinks(body, (targetStart, close) => {
+  const refs: InsertLinkRef[] = [];
+  for (const { start, labelEnd, close, image } of scanMarkdownLinks(body)) {
+    if (image) continue;
+    const targetStart = labelEnd + 2;
     const pathStart = insertLibraryPathStart(body, targetStart);
-    if (pathStart === -1) return undefined;
+    if (pathStart === -1) continue;
     const first = body[pathStart];
-    if (first === undefined || first === ')' || first === '#' || /\s/.test(first)) return undefined;
-    return mdSuffix(close) > pathStart ? true : undefined;
-  });
-  return links.map(({ start, labelEnd, close }) => ({
-    start,
-    end: close + 1,
-    label: body.slice(start + 1, labelEnd),
-    relPath: body.slice(labelEnd + 2, close),
-  }));
+    if (first === undefined || first === ')' || first === '#' || /\s/.test(first)) continue;
+    if (mdSuffix(close) <= pathStart) continue;
+    refs.push({
+      start,
+      end: close + 1,
+      label: body.slice(start + 1, labelEnd),
+      relPath: body.slice(targetStart, close),
+    });
+  }
+  return refs;
 }
 
 function replacementForLink(

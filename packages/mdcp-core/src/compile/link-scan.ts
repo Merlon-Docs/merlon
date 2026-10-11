@@ -1,76 +1,12 @@
 /**
- * Linear scans for inline links. The manifest walk and the `inlineInserts` hook read a whole
- * manifest or shard body with them. Link lint, broken-link marking and the link passes read one
- * line at a time, and `codeEvidence` reads each run of lines between fenced code. Each scan finds
- * what the regex it replaced found, in the same order. Those regexes read a target with `[^)]`, so
- * on a crafted text they could rescan the rest of the text from each `[`, and again after each
- * `.md` in a target. These scans read each index a fixed number of times.
+ * Linear scans for inline links. `scanMarkdownLinks` reads a label as CommonMark reads link text,
+ * for every reader of inline links: link lint, broken-link marking, the link passes,
+ * `codeEvidence`, the manifest walk and the `inlineInserts` hook. Link lint, marking and the passes
+ * read one line at a time, `codeEvidence` reads each run of lines between fenced code, and the walk
+ * and `inlineInserts` read a whole manifest or shard body. The regexes these scans replaced read a
+ * target with `[^)]`, so on a crafted text they could rescan the rest of the text from each `[`,
+ * and again after each `.md` in a target. These scans read each index a fixed number of times.
  */
-
-/** A `[label](target)` link and the value its target gave. */
-export interface InlineLink<T> {
-  /** Index of the `[` that opens the label. */
-  start: number;
-  /** Index of the `]` that closes the label. The target starts two past it, after the `(`. */
-  labelEnd: number;
-  /** Index of the `)` that closes the target. */
-  close: number;
-  value: T;
-}
-
-export interface InlineLinkScanOptions {
-  /** Start no link at a `[` right after a `!`, which opens an image. */
-  skipImages?: boolean;
-}
-
-/**
- * Each `[label](target)` link in `text` whose target `read` gives a value for, from left to right
- * without overlap. A label runs from a `[` to the first `]` after it, a `(` follows at once, and
- * the target runs from there to the first `)`. Either can span lines. `read` gets the index where
- * the target starts and the index of its `)`, and returns undefined to turn the link down. The
- * search then goes on from the next `[`, which can sit inside that link. A global regex that
- * starts with `\[[^\]]*\]\(` and matches a target with no `)` in it, then `\)`, walks a text the
- * same way.
- *
- * Links that share a label end share a target, so `read` runs once for each label end. The
- * indexes of the next `]` and `)` only move forward, so the scan reads each index of the text a
- * fixed number of times besides what `read` reads.
- *
- * With `skipImages`, a `[` right after a `!` starts no link, as in a regex that starts with
- * `(?<!!)`. The search goes on from the next `[`, and `read` is not asked about that label end.
- */
-export function scanInlineLinks<T>(
-  text: string,
-  read: (targetStart: number, close: number) => T | undefined,
-  options: InlineLinkScanOptions = {},
-): InlineLink<T>[] {
-  const links: InlineLink<T>[] = [];
-  let labelEnd = -1;
-  let close = -1;
-  let refused = -1;
-  for (let start = text.indexOf('['); start !== -1;) {
-    if (options.skipImages && text[start - 1] === '!') {
-      start = text.indexOf('[', start + 1);
-      continue;
-    }
-    if (labelEnd <= start) labelEnd = text.indexOf(']', start + 1);
-    if (labelEnd === -1) break;
-    if (labelEnd !== refused && text[labelEnd + 1] === '(') {
-      const targetStart = labelEnd + 2;
-      if (close < targetStart) close = text.indexOf(')', targetStart);
-      if (close === -1) break;
-      const value = read(targetStart, close);
-      if (value !== undefined) {
-        links.push({ start, labelEnd, close, value });
-        start = text.indexOf('[', close + 1);
-        continue;
-      }
-      refused = labelEnd;
-    }
-    start = text.indexOf('[', start + 1);
-  }
-  return links;
-}
 
 /**
  * A reader for the first index of `char` in `text` at or after an index. Calls whose index never
@@ -85,6 +21,164 @@ export function createNextIndexReader(text: string, char: string): (from: number
     next = text.indexOf(char, from);
     return next;
   };
+}
+
+/** An inline link or image that `scanMarkdownLinks` reads. */
+export interface MarkdownLink {
+  /** Index of the `[` that opens the label, or of the `!` before it in an image. */
+  start: number;
+  /** Index of the `]` that closes the label. The target starts two past it, after the `(`. */
+  labelEnd: number;
+  /** Index of the `)` that closes the target. */
+  close: number;
+  /** True for an image, `![alt](src)`. */
+  image: boolean;
+}
+
+/** ASCII punctuation, which a backslash escapes in CommonMark. */
+const ESCAPABLE = new Set('!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~');
+
+/** An unclosed `[` or `![`, and whether it opens an image. */
+interface Opener {
+  at: number;
+  image: boolean;
+}
+
+/**
+ * Each inline link and image in `text`, in the order of their targets, so an image in the label of
+ * a link comes before the link. A label is read as CommonMark reads link text. It can hold balanced
+ * brackets, an image, and a line break. Its `]` closes the nearest `[` or `![` still open, and a
+ * bracket after a backslash is text. A link holds no link, so once a link closes, each `[` open
+ * before it is text. Each `![` stays open, so an image can hold a link. A `(` follows the `]` at
+ * once, and the target runs from there to the first `)`, which has to be on the same line. The
+ * target can be empty. Unlike CommonMark, it can hold spaces, a title or angle brackets, and it
+ * can't hold a `)`. The scan reads no bracket in a target. It doesn't read code spans, autolinks or
+ * inline HTML, so a bracket in one still counts, and a caller that skips code spans masks them
+ * first.
+ *
+ * The scan stops only at a backslash, a `!` or a bracket, and a regex of one character class finds
+ * the next one. That regex, and the indexes of the next `)` and line break, only move forward, so
+ * the scan reads each index of the text a fixed number of times.
+ */
+export function scanMarkdownLinks(text: string): MarkdownLink[] {
+  const links: MarkdownLink[] = [];
+  const openers: Opener[] = [];
+  // Each `[` before the `[` of the last link is text.
+  let linkFloor = -1;
+  const nextClose = createNextIndexReader(text, ')');
+  const nextBreak = createNextIndexReader(text, '\n');
+  const stops = /[!\\[\]]/g;
+  for (let stop = stops.exec(text); stop; stop = stops.exec(text)) {
+    const i = stop.index;
+    const char = text[i];
+    if (char === '\\') {
+      if (ESCAPABLE.has(text[i + 1])) stops.lastIndex = i + 2;
+    } else if (char === '!') {
+      if (text[i + 1] !== '[') continue;
+      openers.push({ at: i + 1, image: true });
+      stops.lastIndex = i + 2;
+    } else if (char === '[') {
+      openers.push({ at: i, image: false });
+    } else {
+      const opener = openers.pop();
+      if (!opener || (!opener.image && opener.at < linkFloor) || text[i + 1] !== '(') continue;
+      const close = nextClose(i + 2);
+      if (close === -1) break;
+      const lineBreak = nextBreak(i + 2);
+      if (lineBreak !== -1 && lineBreak < close) continue;
+      links.push({
+        start: opener.image ? opener.at - 1 : opener.at,
+        labelEnd: i,
+        close,
+        image: opener.image,
+      });
+      if (!opener.image) linkFloor = opener.at;
+      stops.lastIndex = close + 1;
+    }
+  }
+  return links;
+}
+
+/**
+ * For each link and image of `links`, the indexes in `links` of the links and images right inside
+ * its label, in order. `links` come in the order `scanMarkdownLinks` gives them, or a part of it.
+ * Each one sits right inside at most one other, so the lists hold each index at most once.
+ */
+export function nestedLinkIndexes(links: readonly MarkdownLink[]): number[][] {
+  const nested: number[][] = [];
+  // The links and images read so far that no other holds, in order. A link or image ends before
+  // the one after it in `links` does, so the ones that start after it starts are in its label.
+  const outer: number[] = [];
+  links.forEach((link, i) => {
+    let first = outer.length;
+    while (first > 0 && links[outer[first - 1]].start > link.start) first--;
+    nested.push(outer.splice(first));
+    outer.push(i);
+  });
+  return nested;
+}
+
+/**
+ * The text of `text` from `from` to `to`, as the pieces between the spans of `cut`. Each span is a
+ * start and an end in that range, and the spans are apart and in order.
+ */
+export function piecesBetween(
+  text: string,
+  from: number,
+  to: number,
+  cut: readonly (readonly [number, number])[],
+): string[] {
+  const pieces: string[] = [];
+  let at = from;
+  for (const [start, end] of cut) {
+    pieces.push(text.slice(at, start));
+    at = end;
+  }
+  pieces.push(text.slice(at, to));
+  return pieces;
+}
+
+/**
+ * `text` with the target of each link in `links` replaced by the entry of `targets` at the same
+ * index, when that entry isn't undefined. `links` come in the order `scanMarkdownLinks` gives them.
+ * `spans` gives the start and end of each link in the new text, an image's new src included in the
+ * link around it.
+ */
+export function replaceLinkTargets(
+  text: string,
+  links: readonly MarkdownLink[],
+  targets: readonly (string | undefined)[],
+): { text: string; spans: [number, number][] } {
+  let out = '';
+  let last = 0;
+  // The `)` of each replaced target, in order, and how far the text after it has moved.
+  const closes: number[] = [];
+  const shifts: number[] = [0];
+  links.forEach((link, i) => {
+    const target = targets[i];
+    if (target === undefined) return;
+    const targetStart = link.labelEnd + 2;
+    out += text.slice(last, targetStart) + target;
+    last = link.close;
+    closes.push(link.close);
+    shifts.push(shifts[shifts.length - 1] + target.length - (link.close - targetStart));
+  });
+  out += text.slice(last);
+  const moved = (at: number) => at + shifts[countAtMost(closes, at)];
+  const spans = links.map((link): [number, number] => [moved(link.start), moved(link.close + 1)]);
+  return { text: out, spans };
+}
+
+/** How many entries of `sorted`, which is in ascending order, are at most `value`. */
+function countAtMost(sorted: readonly number[], value: number): number {
+  let low = 0;
+  let high = sorted.length;
+  while (low < high) {
+    const mid = (low + high) >> 1;
+    if (sorted[mid] <= value) low = mid + 1;
+    else high = mid;
+  }
+  return low;
 }
 
 export interface MdSuffixOptions {
@@ -133,17 +227,20 @@ export function createMdSuffixReader(
 }
 
 /**
- * The path of each `[label](….md)` link in `text`, which may have a `#fragment` after the `.md`.
- * A path runs from the start of the target to its last `.md` that the `)` or a `#` follows, and it
- * has at least one character before that `.md`. The path itself can hold a `#`. This is what
- * `/\[[^\]]*\]\(([^)]+\.md)(?:#[^)]*)?\)/g` captured.
+ * The path of each `[label](….md)` link and `![alt](….md)` image in `text`, as `scanMarkdownLinks`
+ * reads them, which may have a `#fragment` after the `.md`. A path runs from the start of the
+ * target to its last `.md` that the `)` or a `#` follows, and it has at least one character before
+ * that `.md`. The path itself can hold a `#`, so `[a](#x.md)` gives the path `#x.md`.
  */
 export function mdLinkPaths(text: string): string[] {
   const mdSuffix = createMdSuffixReader(text, { ignoreCase: false, minFragment: 0 });
-  return scanInlineLinks(text, (targetStart, close) => {
+  const paths: string[] = [];
+  for (const { labelEnd, close } of scanMarkdownLinks(text)) {
+    const targetStart = labelEnd + 2;
     const md = mdSuffix(close);
-    return md > targetStart ? text.slice(targetStart, md + 3) : undefined;
-  }).map((link) => link.value);
+    if (md > targetStart) paths.push(text.slice(targetStart, md + 3));
+  }
+  return paths;
 }
 
 /**

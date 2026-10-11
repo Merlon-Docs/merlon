@@ -316,7 +316,7 @@ assembleGuide (per guide, once for each document it is written to)
 
 Assembly rewrites links to files in the passes below. They run on each shard in table order, and the intra-guide pass runs once more on the stitched body. They aren't compile hooks, so `compile.hooks` doesn't turn them off. Every later pass leaves alone a link that `codeEvidence` rebased or that the cross-guide or publish-relative pass rewrote, and that includes the run on the stitched body. Assembly marks each of those targets, and it removes the marks after that run. So a cross-guide target such as `glossary.md#term` stays as the cross-guide pass wrote it, even when the guide stitches a shard named `glossary.md`.
 
-Assembly marks the paths `codeEvidence` rebased once every hook has run, so no hook sees a mark. It finds each of those links by the text the hook wrote and by its place among the links with that text. So a link the shard wrote with the same text, which the hook left as written, doesn't get a mark. When a hook listed after `codeEvidence` changes that text, or adds or removes a link with that text above it, the publish-relative pass can rebase the hook's path again, and leave another link with that text as it is.
+Assembly marks the paths `codeEvidence` rebased once every hook has run, so no hook sees a mark. It finds each of those links by the text the hook wrote and its place among the links with that text. That text leaves out the links and images in the label. So a link the shard wrote with the same text, which the hook left as written, doesn't get a mark. When a hook listed after `codeEvidence` changes that text, or adds or removes a link with that text above it, the publish-relative pass can rebase the hook's path again, and leave another link with that text as it is.
 
 The passes leave a link in fenced code or in a code span as written, and so do `codeEvidence` and broken-link marking. They pair code spans within each line, so a code span that wraps onto the next line doesn't hide a link. They find fenced code with the fence scan that [stripAnchors code](#stripanchors-code) describes, which reads fences of backticks or tildes and follows list items. They also run that scan on the text of each blockquote, so a fence in a quote counts up to ten blockquotes deep. The per-shard passes and `codeEvidence` start a new scan on each shard. Broken-link marking and compiled link lint read the whole guide with one scan, as the intra-guide run on the stitched body does. So a shard that ends inside an open fence can make them disagree about the shard after it.
 
@@ -325,6 +325,8 @@ The passes leave a link in fenced code or in a code span as written, and so do `
 | Cross-guide      | Per shard, after the hooks                 | `./` and `../` paths to a shard in the guide link index                                                     | `#slug`, or another output's path plus `#slug` |
 | Intra-guide      | Per shard, then again on the stitched body | Bare and `./` paths to a shard the guide stitches, and after stitch the `../` paths no earlier pass rewrote | `#slug`                                        |
 | Publish-relative | Per shard, after intra-guide               | `../` paths to a file or directory that exists, or to an output of the run                                  | The path relative to the guide's link base     |
+
+A pass reads a label as CommonMark reads link text, so the label can contain balanced brackets or an image, and a bracket after a backslash is text. A label can't contain a link, so in `[a [b](c) d](e)` only `[b](c)` is a link and the outer brackets are text. The alt of an image can contain a link. A target runs from the `(` right after the `]` to the first `)` on the same line, so a title or angle brackets stay part of it. In `[![Logo](../img/logo.png)](./page.md)`, the passes read the image and the link around it as two links. Each pass reads the outer target as it reads the target of any link, and the src as it reads the src of any image. The publish-relative pass rebases `../img/logo.png`, and no pass changes a src such as `./img/logo.png`. The [manifest walk](../../docs/features/manifest-compile-order.md#linked-shards-and-the-file-name-fallback) reads a label and a target the same way, so it follows the outer target of a linked image to a shard.
 
 A link with a `#fragment` keeps it in place of the slug. [Cross-guide resolution](#cross-guide-resolution) says when a cross-guide link stays in the document and which output it names otherwise. [Publish-relative matching](#publish-relative-matching) says which `../` targets the publish-relative pass skips, and [`ignoreGuides` interaction](#ignoreguides-interaction) covers a cross-guide link that keeps its shard path. The publish-relative shard also defines the [link base](#when-it-runs).
 
@@ -508,7 +510,7 @@ A link is rewritten when **all** of the following hold:
 
 Markdown (`.md`) links, external URLs, and same-guide shard links are left unchanged.
 
-The hook finds fenced code and code spans as the [link passes](#link-passes) do. A link outside code can still wrap onto the next line.
+The hook finds fenced code and code spans as the [link passes](#link-passes) do, and it reads a label and a target as they do. It reads each run of lines between two fences at once, so a label outside code can still wrap onto the next line, and an unfinished link such as `[x](see` doesn't take in a link on the next line. In a label that contains an image, such as a linked image's, the hook reads a line range or a symbol only from the text outside the image.
 
 **Code and data differ in what the hook adds.** A code file can be cited by line, so symbol lookup can give it an `#L` fragment. A data file, such as configuration or records, is resolved and rebased for the output path. It gets an `#L` fragment only from a line range the shard writes in the label, the path or the fragment, and never from symbol lookup, because an identifier found in inert content is an occurrence rather than a declaration. Link validation uses the same code and data extension lists. To look symbols up in a data format, list its extension in `lint.codeExtensions`. See [Built-in link validation](../../docs/features/link-validation.md).
 
@@ -641,7 +643,7 @@ Shards link with normal markdown — no `<!-- directives -->`.
 
 A link is an insert reference when **all** of the following hold:
 
-- Standard markdown link syntax: `[label](path)`.
+- Inline link syntax, `[label](path)`, with the label and target read as the [link passes](#link-passes) read them. An image, `![alt](path)`, isn't an insert reference.
 - Target starts with an insert library directory and a `/`, after an optional `./` or run of `../`. The directories are `diagram`, `diagrams`, `table`, `tables`, `figure`, `figures`, `media`, `insert` and `inserts`, in any case. No `http://` or `https://` URL starts that way.
 - The path after the directory doesn't start with `#` or whitespace. It ends in `.md` in any case, with at least one character before the `.md`.
 - An optional `#fragment` after the `.md` can't be empty, and file lookup ignores it.
@@ -672,6 +674,8 @@ The first reference to an insert file (document order across all shards in the g
 - **n** — serial number for that kind in this guide (see **Numbered captions** below)
 - **caption** — link label, or a humanized basename when the label is empty
 - **Anchor slug** — GitHub-style slug of the full heading (for example `Table 1. Status codes` → `#table-1-status-codes`)
+
+The label of a linked image, `[![I](./i.png)](../diagrams/d.md)`, contains the image. The heading then reads `#### Diagram 1. ![I](./i.png)`, and a back-link to it uses the slug of that text, `#diagram-1-iipng`.
 
 Output uses GFM headings and back-links for captions. The hook inlines each shard body as written. The assembly passes after the hooks then treat that body as part of the shard, from link rewriting to [table re-alignment](#tables-after-link-rewriting). A body can contain markdown tables and `![images](…)`, and HTML `<video>` / `<audio>` when your renderer supports them.
 

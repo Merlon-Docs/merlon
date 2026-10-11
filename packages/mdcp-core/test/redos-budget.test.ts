@@ -45,6 +45,12 @@ const SHARED_LABEL_END = 40_000;
 const SHARED_TARGET_END = 8_000;
 const LINE_LINKS = 8_000;
 const SHARD_LINE_LINKS = 4_000;
+const NESTED_IMAGES = 1_000;
+// compileGuideResults reads the files, builds the slug registry, lints and marks on top of the
+// hook, and other test files load the box, so its nested-image cases get a longer line and a
+// budget to match. A reader that takes the square of the line takes seconds here.
+const COMPILE_NESTED_IMAGES = 2_000;
+const COMPILE_BUDGET_MS = 200;
 
 describe('ReDoS budget demos (CodeQL js/polynomial-redos)', () => {
   it('stripExplicitAnchorMarkers stays under budget on long leading spaces + incomplete {#', () => {
@@ -433,5 +439,50 @@ describe('ReDoS budget for the link readers', () => {
       applyCompileHooks(body, ctx, ['codeEvidence']);
     });
     expect(ms).toBeLessThan(BUDGET_MS);
+  });
+
+  // Images nest, so the alt of each image in `![![a](t)](t)` holds every image inside it, and the
+  // alts on a line of n nested images add up to the square of n. A reader that reads each alt
+  // whole, or each image's whole text, takes that long too. A target with a code extension names
+  // a file that codeEvidence resolves and rebases, and assembly then marks each image it rebased.
+  describe('on a line of nested images', () => {
+    const nestedImages = (target: string, count: number) =>
+      '!['.repeat(count) + 'a' + `](${target})`.repeat(count);
+
+    for (const target of ['x', '../src/x.ts']) {
+      it(`compileGuideResults stays under budget with the target ${target}`, () => {
+        const { guideDir, sourceFile } = shardAt();
+        mkdirSync(join(work.path, 'src'), { recursive: true });
+        writeFileSync(join(work.path, 'src', 'x.ts'), 'export const x = 1;\n');
+        writeFileSync(join(guideDir, 'index.md'), '# Guide\n\n- [Shard](./shard.md)\n');
+        writeFileSync(
+          sourceFile,
+          '# Shard\n\n' + nestedImages(target, COMPILE_NESTED_IMAGES) + '\n',
+        );
+        const options = { guidesRoot: work.path, compileOrder: ['g'], docsRoot: work.path };
+        const ms = timeMs(() => {
+          compileGuideResults(options);
+        });
+        expect(ms).toBeLessThan(COMPILE_BUDGET_MS);
+      });
+
+      it(`the codeEvidence hook stays under budget with the target ${target}`, () => {
+        const { sourceFile } = shardAt();
+        mkdirSync(join(work.path, 'src'), { recursive: true });
+        writeFileSync(join(work.path, 'src', 'x.ts'), 'export const x = 1;\n');
+        const ctx = {
+          guideName: 'g',
+          filename: 'shard.md',
+          sourceFile,
+          outputFile: join(work.path, '_build', 'g.md'),
+          config: { guides: [{ name: 'g' }] } as never,
+        };
+        const body = nestedImages(target, NESTED_IMAGES);
+        const ms = timeMs(() => {
+          applyCompileHooks(body, ctx, ['codeEvidence']);
+        });
+        expect(ms).toBeLessThan(BUDGET_MS);
+      });
+    }
   });
 });

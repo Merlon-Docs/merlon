@@ -35,7 +35,7 @@ Shards link with normal markdown — no `<!-- directives -->`.
 
 A link is an insert reference when **all** of the following hold:
 
-- Standard markdown link syntax: `[label](path)`.
+- Inline link syntax, `[label](path)`, with the label and target read as the [link passes](./index.md#link-passes) read them. An image, `![alt](path)`, isn't an insert reference.
 - Target starts with an insert library directory and a `/`, after an optional `./` or run of `../`. The directories are `diagram`, `diagrams`, `table`, `tables`, `figure`, `figures`, `media`, `insert` and `inserts`, in any case. No `http://` or `https://` URL starts that way.
 - The path after the directory doesn't start with `#` or whitespace. It ends in `.md` in any case, with at least one character before the `.md`.
 - An optional `#fragment` after the `.md` can't be empty, and file lookup ignores it.
@@ -66,6 +66,8 @@ The first reference to an insert file (document order across all shards in the g
 - **n** — serial number for that kind in this guide (see **Numbered captions** below)
 - **caption** — link label, or a humanized basename when the label is empty
 - **Anchor slug** — GitHub-style slug of the full heading (for example `Table 1. Status codes` → `#table-1-status-codes`)
+
+The label of a linked image, `[![I](./i.png)](../diagrams/d.md)`, contains the image. The heading then reads `#### Diagram 1. ![I](./i.png)`, and a back-link to it uses the slug of that text, `#diagram-1-iipng`.
 
 Output uses GFM headings and back-links for captions. The hook inlines each shard body as written. The assembly passes after the hooks then treat that body as part of the shard, from link rewriting to [table re-alignment](./tables-after-link-rewriting.md). A body can contain markdown tables and `![images](…)`, and HTML `<video>` / `<audio>` when your renderer supports them.
 

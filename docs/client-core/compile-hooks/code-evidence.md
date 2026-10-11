@@ -26,7 +26,7 @@ A link is rewritten when **all** of the following hold:
 
 Markdown (`.md`) links, external URLs, and same-guide shard links are left unchanged.
 
-The hook finds fenced code and code spans as the [link passes](./index.md#link-passes) do. A link outside code can still wrap onto the next line.
+The hook finds fenced code and code spans as the [link passes](./index.md#link-passes) do, and it reads a label and a target as they do. It reads each run of lines between two fences at once, so a label outside code can still wrap onto the next line, and an unfinished link such as `[x](see` doesn't take in a link on the next line. In a label that contains an image, such as a linked image's, the hook reads a line range or a symbol only from the text outside the image.
 
 **Code and data differ in what the hook adds.** A code file can be cited by line, so symbol lookup can give it an `#L` fragment. A data file, such as configuration or records, is resolved and rebased for the output path. It gets an `#L` fragment only from a line range the shard writes in the label, the path or the fragment, and never from symbol lookup, because an identifier found in inert content is an occurrence rather than a declaration. Link validation uses the same code and data extension lists. To look symbols up in a data format, list its extension in `lint.codeExtensions`. See [Built-in link validation](../../features/link-validation.md).
 

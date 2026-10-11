@@ -1,74 +1,18 @@
 /**
- * The linear link scans that compile runs on a whole manifest or shard body. Each test names the
- * regex match that the scan returns, so a change to the walk shows up as a different link list.
+ * The linear link scans of compile and link lint. A change to which links a reader finds shows up
+ * as a different link list here.
  */
 import { describe, it, expect } from 'vitest';
 import {
   createMdSuffixReader,
   createNextIndexReader,
   mdLinkPaths,
-  scanInlineLinks,
+  nestedLinkIndexes,
+  piecesBetween,
+  replaceLinkTargets,
+  scanMarkdownLinks,
   slugLinkTargets,
 } from '../src/compile/link-scan.js';
-
-describe('scanInlineLinks', () => {
-  const targets = (text: string, accept: (target: string) => boolean = () => true) =>
-    scanInlineLinks(text, (targetStart, close) => {
-      const target = text.slice(targetStart, close);
-      return accept(target) ? target : undefined;
-    });
-
-  it('gives the index of each link’s [, ] and ), and the value its target gave', () => {
-    const text = 'See [a](x) and\r\n[b c](y z).';
-    expect(targets(text)).toEqual([
-      { start: 4, labelEnd: 6, close: 9, value: 'x' },
-      { start: 16, labelEnd: 20, close: 25, value: 'y z' },
-    ]);
-  });
-
-  it('runs a label to its first ] and a target to its first ), across lines', () => {
-    // The label of each [ before `b]` ends at that ], and no ( follows it.
-    const text = '[a [b] c](t1) [d\n](t2\nt3) x)';
-    expect(targets(text).map(({ start, value }) => [start, value])).toEqual([[14, 't2\nt3']]);
-  });
-
-  it('goes on from the next [ after a target it turns down, which can sit inside that link', () => {
-    const text = '[a](skip [b](keep) [c](skip)';
-    const links = targets(text, (t) => !t.startsWith('skip'));
-    expect(links.map(({ start, value }) => [start, value])).toEqual([[9, 'keep']]);
-  });
-
-  it('asks about a label end once, however many [ share it', () => {
-    const text = '[[[a](t)';
-    const asked: number[] = [];
-    const links = scanInlineLinks(text, (targetStart) => {
-      asked.push(targetStart);
-      return undefined;
-    });
-    expect(links).toEqual([]);
-    expect(asked).toEqual([6]);
-  });
-
-  it('finds nothing when a ( does not follow the ] at once, or no ) closes the target', () => {
-    expect(targets('[a] (t) [b](t')).toEqual([]);
-    expect(targets('[a]')).toEqual([]);
-  });
-
-  it('turns down an empty target only when the callback does', () => {
-    expect(targets('[a]() [b](c)', (t) => t.length > 0).map((l) => l.value)).toEqual(['c']);
-  });
-
-  // `/(?<!!)\[[^\]]*\]\(([^)]+)\)/g` finds the same links in each text.
-  it('starts no link at a [ right after a ! with skipImages, and still asks about its label end', () => {
-    const scan = (text: string) =>
-      scanInlineLinks(text, (targetStart, close) => text.slice(targetStart, close), {
-        skipImages: true,
-      }).map(({ start, value }) => [start, value]);
-    expect(scan('![a](x) [b](y)')).toEqual([[8, 'y']]);
-    expect(scan('![[a](x)')).toEqual([[2, 'x']]);
-    expect(scan('[![a](x)](y)')).toEqual([[0, 'x']]);
-  });
-});
 
 describe('createNextIndexReader', () => {
   it('finds the first index of the character at or after an index, in any order of calls', () => {
@@ -115,10 +59,138 @@ describe('mdLinkPaths', () => {
   it('keeps a # inside the path when a later .md ends it', () => {
     expect(mdLinkPaths('[x](a.md#b.md)')).toEqual(['a.md#b.md']);
   });
+
+  // The walk reads a label and a target as the link passes do.
+  it('reads a label as CommonMark does, and reads the src of an image too', () => {
+    const text = '[![A](a.md)](b.md) [arr[0]](c.md) \\[d](d.md) ![e](e.md) [f](\ng.md)';
+    expect(mdLinkPaths(text)).toEqual(['a.md', 'b.md', 'c.md', 'e.md']);
+  });
 });
 
 describe('slugLinkTargets', () => {
   it('returns the text after the # of each ](#slug) link, up to the first )', () => {
     expect(slugLinkTargets('[a](#one) [b](#two\r\nlines) [c](#)')).toEqual(['one', 'two\r\nlines']);
+  });
+});
+
+// What CommonMark reads as an inline link or image in each text, with the target that mdcp reads:
+// the text from the `(` to the first `)` on the same line.
+describe('scanMarkdownLinks', () => {
+  const read = (text: string) =>
+    scanMarkdownLinks(text).map(({ start, labelEnd, close, image }) => ({
+      text: text.slice(start, close + 1),
+      label: text.slice(start + (image ? 2 : 1), labelEnd),
+      target: text.slice(labelEnd + 2, close),
+      image,
+    }));
+
+  it('reads a linked image as an image in the label of a link', () => {
+    expect(read('See [![Diagram](./d.png)](./page.md).')).toEqual([
+      { text: '![Diagram](./d.png)', label: 'Diagram', target: './d.png', image: true },
+      {
+        text: '[![Diagram](./d.png)](./page.md)',
+        label: '![Diagram](./d.png)',
+        target: './page.md',
+        image: false,
+      },
+    ]);
+  });
+
+  it('reads a label that holds balanced brackets', () => {
+    expect(read('[the arr[0] notes](./n.md) and [a [b] [c]](./m.md)').map((l) => l.label)).toEqual([
+      'the arr[0] notes',
+      'a [b] [c]',
+    ]);
+  });
+
+  it('reads the innermost link when links nest, and no link around it', () => {
+    expect(read('[a [b](./x.md) c](./y.md)').map((l) => l.text)).toEqual(['[b](./x.md)']);
+    expect(read('[a [b](./x.md)').map((l) => l.text)).toEqual(['[b](./x.md)']);
+  });
+
+  it('reads a link in the alt text of an image, and the image around it', () => {
+    expect(read('![a [b](./x.md) c](./y.png)').map((l) => [l.text, l.image])).toEqual([
+      ['[b](./x.md)', false],
+      ['![a [b](./x.md) c](./y.png)', true],
+    ]);
+  });
+
+  it('keeps an image in a label from turning the brackets around it into text', () => {
+    expect(read('[![a](./x.png) and ![b](./y.png)](./z.md)').map((l) => l.target)).toEqual([
+      './x.png',
+      './y.png',
+      './z.md',
+    ]);
+  });
+
+  it('reads no bracket that a backslash escapes', () => {
+    expect(
+      read('\\[a](./x.md) \\![b](./y.md) [c\\]](./z.md) \\\\[d](./w.md)').map((l) => [
+        l.label,
+        l.image,
+      ]),
+    ).toEqual([
+      ['b', false],
+      ['c\\]', false],
+      ['d', false],
+    ]);
+  });
+
+  it('needs a ( right after the ], and a ) on the same line', () => {
+    expect(read('[a] (./x.md) [b](./y.md\n) [c](./z.md')).toEqual([]);
+  });
+
+  it('reads a label that wraps onto the next line', () => {
+    expect(read('[a\nb](./x.md)').map((l) => l.label)).toEqual(['a\nb']);
+  });
+
+  it('runs a target to its first ), with an empty target too', () => {
+    expect(read('[a](./x (1).md) [b]() [c](<./y.md> "t")').map((l) => l.target)).toEqual([
+      './x (1',
+      '',
+      '<./y.md> "t"',
+    ]);
+  });
+
+  it('reads no bracket in a target, and goes on after its )', () => {
+    expect(read('[a](./x[y.md) z](./v.md) [b](./w.md)').map((l) => l.text)).toEqual([
+      '[a](./x[y.md)',
+      '[b](./w.md)',
+    ]);
+  });
+});
+
+describe('replaceLinkTargets', () => {
+  it('replaces the targets it is given and finds where each link ends up', () => {
+    const text = 'x [![a](i.png)](p.md) y [b](q.md)';
+    const links = scanMarkdownLinks(text);
+    const { text: out, spans } = replaceLinkTargets(text, links, ['img/i.png', undefined, '#q']);
+    expect(out).toBe('x [![a](img/i.png)](p.md) y [b](#q)');
+    expect(spans.map(([start, end]) => out.slice(start, end))).toEqual([
+      '![a](img/i.png)',
+      '[![a](img/i.png)](p.md)',
+      '[b](#q)',
+    ]);
+  });
+});
+
+describe('nestedLinkIndexes', () => {
+  it('gives the links and images right inside each label, in order', () => {
+    const links = scanMarkdownLinks('[![a](x) ![b ![c](z)](y)](t) ![d](w)');
+    expect(links.map((l) => l.start)).toEqual([1, 13, 9, 0, 29]);
+    expect(nestedLinkIndexes(links)).toEqual([[], [], [1], [0, 2], []]);
+  });
+});
+
+describe('piecesBetween', () => {
+  it('gives the text of a range around the spans it cuts out', () => {
+    expect(
+      piecesBetween('0123456789', 1, 9, [
+        [2, 4],
+        [4, 5],
+        [7, 9],
+      ]),
+    ).toEqual(['1', '', '56', '']);
+    expect(piecesBetween('0123456789', 3, 6, [])).toEqual(['345']);
   });
 });

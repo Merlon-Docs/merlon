@@ -62,7 +62,7 @@ describe('extractLinks', () => {
     ]);
   });
 
-  it('reads only inline links on one line, with no brackets in the label', () => {
+  it('reads inline links on one line, with an image or balanced brackets in the label', () => {
     const md = [
       'See [Planned][p].',
       '',
@@ -83,14 +83,15 @@ describe('extractLinks', () => {
       '',
     ].join('\n');
     // A title or angle brackets stay in the target, so link validation doesn't read it as a
-    // `.md` path. A label can't contain `]`, so a linked image reads as a link to the image's
-    // own target, and a label with brackets isn't read. "No placeholder links" in
+    // `.md` path. A label holds an image or brackets as CommonMark reads it, and link validation
+    // reads a linked image's outer target but not the image's own src. "No placeholder links" in
     // docs/features/link-validation.md says so.
-    expect(extractLinks(md).map((l) => [l.target, l.line])).toEqual([
-      ['./inline.md', 10],
-      ['./titled.md "Title"', 12],
-      ['<./angled.md>', 12],
-      ['./linked.png', 14],
+    expect(extractLinks(md).map((l) => [l.label, l.target, l.line])).toEqual([
+      ['Inline', './inline.md', 10],
+      ['Titled', './titled.md "Title"', 12],
+      ['Angled', '<./angled.md>', 12],
+      ['![Linked](./linked.png)', './linked.md', 14],
+      ['the arr[0] notes', './nested.md', 16],
     ]);
   });
 });
@@ -164,6 +165,26 @@ describe('markBrokenLinks', () => {
         [3, '#nope', 5],
       ]),
     );
+  });
+
+  // A link pass rewrites the src of an image in a label, so a compiled label can differ from the
+  // shard's in the targets inside it. The marker gives the label and the target the shard wrote.
+  it("pairs a linked image with its provenance when a pass rewrote the image's src", () => {
+    const md = 'See [![I](img/i.png)](#nope) and [![I](img/j.png)](#gone).\n';
+    const { markdown, issues } = markBrokenLinks(md, {
+      provenance: [
+        provenanceOf('![I](../img/i.png)', './intro.md#nope', 3),
+        provenanceOf('![I](../img/j.png)', './intro.md#gone', 4),
+      ],
+    });
+    expect(markdown).toBe(
+      `See ${markerOf('![I](../img/i.png)', './intro.md#nope', '#nope')} and ` +
+        `${markerOf('![I](../img/j.png)', './intro.md#gone', '#gone')}.\n`,
+    );
+    expect(issues.map((i) => [i.label, i.originalTarget, i.shardFile, i.shardLine])).toEqual([
+      ['![I](../img/j.png)', './intro.md#gone', '/docs/b/use.md', 4],
+      ['![I](../img/i.png)', './intro.md#nope', '/docs/b/use.md', 3],
+    ]);
   });
 
   it('marks a broken link where it is, not where its text first appears', () => {
@@ -2805,6 +2826,148 @@ describe('fenced code', () => {
         [codeLine, './gone.md'],
         [codeLine, '#nope'],
       ]);
+    });
+  });
+});
+
+// A label holds an image or balanced brackets as CommonMark reads it. Each reader reads the outer
+// link of a linked image, and the image's own src stays an image: the passes rebase it, and link
+// validation doesn't check it.
+describe('linked images and bracketed labels', () => {
+  function writeTree(root: string, files: Record<string, string>): void {
+    for (const [rel, text] of Object.entries(files)) {
+      mkdirSync(dirname(join(root, rel)), { recursive: true });
+      writeFileSync(join(root, rel), text);
+    }
+  }
+
+  /** Guides a and b under `docs/`, each compiled to `docs/<name>.md` and both to the monolith. */
+  function writeGuides(work: string, caseText: string, markBroken = true) {
+    writeTree(work, {
+      'docs/img/i.png': 'png',
+      'docs/a/index.md': '# Guide A\n\n- [Intro](./intro.md)\n- [Case](./case.md)\n',
+      'docs/a/intro.md': '# Intro\n\nBody.\n',
+      'docs/a/case.md': caseText,
+      'docs/b/index.md': '# Guide B\n\n- [Topic](./topic.md)\n',
+      'docs/b/topic.md': '# Topic\n\nBody.\n',
+    });
+    const docs = join(work, 'docs');
+    const guide = (name: string) => ({ name, compile: { links: { markBroken } } });
+    const compileOptions = {
+      guidesRoot: docs,
+      compileOrder: ['a', 'b'],
+      docsRoot: docs,
+      config: { outputDir: '.', outputFile: 'guides.md', compileOrder: ['a', 'b'] },
+      guides: [guide('a'), guide('b')],
+    };
+    return { docs, compileOptions, results: compileGuideResults(compileOptions) };
+  }
+
+  function lint(work: string, caseText: string) {
+    const { docs, results, compileOptions } = writeGuides(work, caseText, false);
+    const issues = lintLinks({
+      config: MdcpConfigSchema.parse(compileOptions.config),
+      docsRoot: docs,
+      results,
+      compileOptions,
+      lintShards: true,
+    });
+    return issues.map((issue) => [relative(docs, issue.file), issue.label, issue.originalTarget]);
+  }
+
+  it('compiles a linked image to a shard the guide stitches to its slug', () => {
+    withTmpDir('mdcp-linked-image-shard-', (work) => {
+      const { results } = writeGuides(work, '# Case\n\nSee [![I](../img/i.png)](./intro.md).\n');
+      const a = results.find((r) => r.name === 'a')!;
+
+      expect(a.text).toContain('See [![I](img/i.png)](#intro).');
+      expect(a.monolithText).toContain('See [![I](img/i.png)](#intro).');
+    });
+  });
+
+  it("compiles a linked image to another guide's shard to that guide's output", () => {
+    withTmpDir('mdcp-linked-image-output-', (work) => {
+      const { results } = writeGuides(work, '# Case\n\nSee [![I](../img/i.png)](../b/topic.md).\n');
+      const a = results.find((r) => r.name === 'a')!;
+
+      expect(a.text).toContain('See [![I](img/i.png)](b.md#topic).');
+      expect(a.monolithText).toContain('See [![I](img/i.png)](#topic).');
+    });
+  });
+
+  it('compiles a link whose label holds balanced brackets', () => {
+    withTmpDir('mdcp-bracket-label-', (work) => {
+      const { results } = writeGuides(
+        work,
+        '# Case\n\nSee [the arr[0] notes](./intro.md) and [b [1] [2]](../b/topic.md).\n',
+      );
+      const a = results.find((r) => r.name === 'a')!;
+
+      expect(a.text).toContain('See [the arr[0] notes](#intro) and [b [1] [2]](b.md#topic).');
+    });
+  });
+
+  // The monolith repeats the compiled guide's issues, so link lint leaves them out there.
+  it('reports a linked image or a bracketed label that links a missing page, in the shard and the output', () => {
+    withTmpDir('mdcp-linked-image-missing-', (work) => {
+      const issues = lint(
+        work,
+        '# Case\n\nSee [![G](../img/g.png)](./gone.md) and [arr[0]](./gone.md).\n',
+      );
+
+      expect(issues).toEqual([
+        ['a/case.md', '![G](../img/g.png)', './gone.md'],
+        ['a/case.md', 'arr[0]', './gone.md'],
+        ['a.md', '![G](../img/g.png)', './gone.md'],
+        ['a.md', 'arr[0]', './gone.md'],
+      ]);
+    });
+  });
+
+  // The publish-relative pass rebases the src for docs/a.md, so the compiled label differs from the
+  // shard's. The marker still gives the label and the target as the shard wrote them.
+  it("marks a linked image's dead #fragment with the shard's label and target", () => {
+    withTmpDir('mdcp-linked-image-marker-', (work) => {
+      const { results } = writeGuides(
+        work,
+        '# Case\n\nSee [![I](../img/i.png)](./intro.md#nope).\n',
+      );
+      const a = results.find((r) => r.name === 'a')!;
+      const marker = '**BROKEN LINK:** "![I](../img/i.png)" (`./intro.md#nope`) → `#nope`';
+
+      expect(a.text).toContain(`See ${marker}`);
+      expect(a.monolithText).toContain(`See ${marker}`);
+    });
+  });
+
+  // The walk reads a label as the passes do, so it follows the outer target of a linked image and
+  // a link whose label holds brackets to a shard in a subdirectory.
+  it('stitches a shard that only a linked image or a bracketed label links', () => {
+    withTmpDir('mdcp-linked-image-walk-', (work) => {
+      writeTree(work, {
+        'docs/a/sub/deep.md': '# Deep\n\nDeep body.\n',
+        'docs/a/sub/deeper.md': '# Deeper\n\nDeeper body.\n',
+      });
+      const caseText =
+        '# Case\n\nSee [![I](../img/i.png)](./sub/deep.md) and [arr[0] notes](./sub/deeper.md).\n';
+      const { results } = writeGuides(work, caseText);
+      const a = results.find((r) => r.name === 'a')!;
+
+      expect(a.text).toContain('See [![I](img/i.png)](#deep) and [arr[0] notes](#deeper).');
+      expect(a.text).toContain('<!-- mdcp-shard: start a/sub/deep.md -->');
+      expect(a.text).toContain('<!-- mdcp-shard: start a/sub/deeper.md -->');
+      expect(lint(work, caseText)).toEqual([]);
+    });
+  });
+
+  it("leaves an image's own src unchecked, in a linked image too", () => {
+    withTmpDir('mdcp-image-src-', (work) => {
+      const issues = lint(
+        work,
+        '# Case\n\nSee ![D](./gone.ts) and [![D](./gone.md)](./intro.md).\n',
+      );
+
+      expect(issues).toEqual([]);
     });
   });
 });

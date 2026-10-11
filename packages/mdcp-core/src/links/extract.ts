@@ -1,4 +1,4 @@
-import { scanInlineLinks } from '../compile/link-scan.js';
+import { scanMarkdownLinks } from '../compile/link-scan.js';
 import { createQuotedFenceScanner } from '../markdown/index.js';
 
 export interface ExtractedLink {
@@ -40,7 +40,8 @@ export function maskInlineCode(line: string): string {
 }
 
 /**
- * Extract markdown links with 1-based line numbers. Skip fenced code, which
+ * Extract markdown links with 1-based line numbers, but not images. A label can hold an image or
+ * balanced brackets, as `scanMarkdownLinks` reads it on one line. Skip fenced code, which
  * `createQuotedFenceScanner` finds in a blockquote too, and code spans.
  */
 export function extractLinks(markdown: string): ExtractedLink[] {
@@ -56,15 +57,10 @@ export function extractLinks(markdown: string): ExtractedLink[] {
     if (inFence(line)) continue;
 
     const masked = maskInlineCode(line);
-    // A link that isn't an image, with a target of at least one character.
-    const found = scanInlineLinks(
-      masked,
-      (targetStart, close) => close > targetStart || undefined,
-      {
-        skipImages: true,
-      },
-    );
-    for (const { start, labelEnd, close } of found) {
+    // Each link with a target of at least one character. Link validation doesn't check an image's
+    // src, but it reads the link around an image, as in `[![alt](src)](target)`.
+    for (const { start, labelEnd, close, image } of scanMarkdownLinks(masked)) {
+      if (image || close === labelEnd + 2) continue;
       const target = masked.slice(labelEnd + 2, close).trim();
       if (target.startsWith('mailto:')) continue;
       links.push({

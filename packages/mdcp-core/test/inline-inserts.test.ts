@@ -72,6 +72,17 @@ describe('inlineInserts — link matching', () => {
     ]);
   });
 
+  // The hook reads a label as the link passes do. An image isn't a link, so an insert path in its src
+  // isn't an insert reference, and a bracket after a backslash is text.
+  it('reads a label that holds an image or brackets, and no image or escaped bracket', () => {
+    const body =
+      '[![x](a.png)](diagrams/a.md) [arr[0]](tables/b.md) ![c](figures/c.md) \\[d](media/d.md)';
+    expect(findInsertLinks(body).map(({ label, relPath }) => [label, relPath])).toEqual([
+      ['![x](a.png)', 'diagrams/a.md'],
+      ['arr[0]', 'tables/b.md'],
+    ]);
+  });
+
   // Unlike the link passes, the hook reads fenced code and code spans, as the spec says.
   describe('in fenced code and code spans', () => {
     const work = useTmpDir('mdcp-inserts-');
@@ -243,6 +254,21 @@ describe('inlineInserts — first inline', () => {
     );
     expect(out).toContain('#### Figure 1. Screenshot');
     expect(out).toContain('![Architecture overview](./architecture.png)');
+  });
+
+  // The label of a linked image contains the image, so the caption does too, and a back-link uses the
+  // slug of that text, as the spec says.
+  it('captions a linked image with its label, image included', () => {
+    const guideDir = join(work.path, 'review');
+    mkdirSync(join(guideDir, 'diagrams'), { recursive: true });
+    writeFileSync(join(guideDir, 'diagrams', 'd.md'), 'Diagram body.\n');
+    const body = ['First: [![I](./i.png)](./diagrams/d.md).', 'Again: [I](./diagrams/d.md).'].join(
+      '\n',
+    );
+    const out = runInlineInserts(body, join(guideDir, 'claim.md'));
+    expect(out).toContain('#### Diagram 1. ![I](./i.png)\n\nDiagram body.');
+    expect(out.match(/Diagram body\./g)?.length).toBe(1);
+    expect(out).toContain('Again: [I](#diagram-1-iipng).');
   });
 
   it('inlines catalog table cell links', () => {

@@ -445,4 +445,69 @@ describe('codeEvidence — code spans and wrapped links', () => {
       expect(a.text).toContain('See [`a[0]` in lines 2-3](../src/foo.ts#L2-L3).');
     });
   });
+
+  // A target ends at the first `)` on its line, as in the link passes and link lint, so an
+  // unfinished link doesn't take in the link on the next line.
+  it('reads no target across a line break', () => {
+    withTmpDir('mdcp-evidence-target-break-', (work) => {
+      const a = writeSpanGuide(
+        work,
+        '# Span\n\nNote [x](see\n[`target`](../../src/foo.ts) here.\n',
+      );
+
+      expect(a.text).toContain('Note [x](see\n[`target`](../src/foo.ts#L3) here.');
+    });
+  });
+
+  // An image's alt describes the image, so the hook reads a line range or a symbol from the label of
+  // a linked image outside the image. The alt here names line 1.
+  it('reads the label of a linked image outside the image', () => {
+    withTmpDir('mdcp-evidence-linked-image-label-', (work) => {
+      writeTree(work, { 'docs/img/chart.png': 'png' });
+      const a = writeSpanGuide(
+        work,
+        '# Span\n\nSee [![L1](../img/chart.png) `target`](../../src/foo.ts).\n',
+      );
+
+      expect(a.text).toContain('See [![L1](img/chart.png) `target`](../src/foo.ts#L3).');
+    });
+  });
+
+  // A label holds an image or balanced brackets as CommonMark reads it, so the hook reads the outer
+  // link of a linked image, and the image's src as an image of its own. The hook rebases only a src
+  // that names a repository file, such as a path without an extension.
+  it('rewrites the outer link of a linked image and a label with balanced brackets', () => {
+    withTmpDir('mdcp-evidence-linked-image-', (work) => {
+      writeTree(work, { 'docs/img/chart.png': 'png' });
+      const a = writeSpanGuide(
+        work,
+        '# Span\n\nSee [![Chart](../img/chart.png)](../../src/foo.ts) and [arr[0] in lines 2-3](../../src/foo.ts).\n',
+      );
+
+      expect(a.text).toContain(
+        'See [![Chart](img/chart.png)](../src/foo.ts) and [arr[0] in lines 2-3](../src/foo.ts#L2-L3).',
+      );
+    });
+  });
+});
+
+describe('codeEvidence — linked images and the publish-relative pass', () => {
+  // The hook rebases both the src and the outer target, and assembly has to mark each, or the
+  // publish-relative pass rebases them again onto the decoys under docs/.
+  it('marks the src and the outer target of a linked image that the hook rebased', () => {
+    withTmpDir('mdcp-evidence-linked-image-mark-', (work) => {
+      writeTree(work, {
+        ...EVIDENCE_TREE,
+        'assets/logo': 'logo',
+        'docs/assets/logo': 'decoy',
+        'docs/src/foo.ts': 'export const decoy = 1;\n',
+        'docs/a/sub/deep.md':
+          '# Deep\n\nSee [![Logo](../../../assets/logo)](../../../src/foo.ts).\n',
+      });
+      const [a] = compileGuideResults(guideAOptions(work, '_build'));
+
+      expect(a.text).toContain('See [![Logo](../../assets/logo)](../../src/foo.ts).');
+      expect(a.monolithText).toContain('See [![Logo](../../assets/logo)](../../src/foo.ts).');
+    });
+  });
 });
