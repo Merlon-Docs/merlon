@@ -38,9 +38,8 @@ Above plus the four-tier guide layout (`features` / `client` / `developer` / `gl
 
 ## Query preference order
 
-1. Activate the parent Agent Skill (`/mdcp`) when available
-2. Invoke `/mdcp` with the task; the skill picks a workflow and runs intake for `WORK_ITEM` — see [Skill workflows](./skill-workflows.md)
-3. Find the shard with host search and **read one shard**, as [refs](../../glossary/refs.md) says
-4. Rely on `mdcp check` for broken `#` cross-links (optionally inspect `mdcp refs-list`)
+1. When the parent Agent Skill (`/mdcp`) is available, load it with the task; the skill picks a workflow and runs intake for `WORK_ITEM`, as [Skill workflows](./skill-workflows.md) says
+2. Find the shard with host search and **read one shard**, as [refs](../../glossary/refs.md) says
+3. Rely on `mdcp check` for broken `#` cross-links (optionally inspect `mdcp refs-list`)
 
 Read [`docs/skills.md`](../../../docs/skills.md) for the skill and its workflow index.

@@ -31,11 +31,11 @@ Agents **MUST** load the issue (or equivalent) before editing shards or code. On
 
 ## Atomic commit groups (plan obligation)
 
-Coding and multi-concern plans **MUST** include an **[Atomic commit groups](../../glossary/atomic-commit-groups.md)** section before waiting for human review / “go”. Each numbered group lists id/name, one concern, exact files, and an intended conventional commit subject. After approval, work through the groups one at a time and `git commit` each one. Don't squash unrelated concerns into one commit.
+A coding or multi-concern plan from a day-to-day workflow (feature-level, doc-only, design-architecture, UX or doc-review) **MUST** include an **[Atomic commit groups](../../glossary/atomic-commit-groups.md)** section before waiting for human review / “go”. Doc-review plans its groups in Step 4, the other four in Step 1. Each numbered group lists id/name, one concern, exact files, and an intended conventional commit subject. After approval, work through the groups one at a time and `git commit` each one. Don't squash unrelated concerns into one commit.
 
 Why: reviewable diffs, one concern per commit, and it matches small batches (the skill's [QA Principles](../agent-skill.md#quality-assurance-qa-principles)).
 
-Day-to-day workflows that produce a plan (feature-level, doc-only, design-architecture, UX, doc-review) **MUST** require this section before “go” (doc-review plans its groups in Step 4, the other four in Step 1). Bootstrap scaffold (getting-started steps 1 to 6) stays out of scope for commit grouping; when the optional first-feature tutorial runs, each phase follows the matching day-to-day workflow (including commit groups).
+Bootstrap scaffold (getting-started steps 1 to 6) stays out of scope for commit grouping. When the optional first-feature tutorial runs, each phase follows the matching day-to-day workflow, commit groups included.
 
 ## Standard workflows
 
