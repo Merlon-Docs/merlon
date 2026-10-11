@@ -39,15 +39,7 @@ Collect these via intake (or from the conversation if already stated):
 
 ### Step 3: Docs First — place by audience
 
-Before writing shards, apply the `mdcp` skill's **What belongs where** placement test. Place by **audience and job**, not by topic keyword (the same subject can span tiers).
-
-| Audience / job                                                                                        | Put the shard in  | Do **not** also invent                                                        |
-| ----------------------------------------------------------------------------------------------------- | ----------------- | ----------------------------------------------------------------------------- |
-| Shipped product capability, contracts, acceptance                                                     | `docs/features/`  | —                                                                             |
-| End-user value and how to use it                                                                      | `docs/client/`    | —                                                                             |
-| Maintainer / contributor workflow only (local tooling, live skill evals, skill development, releases) | `docs/developer/` | `docs/features/` or `docs/client/` shards for that same maintainer-only topic |
-
-**Placement test:** If removing the shard would confuse a **consumer** of the product, it is `features/` and/or `client/`. If only **contributors** to this repo need it, it is `developer/` — even when the topic sits next to a related product feature (e.g. live skill-eval runbooks belong in `developer/`, not beside the `docs/features/` shard for the same topic).
+Before writing shards, apply **What belongs where** in `SKILL.md`. Its guide table and placement test place each shard by **audience and job**, not by topic keyword, since the same subject can span tiers.
 
 Then write only the tiers that apply:
 
