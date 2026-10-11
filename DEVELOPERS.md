@@ -220,7 +220,7 @@ mdcp/
 ├── CODE_OF_CONDUCT.md      # Contributor Covenant (committed)
 ├── README.md               # Compiled (committed)
 ├── DEVELOPERS.md           # Compiled (committed)
-├── presentations/          # Compiled (committed)
+├── presentations/          # Talk deck kept as delivered (not compiled)
 ├── skills/                 # Agent Skills install surface only (npx skills add)
 │   ├── mdcp/               # The MDCP skill + workflows (no package.json / CHANGELOG here)
 │   └── mdcp-arch-*/        # Internal archetypes (metadata.internal)
@@ -240,7 +240,6 @@ mdcp/
 │   ├── client-cli/         # CLI guide
 │   ├── client-core/        # Core library guide
 │   ├── repo-readme/        # Repository landing page
-│   ├── presentation-la-devops/ # Meetup talk
 │   ├── vale-local/         # Dogfood-only Vale styles (MDCP-PandocId)
 │   └── .vale.ini           # Peer Vale config
 ├── examples/sample-guides/ # Minimal consumer fixture for tests and tutorials
@@ -255,7 +254,7 @@ mdcp/
 └── .github/workflows/      # CI and release automation
 ```
 
-[Guide directories](#guide-directories) maps each guide directory under `docs/` to its compiled output.
+[Guide directories](#guide-directories) maps each guide directory under `docs/` to its compiled output and says why `presentations/` is kept as delivered.
 
 [Formal models](#formal-models) covers `formal/`, and [Repository settings](#terraform) covers the Terraform in `infra/github/`. [Git hooks](#git-hooks) lists the hooks under `.husky/`, and [Cloud agent environments](#cloud-agent-environments) covers `.claude/` and `.cursor/`. [Repository script tests](#repository-script-tests) covers the tests under `scripts/`.
 
@@ -690,23 +689,22 @@ This repo's documentation is sharded under [`docs/`](docs). Shards are the **sou
 
 ### Guide directories
 
-| Directory                 | Audience                            | Output                                                                                       |
-| ------------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------- |
-| `glossary/`               | Shared terms (cross-guide)          | No output of its own; see below                                                              |
-| `features/`               | Tool capabilities, migration map    | `docs/_build/features.md` and the monolith `docs/_build/guides.md` (gitignored local review) |
-| `developer/`              | Contributing to this repo           | `DEVELOPERS.md` at repo root                                                                 |
-| `client-cli/`             | npm CLI consumers                   | `packages/mdcp-cli/README.md`                                                                |
-| `client-core/`            | Programmatic API consumers          | `packages/mdcp-core/README.md`                                                               |
-| `repo-readme/`            | Repository visitors, skill adopters | `README.md` at repo root                                                                     |
-| `presentation-la-devops/` | Meetup talk audience                | `presentations/la-devops-2026.md`                                                            |
+| Directory      | Audience                            | Output                                                                                       |
+| -------------- | ----------------------------------- | -------------------------------------------------------------------------------------------- |
+| `glossary/`    | Shared terms (cross-guide)          | No output of its own; see below                                                              |
+| `features/`    | Tool capabilities, migration map    | `docs/_build/features.md` and the monolith `docs/_build/guides.md` (gitignored local review) |
+| `developer/`   | Contributing to this repo           | `DEVELOPERS.md` at repo root                                                                 |
+| `client-cli/`  | npm CLI consumers                   | `packages/mdcp-cli/README.md`                                                                |
+| `client-core/` | Programmatic API consumers          | `packages/mdcp-core/README.md`                                                               |
+| `repo-readme/` | Repository visitors, skill adopters | `README.md` at repo root                                                                     |
 
 A guide whose `compile.scopeRoot` is `glossary` stitches in every term the link walk from its shards finds ([Linked shards](docs/features/manifest-compile-order.md#linked-shards-and-the-file-name-fallback)).
 
-Each compiled output marks every stitched shard with `<!-- mdcp-shard: start … -->` and `end` comments that give the shard's path, except `presentations/la-devops-2026.md`. The presentation guide sets `includeBanner` and `sourceTags` to `false`, so its output has no markers and no banner.
+Each compiled output marks every stitched shard with `<!-- mdcp-shard: start … -->` and `end` comments that give the shard's path.
 
 **Surface ownership:** `repo-readme/` = Agent Skill landing; `client-cli/` = CLI commands/config only; `client-core/` = library API/hooks only. Cross-link the other surfaces instead of duplicating skill, CLI, or API narrative across package READMEs.
 
-Config: [`docs/mdcp.config.json`](docs/mdcp.config.json). Guides with `compile.outputFile` publish to a separate path and are **excluded** from the monolith. Coverage dogfood uses `scan.strict: true` with `standaloneGuides` / `scan.ignore` so tooling trees (`.worktrees`, `.cursor`, `.changeset`, tests, examples, …) never fail `mdcp check`; publishable skills under `skills/` are registered as standalone.
+Config: [`docs/mdcp.config.json`](docs/mdcp.config.json). Guides with `compile.outputFile` publish to a separate path and are **excluded** from the monolith. Coverage checks on this repo use `scan.strict: true` with `standaloneGuides` / `scan.ignore` so tooling trees (`.worktrees`, `.cursor`, `.changeset`, tests, examples, …) never fail `mdcp check`. Publishable skills under `skills/` are registered as standalone, and `scan.ignore` also lists `presentations/**`: the deck under it is the record of a talk as delivered, so it is neither compiled nor linted.
 
 Publish landing style for root README: [Personas and priority tiers](docs/features/personas-and-priority-tiers.md#publish-landing-style).
 
@@ -727,7 +725,7 @@ Find a shard under `docs/` with host search and read that one shard, as [refs](#
 ### Linting docs
 
 - **markdownlint**: the shard preset on the shards, then the repo's own compiled config, [`docs/compiled-lint.markdownlint-cli2.jsonc`](docs/compiled-lint.markdownlint-cli2.jsonc), on the monolith, `DEVELOPERS.md` and the published READMEs. That config turns off fewer rules than the compiled preset in `@bwilliamson/mdcp-presets`, which the examples use.
-- **Vale**: prose lint on the `vale.scanGlobs` directories in the config, which are `glossary/`, `features/`, `developer/`, `client-cli/`, `client-core/`, `repo-readme/` and `presentation-la-devops/`, plus every `standaloneGuides` file. `docs/.vale.ini` opts `CODE_OF_CONDUCT.md` out, because its text is the vendored Contributor Covenant. Vale is not an npm dependency, so install it on `PATH` as [Local setup](#requirements) describes.
+- **Vale**: prose lint on the `vale.scanGlobs` directories in the config, which are `glossary/`, `features/`, `developer/`, `client-cli/`, `client-core/` and `repo-readme/`, plus every `standaloneGuides` file. `docs/.vale.ini` opts `CODE_OF_CONDUCT.md` out, because its text is the vendored Contributor Covenant. Vale is not an npm dependency, so install it on `PATH` as [Local setup](#requirements) describes.
 - **Vale `MDCP` / `MDCP-PandocId`**: peer prose rules for unlinked heading mentions and dated claims, plus this repo's local rule against [Pandoc IDs](#headings-and-links). They run in the peer Vale stage of `mdcp check`, and `--require-vale` makes a missing Vale fail the run.
 - **link lint**: built-in validation runs on every `docs:check` at the default `"error"` severity. Each publish guide lists `features` in `compile.crossGuideLinks.ignoreGuides`. A cross-guide link to a features shard then keeps its `docs/features/` path, rebased for the output's location, as [Publish-only link policy](docs/features/link-validation.md#publish-only-link-policy) says. A link to a shard that the guide stitches can take an in-document anchor instead ([Same compiled output preference](./packages/mdcp-core/README.md#same-compiled-output-preference)).
 

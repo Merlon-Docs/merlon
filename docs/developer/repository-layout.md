@@ -5,7 +5,7 @@ mdcp/
 ├── CODE_OF_CONDUCT.md      # Contributor Covenant (committed)
 ├── README.md               # Compiled (committed)
 ├── DEVELOPERS.md           # Compiled (committed)
-├── presentations/          # Compiled (committed)
+├── presentations/          # Talk deck kept as delivered (not compiled)
 ├── skills/                 # Agent Skills install surface only (npx skills add)
 │   ├── mdcp/               # The MDCP skill + workflows (no package.json / CHANGELOG here)
 │   └── mdcp-arch-*/        # Internal archetypes (metadata.internal)
@@ -25,7 +25,6 @@ mdcp/
 │   ├── client-cli/         # CLI guide
 │   ├── client-core/        # Core library guide
 │   ├── repo-readme/        # Repository landing page
-│   ├── presentation-la-devops/ # Meetup talk
 │   ├── vale-local/         # Dogfood-only Vale styles (MDCP-PandocId)
 │   └── .vale.ini           # Peer Vale config
 ├── examples/sample-guides/ # Minimal consumer fixture for tests and tutorials
@@ -40,7 +39,7 @@ mdcp/
 └── .github/workflows/      # CI and release automation
 ```
 
-[Guide directories](./docs-dogfooding.md#guide-directories) maps each guide directory under `docs/` to its compiled output.
+[Guide directories](./docs-dogfooding.md#guide-directories) maps each guide directory under `docs/` to its compiled output and says why `presentations/` is kept as delivered.
 
 [Formal models](./formal-models.md) covers `formal/`, and [Repository settings](./repository-settings.md#terraform) covers the Terraform in `infra/github/`. [Git hooks](./local-setup.md#git-hooks) lists the hooks under `.husky/`, and [Cloud agent environments](./cloud-agent-environments.md) covers `.claude/` and `.cursor/`. [Repository script tests](./packages-and-tests.md#repository-script-tests) covers the tests under `scripts/`.
 
