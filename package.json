@@ -37,7 +37,6 @@
     "check": "pnpm run typecheck && pnpm run lint && pnpm run format:check && pnpm run build && pnpm run test && pnpm run skill:validate && pnpm run docs:check",
     "changeset": "changeset",
     "changeset:status": "node scripts/changeset-status.mjs",
-    "changeset:reject-major": "node scripts/changeset-reject-major.mjs",
     "formal:check": "node scripts/formal-check.mjs",
     "release:version": "node scripts/release-version.mjs",
     "release:publish": "node scripts/release-publish.mjs",

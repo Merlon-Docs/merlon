@@ -100,7 +100,6 @@ jobs:
               echo ""
             done
           } | tee -a "$GITHUB_STEP_SUMMARY"
-          pnpm changeset:reject-major
 
       - name: Detect missing GitHub Releases
         id: missing

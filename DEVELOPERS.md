@@ -1124,12 +1124,13 @@ On a run without pending changesets, the Release plan detects **missing** `name@
 
 ### Pre-1.0 policy (`0.x.y`)
 
-Packages and skills are **pre-1.0** while on `0.x.y`. Until an item reaches **1.0.0**, that item has **no API stability guarantee**. **Major bumps are disabled** (`pnpm changeset:reject-major`). Use **patch** or **minor** (including breaking-within-0.x).
+Packages and skills are **pre-1.0** while on `0.x.y`. Until an item reaches **1.0.0**, that item has **no API stability guarantee**. On `0.x.y`, a breaking change is a **minor** bump. A **major** changeset takes an item to **1.0.0**, and from then on a breaking change needs a major.
 
-| Bump      | When                                                             |
-| --------- | ---------------------------------------------------------------- |
-| **patch** | Bug fixes, internal refactors with no intended API change        |
-| **minor** | New capabilities, or breaking-within-0.x until majors are opened |
+| Bump      | When                                                          |
+| --------- | ------------------------------------------------------------- |
+| **patch** | Bug fixes, internal refactors with no intended API change     |
+| **minor** | New capabilities, or a breaking change on `0.x.y`             |
+| **major** | The move to 1.0.0, then any breaking change from 1.0.0 onward |
 
 ### Durable docs vs pending changesets
 
@@ -1148,7 +1149,7 @@ Run `pnpm changeset` when a change touches a published item:
 
 Every file in those paths counts, tests and compiled READMEs included, so a shard edit that changes `packages/merlon-docs-cli/README.md` or `packages/merlon-docs-core/README.md` needs a changeset for that package. The skill carriers count although they are private, because `.changeset/config.json` sets `privatePackages.version`. A change that edits only `devDependencies` in a package's `package.json` is exempt. `packages/merlon-docs-site/` is never published, and Changesets ignores it.
 
-The land gate and CI on pull requests both run `pnpm changeset:reject-major` and `pnpm changeset:status`. For a package path, the status check fails unless the branch adds or edits a changeset. For `skills/<id>/` it fails only when no changeset is pending, so add one for the skill even when `develop` already has others. The status check passes any branch that consumed a changeset, and then it doesn't check the branch's own package changes either. A branch consumed one when its diff from the base deletes a changeset, as release and sync diffs do, or when its commits since the base include a release commit that deleted one. That release commit counts even when the changeset was never on the base, which happens to a sync when the hotfix sync before it didn't land.
+The land gate and CI on pull requests both run `pnpm changeset:status`. For a package path, the status check fails unless the branch adds or edits a changeset. For `skills/<id>/` it fails only when no changeset is pending, so add one for the skill even when `develop` already has others. The status check passes any branch that consumed a changeset, and then it doesn't check the branch's own package changes either. A branch consumed one when its diff from the base deletes a changeset, as release and sync diffs do, or when its commits since the base include a release commit that deleted one. That release commit counts even when the changeset was never on the base, which happens to a sync when the hotfix sync before it didn't land.
 
 ### Dependabot
 

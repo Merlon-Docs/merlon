@@ -32,7 +32,7 @@ export const GATE_COMMANDS = [
 
 export const FORMAL_PATHS = ['formal', 'scripts/formal-check.mjs', 'scripts/lib/alloy-receipt.mjs'];
 
-export const CHANGESET_COMMANDS = ['pnpm changeset:reject-major', 'pnpm changeset:status'];
+export const CHANGESET_COMMANDS = ['pnpm changeset:status'];
 
 /** Branch commits being pushed. Deletions and tags are skipped. */
 export function pushedBranchShas(stdin) {

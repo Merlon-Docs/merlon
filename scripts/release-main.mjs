@@ -20,7 +20,7 @@ import { execSync } from 'node:child_process';
 import { writeFileSync, unlinkSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { findMajorBumps, pendingChangesetFiles } from './lib/changeset-bumps.mjs';
+import { pendingChangesetFiles } from './lib/changeset-bumps.mjs';
 import {
   packageJsonRelPath,
   packagesNeedingReleaseHeal,
@@ -231,15 +231,6 @@ if (pending.length === 0) {
   );
   console.log('Release heal complete.');
   process.exit(0);
-}
-
-const majors = findMajorBumps(changesetDir);
-if (majors.length > 0) {
-  console.error(
-    'Refusing to release: major bumps are disabled.\n' +
-      majors.map((m) => `  ${m.file}: ${m.package}`).join('\n'),
-  );
-  process.exit(1);
 }
 
 console.log(`Pending changesets (${pending.length}): ${pending.join(', ')}`);

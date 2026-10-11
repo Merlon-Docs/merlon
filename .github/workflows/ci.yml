@@ -189,7 +189,6 @@ jobs:
           PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: |
           echo "Changeset since PR base: $CHANGESET_SINCE ($PR_BASE_REF)"
-          pnpm changeset:reject-major
           pnpm changeset:status
 
   formal:
