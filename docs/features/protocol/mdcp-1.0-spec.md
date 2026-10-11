@@ -1,8 +1,8 @@
 # MDCP 1.0 specification (draft)
 
-Normative specification for the MarkDown Context Protocol (MDCP).
+Normative specification for the MarkDown Context Protocol ([MDCP](../../glossary/mdcp.md)).
 
-> **Status:** Draft — reference implementation leads; prose reconciled against `mdcp-core` before calling the specification final. Protocol versioning is independent of package semver. Agent entrypoint is the parent **Agent Skill** (`/mdcp`).
+> The reference implementation leads and this text follows it. Protocol versioning is independent of package semver. Agent entrypoint is the parent **Agent Skill** (`/mdcp`).
 
 ## 1. Introduction
 
@@ -33,13 +33,16 @@ Other documentation systems **MAY** introduce their own [archetypes](./extension
 
 ## 3. Compile and validation
 
-The normative clauses for compile and validation are these feature specifications:
+The normative clauses for compile and validation are the twelve shards that the Features guide's manifest, `docs/features/index.md`, groups under Compile and validate. These eight are the entry points, and they link the other four:
 
 - [Manifest compile order](../manifest-compile-order.md): the order a guide's manifest gives its shards in compiled output
 - [Default compile hooks](../default-compile-hooks.md): the hooks that run on each shard unless a guide switches them off
+- [Compile pipeline](../compile-pipeline/index.md): the assembly steps that run whatever `compile.hooks` says, link rewriting and table re-alignment among them
 - [Check gate](../check-gate.md): the stages of `mdcp check`, the validation gate
 - [Link validation](../link-validation.md): the internal links and anchors that must resolve
 - [Refs registry path](../refs-registry-path.md): where compile writes the refs registry and where commands read it
+- [Source tags and default banner](../source-tags-and-banner.md): the source tags and the warning banner compile writes into each output unless the config switches them off
+- [Compile output backup](../compile-output-backup.md): the opt-in backup of an output before compile overwrites it
 
 ## 4. Skill workflows
 

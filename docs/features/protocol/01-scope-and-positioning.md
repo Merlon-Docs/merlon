@@ -4,7 +4,7 @@
 
 ## Protocol class
 
-MDCP is an **offline document context protocol** — not a wire protocol like [Model Context Protocol (MCP)](https://modelcontextprotocol.io/).
+[MDCP](../../glossary/mdcp.md) is an **offline document context protocol**. It differs from a wire protocol such as [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) on every row below.
 
 | Dimension       | MCP                                       | MDCP                                                                    |
 | --------------- | ----------------------------------------- | ----------------------------------------------------------------------- |
