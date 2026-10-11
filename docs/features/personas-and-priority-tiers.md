@@ -14,12 +14,12 @@ Public pages speak first to the people who can make documentation a required pol
 
 Each archetype is a goal. Interns and students map to **Learner**, technical writers and domain SMEs to **Author**, and foundation reviewers to **Champion**. The landing page names the primary audience's roles. Archetype tables and WIIFM lines stay goal-based. This rule is advisory: whoever writes or reviews landing copy applies it, and the landing copy's diff is its evidence. Each archetype gets one [WIIFM](../glossary/wiifm.md) line (landing-safe):
 
-| Archetype    | Goal                                     | WIIFM (landing-safe)                                       | Typical path                                                           |
-| ------------ | ---------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------- |
-| **Builder**  | Integrate mdcp into repo scripts and CI  | One gate for humans, agents, and CI; smaller doc PRs       | Paste prompt or [run the bootstrap](./agent-skill.md#install-surfaces) |
-| **Learner**  | Try mdcp before mastering every CLI flag | Paste a prompt; agent runs setup                           | Getting started prompt                                                 |
-| **Author**   | Own content, not the toolchain           | One topic per file; load the section that matches the task | Paste prompt + usage model                                             |
-| **Champion** | Evaluate or sponsor adoption             | Judge fit from the vision and the evidence before setup    | Vision and claims shards                                               |
+| Archetype    | Goal                                     | WIIFM (landing-safe)                                                                                  | Typical path                                                           |
+| ------------ | ---------------------------------------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| **Builder**  | Integrate mdcp into repo scripts and CI  | One gate for humans, agents, and CI; when each change touches one shard, a doc PR touches fewer files | Paste prompt or [run the bootstrap](./agent-skill.md#install-surfaces) |
+| **Learner**  | Try mdcp before mastering every CLI flag | Paste a prompt; agent runs setup                                                                      | Getting started prompt                                                 |
+| **Author**   | Own content, not the toolchain           | One topic per file; load the section that matches the task                                            | Paste prompt + usage model                                             |
+| **Champion** | Evaluate or sponsor adoption             | Judge fit from the vision and the evidence before setup                                               | Vision and claims shards                                               |
 
 Paths: [CLI README](../../packages/mdcp-cli/README.md), [getting-started workflow](../../skills/mdcp/references/workflows/getting-started.md), [usage model](./protocol/usage-model.md), [vision](./protocol/00-vision-and-roadmap.md), [claims policy](./protocol/benefit-claims-and-evidence.md).
 

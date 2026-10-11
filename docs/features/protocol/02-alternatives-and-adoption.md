@@ -48,8 +48,8 @@ Suited to the **Learner** and **Author** [adoption archetypes](../personas-and-p
 
 ## Learning investment
 
-| Investment                                                                      | Payback                            |
-| ------------------------------------------------------------------------------- | ---------------------------------- |
-| [Getting-started workflow](./workflows/getting-started.md) + one config session | Replaces bespoke compile scripts   |
-| Shard + manifest workflow                                                       | Smaller PRs, fewer merge conflicts |
-| `mdcp compile` and `mdcp check`                                                 | Same gate for human, agent, and CI |
+| Investment                                                                      | Payback                                                      |
+| ------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| [Getting-started workflow](./workflows/getting-started.md) + one config session | Replaces bespoke compile scripts                             |
+| Shard + manifest workflow                                                       | When each change touches one shard, a PR touches fewer files |
+| `mdcp compile` and `mdcp check`                                                 | Same gate for human, agent, and CI                           |
