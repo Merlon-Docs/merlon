@@ -30,8 +30,6 @@ resolveRefsPath('/docs', '.', 'refs.json');
 // → /docs/refs.json
 ```
 
-Prefer outputDir-relative values in config (for example `".caches/refs.json"` when `outputDir` is `"_build"`). See [Config essentials — path layout](../client-cli/config-essentials.md#path-layout).
-
 ### Heading slugs (github-slugger)
 
 `githubSlugify`, `headingTextToPlain`, and `buildSlugRegistry` derive `#fragment` targets from compiled headings using [`github-slugger`](https://www.npmjs.com/package/github-slugger), which matches the anchors GitHub renders for headings. GFM does not define auto-generated heading IDs. Treat github-slugger parity as the contract.

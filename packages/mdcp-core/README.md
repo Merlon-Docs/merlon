@@ -131,7 +131,7 @@ After the cross-guide and intra-guide rewrites, compile resolves the `../` links
 
 ### `compile.hooks`
 
-`resolveCompileHooks(compile)` returns the list of hooks a guide runs, which is `DEFAULT_COMPILE_HOOKS` when `compile.hooks` is omitted. [Default compile hooks](../../docs/features/default-compile-hooks.md#configuration) gives the forms `compile.hooks` takes. `compile.hooksConfig` holds per-hook settings, such as [`inlineInserts.searchRoots`](#inlineinserts-config), and [stripAnchors purpose](#stripanchors-purpose) says what `compile.stripAnchors` does.
+`resolveCompileHooks(compile)` returns the list of hooks a guide runs, which is `DEFAULT_COMPILE_HOOKS` when `compile.hooks` is omitted. [Configuration](#configuration) in the hooks overview covers the config keys.
 
 ### `compile.crossGuideLinks`
 
@@ -147,24 +147,24 @@ See [Cross-guide link rewriting](../../docs/features/compile-pipeline/cross-guid
 
 ## Compile API
 
-| Export                                                                           | Purpose                                                                                                                                                |
-| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `compileGuides`, `compileGuideResults`                                           | Stitch shards into compiled guide text                                                                                                                 |
-| `compileGuideResultsWithContext`                                                 | The results of `compileGuideResults`, with the guide link index and the shard cache it built                                                           |
-| `compileGuidesFromResults`                                                       | What `compileGuides` returns, from results already compiled                                                                                            |
-| `writeCompiledGuides`, `writeCompiledGuidesFromResults`                          | Write compiled guides and the optional monolith to disk, the second from results already compiled                                                      |
-| `compiledOutputDocuments`                                                        | Each file compile writes, with the text written there                                                                                                  |
-| `buildGuideLinkIndex`                                                            | The [guide link index](../../docs/features/compile-pipeline/cross-guide-links.md#guide-link-index) alone, with the shard cache it filled               |
-| `createShardCache`, `loadShardSnapshot`                                          | A cache of shard reads that compile and link lint can share                                                                                            |
-| `writeOutputFile`, `resolveBackupPath`                                           | Opt-in backup before overwrite; backup path resolver                                                                                                   |
-| `resolveBackupOptions`                                                           | Merge config and CLI backup settings                                                                                                                   |
-| `WriteOutputBackupOptions`                                                       | Backup options type                                                                                                                                    |
-| `sectionFiles`, `processSection`, `assembleGuide`                                | Lower-level assemble pipeline                                                                                                                          |
-| `formatCompileTitle`, `extractFirstHeading`, …                                   | Optional `compile.title` injection and deduplication                                                                                                   |
-| `demoteHeadings`, `stripAboutThisGuideHeading`, …                                | Heading transforms                                                                                                                                     |
-| `rewriteCrossGuideFileLinks`, `rewriteIntraGuideFileLinks`, `slugForSectionFile` | Two of the [link passes](../../docs/features/compile-pipeline/link-passes.md), and the slug of a shard's demoted first heading, before guide numbering |
-| `stripExplicitAnchorMarkers`                                                     | The [stripAnchors](#stripanchors) transform on a string                                                                                                |
-| `registerCompileHook`, `applyCompileHooks`                                       | Extension hooks (`stripAnchors`, `inlineInserts`, …)                                                                                                   |
+| Export                                                                           | Purpose                                                                                                                                                                                                                                                                                             |
+| -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `compileGuides`, `compileGuideResults`                                           | Stitch shards into compiled guide text                                                                                                                                                                                                                                                              |
+| `compileGuideResultsWithContext`                                                 | The results of `compileGuideResults`, with the guide link index, the shard cache it built and the shards each guide compiles, its manifest's and those the [linked-shard walk](../../docs/features/manifest-compile-order.md#linked-shards-and-the-file-name-fallback) finds (`linkedFilesByGuide`) |
+| `compileGuidesFromResults`                                                       | What `compileGuides` returns, from results already compiled                                                                                                                                                                                                                                         |
+| `writeCompiledGuides`, `writeCompiledGuidesFromResults`                          | Write compiled guides and the optional monolith to disk, the second from results already compiled                                                                                                                                                                                                   |
+| `compiledOutputDocuments`                                                        | Each file compile writes, with the text written there                                                                                                                                                                                                                                               |
+| `buildGuideLinkIndex`                                                            | The [guide link index](../../docs/features/compile-pipeline/cross-guide-links.md#guide-link-index) alone, with the shard cache it filled                                                                                                                                                            |
+| `createShardCache`, `loadShardSnapshot`                                          | A cache of shard reads that compile and link lint can share                                                                                                                                                                                                                                         |
+| `writeOutputFile`, `resolveBackupPath`                                           | Opt-in backup before overwrite; backup path resolver                                                                                                                                                                                                                                                |
+| `resolveBackupOptions`                                                           | Merge config and CLI backup settings                                                                                                                                                                                                                                                                |
+| `WriteOutputBackupOptions`                                                       | Backup options type                                                                                                                                                                                                                                                                                 |
+| `sectionFiles`, `processSection`, `assembleGuide`                                | Lower-level assemble pipeline                                                                                                                                                                                                                                                                       |
+| `formatCompileTitle`, `extractFirstHeading`, …                                   | Optional `compile.title` injection and deduplication                                                                                                                                                                                                                                                |
+| `demoteHeadings`, `stripAboutThisGuideHeading`, …                                | Heading transforms                                                                                                                                                                                                                                                                                  |
+| `rewriteCrossGuideFileLinks`, `rewriteIntraGuideFileLinks`, `slugForSectionFile` | Two of the [link passes](../../docs/features/compile-pipeline/link-passes.md), and the slug of a shard's demoted first heading, before guide numbering                                                                                                                                              |
+| `stripExplicitAnchorMarkers`                                                     | The [stripAnchors](#stripanchors) transform on a string                                                                                                                                                                                                                                             |
+| `registerCompileHook`, `applyCompileHooks`                                       | Extension hooks (`stripAnchors`, `inlineInserts`, …)                                                                                                                                                                                                                                                |
 
 `compileGuideResults` returns one result per guide. Its `text` is the guide's compiled guide, with links and source tags relative to that file. The monolith is the one file that top-level `outputFile` names, and it stitches each guide without `compile.outputFile`. A guide in the monolith also has a [copy there](../../docs/features/compile-pipeline/publish-relative-links.md#when-it-runs), and its result stores that copy in `monolithText`, with paths and section slugs as the monolith has them.
 
@@ -177,8 +177,6 @@ When top-level `outputFile` is set, `compileGuides` returns the monolith text, w
 `writeOutputFile` writes compile targets. Default: overwrite. When `backup.enabled` is true, it moves an existing file to the path that [Backup path layout](../../docs/features/compile-output-backup.md#backup-path-layout) gives before writing. Pass `backup` on `CompileOptions` or resolve via `resolveBackupOptions(config, cliOverrides)`.
 
 When `compile.title` is set, `assembleGuide` injects a `##` heading followed by a blank line before the first section. [Feature settings](../mdcp-cli/README.md#feature-settings) in Config essentials says which spec covers each feature's config keys, `backup` included.
-
-Full spec: [Compile output backup](../../docs/features/compile-output-backup.md).
 
 ### Locale packs
 
@@ -224,8 +222,6 @@ resolveRefsPath('/docs', '_build', '.caches/refs.json');
 resolveRefsPath('/docs', '.', 'refs.json');
 // → /docs/refs.json
 ```
-
-Prefer outputDir-relative values in config (for example `".caches/refs.json"` when `outputDir` is `"_build"`). See [Config essentials — path layout](../mdcp-cli/README.md#path-layout).
 
 #### Heading slugs (github-slugger)
 
@@ -333,7 +329,7 @@ registerCompileHook('myHook', (ctx) => {
 });
 ```
 
-Then list it in the array form of `compile.hooks` next to the built-in hooks the guide keeps, such as `["stripAnchors", "codeEvidence", "inlineInserts", "myHook"]`. [Default compile hooks](../../docs/features/default-compile-hooks.md#configuration) gives the forms and why the array has to list them.
+Then list it in the array form of `compile.hooks` next to the built-in hooks the guide keeps, such as `["stripAnchors", "codeEvidence", "inlineInserts", "myHook"]`. [Explicit override](../../docs/features/default-compile-hooks.md#explicit-override) says the array replaces the default pipeline, so it has to list them.
 
 Compile skips any name in `compile.hooks` that has no registered hook, and it doesn't warn. A misspelled name, such as `codeEvidense`, compiles as if the list left it out, and no check reports it. Registering a hook under a name already in use replaces that hook, a built-in one included.
 
@@ -462,7 +458,7 @@ When neither step finds a line, the hook drops the `#fragment`, and the link poi
 
 ### codeEvidence path resolution
 
-The hook finds the source file in the order [Path lookup order](../../docs/features/compile-pipeline/path-lookup-order.md) gives for `codeEvidence`. When a source file is resolved, the hook rewrites the link target to a POSIX path **relative to the rendered output document**, preserving any `#L…` fragment added by the hook. You don't configure the hook for this. It resolves a shard-relative path as written, then rebases it for the location of the compiled file.
+The hook finds the source file in the order [Path lookup order](../../docs/features/compile-pipeline/path-lookup-order.md) gives for `codeEvidence`. When a source file is resolved, the hook rewrites the link target to a POSIX path relative to the guide's [link base](../../docs/features/compile-pipeline/publish-relative-links.md#when-it-runs), preserving any `#L…` fragment added by the hook. You don't configure the hook for this. It resolves a shard-relative path as written, then rebases it to that link base.
 
 When no directory has the file, the path stays as written, and the [line range](#codeevidence-line-ranges) rules still set the fragment. The hook keeps an existing `#L` fragment, and otherwise adds one from a line range in the label or path. Symbol lookup has no file to scan, so without a line range the hook drops any other `#fragment`.
 
@@ -479,7 +475,7 @@ The hook **does not** transform:
 
 ### codeEvidence config
 
-Runs by default, so no hook list is required. Path rewriting uses the monolith or per-guide output path automatically:
+Path rewriting rebases each path to the guide's link base, the file being assembled: its compiled guide or the monolith. Runs by default, so an empty `compile` keeps it on:
 
 ```json
 {
@@ -553,7 +549,7 @@ docs/
     insert-catalog.md    # links to ../diagrams/…, ../tables/…, ../figures/…, ../media/…
 ```
 
-Link targets are always `.md` insert shards. Put binary assets alongside the shard (or under the same library) and reference them from the shard body — for example `![Overview](./component-map.png)` or an HTML `<video>` / `<audio>` block when your renderer supports it.
+Link targets are always `.md` insert shards. Put binary assets alongside the shard (or under the same library) and reference them from the shard body with `![Overview](./component-map.png)` or an HTML `<video>` / `<audio>` block when your renderer supports it.
 
 Shards link with normal markdown — no `<!-- directives -->`.
 
@@ -573,7 +569,7 @@ The hook reads the whole shard body, fenced code and code spans included. So it 
 The hook **does not** transform:
 
 - Regular shard links, such as `./intro.md` or `../glossary/term.md` <!-- mdcp-paths: illustrative -->
-- Direct links to binary assets (for example `../figures/architecture.png`, `../figures/demo.mp4`) — use a captioned `.md` insert shard that embeds the media instead
+- Direct links to binary assets such as `../figures/architecture.png` or `../figures/demo.mp4`; see [layout](#inlineinserts-layout)
 - External URLs, even when the path contains `diagrams/`
 - Links to missing insert files (left unchanged)
 - Body text when `inlineInserts` is disabled via `compile.hooks: { "inlineInserts": false }` or an explicit hook override that omits it
@@ -595,7 +591,7 @@ The first reference to an insert file (document order across all shards in the g
 
 The label of a linked image, `[![I](./i.png)](../diagrams/d.md)`, contains the image. The heading then reads `#### Diagram 1. ![I](./i.png)`, and a back-link to it uses the slug of that text, `#diagram-1-iipng`.
 
-Output uses GFM headings and back-links for captions. The hook inlines each shard body as written. The assembly passes after the hooks then treat that body as part of the shard, from link rewriting to [table re-alignment](../../docs/features/compile-pipeline/tables-after-link-rewriting.md). A body can contain markdown tables and `![images](…)`, and HTML `<video>` / `<audio>` when your renderer supports them.
+Output uses GFM headings and back-links for captions. The hook inlines each shard body as written. The assembly passes after the hooks then treat that body as part of the shard, from link rewriting to [table re-alignment](../../docs/features/compile-pipeline/tables-after-link-rewriting.md). A body can contain markdown tables and `![images](…)`.
 
 The heading and body replace the link, so a first reference in a table cell breaks the table, as the [compile example](#inlineinserts-compile-example) shows. Give the first reference a paragraph of its own, ahead of any table cell that links to the insert.
 

@@ -40,7 +40,7 @@ registerCompileHook('myHook', (ctx) => {
 });
 ```
 
-Then list it in the array form of `compile.hooks` next to the built-in hooks the guide keeps, such as `["stripAnchors", "codeEvidence", "inlineInserts", "myHook"]`. [Default compile hooks](../../features/default-compile-hooks.md#configuration) gives the forms and why the array has to list them.
+Then list it in the array form of `compile.hooks` next to the built-in hooks the guide keeps, such as `["stripAnchors", "codeEvidence", "inlineInserts", "myHook"]`. [Explicit override](../../features/default-compile-hooks.md#explicit-override) says the array replaces the default pipeline, so it has to list them.
 
 Compile skips any name in `compile.hooks` that has no registered hook, and it doesn't warn. A misspelled name, such as `codeEvidense`, compiles as if the list left it out, and no check reports it. Registering a hook under a name already in use replaces that hook, a built-in one included.
 

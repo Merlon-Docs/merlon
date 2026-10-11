@@ -60,7 +60,7 @@ When neither step finds a line, the hook drops the `#fragment`, and the link poi
 
 ## codeEvidence path resolution
 
-The hook finds the source file in the order [Path lookup order](../../features/compile-pipeline/path-lookup-order.md) gives for `codeEvidence`. When a source file is resolved, the hook rewrites the link target to a POSIX path **relative to the rendered output document**, preserving any `#L…` fragment added by the hook. You don't configure the hook for this. It resolves a shard-relative path as written, then rebases it for the location of the compiled file.
+The hook finds the source file in the order [Path lookup order](../../features/compile-pipeline/path-lookup-order.md) gives for `codeEvidence`. When a source file is resolved, the hook rewrites the link target to a POSIX path relative to the guide's [link base](../../features/compile-pipeline/publish-relative-links.md#when-it-runs), preserving any `#L…` fragment added by the hook. You don't configure the hook for this. It resolves a shard-relative path as written, then rebases it to that link base.
 
 When no directory has the file, the path stays as written, and the [line range](#codeevidence-line-ranges) rules still set the fragment. The hook keeps an existing `#L` fragment, and otherwise adds one from a line range in the label or path. Symbol lookup has no file to scan, so without a line range the hook drops any other `#fragment`.
 
@@ -77,7 +77,7 @@ The hook **does not** transform:
 
 ## codeEvidence config
 
-Runs by default, so no hook list is required. Path rewriting uses the monolith or per-guide output path automatically:
+Path rewriting rebases each path to the guide's link base, the file being assembled: its compiled guide or the monolith. Runs by default, so an empty `compile` keeps it on:
 
 ```json
 {

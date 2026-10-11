@@ -47,7 +47,7 @@ After the cross-guide and intra-guide rewrites, compile resolves the `../` links
 
 ## `compile.hooks`
 
-`resolveCompileHooks(compile)` returns the list of hooks a guide runs, which is `DEFAULT_COMPILE_HOOKS` when `compile.hooks` is omitted. [Default compile hooks](../features/default-compile-hooks.md#configuration) gives the forms `compile.hooks` takes. `compile.hooksConfig` holds per-hook settings, such as [`inlineInserts.searchRoots`](./compile-hooks/inline-inserts.md#inlineinserts-config), and [stripAnchors purpose](./compile-hooks/strip-anchors.md#stripanchors-purpose) says what `compile.stripAnchors` does.
+`resolveCompileHooks(compile)` returns the list of hooks a guide runs, which is `DEFAULT_COMPILE_HOOKS` when `compile.hooks` is omitted. [Configuration](./compile-hooks/index.md#configuration) in the hooks overview covers the config keys.
 
 ## `compile.crossGuideLinks`
 

@@ -25,7 +25,7 @@ docs/
     insert-catalog.md    # links to ../diagrams/…, ../tables/…, ../figures/…, ../media/…
 ```
 
-Link targets are always `.md` insert shards. Put binary assets alongside the shard (or under the same library) and reference them from the shard body — for example `![Overview](./component-map.png)` or an HTML `<video>` / `<audio>` block when your renderer supports it.
+Link targets are always `.md` insert shards. Put binary assets alongside the shard (or under the same library) and reference them from the shard body with `![Overview](./component-map.png)` or an HTML `<video>` / `<audio>` block when your renderer supports it.
 
 Shards link with normal markdown — no `<!-- directives -->`.
 
@@ -45,7 +45,7 @@ The hook reads the whole shard body, fenced code and code spans included. So it 
 The hook **does not** transform:
 
 - Regular shard links, such as `./intro.md` or `../glossary/term.md` <!-- mdcp-paths: illustrative -->
-- Direct links to binary assets (for example `../figures/architecture.png`, `../figures/demo.mp4`) — use a captioned `.md` insert shard that embeds the media instead
+- Direct links to binary assets such as `../figures/architecture.png` or `../figures/demo.mp4`; see [layout](#inlineinserts-layout)
 - External URLs, even when the path contains `diagrams/`
 - Links to missing insert files (left unchanged)
 - Body text when `inlineInserts` is disabled via `compile.hooks: { "inlineInserts": false }` or an explicit hook override that omits it
@@ -67,7 +67,7 @@ The first reference to an insert file (document order across all shards in the g
 
 The label of a linked image, `[![I](./i.png)](../diagrams/d.md)`, contains the image. The heading then reads `#### Diagram 1. ![I](./i.png)`, and a back-link to it uses the slug of that text, `#diagram-1-iipng`.
 
-Output uses GFM headings and back-links for captions. The hook inlines each shard body as written. The assembly passes after the hooks then treat that body as part of the shard, from link rewriting to [table re-alignment](../../features/compile-pipeline/tables-after-link-rewriting.md). A body can contain markdown tables and `![images](…)`, and HTML `<video>` / `<audio>` when your renderer supports them.
+Output uses GFM headings and back-links for captions. The hook inlines each shard body as written. The assembly passes after the hooks then treat that body as part of the shard, from link rewriting to [table re-alignment](../../features/compile-pipeline/tables-after-link-rewriting.md). A body can contain markdown tables and `![images](…)`.
 
 The heading and body replace the link, so a first reference in a table cell breaks the table, as the [compile example](#inlineinserts-compile-example) shows. Give the first reference a paragraph of its own, ahead of any table cell that links to the insert.
 
