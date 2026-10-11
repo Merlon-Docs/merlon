@@ -71,9 +71,9 @@ The sorting test: **would this still be true if the project shipped tomorrow and
 - **State the method.** Every figure names how it was produced, in enough detail for someone else to re-run. Numbers that cannot be reproduced are anecdote.
 - **Tag confidence per claim.** Measured (a script produced it), observed (read without a metric), and not measured (looked for, absent) are three different things, and the third is a finding worth recording.
 - **Caveat above the first table.** Corpus size, age, authorship, and what the sample cannot speak to belong before any number, not in a closing footnote.
-- **Describe a source structurally, never by name.** Repository, organization, domain, and client identity stay out; counts and mechanisms are what generalize. Naming a contributed corpus is the contributor's decision, and an offer of attribution is a decision to refer back rather than a licence to take.
+- **Describe a source structurally, never by name.** Repository, organization, domain, and client identity stay out. Counts and mechanisms are what generalize. Naming a contributed corpus is the contributor's decision rather than the author's.
 - **Separate observation from recommendation.** A record names the durable position it feeds and links to it. The record does not become the rule.
-- **Supersede, never overwrite.** A later measurement is a new file that links back to the one it replaces.
+- **Date it and leave it.** A later measurement is a new file that links back to the one it replaces. The one change a record takes is repointing a link whose target moved, which leaves the observation as written.
 
 ## Deriving a normative claim from records
 
