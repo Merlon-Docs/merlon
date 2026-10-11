@@ -35,5 +35,13 @@ The core packages are:
 | `mdcp fix`     | Format shards (Prettier / markdownlint auto-fix) |
 | `mdcp prose`   | Vale prose lint                                  |
 | `mdcp review`  | Report doc sprawl signals (`--json`, `--strict`) |
+| `mdcp refs`    | Cross-link registry: `refs list`, `refs gen`     |
 
-Invoke these commands directly in your repository after installing the CLI.
+Invoke these commands directly in your repository after installing the CLI:
+
+```bash
+mdcp compile --config <config> --docs-root <docs-root>
+mdcp check --config <config> --docs-root <docs-root>
+mdcp refs list --config <config> --docs-root <docs-root>
+mdcp review --config <config> --docs-root <docs-root>
+```

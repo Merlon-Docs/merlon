@@ -94,13 +94,9 @@ With peer Vale and the `MDCP` style from `@bwilliamson/mdcp-presets`, the
 the date's format. An ADR keeps the rule on and gives each date on its own,
 as **Current docs only** in `SKILL.md` says. Only a record whose wording must
 stay pinned to a date, such as a research record of what was observed, opts
-out. Wrap one passage in `<!-- vale MDCP.DatedClaim = NO -->` and
-`<!-- vale MDCP.DatedClaim = YES -->`. For a directory of such records, turn
-the rule off in a `.vale.ini` path section such as `[**/research/*.md]` with
-`MDCP.DatedClaim = NO`. Put that section last, after every section that
-matches the same files, because a later section that sets the rule turns it
-back on. **Customizing** in the `@bwilliamson/mdcp-presets` README explains
-path sections.
+out of `MDCP.DatedClaim`, with a `.vale.ini` path section placed last or an
+inline `NO`/`YES` comment pair around one passage, as **Customizing** in the
+`@bwilliamson/mdcp-presets` README shows.
 
 ## After any of these
 

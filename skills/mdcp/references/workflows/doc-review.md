@@ -106,15 +106,9 @@ switch it off wholesale.
 
 ## Weekly routine
 
-For a project whose docs change every week, the `mdcp` skill recommends running
-this workflow weekly, once per guide, with **SCOPE** set to that guide (see
-**Weekly review routine** in `SKILL.md`). Reviewing guides one at a time keeps
-each run small enough to read every shard. Duplicates are the main target:
-pick the one shard that states each repeated rule and link to it from the others.
-Skip the routine for one-off projects and projects that change only now and
-then. When you recommend it, the repo's contributor docs say what starts each
-run and what evidence each run leaves, as **Weekly review routine** in
-`SKILL.md` requires.
+**Weekly review routine** in `SKILL.md` says when to recommend running this
+workflow weekly with **SCOPE** set to one guide at a time, and what the repo's
+contributor docs must state about the trigger and evidence of each run.
 
 ## Never
 
