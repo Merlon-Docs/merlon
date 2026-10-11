@@ -493,7 +493,7 @@ A run you keep gets a research record beside its CSV, and earlier CSVs and recor
 
 ## Agent work-item tracking
 
-How coding agents load tracker issues and delivery conventions **for this repository**. The work-item workflows of the [MDCP skill](docs/skills.md) (installed alongside the MDCP CLI) point here via `WORK_ITEM_LOOKUP`.
+How coding agents load tracker issues and delivery conventions **for this repository**. The work-item workflows of the [MDCP skill](docs/skills.md) point here via `WORK_ITEM_LOOKUP`.
 
 **This repo’s work-item lookup system uses GitHub** for both **issues** (acceptance, discussion, `Closes #N`) and **project planning** (the Project board below). Do not invent a second tracker or stuff tickets / sprint backlogs into durable `docs/` shards. Load scope from GitHub via this shard.
 
@@ -602,7 +602,7 @@ gh auth refresh -s project
 gh auth switch --user <owner>
 ```
 
-Without `project` scope you can still triage labels and milestones. Note the board gaps in an issue comment and stop. Don't start a second tracker.
+Without `project` scope you can still triage labels and milestones. Note the board gaps in an issue comment and stop.
 
 ### Issue priority (value-add)
 
@@ -830,7 +830,7 @@ Zero-friction MDCP delivery for AI agents uses one portable Agent Skill. Upstrea
 
 ### Vendor-managed installs
 
-Author under `skills/`. Then refresh the vendor-managed installs that agents load:
+Author under `skills/`. Then refresh the [vendor-managed installs](#do-not-hand-edit-agentsskills) that agents load:
 
 ```bash
 pnpm skill:update
@@ -838,8 +838,7 @@ pnpm skill:update
 
 (`pnpm skill:update` runs `pnpm skill:install`, and either name does the same task.)
 
-That runs `npx skills add .` and refreshes the vendor-managed installs under
-`.agents/skills/` from the publishable packs in `skills/` (see `skills-lock.json`).
+That runs `npx skills add .`, which installs the publishable skill, `skills/mdcp`, from this checkout under `.agents/skills/` and records it in `skills-lock.json`. The internal archetypes install only with `INSTALL_INTERNAL_SKILLS=1`, as [Publishing the skill pack](#publishing-the-skill-pack) says.
 
 [Cloud agent sessions](#cloud-agent-environments) install the skill on their own. The Claude Code session-start hook (`.claude/hooks/session-start.sh`) and the Cursor environment (`.cursor/environment.json`) both run `pnpm skill:dev`, which installs this checkout's `skills/mdcp` for Claude Code and Cursor with telemetry off. An agent working here loads the skill from the branch it works on.
 

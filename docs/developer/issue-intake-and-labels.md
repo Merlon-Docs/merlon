@@ -35,7 +35,7 @@ gh auth refresh -s project
 gh auth switch --user <owner>
 ```
 
-Without `project` scope you can still triage labels and milestones. Note the board gaps in an issue comment and stop. Don't start a second tracker.
+Without `project` scope you can still triage labels and milestones. Note the board gaps in an issue comment and stop.
 
 ## Issue priority (value-add)
 
