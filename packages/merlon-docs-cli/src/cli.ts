@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import cac from 'cac';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -43,6 +43,7 @@ import {
   resolveLinkSeverity,
 } from './compile-workspace.js';
 import { valeArgs, valeCheckHints, valeScanPaths } from './vale-args.js';
+import { migrateFormerConfigText } from './former-config.js';
 
 interface GlobalOpts {
   config?: string;
@@ -58,25 +59,36 @@ function getDocsRoot(opts: GlobalOpts): string {
 }
 
 const DEFAULT_CONFIG = 'merlon.config.json';
-/** The config file name before the rename to Merlon Docs, still read for one minor release. */
+/** The config file name before the rename to Merlon Docs, migrated until 2.0.0. */
 const FORMER_DEFAULT_CONFIG = 'mdcp.config.json';
 
 /**
  * The config path for a run: `--config` when given, else `merlon.config.json`. When only
- * the former `mdcp.config.json` exists, read it and print a rename notice to stderr.
+ * the former `mdcp.config.json` exists, write its contents to `merlon.config.json` with
+ * `protocolVersion` renamed to `standardVersion`, delete the former file and print an
+ * upgrade notice to stderr. If the new file can't be written, read the former one.
  */
 function configPath(opts: GlobalOpts): string {
   if (opts.config !== undefined) return opts.config;
   const cwd = process.cwd();
-  if (
-    !existsSync(resolve(cwd, DEFAULT_CONFIG)) &&
-    existsSync(resolve(cwd, FORMER_DEFAULT_CONFIG))
-  ) {
+  const current = resolve(cwd, DEFAULT_CONFIG);
+  const former = resolve(cwd, FORMER_DEFAULT_CONFIG);
+  if (existsSync(current) || !existsSync(former)) return DEFAULT_CONFIG;
+  const text = readFileSync(former, 'utf-8');
+  const migrated = migrateFormerConfigText(text);
+  try {
+    writeFileSync(current, migrated, { flag: 'wx' });
+  } catch (err) {
     console.error(
-      `Reading ${FORMER_DEFAULT_CONFIG}: rename it to ${DEFAULT_CONFIG}. Support for the former name ends in the next minor release.`,
+      `Reading ${FORMER_DEFAULT_CONFIG}: could not write ${DEFAULT_CONFIG} (${(err as Error).message}). Rename the file yourself.`,
     );
     return FORMER_DEFAULT_CONFIG;
   }
+  unlinkSync(former);
+  const keyNote = migrated === text ? '' : ', and its protocolVersion key is now standardVersion';
+  console.error(
+    `Upgraded ${FORMER_DEFAULT_CONFIG} to ${DEFAULT_CONFIG}${keyNote}. Commit the new file in place of the old one.`,
+  );
   return DEFAULT_CONFIG;
 }
 

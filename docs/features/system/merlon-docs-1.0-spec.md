@@ -2,7 +2,7 @@
 
 Normative specification for [Merlon Docs](../../glossary/merlon-docs.md), the open standard for a documentation system.
 
-> The reference implementation leads and this text follows it. The specification version, `standardVersion` in the config schema, is independent of package semver. Configs written before the rename name it `protocolVersion`, which the toolchain reads until the next major release. Agent entrypoint is the parent **Agent Skill** (`/merlon-docs`).
+> The reference implementation leads and this text follows it. The specification version, `standardVersion` in the config schema, is independent of package semver. Configs written before the rename name it `protocolVersion`, which the toolchain reads until 2.0.0. Agent entrypoint is the parent **Agent Skill** (`/merlon-docs`).
 
 ## 1. Introduction
 

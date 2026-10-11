@@ -33,7 +33,7 @@ import { resolveStandaloneGuides } from './coverage.js';
  * claims too, which is why the line scope exists.
  */
 export const ILLUSTRATIVE_MARKER = '<!-- merlon-paths: illustrative -->';
-/** The marker's spelling before the rename to Merlon Docs, still read for one minor release. */
+/** The marker's spelling before the rename to Merlon Docs, still read until 2.0.0. */
 const FORMER_ILLUSTRATIVE_MARKER = '<!-- mdcp-paths: illustrative -->';
 const MARKERS = [ILLUSTRATIVE_MARKER, FORMER_ILLUSTRATIVE_MARKER];
 

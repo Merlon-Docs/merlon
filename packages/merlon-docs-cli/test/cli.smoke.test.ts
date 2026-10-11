@@ -344,7 +344,11 @@ describe('cli smoke', () => {
   });
 
   describe('default config file name', () => {
-    function writeMinimalProject(dir: string, configName: string): void {
+    function writeMinimalProject(
+      dir: string,
+      configName: string,
+      extra: Record<string, unknown> = {},
+    ): void {
       mkdirSync(join(dir, 'g'), { recursive: true });
       writeFileSync(join(dir, 'g', 'index.md'), '# Guide\n\n- [section](section.md)\n');
       writeFileSync(join(dir, 'g', 'section.md'), '# Guide\n\n## Hello\n');
@@ -356,6 +360,7 @@ describe('cli smoke', () => {
           compileOrder: ['g'],
           guides: [{ name: 'g', path: 'g' }],
           lint: { links: { enabled: false } },
+          ...extra,
         }),
       );
     }
@@ -381,15 +386,44 @@ describe('cli smoke', () => {
       }
     });
 
-    it('falls back to mdcp.config.json with a rename notice', () => {
+    it('upgrades mdcp.config.json to merlon.config.json with a notice', () => {
+      const dir = mkdtempSync(join(tmpdir(), 'merlon-legacy-config-'));
+      try {
+        writeMinimalProject(dir, 'mdcp.config.json', { protocolVersion: '0.4.0.0' });
+        const r = compileWithoutConfigFlag(dir);
+        expect(r.status).toBe(0);
+        expect(r.stderr).toMatch(
+          /Upgraded mdcp\.config\.json to merlon\.config\.json, and its protocolVersion key is now standardVersion/,
+        );
+        expect(existsSync(join(dir, 'mdcp.config.json'))).toBe(false);
+        const upgraded = JSON.parse(readFileSync(join(dir, 'merlon.config.json'), 'utf-8')) as {
+          standardVersion?: string;
+          protocolVersion?: string;
+          compileOrder?: string[];
+        };
+        expect(upgraded.standardVersion).toBe('0.4.0.0');
+        expect(upgraded.protocolVersion).toBeUndefined();
+        expect(upgraded.compileOrder).toEqual(['g']);
+        expect(existsSync(join(dir, '_build', 'guides.md'))).toBe(true);
+
+        const again = compileWithoutConfigFlag(dir);
+        expect(again.status).toBe(0);
+        expect(again.stderr).not.toMatch(/mdcp\.config\.json/);
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    });
+
+    it('upgrades a former config without protocolVersion by renaming it', () => {
       const dir = mkdtempSync(join(tmpdir(), 'merlon-legacy-config-'));
       try {
         writeMinimalProject(dir, 'mdcp.config.json');
+        const before = readFileSync(join(dir, 'mdcp.config.json'), 'utf-8');
         const r = compileWithoutConfigFlag(dir);
         expect(r.status).toBe(0);
-        expect(r.stderr).toMatch(/mdcp\.config\.json/);
-        expect(r.stderr).toMatch(/rename it to merlon\.config\.json/);
-        expect(existsSync(join(dir, '_build', 'guides.md'))).toBe(true);
+        expect(r.stderr).toMatch(/Upgraded mdcp\.config\.json to merlon\.config\.json\./);
+        expect(readFileSync(join(dir, 'merlon.config.json'), 'utf-8')).toBe(before);
+        expect(existsSync(join(dir, 'mdcp.config.json'))).toBe(false);
       } finally {
         rmSync(dir, { recursive: true, force: true });
       }

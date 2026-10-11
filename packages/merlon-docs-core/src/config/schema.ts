@@ -86,7 +86,7 @@ export const MerlonConfigSchema = z.object({
   /** Four-part version of the Merlon Docs standard the repository conforms to (default 0.5.0.0). */
   standardVersion: z.string().default('0.5.0.0'),
   /**
-   * @deprecated Former name of `standardVersion`, still read until the next major release.
+   * @deprecated Former name of `standardVersion`, still read until 2.0.0.
    * `parseConfig` and `loadConfig` copy it to `standardVersion` and set it to the same value.
    */
   protocolVersion: z.string().optional(),
@@ -225,11 +225,11 @@ export const MerlonConfigSchema = z.object({
 export type MerlonConfig = z.infer<typeof MerlonConfigSchema>;
 export type MerlonConfigInput = z.input<typeof MerlonConfigSchema>;
 
-/** @deprecated Renamed to `MerlonConfigSchema`; kept for one minor release after the rename. */
+/** @deprecated Renamed to `MerlonConfigSchema`; kept until 2.0.0. */
 export const MdcpConfigSchema = MerlonConfigSchema;
-/** @deprecated Renamed to `MerlonConfig`; kept for one minor release after the rename. */
+/** @deprecated Renamed to `MerlonConfig`; kept until 2.0.0. */
 export type MdcpConfig = MerlonConfig;
-/** @deprecated Renamed to `MerlonConfigInput`; kept for one minor release after the rename. */
+/** @deprecated Renamed to `MerlonConfigInput`; kept until 2.0.0. */
 export type MdcpConfigInput = MerlonConfigInput;
 export type GuideConfig = z.infer<typeof GuideSchema>;
 export type GuideConfigInput = z.input<typeof GuideSchema>;

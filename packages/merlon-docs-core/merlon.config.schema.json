@@ -12,7 +12,7 @@
     "protocolVersion": {
       "type": "string",
       "deprecated": true,
-      "description": "Former name of standardVersion, still read until the next major release. Use standardVersion."
+      "description": "Former name of standardVersion, still read until 2.0.0. Use standardVersion."
     },
     "source": {
       "type": "string"
