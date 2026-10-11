@@ -122,7 +122,8 @@
         "build",
         "node_modules",
         ".claude/skills",
-        ".windsurf/skills"
+        ".windsurf/skills",
+        ".changeset/pre"
       ],
       "vocabulary": ["docs/client", "docs/extensions"]
     }

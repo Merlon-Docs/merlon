@@ -90,10 +90,11 @@ export function readPackageVersion(packageJsonPath) {
 export function changelogNotesForVersion(changelogPath, version) {
   if (!existsSync(changelogPath)) return '';
   const content = readFileSync(changelogPath, 'utf-8');
-  const header = `## ${version}`;
-  const start = content.indexOf(header);
-  if (start === -1) return '';
-  const after = content.slice(start + header.length);
+  // Match the whole heading line, so 1.0.0-draft.1 never reads the section for 1.0.0-draft.10.
+  const escaped = version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = new RegExp(`^## ${escaped}[ \\t\\r]*$`, 'm').exec(content);
+  if (!match) return '';
+  const after = content.slice(match.index + match[0].length);
   const next = after.search(/\n## /);
   const section = (next === -1 ? after : after.slice(0, next)).trim();
   return section;

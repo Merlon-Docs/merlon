@@ -1124,13 +1124,21 @@ On a run without pending changesets, the Release plan detects **missing** `name@
 
 ### Pre-1.0 policy (`0.x.y`)
 
-Packages and skills are **pre-1.0** while on `0.x.y`. Until an item reaches **1.0.0**, that item has **no API stability guarantee**. On `0.x.y`, a breaking change is a **minor** bump. A **major** changeset takes an item to **1.0.0**, and from then on a breaking change needs a major.
+Packages and skills are **pre-1.0** while on `0.x.y`. Until an item reaches **1.0.0**, that item has **no API stability guarantee**. On `0.x.y`, a breaking change is a **minor** bump. A **major** changeset takes an item to **1.0.0**, and from then on a breaking change needs a major. A `1.0.0-draft.N` prerelease has no stability guarantee either.
 
 | Bump      | When                                                          |
 | --------- | ------------------------------------------------------------- |
 | **patch** | Bug fixes, internal refactors with no intended API change     |
 | **minor** | New capabilities, or a breaking change on `0.x.y`             |
 | **major** | The move to 1.0.0, then any breaking change from 1.0.0 onward |
+
+### Prereleases
+
+While `.changeset/pre.json` exists, the repository is in Changesets prerelease mode. A release then publishes prerelease versions in place of final ones. The current line is `draft`, which leads to 1.0.0: each release versions the items it bumps as `1.0.0-draft.N` and publishes them under the npm `draft` dist-tag. Their GitHub Releases are marked as prereleases.
+
+In prerelease mode, `changeset version` moves each changeset it consumes into `.changeset/pre/`. Leave the files there, because the final release reads them to write each item's 1.0.0 CHANGELOG entry. The changeset status check counts a moved changeset as consumed. `pnpm release:build` refuses a prerelease version.
+
+To release 1.0.0, run `pnpm changeset pre exit` on `develop` and land the change. The next release versions each drafted item as `1.0.0` and publishes it under `latest`. That release also deletes `.changeset/pre/` and `pre.json`. `pnpm changeset pre enter <tag>` starts a new prerelease line.
 
 ### Durable docs vs pending changesets
 

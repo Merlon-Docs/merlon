@@ -85,4 +85,25 @@ metadata:
     assert.doesNotMatch(changelogNotesForVersion(path, '0.2.0'), /old/);
     assert.equal(changelogNotesForVersion(path, '9.9.9'), '');
   });
+
+  it('reads the section whose heading is exactly the prerelease version', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'cl-'));
+    const path = join(dir, 'CHANGELOG.md');
+    writeFileSync(
+      path,
+      `# pkg
+
+## 1.0.0-draft.10
+
+- tenth draft
+
+## 1.0.0-draft.1
+
+- first fix
+`,
+    );
+    assert.match(changelogNotesForVersion(path, '1.0.0-draft.1'), /first fix/);
+    assert.doesNotMatch(changelogNotesForVersion(path, '1.0.0-draft.1'), /tenth/);
+    assert.equal(changelogNotesForVersion(path, '1.0.0'), '');
+  });
 });
