@@ -15,11 +15,11 @@ Parent suite: [`tests/skills/mdcp/evals/`](../README.md).
 
 ## What the suite covers
 
-1. **Expert greenfield (npm)** — concise bootstrap; no tutorial shards; compile/check
-2. **Novice greenfield (pnpm)** — tutorial shards + concept explanations; prefer pnpm
-3. **Intake skip + glossary seed** — FEATURE/PERSONA/EXPERIENCE already given; glossary term; validate
-4. **Brownfield** — preserve legacy files, migrate into shards, mark ready to archive after review
-5. **First-feature tutorial** — after novice bootstrap, recommended `hello-greeting` walkthrough (design → feature → UX → doc-only) + Closing CTA (star/feedback, dora.dev/ai, dora.community/join)
+1. **Expert greenfield (npm)**: concise bootstrap; no tutorial shards; compile/check
+2. **Novice greenfield (pnpm)**: tutorial shards + concept explanations; prefer pnpm
+3. **Intake skip + glossary seed**: FEATURE/PERSONA/EXPERIENCE already given; glossary term; validate
+4. **Brownfield**: preserve legacy files and migrate them into shards; mark them ready to archive after review
+5. **First-feature tutorial**: after novice bootstrap, recommended `hello-greeting` walkthrough (design → feature → UX → doc-only)
 
 ## Run path (skill-creator)
 

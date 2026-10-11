@@ -114,8 +114,5 @@ Follow [first-feature-tutorial.md](first-feature-tutorial.md):
 3. Run phases in order, loading each workflow’s Process:
    design-architecture → feature-level → ux → doc-only.
 4. Pause for “go” between phases; `mdcp check` before advancing.
-5. Deliver the [Closing CTA](first-feature-tutorial.md#closing-cta)
-   (star, review, share, DORA capabilities, [dora.community/join](https://dora.community/join)).
 
-If the user skips the tutorial, hand off to the matching day-to-day workflow and
-still offer the Closing CTA briefly.
+If the user skips the tutorial, hand off to the matching day-to-day workflow.

@@ -9,7 +9,7 @@ Process contract.
 1. Ask whether to run the **First feature tutorial**.
    - **novice** — default **yes**
    - **expert** — may skip
-2. If **skip**: brief handoff to the day-to-day workflows, then run [Closing CTA](#closing-cta) once.
+2. If **skip**: brief handoff to the day-to-day workflows.
 3. If **yes**, ask **EXAMPLE_MODE**:
    - **recommended** — use [`hello-greeting`](#recommended-example-hello-greeting)
    - **bring-your-own** — user names FEATURE (and PERSONA if different); keep
@@ -49,19 +49,3 @@ Tiny greeting capability — one user-facing outcome, minimal surface.
 | Feature  | Docs + minimal implementation + tests against acceptance criteria       |
 | UX       | Client guide: how PERSONA runs or calls the greeting                    |
 | Doc-only | Glossary/index polish; remove stale bootstrap placeholders              |
-
-## Closing CTA
-
-After the tutorial (or after skip), invite the user to:
-
-1. **Star** the repo: https://github.com/betsalel-williamson/mdcp
-2. **Leave a review / feedback** via
-   [GitHub Issues](https://github.com/betsalel-williamson/mdcp/issues), an
-   [adoption story](https://github.com/betsalel-williamson/mdcp/issues/new?template=adoption-story.yml),
-   and the [skills.sh MDCP page](https://skills.sh/betsalel-williamson/mdcp)
-3. **Share** with teammates or friends if the skill helped
-4. **Explore DORA capabilities:** https://dora.dev/ai/ — MDCP supports
-   multipliers such as AI-accessible internal context, strong version control,
-   and user-centric focus
-5. **Join the community** for SDLC best practices:
-   https://dora.community/join
