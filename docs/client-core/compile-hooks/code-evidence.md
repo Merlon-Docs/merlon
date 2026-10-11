@@ -1,6 +1,6 @@
 # codeEvidence
 
-Specification for the `codeEvidence` compile hook. Tests in `packages/mdcp-core/test/code-evidence.test.ts` map to the sections below (docs first, then TDD). The fenced code tests in `packages/mdcp-core/test/links.test.ts` also cover [codeEvidence link matching](#codeevidence-link-matching).
+Specification for the `codeEvidence` compile hook. The [Spec-to-test map](../../developer/packages-and-tests.md#spec-to-test-map) names the tests behind this spec.
 
 ## codeEvidence purpose
 

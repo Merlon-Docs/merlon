@@ -14,4 +14,4 @@
 | --------------------------- | ----------------------------------------------------------------- |
 | `findPeerBinary`, `runPeer` | Locate and run host-repo linters (`markdownlint-cli2`, `vale`, …) |
 
-Peer linters are not bundled. Detection order: `node_modules/.bin` → PATH → skip with info.
+`findPeerBinary(name, cwd)` returns `source: 'local'` for a `node_modules/.bin` binary found from `cwd` upward, `'path'` for one on PATH, and `found: false` otherwise. `runPeer` then skips the tool with an info line unless `require` is set, which makes a missing tool an error. [Peer linters](../features/design-constraints/peer-linters.md) is the policy.

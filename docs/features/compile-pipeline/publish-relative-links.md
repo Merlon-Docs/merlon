@@ -1,6 +1,6 @@
 # Publish-relative link rewriting
 
-Specification for assembly-time rebasing of shard-relative file links to each guide's [link base](#when-it-runs). Tests in `packages/mdcp-core/test/publish-links.test.ts`, `packages/mdcp-core/test/links.test.ts` and `packages/mdcp-core/test/guide-output-path.test.ts` map to the sections below. Tests for the exclusion of cross-guide links and for [`ignoreGuides` interaction](#ignoreguides-interaction) are also in `packages/mdcp-core/test/cross-guide-links.test.ts`, and tests for the exclusion of links that `codeEvidence` rebased are in `packages/mdcp-core/test/code-evidence.test.ts`.
+Specification for assembly-time rebasing of shard-relative file links to each guide's [link base](#when-it-runs). The [Spec-to-test map](../../developer/packages-and-tests.md#spec-to-test-map) names the tests behind this spec.
 
 ## Shard-relative paths
 

@@ -1,6 +1,6 @@
 # stripAnchors
 
-Specification for the `stripAnchors` compile hook. Tests in `packages/mdcp-core/test/anchors.test.ts` map to the sections below (docs first, then TDD).
+Specification for the `stripAnchors` compile hook. The [Spec-to-test map](../../developer/packages-and-tests.md#spec-to-test-map) names the tests behind this spec.
 
 ## stripAnchors purpose
 

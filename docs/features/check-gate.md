@@ -1,6 +1,6 @@
 # Check gate
 
-Specification for `mdcp check`, the validation gate a change passes locally and in CI before it merges. Tests in `packages/mdcp-cli/test/cli.smoke.test.ts` and `packages/mdcp-cli/test/coverage.smoke.test.ts` map to the sections below.
+Specification for `mdcp check`, the validation gate a change passes locally and in CI before it merges. The [Spec-to-test map](../developer/packages-and-tests.md#spec-to-test-map) names the tests behind this spec.
 
 ## Check gate stages
 

@@ -1,6 +1,6 @@
 # Path resolution in prose
 
-Specification for resolving backtick-quoted repository paths in documentation prose. Tests in `packages/mdcp-core/test/path-probe.test.ts` map to the sections below (docs first, then TDD).
+Specification for resolving backtick-quoted repository paths in documentation prose. The [Spec-to-test map](../developer/packages-and-tests.md#spec-to-test-map) names the tests behind this spec.
 
 ## Path resolution purpose
 

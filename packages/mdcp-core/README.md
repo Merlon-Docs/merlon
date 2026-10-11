@@ -117,7 +117,7 @@ Pass `process.cwd()` as `configBase` for `loadConfig`. Pass the docs root as `do
 
 `resolveGuideDir` and `guideScanDirs` return absolute paths. A relative `docsRoot` such as `docs` resolves against the process cwd. The CLI runs markdownlint-cli2 and Vale with the docs root as their cwd, where a relative `docs/features` would name `docs/docs/features`, a directory that doesn't exist.
 
-`shardLintPaths(config, docsRoot)` returns paths for markdownlint-cli2 run with the docs root as its cwd, as `mdcp lint` and `mdcp check` run it. From another cwd, the relative paths match the wrong files or none. Without `lint.markdownlint.shardsGlobs`, it returns a glob for the `.md` and `.markdown` files of each guide directory, such as `features/**/*.{md,markdown}`, and `**/*.{md,markdown}` for a guide whose directory is the docs root. The glob is relative for a guide under the docs root and absolute for a guide outside it, with the glob characters in the guide's path escaped in both. A relative glob that would start with `!`, `#` or `:` gets a leading `./`, so markdownlint-cli2 doesn't read it as a negation or a literal path. Use `guideScanDirs` for the directories themselves.
+`shardLintPaths(config, docsRoot)` returns paths for markdownlint-cli2 run with the docs root as its cwd, as `mdcp lint` and `mdcp check` run it. From another cwd, the relative paths match the wrong files or none. Without `lint.markdownlint.shardsGlobs`, it returns one glob per guide directory, as [In-scope guide fileset](../mdcp-cli/README.md#in-scope-guide-fileset) describes, and `**/*.{md,markdown}` for a guide whose directory is the docs root. A relative glob that would start with `!`, `#` or `:` gets a leading `./`, so markdownlint-cli2 doesn't read it as a negation or a literal path. Use `guideScanDirs` for the directories themselves.
 
 With `shardsGlobs`, it returns each entry as written, negated entries included, with two exceptions. A `.` entry becomes `**`. An entry that starts with `../` gets the escaped absolute directory those segments name in their place, then `/**` when the entry is a directory, and a negated one gets `**` in front.
 
@@ -285,7 +285,7 @@ CLI authoring rules: [Cross-links and refs — heading slugs](../mdcp-cli/README
 | --------------------------- | ----------------------------------------------------------------- |
 | `findPeerBinary`, `runPeer` | Locate and run host-repo linters (`markdownlint-cli2`, `vale`, …) |
 
-Peer linters are not bundled. Detection order: `node_modules/.bin` → PATH → skip with info.
+`findPeerBinary(name, cwd)` returns `source: 'local'` for a `node_modules/.bin` binary found from `cwd` upward, `'path'` for one on PATH, and `found: false` otherwise. `runPeer` then skips the tool with an info line unless `require` is set, which makes a missing tool an error. [Peer linters](../../docs/features/design-constraints/peer-linters.md) is the policy.
 
 <!-- mdcp-shard: end ../../docs/client-core/api-shard-and-peers.md -->
 
@@ -352,7 +352,7 @@ A hook gets a `CompileHookContext` and returns the new body. Assembly always set
 | `hookState`      | State that the hook calls of one assembly share, from one shard to the next. Always set, though the type marks it optional          |
 | `linkIndex`      | Optional. The [guide link index](../../docs/features/compile-pipeline/cross-guide-links.md#guide-link-index)                        |
 
-Hook implementations should be **pure on `ctx.body`** except when intentionally using shared `hookState`. Leave unmatched links unchanged. Prefer docs-first specs with tests mapped to spec sections (see each hook shard below).
+Hook implementations should be **pure on `ctx.body`** except when intentionally using shared `hookState`. Leave unmatched links unchanged.
 
 ### Configuration
 
@@ -374,7 +374,7 @@ Assembly also runs the [link passes](../../docs/features/compile-pipeline/link-p
 
 ## stripAnchors
 
-Specification for the `stripAnchors` compile hook. Tests in `packages/mdcp-core/test/anchors.test.ts` map to the sections below (docs first, then TDD).
+Specification for the `stripAnchors` compile hook. The [Spec-to-test map](../../DEVELOPERS.md#spec-to-test-map) names the tests behind this spec.
 
 ### stripAnchors purpose
 
@@ -402,7 +402,7 @@ The strip reads an indented code block as prose, as the fence scan does. It remo
 
 ## codeEvidence
 
-Specification for the `codeEvidence` compile hook. Tests in `packages/mdcp-core/test/code-evidence.test.ts` map to the sections below (docs first, then TDD). The fenced code tests in `packages/mdcp-core/test/links.test.ts` also cover [codeEvidence link matching](#codeevidence-link-matching).
+Specification for the `codeEvidence` compile hook. The [Spec-to-test map](../../DEVELOPERS.md#spec-to-test-map) names the tests behind this spec.
 
 ### codeEvidence purpose
 
@@ -528,7 +528,7 @@ See [access.rules L6-L8](config/access.rules#L6-L8).
 
 ## inlineInserts
 
-Specification for the `inlineInserts` compile hook. Tests in `packages/mdcp-core/test/inline-inserts.test.ts` map to the sections below (docs first, then TDD).
+Specification for the `inlineInserts` compile hook. The [Spec-to-test map](../../DEVELOPERS.md#spec-to-test-map) names the tests behind this spec.
 
 ### inlineInserts purpose
 

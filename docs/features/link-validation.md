@@ -1,6 +1,6 @@
 # Built-in link validation
 
-Specification for first-party internal link validation at compile and check. Tests in `packages/mdcp-core/test/links.test.ts`, `packages/mdcp-core/test/cross-guide-links.test.ts`, `packages/mdcp-core/test/guide-output-path.test.ts`, `packages/mdcp-core/test/source-path-links.test.ts`, and `packages/mdcp-cli/test/cli.smoke.test.ts` map to the sections below (docs first, then TDD).
+Specification for first-party internal link validation at compile and check. The [Spec-to-test map](../developer/packages-and-tests.md#spec-to-test-map) names the tests behind this spec.
 
 ## Link validation purpose
 

@@ -1,6 +1,6 @@
 # Monolith link lint
 
-How link lint checks the [monolith](../glossary/monolith.md), which holds a copy of every guide without `compile.outputFile`. [Link validation](./link-validation.md) covers the checks that every compiled output gets. Tests in `packages/mdcp-core/test/links.test.ts` and `packages/mdcp-cli/test/cli.smoke.test.ts` map to the sections below.
+How link lint checks the [monolith](../glossary/monolith.md), which holds a copy of every guide without `compile.outputFile`. [Link validation](./link-validation.md) covers the checks that every compiled output gets. The [Spec-to-test map](../developer/packages-and-tests.md#spec-to-test-map) names the tests behind this spec.
 
 ## Links in a guide's copy
 

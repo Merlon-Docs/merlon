@@ -1,6 +1,6 @@
 # Cross-guide link rewriting
 
-Specification for assembly-time cross-shard and cross-guide link rewriting. Tests in `packages/mdcp-core/test/cross-guide-links.test.ts` map to the sections below (docs first, then TDD). The fenced code tests in `packages/mdcp-core/test/links.test.ts` also cover [cross-guide link matching](#cross-guide-link-matching) and [cross-guide exclusions](#cross-guide-exclusions).
+Specification for assembly-time cross-shard and cross-guide link rewriting. The [Spec-to-test map](../../developer/packages-and-tests.md#spec-to-test-map) names the tests behind this spec.
 
 A repo with several outputs compiles separate guides, such as `glossary.md` and `architecture-review.md`, from shards in sibling guide directories. Source shards link each other with relative `.md` paths. Compile turns each such link into a `#slug` target in the same document or in another output, and link lint checks that the target has the slug. A link to a `FIND-*` finding in another output fails that check unless its fragment is the heading's slug, as [Link index limits](#link-index-limits) says.
 

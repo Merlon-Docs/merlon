@@ -59,7 +59,7 @@ A hook gets a `CompileHookContext` and returns the new body. Assembly always set
 | `hookState`      | State that the hook calls of one assembly share, from one shard to the next. Always set, though the type marks it optional     |
 | `linkIndex`      | Optional. The [guide link index](../../features/compile-pipeline/cross-guide-links.md#guide-link-index)                        |
 
-Hook implementations should be **pure on `ctx.body`** except when intentionally using shared `hookState`. Leave unmatched links unchanged. Prefer docs-first specs with tests mapped to spec sections (see each hook shard below).
+Hook implementations should be **pure on `ctx.body`** except when intentionally using shared `hookState`. Leave unmatched links unchanged.
 
 ## Configuration
 

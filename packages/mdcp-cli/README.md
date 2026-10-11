@@ -915,7 +915,7 @@ The coverage scan walks the repository for markdown files, skips vendored paths,
 
 ## guide tier
 
-A **guide tier** is one category in an [archetype](../../docs/features/protocol/extensions-and-archetypes.md#archetypes-battery-types)'s guide layout. Each tier specifies what its shards contain and what they keep out. The default archetype, the Code Repository Archetype, defines four tiers: `features/`, `client/`, `developer/`, and `glossary/`. A tier can include more than one [guide](#guide).
+A **guide tier** is one category in an [archetype](#archetype)'s guide layout. Each tier specifies what its shards contain and what they keep out. The default archetype, the Code Repository Archetype, defines four tiers: `features/`, `client/`, `developer/`, and `glossary/`. A tier can include more than one [guide](#guide).
 
 [Default guide layout](../../docs/features/protocol/mdcp-1.0-spec.md#2-default-guide-layout-code-repository-archetype) defines the four tiers. Under its placement test, a shard that consumers need goes in `features/` or `client/`, and a shard that only contributors need goes in `developer/`.
 
@@ -948,3 +948,27 @@ Think “one concern per file” so people and agents can load only what the tas
 See [Shard single responsibility and idea mitosis](../../docs/features/protocol/shard-srp-and-mitosis.md) and [idea mitosis](#idea-mitosis).
 
 <!-- mdcp-shard: end ../../docs/glossary/shard-single-responsibility.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/archetype.md -->
+
+## archetype
+
+An **archetype**, or battery type, is a documented bundle of guide layout, glossary seeds, optional prompts and extension pointers for one project class. The default, the Code Repository Archetype, is the four [guide tiers](#guide-tier) that [Default guide layout](../../docs/features/protocol/mdcp-1.0-spec.md#2-default-guide-layout-code-repository-archetype) defines. The other archetypes in this repository are archetype skills, `mdcp-arch-*` [Agent Skills](#agent-skills), which [Archetypes](../../docs/features/protocol/extensions-and-archetypes.md#archetypes-battery-types) lists, and a team can define its own for another documentation system.
+
+The adoption archetypes in [Personas and priority tiers](../../docs/features/personas-and-priority-tiers.md#adoption-archetypes), such as Learner and Author, are reader goals, not layouts.
+
+<!-- mdcp-shard: end ../../docs/glossary/archetype.md -->
+
+<!-- mdcp-shard: start ../../docs/glossary/agent-skills.md -->
+
+## Agent Skills
+
+**Agent Skills** is the [open standard](https://agentskills.io) for portable packages of agent instructions. Each package is a directory with a `SKILL.md` file and optional companion files, and agent hosts discover and load it. One package is an **Agent Skill**, usually shortened to **skill**, and several packages are _skills_.
+
+Outside agent tooling, the word skill can mean a person's ability or a general AI capability. In MDCP docs it always means the packaged directory.
+
+MDCP's main skill is `mdcp`, with its source in `skills/mdcp/`. It contains the **documentation system** guardrails that direct agents to shard and maintain docs one piece at a time. Optional [archetype](../../docs/features/protocol/extensions-and-archetypes.md#archetypes-battery-types) skills are under `skills/mdcp-arch-*`.
+
+Install and validation: [Agent Skill](../../docs/features/agent-skill.md).
+
+<!-- mdcp-shard: end ../../docs/glossary/agent-skills.md -->
