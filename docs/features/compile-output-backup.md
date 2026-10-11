@@ -81,7 +81,7 @@ Global options (all commands that write compile output):
 | `--backup-dir <path>` | Backup directory relative to `outputDir` (default `.caches/backups`) |
 | `--backup-ext <ext>`  | Suffix on backup filename (default none)                             |
 
-Commands affected: `compile`, `refs gen`, `lint`, `links`, `check`.
+Commands affected: `compile`, `refs-gen`, `lint`, `links`, `check`.
 
 ## Backup acceptance criteria
 

@@ -24,6 +24,7 @@ Product documentation for **what mdcp is designed to do**: the problems it solve
 - [Monolith link lint](./monolith-link-lint.md)
 - [Path resolution in prose](./path-resolution.md)
 - [Documentation coverage scan](./coverage-scan.md)
+- [Standalone guides](./standalone-guides.md)
 - [Refs registry path](./refs-registry-path.md)
 
 ## Agent Skill and its workflows

@@ -552,7 +552,7 @@ When a file is intentionally standalone — a hand-authored README or a top-leve
 }
 ```
 
-`standaloneGuides` accepts file paths or globs. [What the scan skips](../../docs/features/coverage-scan.md#what-the-scan-skips) lists the paths the scan leaves out and the `scan.*` keys that change them. [Standalone guide behavior](../../docs/features/coverage-scan.md#standalone-guide-behavior) says what compile, link validation and the linters do with a registered file, and what a broad glob matches. Don't list a compiled guide's output, such as a generated `README.md`, because [compiled guides are already captured](../../docs/features/coverage-scan.md#compiled-guides-are-captured-not-standalone).
+`standaloneGuides` accepts file paths or globs. [What the scan skips](../../docs/features/coverage-scan.md#what-the-scan-skips) lists the paths the scan leaves out and the `scan.*` keys that change them. [Standalone guide behavior](../../docs/features/standalone-guides.md#standalone-guide-behavior) says what compile, link validation and the linters do with a registered file, and what a broad glob matches. Don't list a compiled guide's output, such as a generated `README.md`, because [compiled guides are already captured](../../docs/features/coverage-scan.md#compiled-guides-are-captured-not-standalone).
 
 <!-- mdcp-shard: end ../../docs/client-cli/coverage.md -->
 
@@ -593,7 +593,7 @@ mdcp check --config docs/mdcp.config.json --docs-root docs
 mdcp refs-list --config docs/mdcp.config.json --docs-root docs
 ```
 
-`mdcp check` fails on dead `#` fragments and bad paths. `mdcp refs-list` lists the heading slugs of each compiled output, with the output's file, from the [refs registry](#refs-registry) that `mdcp compile` writes. When `mdcp check` reports a dead anchor on a link into a compiled output, look up that file's slugs with `mdcp refs-list --format table`. A `#fragment` has to match a slug of the file the link points at. For a bare `#fragment` in a shard, that is each output that stitches the shard. Compile stitches a guide's shard into the guide's [compiled guide](#compiled-guide) and, for a guide in the [monolith](#monolith), into the monolith too, where the same heading can take another slug, such as `setup-1` for `setup`. A bare `#fragment` may also point at the id of a section in that output, such as a `FIND-*` finding id. `mdcp refs-list` doesn't print those ids. Compile doesn't write its own output for a [standalone guide](#standalone-guide), so its headings are in the registry only when a guide stitches the file through its manifest or a `compile.scopeRoot` walk, as [Standalone guide behavior](../../docs/features/coverage-scan.md#standalone-guide-behavior) says.
+`mdcp check` fails on dead `#` fragments and bad paths. `mdcp refs-list` lists the heading slugs of each compiled output, with the output's file, from the [refs registry](#refs-registry) that `mdcp compile` writes. When `mdcp check` reports a dead anchor on a link into a compiled output, look up that file's slugs with `mdcp refs-list --format table`. A `#fragment` has to match a slug of the file the link points at. For a bare `#fragment` in a shard, that is each output that stitches the shard. Compile stitches a guide's shard into the guide's [compiled guide](#compiled-guide) and, for a guide in the [monolith](#monolith), into the monolith too, where the same heading can take another slug, such as `setup-1` for `setup`. A bare `#fragment` may also point at the id of a section in that output, such as a `FIND-*` finding id. `mdcp refs-list` doesn't print those ids. Compile doesn't write its own output for a [standalone guide](#standalone-guide), so its headings are in the registry only when a guide stitches the file through its manifest or a `compile.scopeRoot` walk, as [Standalone guide behavior](../../docs/features/standalone-guides.md#standalone-guide-behavior) says.
 
 ### Heading slugs (GitHub rules)
 
@@ -882,7 +882,7 @@ See [Default per-guide outputs](#default-per-guide-outputs) for the default path
 
 A **standalone guide** is a hand-authored markdown file listed in `standaloneGuides[]` that is both its source and the file readers open, such as a package `README.md` or a top-level `SECURITY.md`.
 
-Contrast with a [guide](#guide), whose shards compile into one output. Compile doesn't write output for a standalone guide, and listing it marks it as [captured](#coverage). [Standalone guide behavior](../../docs/features/coverage-scan.md#standalone-guide-behavior) covers how compile treats it and which checks read it.
+Contrast with a [guide](#guide), whose shards compile into one output. Compile doesn't write output for a standalone guide, and listing it marks it as [captured](#coverage). [Standalone guide behavior](../../docs/features/standalone-guides.md#standalone-guide-behavior) covers how compile treats it and which checks read it.
 
 <!-- mdcp-shard: end ../../docs/glossary/standalone-guide.md -->
 

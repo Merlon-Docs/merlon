@@ -1,6 +1,6 @@
 # Documentation coverage scan
 
-Specification for the repository-wide markdown coverage scan and the [standalone guide](../glossary/standalone-guide.md) concept. The scan reports every markdown file that no guide accounts for, so authors either fold the file into a compiled guide or register it as standalone.
+Specification for the repository-wide markdown coverage scan. The scan reports every markdown file that nothing in the config accounts for, and authors then either add the file to a compiled guide or register it as a [standalone guide](../glossary/standalone-guide.md).
 
 ## Two document concepts
 
@@ -11,7 +11,7 @@ MDCP tracks two kinds of authored markdown:
 | Guide            | Yes      | Shards under a directory | `guides[]` (via `compileOrder`) |
 | Standalone guide | No       | The file itself          | `standaloneGuides[]`            |
 
-A guide compiles a list of shards into one output. A [standalone guide](../glossary/standalone-guide.md) is a single markdown file that is already whole — for example a hand-authored package `README.md` or a top-level `SECURITY.md`. The scan treats both as accounted for.
+A guide compiles a list of shards into one output, and a [standalone guide](../glossary/standalone-guide.md) is one file that is already whole, such as a hand-authored package `README.md`. The scan treats both as accounted for. [Standalone guides](./standalone-guides.md) specifies how compile and each check treat a registered file.
 
 ## Coverage and the captured set
 
@@ -31,21 +31,6 @@ The scan walks the scan root for `*.md`, removes ignored vendor paths, then subt
 A compiled guide's output file is captured automatically as an output target, and generated files such as `README.md`, `DEVELOPERS.md` and the package READMEs don't appear as uncaptured. **Do not list a compiled guide output in `standaloneGuides[]`.** It is already accounted for, and `standaloneGuides[]` is only for files that no compile step produces. This rule is advisory, applied by whoever edits the config, and the `standaloneGuides[]` entries in the config diff are its evidence. A duplicate entry is captured like any other, and `mdcp check` passes with it.
 
 The two sets are distinct: a file compiled from shards belongs to the guide output set, while `standaloneGuides[]` holds hand-authored single files. A compiled guide is never a standalone guide.
-
-## Standalone guide behavior
-
-A standalone guide is register-only:
-
-- Compile doesn't write output for it. A guide still stitches it like any shard when the guide's manifest or `compile.scopeRoot` walk reaches it.
-- Its headings stay out of the [refs registry](../glossary/refs-registry.md) unless a guide stitches it into a compiled output.
-- Its outbound links are validated: `.md` and source-file targets must resolve on disk, and same-file `#fragment` anchors must match a heading. See [built-in link validation](./link-validation.md#standalone-guide-validation).
-- `mdcp prose` and `mdcp check` run Vale over it, along with the guide directories or the `vale.scanGlobs` paths. A `.vale.ini` section opts one file out, as [Opt a standalone guide out of Vale](../client-cli/optional-linters.md#opt-a-standalone-guide-out-of-vale) shows.
-- The markdownlint passes in `mdcp lint` and `mdcp check` lint it only when a shard lint path reaches it or the compiled config's globs list it. The shard lint paths are the Markdown files in the guide directories, or `lint.markdownlint.shardsGlobs` in their place.
-- `mdcp fix` runs `prettier --write .` from `--docs-root`, so it formats a standalone guide only when the file is under the docs root.
-
-`standaloneGuides[]` accepts file paths or globs, such as `packages/*/README.md`, resolved from the scan root. It is also the canonical inventory of intentionally isolated files.
-
-A `standaloneGuides[]` glob can match any file under the scan root, even a path that [the scan skips](#what-the-scan-skips): `**/README.md` also matches the READMEs under `node_modules`. Link validation and Vale read every match, as does the [path probe](./path-resolution.md) when `lint.paths` is on. Keep the globs narrow. This rule is advisory, since `mdcp check` reads every match, stray or intended. Whoever edits the config applies it, and the globs in the config diff are its evidence.
 
 ## What the scan skips
 

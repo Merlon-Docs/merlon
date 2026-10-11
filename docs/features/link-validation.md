@@ -76,7 +76,7 @@ Co-compiled transitive targets are the shards in a guide's [`linkedSectionFiles`
 
 ## Standalone guide validation
 
-A file registered under `standaloneGuides` doesn't get compile output, so the compiled phase checks it only when a guide stitches it as a shard (see [Standalone guide behavior](./coverage-scan.md#standalone-guide-behavior)). The standalone phase link-lints every registered file with the shard-phase checks, each file resolving against its own directory: there is no manifest or scope root to resolve against.
+A file registered under `standaloneGuides` doesn't get compile output. The compiled phase checks it only when a guide stitches it as a shard, as [Standalone guide behavior](./standalone-guides.md#standalone-guide-behavior) says. The standalone phase link-lints every registered file with the shard-phase checks, each file resolving against its own directory: there is no manifest or scope root to resolve against.
 
 Globs resolve against the **scan root** — `scan.root` when set, otherwise the invocation directory — the same root the coverage pass uses, so one registration covers both.
 
