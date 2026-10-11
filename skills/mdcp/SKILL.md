@@ -174,12 +174,12 @@ Documentation is a **first-class artifact** alongside code. We use a **spec-driv
 
 The default MDCP structure acts as the "batteries-included" **Code Repository Archetype**. This fundamental four-tier taxonomy enforces strict boundaries to prevent the docs system from falling apart as it scales:
 
-| Guide             | Holds                                                                                    | Does not hold                                                                 |
-| ----------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `docs/features/`  | How the plumbing works — capabilities, design, contracts, acceptance criteria            | Maintainer runbooks, live eval suites, contributor setup, impl walkthroughs   |
-| `docs/client/`    | How a specific persona finds value using the software — outcomes, flows, usage           | Internal architecture, skill-authoring, live evals, maintainer-only workflows |
-| `docs/developer/` | How to work on the repo — setup, layout, validation, skill development, live skill evals | Product capability narrative or end-user tutorials                            |
-| `docs/glossary/`  | Shared terms and disambiguation                                                          | General code snippets                                                         |
+| Guide             | Holds                                                                                                  | Does not hold                                                               |
+| ----------------- | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
+| `docs/features/`  | Product capabilities, design/ADRs, contracts, acceptance criteria                                      | Maintainer runbooks, live eval suites, contributor setup, code walkthroughs |
+| `docs/client/`    | Consumer value and usage of the product, including install and configuration                           | Internal contributor process, skill authoring and live evals                |
+| `docs/developer/` | Repo setup, layout, validation, workflow, tracker integration, releases, skill development, live evals | Product capability specs or end-user tutorials                              |
+| `docs/glossary/`  | Shared terms and disambiguation                                                                        | General code snippets                                                       |
 
 **Placement test:** If only contributors to this repo need the shard, put it in `docs/developer/`. If consumers of the product need it, use `docs/features/` or `docs/client/`. The same topic may span tiers (for example Agent Skill product delivery vs maintainer live evals). Placement is one axis of **shard single responsibility**; if consumer and contributor needs collide in one file, use idea mitosis.
 
@@ -363,8 +363,8 @@ scheduler their agent host or CI offers. Each run reviews every guide in
    set to that guide. Decide where each duplicated rule belongs, keep it there,
    and link to it from the other shards.
 
-Recommend it only when docs or code changed in most weeks of the last month,
-such as commits in at least three different weeks of
+Recommend it only when docs changed in most weeks of the last month. Most
+weeks means commits in at least three different weeks of
 `git log --since="4 weeks ago" -- docs/`. For a one-off project or one that
 changes now and then, say the routine is not needed. The sprawl triggers above
 cover it.

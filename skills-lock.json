@@ -4,7 +4,7 @@
     "mdcp": {
       "source": ".",
       "sourceType": "local",
-      "computedHash": "6d68574487f77be9e6288ac4a45062bf1cdce561d0e14dec923a078ceebeeacb"
+      "computedHash": "cf1be1df031dab4c30aa928a58757e2d4473e09abcaebfadf0110032125901e0"
     },
     "mdcp-arch-gtm": {
       "source": ".",
