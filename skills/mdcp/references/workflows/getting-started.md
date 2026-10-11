@@ -82,7 +82,7 @@ project judgment call, not a universal list. Every workflow follows it.
 | **novice** | Tutorial shards (what a shard is, why compile/check); brief concept pauses; FEATURE/PERSONA starters |
 | **expert** | Minimal FEATURE starters only; no tutorial/onboarding lecture shards                                 |
 
-Seed domain terms that meet the inclusion bar; one `.md` per term + index.
+Seed the domain terms the inclusion bar allows. One `.md` per term + index.
 
 ### 6. Validate
 
