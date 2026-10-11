@@ -5,7 +5,7 @@ MDCP uses `@kayvan/markdown-tree-parser` for **split only** (`extract-all`, `exp
 Upstream `assemble` is **not used**, because it does not support:
 
 - Per-section heading demotion (shard `#` → compiled `##`)
-- Dropping the About this guide heading from the preamble shard
+- The preamble shard handling that [Project layout](../../client-cli/project-layout.md#one-subdirectory--one-guide) describes
 
 ## When to fork
 

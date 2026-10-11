@@ -8,7 +8,7 @@ Most guides want the same built-in hooks. A default pipeline keeps the hook arra
 
 ## Default hook pipeline
 
-When `guides[].compile.hooks` is omitted, mdcp runs these hooks **in order** on each shard (after heading demotion, and after the About this guide heading is dropped from the preamble shard):
+When `guides[].compile.hooks` is omitted, mdcp runs these hooks **in order** on each shard, after heading demotion and the preamble shard handling that [Project layout](../client-cli/project-layout.md#one-subdirectory--one-guide) describes:
 
 | Hook            | Purpose                                              |
 | --------------- | ---------------------------------------------------- |

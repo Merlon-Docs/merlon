@@ -4,7 +4,7 @@ Command and capability reference. For the end-to-end mental model, including how
 
 ## Compile
 
-Stitch shard directories into compiled guides. Compile demotes headings, and in the preamble shard it drops the About this guide heading and keeps the text. Per-guide titles and publish paths are optional. Compile injects source tags and a default warning banner. See [Source tags and default banner](./source-tags-and-banner.md).
+Stitch shard directories into compiled guides. Compile demotes headings and handles the preamble shard as [Project layout](../client-cli/project-layout.md#one-subdirectory--one-guide) says. Per-guide titles and publish paths are optional. Compile injects source tags and a default warning banner. See [Source tags and default banner](./source-tags-and-banner.md).
 
 ```bash
 mdcp compile --config mdcp.config.json --docs-root .
