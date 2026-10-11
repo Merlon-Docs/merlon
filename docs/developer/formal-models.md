@@ -23,6 +23,8 @@ The trace lists the states in order. In each state, `Step.kind` names the event 
 
 The model checks three properties. Each one is true only while all of its guards are in place, and for each guard a check finds a run that breaks the property without it. A guard is either a branch rule, which is a [repository setting](./repository-settings.md) that no workflow can enforce, or a choice in a workflow under `.github/workflows/`.
 
+No test pins a workflow guard. The only check that one is still in place is the [code-owner review](./repository-settings.md#code-owner-review) of `.github/` on a PR into `main`, and [Scenarios and bounds](#scenarios-and-bounds) says what the model assumes of it. So each statement below that a workflow guard is in place is advisory, as [Enforceable rules](../features/design-constraints/enforceable-rules.md) asks, and a code owner's approval of a release PR that changes `.github/` is its evidence.
+
 ### `develop` only moves to a tested tree
 
 | Guard                                         | Kind        | What goes wrong without it                                                                      |
