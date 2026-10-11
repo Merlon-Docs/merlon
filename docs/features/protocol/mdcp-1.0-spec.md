@@ -27,7 +27,7 @@ The tiers keep a growing docs set coherent. Contributor workflow stays out of co
 
 Each guide **MUST** have a manifest (`index.md` or `shards.md`) defining compile order. The Orphans stage of `mdcp check` fails a guide without a readable manifest, as the [Check gate](../check-gate.md#check-gate-stages) specifies.
 
-Glossary terms **SHOULD** be one shard per entry. [Shared glossary](../../client-cli/config-essentials.md#shared-glossary) says how guides stitch the terms through `compile.scopeRoot` and when a large glossary groups them into sub-index files.
+Glossary terms **SHOULD** be one shard per entry. [Shared glossary](../../client-cli/shared-glossary.md) says how guides stitch the terms through `compile.scopeRoot` and when a large glossary groups them into sub-index files.
 
 Other documentation systems **MAY** introduce their own [archetypes](./extensions-and-archetypes.md#archetypes-battery-types) with different guide tiers on the same `mdcp compile` and `mdcp check` mechanics.
 

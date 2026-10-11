@@ -169,6 +169,8 @@ When a [manifest](#manifest) has preamble prose with example links, set `compile
 
 ## Config essentials
 
+`mdcp.config.json` names the guides to compile and where their outputs go. This page covers the paths every command resolves from and a minimal config with its path layout. [Config reference](#config-reference) is the lookup material for every key.
+
 ### `--config` vs `--docs-root`
 
 These two global options answer different questions:
@@ -277,102 +279,6 @@ When `compile.outputFile` is set, that guide writes only to that path (for examp
 
 Set top-level `outputFile` (such as `"guides.md"`) to also stitch guides **without** explicit `compile.outputFile` into one file under `outputDir`. See [monolith](#monolith).
 
-### Feature settings
-
-Each feature's spec defines its config keys and what they do. This table gives their defaults, and [Config key map](#config-key-map) links each spec.
-
-| Key                        | Default           |
-| -------------------------- | ----------------- |
-| `compile.links.markBroken` | `true`            |
-| `lint.links.enabled`       | `true`            |
-| `lint.links.severity`      | `"error"`         |
-| `lint.links.config`        | none              |
-| `lint.links.target`        | none              |
-| `lint.codeExtensions`      | `[]`              |
-| `lint.dataExtensions`      | `[]`              |
-| `lint.paths.severity`      | `"off"`           |
-| `lint.paths.searchRoots`   | `[]`              |
-| `lint.paths.generated`     | `[]`              |
-| `lint.paths.vocabulary`    | `[]`              |
-| `backup.enabled`           | `false`           |
-| `backup.dir`               | `.caches/backups` |
-| `backup.ext`               | `""`              |
-
-### Config key map
-
-This table links the page that documents each key:
-
-| Key                                                                                                                    | Documented in                                                                                                                                                         |
-| ---------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `compileOrder`, `guides[].name`, `guides[].path`, `outputDir`, `outputFile`, `refs.registryFile`, `compile.outputFile` | [Minimal config](#minimal-config) and [Path layout](#path-layout) on this page                                                                                        |
-| `compile.scopeRoot`                                                                                                    | [Shared glossary](#shared-glossary) on this page                                                                                                                      |
-| `review.*`                                                                                                             | [Review thresholds](#review-thresholds) on this page                                                                                                                  |
-| `protocolVersion`, `refs.slugAlgorithm`                                                                                | [Schema-only fields](#schema-only-fields) on this page                                                                                                                |
-| `source`, `guides[].source`, `guides[].splitLevel`                                                                     | [Consumer migration](#map-the-document-to-guides)                                                                                                                     |
-| `compile.preambleSection`                                                                                              | [Project layout](#project-layout)                                                                                                                                     |
-| `banner`, `sourceTags`, `compile.includeBanner`, `compile.sourceTags`                                                  | [Source tags and banner](../../docs/features/source-tags-and-banner.md)                                                                                               |
-| `compile.manifest`, `compile.sectionsHeading`                                                                          | [Manifest compile order](../../docs/features/manifest-compile-order.md)                                                                                               |
-| `compile.title`                                                                                                        | [Compile API](../mdcp-core/README.md#compile-api)                                                                                                                     |
-| `compile.hooks`, `compile.hooksConfig`                                                                                 | [Default compile hooks](../../docs/features/default-compile-hooks.md), and the core [Compile hooks](../mdcp-core/README.md#compile-hooks) index for the hook pipeline |
-| `compile.stripAnchors`                                                                                                 | [stripAnchors](../mdcp-core/README.md#stripanchors)                                                                                                                   |
-| `compile.crossGuideLinks`                                                                                              | [Cross-guide link rewriting](../../docs/features/compile-pipeline/cross-guide-links.md)                                                                               |
-| `compile.links.*`, `lint.links.enabled`, `lint.links.severity`, `lint.codeExtensions`, `lint.dataExtensions`           | [Built-in link validation](../../docs/features/link-validation.md)                                                                                                    |
-| `lint.paths.*`                                                                                                         | [Path resolution in prose](../../docs/features/path-resolution.md)                                                                                                    |
-| `lint.links.config`, `lint.links.target`, `lint.markdownlint.*`, `vale.*`                                              | [Optional linters](#optional-linters)                                                                                                                                 |
-| `scan.*`                                                                                                               | [Documentation coverage scan](../../docs/features/coverage-scan.md#config)                                                                                            |
-| `standaloneGuides`                                                                                                     | [Coverage in check](#coverage-in-check)                                                                                                                               |
-| `backup.*` and the `--backup` flags                                                                                    | [Compile output backup](../../docs/features/compile-output-backup.md)                                                                                                 |
-
-### Shared glossary
-
-A glossary directory can feed several guides without its own entry in `compileOrder`. Set `compile.scopeRoot` on each guide that should include glossary terms. The value is a directory relative to the docs root:
-
-```json
-{
-  "name": "developer",
-  "compile": { "scopeRoot": "glossary" }
-}
-```
-
-Compile follows `.md` links from that guide's shards into the glossary tree and stitches each linked term shard into the output. Link `../glossary/index.md` from the guide manifest to publish the full glossary table of contents. A lean guide can skip that link and link individual terms. Compile also follows links from term to term. The output contains the linked terms plus every term reachable from them.
-
-A large glossary can move groups of term links into sub-index files that `index.md` links. The `scopeRoot` walk follows those links too.
-
-To publish the glossary as its own file, add `glossary` to `compileOrder` and set `compile.outputFile`. That guide's `index.md` must link every term shard in the directory directly, because the orphan check reports a term that only a sub-index links. The term shards then belong to the glossary guide. Guides that keep `compile.scopeRoot: glossary` still stitch the terms they link, but their term links point at the glossary's output file instead of the copy in their own output.
-
-### Review thresholds
-
-`mdcp review` reads optional thresholds from a top-level `review` object. Each value is a positive integer; omitted keys keep their defaults.
-
-```json
-{
-  "review": {
-    "maxIndexEntries": 12,
-    "maxShardWords": 2500,
-    "minDuplicateWords": 25
-  }
-}
-```
-
-| Field                      | Default | Role                                                                                  |
-| -------------------------- | ------- | ------------------------------------------------------------------------------------- |
-| `review.maxIndexEntries`   | `12`    | Most shard links one index group lists before `index-size` fires                      |
-| `review.maxShardWords`     | `2500`  | Most prose words one shard holds before `long-shard` fires                            |
-| `review.minDuplicateWords` | `25`    | Fewest words a paragraph needs before `duplicate-paragraph` compares it across shards |
-
-`mdcp review` also honors `scan.ignore` and `scan.root`, so paths the coverage scan skips stay out of the review. Signal definitions: [Commands reference](#sprawl-review).
-
-### Schema-only fields
-
-| Field                | Notes                                             |
-| -------------------- | ------------------------------------------------- |
-| `refs.slugAlgorithm` | Informational only — only `github` is implemented |
-| `protocolVersion`    | Defaults to `0.5.0.0`, and no command reads it    |
-
-### Full schema and sample config
-
-[`mdcp.config.schema.json`](../mdcp-core/mdcp.config.schema.json), a file in the mdcp repository that the npm packages leave out, is the JSON Schema for every key. The [sample guides' config](../../examples/sample-guides/mdcp.config.json) is a longer example. Its paths resolve only from the mdcp repository root, so copy single keys from it.
-
 <!-- mdcp-shard: end ../../docs/client-cli/config-essentials.md -->
 
 <!-- mdcp-shard: start ../../docs/client-cli/consumer-migration.md -->
@@ -429,6 +335,27 @@ mdcp check
 There is no separate manifest sync step, so rerun `mdcp compile` and `mdcp check` after a manifest change. [Manifest compile order](../../docs/features/manifest-compile-order.md) says how link order in the manifest sets compile order and when to set `compile.sectionsHeading`.
 
 <!-- mdcp-shard: end ../../docs/client-cli/consumer-migration.md -->
+
+<!-- mdcp-shard: start ../../docs/client-cli/shared-glossary.md -->
+
+## Shared glossary
+
+A glossary directory can feed several guides without its own entry in `compileOrder`. Set `compile.scopeRoot` on each guide that should include glossary terms. The value is a directory relative to the docs root:
+
+```json
+{
+  "name": "developer",
+  "compile": { "scopeRoot": "glossary" }
+}
+```
+
+Compile follows `.md` links from that guide's shards into the glossary tree and stitches each linked term shard into the output. Link `../glossary/index.md` from the guide manifest to publish the full glossary table of contents. A lean guide can skip that link and link individual terms. Compile also follows links from term to term. The output contains the linked terms plus every term reachable from them.
+
+A large glossary can move groups of term links into sub-index files that `index.md` links. The `scopeRoot` walk follows those links too.
+
+To publish the glossary as its own file, add `glossary` to `compileOrder` and set `compile.outputFile`. That guide's `index.md` must link every term shard in the directory directly, because the orphan check reports a term that only a sub-index links. The term shards then belong to the glossary guide. Guides that keep `compile.scopeRoot: glossary` still stitch the terms they link, but their term links point at the glossary's output file instead of the copy in their own output.
+
+<!-- mdcp-shard: end ../../docs/client-cli/shared-glossary.md -->
 
 <!-- mdcp-shard: start ../../docs/client-cli/commands-reference.md -->
 
@@ -506,7 +433,7 @@ Text output groups findings by signal and lists docs-root-relative paths. `--jso
 
 With `--guide`, a duplicate paragraph is reported when any copy sits in that guide, so duplication across guides still shows up. The shard count covers that guide only. An unknown guide name exits 1 and lists the guide names.
 
-Without `--strict`, `mdcp review` exits 0. Thresholds live under `review` in config; see [Config essentials](#review-thresholds).
+Without `--strict`, `mdcp review` exits 0. Thresholds live under `review` in config, as [Review thresholds](#review-thresholds) shows.
 
 ### Refs subcommands
 
@@ -519,6 +446,93 @@ Without `--strict`, `mdcp review` exits 0. Thresholds live under `review` in con
 [Cross-links and refs](#cross-links-and-refs) shows where `mdcp refs-list` fits after compile and check, and [Refs](#refs) explains what refs are for.
 
 <!-- mdcp-shard: end ../../docs/client-cli/commands-reference.md -->
+
+<!-- mdcp-shard: start ../../docs/client-cli/config-reference.md -->
+
+## Config reference
+
+This page is the lookup material for `mdcp.config.json`. It gives the feature keys' defaults and the page that documents each key, then the `review` thresholds, the schema-only fields and the JSON Schema file. [Config essentials](#config-essentials) covers the minimal config and the paths every command resolves from.
+
+### Feature settings
+
+Each feature's spec defines its config keys and what they do. This table gives their defaults, and [Config key map](#config-key-map) links each spec.
+
+| Key                        | Default           |
+| -------------------------- | ----------------- |
+| `compile.links.markBroken` | `true`            |
+| `lint.links.enabled`       | `true`            |
+| `lint.links.severity`      | `"error"`         |
+| `lint.links.config`        | none              |
+| `lint.links.target`        | none              |
+| `lint.codeExtensions`      | `[]`              |
+| `lint.dataExtensions`      | `[]`              |
+| `lint.paths.severity`      | `"off"`           |
+| `lint.paths.searchRoots`   | `[]`              |
+| `lint.paths.generated`     | `[]`              |
+| `lint.paths.vocabulary`    | `[]`              |
+| `backup.enabled`           | `false`           |
+| `backup.dir`               | `.caches/backups` |
+| `backup.ext`               | `""`              |
+
+### Config key map
+
+This table links the page that documents each key:
+
+| Key                                                                                                                    | Documented in                                                                                                                                                         |
+| ---------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `compileOrder`, `guides[].name`, `guides[].path`, `outputDir`, `outputFile`, `refs.registryFile`, `compile.outputFile` | [Minimal config](#minimal-config) and [Path layout](#path-layout)                                                                                                     |
+| `compile.scopeRoot`                                                                                                    | [Shared glossary](#shared-glossary)                                                                                                                                   |
+| `review.*`                                                                                                             | [Review thresholds](#review-thresholds) on this page                                                                                                                  |
+| `protocolVersion`, `refs.slugAlgorithm`                                                                                | [Schema-only fields](#schema-only-fields) on this page                                                                                                                |
+| `source`, `guides[].source`, `guides[].splitLevel`                                                                     | [Consumer migration](#map-the-document-to-guides)                                                                                                                     |
+| `compile.preambleSection`                                                                                              | [Project layout](#project-layout)                                                                                                                                     |
+| `banner`, `sourceTags`, `compile.includeBanner`, `compile.sourceTags`                                                  | [Source tags and banner](../../docs/features/source-tags-and-banner.md)                                                                                               |
+| `compile.manifest`, `compile.sectionsHeading`                                                                          | [Manifest compile order](../../docs/features/manifest-compile-order.md)                                                                                               |
+| `compile.title`                                                                                                        | [Compile API](../mdcp-core/README.md#compile-api)                                                                                                                     |
+| `compile.hooks`, `compile.hooksConfig`                                                                                 | [Default compile hooks](../../docs/features/default-compile-hooks.md), and the core [Compile hooks](../mdcp-core/README.md#compile-hooks) index for the hook pipeline |
+| `compile.stripAnchors`                                                                                                 | [stripAnchors](../mdcp-core/README.md#stripanchors)                                                                                                                   |
+| `compile.crossGuideLinks`                                                                                              | [Cross-guide link rewriting](../../docs/features/compile-pipeline/cross-guide-links.md)                                                                               |
+| `compile.links.*`, `lint.links.enabled`, `lint.links.severity`, `lint.codeExtensions`, `lint.dataExtensions`           | [Built-in link validation](../../docs/features/link-validation.md)                                                                                                    |
+| `lint.paths.*`                                                                                                         | [Path resolution in prose](../../docs/features/path-resolution.md)                                                                                                    |
+| `lint.links.config`, `lint.links.target`, `lint.markdownlint.*`, `vale.*`                                              | [Optional linters](#optional-linters)                                                                                                                                 |
+| `scan.*`                                                                                                               | [Documentation coverage scan](../../docs/features/coverage-scan.md#config)                                                                                            |
+| `standaloneGuides`                                                                                                     | [Coverage in check](#coverage-in-check)                                                                                                                               |
+| `backup.*` and the `--backup` flags                                                                                    | [Compile output backup](../../docs/features/compile-output-backup.md)                                                                                                 |
+
+### Review thresholds
+
+`mdcp review` reads optional thresholds from a top-level `review` object. Each value is a positive integer, and omitted keys keep their defaults.
+
+```json
+{
+  "review": {
+    "maxIndexEntries": 12,
+    "maxShardWords": 2500,
+    "minDuplicateWords": 25
+  }
+}
+```
+
+| Field                      | Default | Role                                                                                  |
+| -------------------------- | ------- | ------------------------------------------------------------------------------------- |
+| `review.maxIndexEntries`   | `12`    | Most shard links one index group lists before `index-size` fires                      |
+| `review.maxShardWords`     | `2500`  | Most prose words one shard holds before `long-shard` fires                            |
+| `review.minDuplicateWords` | `25`    | Fewest words a paragraph needs before `duplicate-paragraph` compares it across shards |
+
+`mdcp review` also honors `scan.ignore` and `scan.root`, so paths the coverage scan skips stay out of the review. [Sprawl review](#sprawl-review) in Commands reference defines each signal.
+
+### Schema-only fields
+
+| Field                | Notes                                          |
+| -------------------- | ---------------------------------------------- |
+| `refs.slugAlgorithm` | Informational; only `github` is implemented    |
+| `protocolVersion`    | Defaults to `0.5.0.0`, and no command reads it |
+
+### Full schema and sample config
+
+[`mdcp.config.schema.json`](../mdcp-core/mdcp.config.schema.json), a file in the mdcp repository that the npm packages leave out, is the JSON Schema for every key. The [sample guides' config](../../examples/sample-guides/mdcp.config.json) is a longer example. Its paths resolve only from the mdcp repository root, so copy single keys from it.
+
+<!-- mdcp-shard: end ../../docs/client-cli/config-reference.md -->
 
 <!-- mdcp-shard: start ../../docs/client-cli/coverage.md -->
 

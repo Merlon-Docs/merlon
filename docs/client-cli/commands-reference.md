@@ -72,7 +72,7 @@ Text output groups findings by signal and lists docs-root-relative paths. `--jso
 
 With `--guide`, a duplicate paragraph is reported when any copy sits in that guide, so duplication across guides still shows up. The shard count covers that guide only. An unknown guide name exits 1 and lists the guide names.
 
-Without `--strict`, `mdcp review` exits 0. Thresholds live under `review` in config; see [Config essentials](./config-essentials.md#review-thresholds).
+Without `--strict`, `mdcp review` exits 0. Thresholds live under `review` in config, as [Review thresholds](./config-reference.md#review-thresholds) shows.
 
 ## Refs subcommands
 

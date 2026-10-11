@@ -80,7 +80,7 @@ an optional afterthought for doc-only or UX alone.
   unambiguous for the stated audience; prefer a short entry over unexplained
   shorthand when the bar is unclear.
 
-[Shared glossary](../../client-cli/config-essentials.md#shared-glossary) covers how guides share the glossary's term shards.
+[Shared glossary](../../client-cli/shared-glossary.md) covers how guides share the glossary's term shards.
 
 ## Concept removal obligation
 

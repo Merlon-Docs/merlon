@@ -29,7 +29,7 @@ When top-level `outputFile` is set, `compileGuides` returns the monolith text, w
 
 `writeOutputFile` writes compile targets. Default: overwrite. When `backup.enabled` is true, it moves an existing file to the path that [Backup path layout](../features/compile-output-backup.md#backup-path-layout) gives before writing. Pass `backup` on `CompileOptions` or resolve via `resolveBackupOptions(config, cliOverrides)`.
 
-When `compile.title` is set, `assembleGuide` injects a `##` heading followed by a blank line before the first section. [Feature settings](../client-cli/config-essentials.md#feature-settings) in Config essentials says which spec covers each feature's config keys, `backup` included.
+When `compile.title` is set, `assembleGuide` injects a `##` heading followed by a blank line before the first section. [Feature settings](../client-cli/config-reference.md#feature-settings) in Config reference says which spec covers each feature's config keys, `backup` included.
 
 ## Locale packs
 
