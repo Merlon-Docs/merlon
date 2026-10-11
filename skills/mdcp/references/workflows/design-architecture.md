@@ -35,7 +35,7 @@ Collect these via intake (or from the conversation if already stated):
 ### Step 2: Branch and Value Focus
 
 1. Explicitly define the **end-user value** this architectural change unlocks (e.g., faster load times, higher reliability, or enabling a highly requested feature).
-2. Create a feature branch for this `WORK_ITEM` from updated `main` before design shards or code. One branch per issue — do not mix unrelated designs.
+2. Update the integration branch that the delivery conventions at `WORK_ITEM_LOOKUP` name, or the default branch when they name none, then create a feature branch for this `WORK_ITEM` from it before design shards or code. One branch per issue. Do not mix unrelated designs.
 
 ### Step 3: Design and Review
 

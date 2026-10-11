@@ -35,7 +35,7 @@ Collect these via intake (or from the conversation if already stated):
 ### Step 2: Branch and Value Focus
 
 1. Explicitly define the **value** this `WORK_ITEM` provides. For a shipped feature: how does it make the end user's life easier? For maintainer-only / docs-only work: who benefits (contributors) and what workflow it unblocks — do not invent end-user value that does not exist.
-2. Create a feature branch for this `WORK_ITEM` from updated `main` before docs, tests, or code. One branch per issue — do not mix unrelated features or designs.
+2. Update the integration branch that the delivery conventions at `WORK_ITEM_LOOKUP` name, or the default branch when they name none, then create a feature branch for this `WORK_ITEM` from it before docs, tests, or code. One branch per issue. Do not mix unrelated features or designs.
 
 ### Step 3: Docs First — place by audience
 
