@@ -58,6 +58,10 @@ Zero-install: copy `skills/mdcp/` from this repository into the skills directory
 
 Grading agent runs with the skill and without it is the maintainer-side work of [live skill evals](../developer/live-skill-evals.md).
 
+## Skill security
+
+A skill runs with the same permissions as the user. Treat third-party skills as untrusted. Each Agent Skill is an isolated, independent entity.
+
 ## Quality Assurance (QA) Principles
 
 The skill states its QA principles once, in

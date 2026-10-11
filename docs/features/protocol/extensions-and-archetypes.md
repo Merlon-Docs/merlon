@@ -46,9 +46,7 @@ Extensions are complementary skills. mdcp's own are the internal archetypes unde
 - **Contribute back** via PR when an extension or a change to `skills/mdcp/` is broadly useful. We want shared archetypes to grow.
 - **No obligation** — mdcp uses **MIT**; local-only proprietary extensions are explicitly encouraged when they encode competitive or regulated workflow detail.
 
-**Security:** A skill runs with the same permissions as the user. Treat third-party skills as untrusted.
-
-Each Agent Skill is an isolated, independent entity.
+[Skill security](../agent-skill.md#skill-security) in Agent Skill says that a skill runs with the user's permissions and that a third-party skill is untrusted.
 
 ## Archetypes ("Battery Types")
 
