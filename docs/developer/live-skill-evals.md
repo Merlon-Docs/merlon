@@ -22,6 +22,13 @@ Developer Guide. Product Agent Skill delivery stays in
 - **skill-creator**: vendored at
   [`.agents/skills/skill-creator/`](../../.agents/skills/skill-creator/SKILL.md);
   evaluate loop (prompts → with/without skill → grade → aggregate)
+- **writing-skills**: vendored at
+  [`.agents/skills/writing-skills/`](../../.agents/skills/writing-skills/SKILL.md);
+  a guide to writing a skill as test-driven process documentation, with
+  pressure scenarios that subagents run before and after the skill exists.
+  Nothing under `scripts/` or `.github/` runs it; a host that reads
+  `.agents/skills/` loads it like skill-creator.
+- **`skills-lock.json`**: pins each vendored skill and records its source
 - **`pnpm skill:evals:view [N]`**: writes a static viewer for iteration N (default 1)
   of the top-level suite's workspace to `.agents/skills/mdcp-workspace/iteration-N/viewer.html`,
   and opens it where the `open` command exists. Elsewhere it prints the path to open.
@@ -29,10 +36,10 @@ Developer Guide. Product Agent Skill delivery stays in
 - **`.agents/skills/*-workspace/`**: per-iteration run outputs (gitignored via
   `*-workspace/`)
 
-Refresh skill-creator from upstream when needed:
+Refresh a vendored skill from upstream when needed, with the source that `skills-lock.json` records for it:
 
 ```bash
-npx skills add anthropics/skills --skill skill-creator
+npx skills add <source> --skill <name>
 ```
 
 ## Suite inventory

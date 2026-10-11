@@ -11,7 +11,7 @@ On either host, work reaches `develop` by pushing a `claude/**` or `land/**` bra
 `.claude/settings.json` runs `.claude/hooks/session-start.sh` when a session starts. The script exits at once unless `CLAUDE_CODE_REMOTE` is `true`, so it runs only in a cloud session. There it runs the whole [First-time bootstrap](./local-setup.md#first-time-bootstrap) and installs the skill:
 
 1. `pnpm install`
-2. Vale 3.15.1 into `/usr/local/bin`, when `vale` isn't on `PATH`
+2. Vale into `/usr/local/bin`, when `vale` isn't on `PATH`. The script pins its own `VALE_VERSION`, the version [Requirements](./local-setup.md#requirements) names.
 3. `pnpm run vale:sync`
 4. `pnpm build`
 5. `pnpm run skill:dev`, which installs this checkout's `mdcp` skill for the agent ([Agent Skill development](./agent-skill.md))
@@ -23,7 +23,7 @@ The docs scripts and the `mdcp` CLI work once the script finishes. The script in
 A fresh Cursor VM needs the same toolchain as [Local setup](./local-setup.md#requirements), plus a few cloud-specific steps:
 
 1. **Startup update script.** `.cursor/environment.json` holds the `install` command that runs on every VM start: it fetches remote refs and runs `pnpm install`, then `pnpm skill:dev` so the agent loads this checkout's `mdcp` skill ([Agent Skill development](./agent-skill.md)). That committed file is the source of truth and overrides any dashboard-saved environment. Keep it minimal: no service startup or build steps.
-2. **Vale peer binary.** Vale is a peer binary that `pnpm install` doesn't fetch. Install version 3.15.1 to `/usr/local/bin`, where it persists in the VM snapshot. The exact release command is in [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml).
+2. **Vale peer binary.** Vale is a peer binary that `pnpm install` doesn't fetch. Install the version that [Requirements](./local-setup.md#requirements) gives to `/usr/local/bin`, where it persists in the VM snapshot. The exact release command is in [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml).
 3. **gitleaks peer binary.** `pnpm install` doesn't fetch gitleaks either, and the pre-commit hook runs `gitleaks protect --staged` when it is on `PATH`. Install version 8.30.1 to `/usr/local/bin`, where it persists in the VM snapshot. If it goes missing, reinstall from the [gitleaks releases](https://github.com/gitleaks/gitleaks/releases): download `gitleaks_8.30.1_linux_x64.tar.gz` and extract the `gitleaks` binary into `/usr/local/bin` (same pattern as Vale). CI runs its own scan via `gitleaks-action`, so the local install is defense-in-depth.
 4. **Bootstrap.** The update script doesn't build `dist/` or sync the Vale styles. Run the rest of [First-time bootstrap](./local-setup.md#first-time-bootstrap) on a new VM, and rebuild as that section says. The synced styles then persist in the snapshot.
 5. **Node version.** The VM runs Node 22, which satisfies `engines >=18`, and CI uses Node 24. Do not switch Node unless a version-specific issue appears.
@@ -32,11 +32,11 @@ A fresh Cursor VM needs the same toolchain as [Local setup](./local-setup.md#req
 
 These are constraints of Cursor's cloud agents, found in practice. Plan work around them rather than fighting them.
 
-| Limitation                                                                                      | Workaround                                                                                                                                          |
-| ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The `gh` CLI is **read-only** for the agent; it cannot create or modify issues or pull requests | Use the dedicated pull-request tooling for PRs and PR comments. A human creates GitHub issues from agent-supplied text. Add `Closes #N` afterward.  |
-| **No GitHub MCP** is available, and we do not add one in the cloud                              | Accept it. MCP servers load at session start and `.cursor/*` (except `environment.json`) is gitignored, so an agent cannot self-enable one mid-run. |
-| A GitHub **PAT in Secrets is not wired** to `gh` or any agent tool                              | A PAT doesn't unblock issue creation in the cloud. Issue creation stays a human step.                                                               |
+| Limitation                                                                                      | Workaround                                                                                                                                                                                                                                            |
+| ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The `gh` CLI is **read-only** for the agent; it cannot create or modify issues or pull requests | A landing doesn't open a PR, so read-only `gh` is enough for work to reach `develop`. A human creates GitHub issues from agent-supplied text, as [Recording issues](#recording-issues-without-issue-creation-access) says. Add `Closes #N` afterward. |
+| **No GitHub MCP** is available, and we do not add one in the cloud                              | Accept it. MCP servers load at session start and `.cursor/*` (except `environment.json`) is gitignored, so an agent cannot self-enable one mid-run.                                                                                                   |
+| A GitHub **PAT in Secrets is not wired** to `gh` or any agent tool                              | A PAT doesn't unblock issue creation in the cloud. Issue creation stays a human step.                                                                                                                                                                 |
 
 ### Recording issues without issue-creation access
 
