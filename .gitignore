@@ -67,10 +67,8 @@ docs/styles/*
 # MDCP compiled output (repo docs — regenerate with pnpm docs:compile:repo)
 docs/_build/
 
-# Rendered presentation artifacts — source lives in docs/presentation-la-devops/
+# Slidev renders of the frozen talk deck, presentations/la-devops-2026.md
 build/presentations/
-docs/presentation-la-devops/assets/*.png
-docs/presentation-la-devops/assets/*.svg
 
 # Sample guides fixture output
 examples/sample-guides/_build/
