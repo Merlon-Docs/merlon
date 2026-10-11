@@ -322,7 +322,7 @@ flowchart TB
 
   GS --> GSa["docs/features/, docs/client/, docs/developer/, docs/glossary/<br/>+ mdcp.config.json"]
   DO --> DOa["docs/features/, docs/client/, docs/developer/,<br/>standalone guides (no product code)"]
-  DA --> DAa["docs/features/ (incl. protocol / ADRs)<br/>design shards only"]
+  DA --> DAa["docs/features/, docs/features/adr/<br/>design shards only"]
   FL --> FLa["docs/features/, docs/client/<br/>then source + tests"]
   UX --> UXa["docs/client/<br/>then UI as needed"]
   DR --> DRa["any guide: merge, split, move, reword, link<br/>+ guide indexes"]
