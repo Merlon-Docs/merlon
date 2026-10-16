@@ -19,7 +19,6 @@
     "markdownlint",
     "vale",
     "merlon-docs",
-    "mdcp",
     "presets"
   ],
   "engines": {

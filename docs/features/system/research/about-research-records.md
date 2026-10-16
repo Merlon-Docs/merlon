@@ -1,6 +1,6 @@
 # About research records
 
-What belongs in this directory, and the rules a record follows. Parent: [Vision and roadmap](../00-vision-and-roadmap.md). The archetype that generalizes this layout for other projects is the `mdcp-arch-research` extension, described in [Extensions and archetypes](../extensions-and-archetypes.md).
+What belongs in this directory, and the rules a record follows. Parent: [Vision and roadmap](../00-vision-and-roadmap.md). The archetype that generalizes this layout for other projects is the `merlon-docs-arch-research` extension, described in [Extensions and archetypes](../extensions-and-archetypes.md).
 
 ## Why research is a separate tier
 
@@ -23,7 +23,7 @@ A record that no longer holds is superseded by a new record rather than edited, 
 
 ## Rules a record follows
 
-This page defines the rules below. The `mdcp-arch-research` archetype skill states its own version of them in its `SKILL.md`, because every install of the skill gets that file.
+This page defines the rules below. The `merlon-docs-arch-research` archetype skill states its own version of them in its `SKILL.md`, because every install of the skill gets that file.
 
 - **State the method.** Every figure names how it was produced, in enough detail to re-run. A record whose numbers cannot be reproduced is an anecdote.
 - **Tag confidence.** Distinguish what a script measured, what was read without a metric, and what was looked for and not found. A recorded gap is a finding.
@@ -32,7 +32,7 @@ This page defines the rules below. The `mdcp-arch-research` archetype skill stat
 - **Separate observation from recommendation.** A record ends by naming which durable position it feeds and links to it. It does not itself become the rule. The durable position links back to the record, and a reader can follow the claim to its evidence.
 - **Date it and leave it.** A superseding record is a new file. The one change a record takes is repointing a link whose target moved, which leaves the observation as written.
 
-These rules are advisory ([Enforceable rules](../../design-constraints/enforceable-rules.md)): whoever changes a record applies them, and the change's review is the evidence. `mdcp check` gates one part of them. It fails on a link in a record that doesn't resolve, such as a link to a missing data file.
+These rules are advisory ([Enforceable rules](../../design-constraints/enforceable-rules.md)): whoever changes a record applies them, and the change's review is the evidence. `merlon check` gates one part of them. It fails on a link in a record that doesn't resolve, such as a link to a missing data file.
 
 ## Records
 

@@ -4,7 +4,7 @@ Normative profile for the **workflows** inside the Merlon Docs Agent Skill that 
 
 ## Purpose
 
-Workflows are part of the Merlon Docs **authoring process** — not host-specific rules. They tell agents how to load a `WORK_ITEM`, which guides to write, and how to validate before merge. People install one skill (`mdcp`) and invoke it as `/merlon-docs` with the task in plain words; the skill picks the workflow from its routing table and loads only that workflow's file.
+Workflows are part of the Merlon Docs **authoring process** — not host-specific rules. They tell agents how to load a `WORK_ITEM`, which guides to write, and how to validate before merge. People install one skill (`merlon-docs`) and invoke it as `/merlon-docs` with the task in plain words; the skill picks the workflow from its routing table and loads only that workflow's file.
 
 Workflow files live in the skill under `skills/merlon-docs/references/workflows/` (e.g., `feature-level.md`). The canonical catalog is summarized below. **Do not edit** an installed copy of the skill if you want changes to persist — propose upstream or add extensions.
 

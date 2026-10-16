@@ -22,8 +22,7 @@
     "documentation",
     "cli",
     "merlon",
-    "merlon-docs",
-    "mdcp"
+    "merlon-docs"
   ],
   "engines": {
     "node": ">=18.0.0"
