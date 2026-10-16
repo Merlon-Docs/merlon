@@ -221,7 +221,6 @@ merlon/
 ├── CODE_OF_CONDUCT.md       # Contributor Covenant (committed)
 ├── README.md                # Compiled (committed)
 ├── DEVELOPERS.md            # Compiled (committed)
-├── presentations/           # Talk deck kept as delivered (not compiled)
 ├── skills/                  # Agent Skills install surface only (npx skills add)
 │   ├── merlon-docs/         # The Merlon Docs skill + workflows (no package.json / CHANGELOG here)
 │   └── merlon-docs-arch-*/  # Internal archetypes (metadata.internal)
@@ -255,7 +254,7 @@ merlon/
 └── .github/workflows/       # CI and release automation
 ```
 
-[Guide directories](#guide-directories) maps each guide directory under `docs/` to its compiled output and says why `presentations/` is kept as delivered.
+[Guide directories](#guide-directories) maps each guide directory under `docs/` to its compiled output.
 
 [Formal models](#formal-models) covers `formal/`, and [Repository settings](#terraform) covers the Terraform in `infra/github/`. [Git hooks](#git-hooks) lists the hooks under `.husky/`, and [Cloud agent environments](#cloud-agent-environments) covers `.claude/` and `.cursor/`. [Repository script tests](#repository-script-tests) covers the tests under `scripts/`.
 
@@ -762,7 +761,7 @@ Each compiled output marks every stitched shard with `<!-- merlon-shard: start �
 
 **Surface ownership:** `repo-readme/` = Agent Skill landing; `client-cli/` = CLI commands/config only; `client-core/` = library API/hooks only. Cross-link the other surfaces instead of duplicating skill, CLI, or API narrative across package READMEs.
 
-Config: [`docs/merlon.config.json`](docs/merlon.config.json). Guides with `compile.outputFile` publish to a separate path and are **excluded** from the monolith. Coverage checks on this repo use `scan.strict: true` with `standaloneGuides` / `scan.ignore` so tooling trees (`.worktrees`, `.cursor`, `.changeset`, tests, examples, …) never fail `merlon check`. Publishable skills under `skills/` are registered as standalone, and `scan.ignore` also lists `presentations/**`: the deck under it is the record of a talk as delivered, so it is neither compiled nor linted.
+Config: [`docs/merlon.config.json`](docs/merlon.config.json). Guides with `compile.outputFile` publish to a separate path and are **excluded** from the monolith. Coverage checks on this repo use `scan.strict: true` with `standaloneGuides` / `scan.ignore` so tooling trees (`.worktrees`, `.cursor`, `.changeset`, tests, examples, …) never fail `merlon check`. Publishable skills under `skills/` are registered as standalone.
 
 Publish landing style for root README: [Personas and priority tiers](docs/features/personas-and-priority-tiers.md#publish-landing-style).
 
@@ -1361,16 +1360,16 @@ Maintainer runbook for dependency advisories and “burn a bad release” decisi
 
 Before changing lockfiles, deprecating versions, or cutting a release, decide where the finding lands:
 
-| Impact class                    | Typical signal                                                                                | Default response                                                                                       |
-| ------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| **Published / prod**            | Affects `@merlon-docs/merlon-docs-*` runtime deps or ships in the npm tarball                 | Patch, release, and (when consumers may have installed a bad version) deprecate that version           |
-| **Transitive dev-only tooling** | Only under root `devDependencies` (e.g. Slidev, lint/test helpers); `pnpm audit --prod` clean | Prefer a workspace **override** or upstream bump; do **not** deprecate or unpublish published packages |
+| Impact class                    | Typical signal                                                                                       | Default response                                                                                       |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| **Published / prod**            | Affects `@merlon-docs/merlon-docs-*` runtime deps or ships in the npm tarball                        | Patch, release, and (when consumers may have installed a bad version) deprecate that version           |
+| **Transitive dev-only tooling** | Only under root `devDependencies` (e.g. lint/test helpers, the docs site); `pnpm audit --prod` clean | Prefer a workspace **override** or upstream bump; do **not** deprecate or unpublish published packages |
 
 Quick checks:
 
 ```bash
 pnpm audit --prod                 # published-package surface
-pnpm audit --audit-level=moderate # full tree including presentation tooling
+pnpm audit --audit-level=moderate # full tree including dev tooling
 pnpm why <package>                # which path pulls the vulnerable package
 ```
 

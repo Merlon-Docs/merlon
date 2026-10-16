@@ -6,16 +6,16 @@ Maintainer runbook for dependency advisories and “burn a bad release” decisi
 
 Before changing lockfiles, deprecating versions, or cutting a release, decide where the finding lands:
 
-| Impact class                    | Typical signal                                                                                | Default response                                                                                       |
-| ------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| **Published / prod**            | Affects `@merlon-docs/merlon-docs-*` runtime deps or ships in the npm tarball                 | Patch, release, and (when consumers may have installed a bad version) deprecate that version           |
-| **Transitive dev-only tooling** | Only under root `devDependencies` (e.g. Slidev, lint/test helpers); `pnpm audit --prod` clean | Prefer a workspace **override** or upstream bump; do **not** deprecate or unpublish published packages |
+| Impact class                    | Typical signal                                                                                       | Default response                                                                                       |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| **Published / prod**            | Affects `@merlon-docs/merlon-docs-*` runtime deps or ships in the npm tarball                        | Patch, release, and (when consumers may have installed a bad version) deprecate that version           |
+| **Transitive dev-only tooling** | Only under root `devDependencies` (e.g. lint/test helpers, the docs site); `pnpm audit --prod` clean | Prefer a workspace **override** or upstream bump; do **not** deprecate or unpublish published packages |
 
 Quick checks:
 
 ```bash
 pnpm audit --prod                 # published-package surface
-pnpm audit --audit-level=moderate # full tree including presentation tooling
+pnpm audit --audit-level=moderate # full tree including dev tooling
 pnpm why <package>                # which path pulls the vulnerable package
 ```
 

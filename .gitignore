@@ -67,9 +67,6 @@ docs/styles/*
 # Merlon Docs compiled output (repo docs — regenerate with pnpm docs:compile:repo)
 docs/_build/
 
-# Slidev renders of the frozen talk deck, presentations/la-devops-2026.md
-build/presentations/
-
 # Sample guides fixture output
 examples/sample-guides/_build/
 

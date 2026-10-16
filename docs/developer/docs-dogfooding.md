@@ -19,7 +19,7 @@ Each compiled output marks every stitched shard with `<!-- merlon-shard: start �
 
 **Surface ownership:** `repo-readme/` = Agent Skill landing; `client-cli/` = CLI commands/config only; `client-core/` = library API/hooks only. Cross-link the other surfaces instead of duplicating skill, CLI, or API narrative across package READMEs.
 
-Config: [`docs/merlon.config.json`](../merlon.config.json). Guides with `compile.outputFile` publish to a separate path and are **excluded** from the monolith. Coverage checks on this repo use `scan.strict: true` with `standaloneGuides` / `scan.ignore` so tooling trees (`.worktrees`, `.cursor`, `.changeset`, tests, examples, …) never fail `merlon check`. Publishable skills under `skills/` are registered as standalone, and `scan.ignore` also lists `presentations/**`: the deck under it is the record of a talk as delivered, so it is neither compiled nor linted.
+Config: [`docs/merlon.config.json`](../merlon.config.json). Guides with `compile.outputFile` publish to a separate path and are **excluded** from the monolith. Coverage checks on this repo use `scan.strict: true` with `standaloneGuides` / `scan.ignore` so tooling trees (`.worktrees`, `.cursor`, `.changeset`, tests, examples, …) never fail `merlon check`. Publishable skills under `skills/` are registered as standalone.
 
 Publish landing style for root README: [Personas and priority tiers](../features/personas-and-priority-tiers.md#publish-landing-style).
 

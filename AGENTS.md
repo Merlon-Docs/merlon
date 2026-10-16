@@ -4,7 +4,7 @@ Instructions for coding agents in this repository. `CLAUDE.md` is a symlink to t
 
 ## Project
 
-This is the Merlon Docs monorepo: a documentation-system Agent Skill plus a TypeScript toolchain in pnpm workspaces. The application is the `merlon` CLI in `packages/merlon-docs-cli`, built on `packages/merlon-docs-core` and driven through `pnpm` scripts. The repository deploys no server, only the static docs site. Locally, `pnpm site:dev` serves that site and `pnpm presentation:serve` serves the slide deck.
+This is the Merlon Docs monorepo: a documentation-system Agent Skill plus a TypeScript toolchain in pnpm workspaces. The application is the `merlon` CLI in `packages/merlon-docs-cli`, built on `packages/merlon-docs-core` and driven through `pnpm` scripts. The repository deploys no server, only the static docs site. Locally, `pnpm site:dev` serves that site.
 
 ## Shard discipline (critical)
 

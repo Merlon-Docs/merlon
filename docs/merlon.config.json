@@ -82,7 +82,6 @@
       "docs/superpowers/**",
       "tests/**",
       "examples/**",
-      "presentations/**",
       "**/CHANGELOG.md"
     ]
   },

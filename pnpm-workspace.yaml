@@ -5,13 +5,11 @@ packages:
 minimumReleaseAge: 10080
 # Security patches published inside the age gate (must be allowed through explicitly).
 # - js-yaml@5.2.2: GHSA-pm4m-ph32-ghv5 (markdownlint-cli2 → js-yaml)
-# - js-yaml@3.15.1: CVE-2026-59870 (slidev → gray-matter → js-yaml 3.x)
-# - nanoid@3.3.18: GHSA-2v37-7h3g-55p8 (slidev → postcss → nanoid)
-# - browserslist@4.28.7: GHSA-c83g-rgw3-j3cx (slidev → @babel → browserslist)
+# - js-yaml@4.3.2: CVE-2026-59870 (astro, commitlint, and skills-ref → js-yaml 4.x)
+# - nanoid@3.3.18: GHSA-2v37-7h3g-55p8 (postcss → nanoid)
 minimumReleaseAgeExclude:
-  - js-yaml@3.15.2 || 4.3.2 || 5.2.2
+  - js-yaml@4.3.2 || 5.2.2
   - nanoid@3.3.18
-  - browserslist@4.28.7
   - smol-toml@1.7.1
   - source-map-js@1.2.2
 strictDepBuilds: true
@@ -29,7 +27,7 @@ overrides:
   # GHSA-rgw5-rvv9-x895 (<5.0.9), GHSA-6j4f-fj2g-mc7p (<5.0.10) and
   # GHSA-qhr7-859c-m2p7 (<5.0.11): patched >=5.0.11.
   brace-expansion@<5.0.12: 5.0.12
-  # Slidev → mermaid → chevrotain → lodash-es (dev-only presentation tooling).
+  # merlon-docs-site → mermaid → chevrotain / dagre-d3-es → lodash-es (dev-only docs site).
   # GHSA-r5fr-rjxr-66jc: vulnerable <=4.17.23, patched >=4.18.1.
   lodash-es@<4.18.1: 4.18.1
   # GHSA-r28c-9q8g-f849: vulnerable <=8.5.17, patched >=8.5.18.
@@ -38,21 +36,13 @@ overrides:
   js-yaml@5: 5.2.2
   # CVE-2026-59870 + GHSA-2883-xcg3-v3hh: patched >=4.3.2.
   js-yaml@4: 4.3.2
-  # CVE-2026-59870 + GHSA-2883-xcg3-v3hh: patched >=3.15.2.
-  js-yaml@<3.15.2: 3.15.2
   # GHSA-2v37-7h3g-55p8: timing attack on nanoid, patched >=3.3.18.
   nanoid@<3.3.18: 3.3.18
-  # GHSA-c83g-rgw3-j3cx / GHSA-pghv-3wc2-6249: OOM and prototype write, patched >=4.28.7.
-  browserslist@<=4.28.6: 4.28.7
   # GHSA-7w5x-hrqm-74c2: DoS via malformed TOML, patched >=1.7.1.
   smol-toml@<=1.7.0: 1.7.1
-  # Slidev → monaco-editor → dompurify (dev-only presentation tooling).
+  # merlon-docs-site → mermaid → dompurify (dev-only docs site).
   # GHSA-v2wj-7wpq-c8vv / GHSA-h7mw-gpvr-xq4m / GHSA-crv5-9vww-q3g8: patched >=3.4.0.
   dompurify: ^3.4.0
-  # Slidev → MCP SDK → @hono/node-server (dev-only presentation tooling).
-  # GHSA-frvp-7c67-39w9: path traversal <2.0.5; GHSA-9mqv-5hh9-4cgg: DoS <=2.0.9.
-  # Pin >=2.0.10 (2.0.11+ still inside minimumReleaseAge).
-  '@hono/node-server@<2.0.10': 2.0.10
   # @changesets/cli → launch-editor → shell-quote (dev-only release tooling).
   # GHSA-pqg4-j6r4-53mv: command injection in quote(), patched >=1.11.0.
   shell-quote@<1.11.0: 1.11.0
@@ -61,15 +51,12 @@ overrides:
   sharp@<0.35.5: 0.35.5
 # Unfixable advisories (no patched version published yet). Ignore so
 # `pnpm audit --audit-level=high` exits 0 without --ignore-unfixable.
-# - GHSA-w3rx-r6r6-pgpr: image-size — patched >=2.0.3, but 2.0.3 not published
-# - GHSA-5p2g-fcmc-qvqq: image-size — patched >=2.0.3, but 2.0.3 not published
-# - GHSA-vfj7-8cjw-p6xm: braces <=3.0.3, no patched version (slidev → chokidar 3,
-#   dev-only presentation tooling). Added 2026-10-03; recheck 2026-11-03.
+# - GHSA-vfj7-8cjw-p6xm: braces <=3.0.3, no patched version
+#   (merlon-docs-core → fast-glob → micromatch, and markdownlint-cli2 → globby).
+#   Added 2026-10-03; recheck 2026-11-03.
 # - GHSA-ch52-4w7c-c8xp: http-cache-semantics <=4.2.0, no patched version
 #   (merlon-docs-site → astro, dev-only docs site build). Added 2026-10-03; recheck 2026-11-03.
 audit:
   ignore:
-    - GHSA-w3rx-r6r6-pgpr
-    - GHSA-5p2g-fcmc-qvqq
     - GHSA-vfj7-8cjw-p6xm
     - GHSA-ch52-4w7c-c8xp
