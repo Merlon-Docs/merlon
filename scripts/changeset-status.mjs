@@ -118,7 +118,7 @@ if (skillChanges.length > 0) {
       console.error(
         'skills/ changed without a pending changeset.\n' +
           'Add one with `pnpm changeset` targeting the skill carrier package\n' +
-          '(@bwilliamson/skill-<id>, e.g. @bwilliamson/skill-mdcp) and describe the skill change.\n' +
+          '(@merlon-docs/skill-<id>, e.g. @merlon-docs/skill-merlon-docs) and describe the skill change.\n' +
           'Do not hand-edit skills/*/SKILL.md metadata.version — release:main syncs from packages/skill-<id>/package.json.',
       );
       exitCode = 1;

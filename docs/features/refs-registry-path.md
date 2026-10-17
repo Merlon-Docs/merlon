@@ -1,14 +1,14 @@
 # Refs registry path
 
-Specification for where `mdcp compile` writes the [refs registry](../glossary/refs-registry.md) (`refs.json`). Parent concept: [refs](../glossary/refs.md). Regression tests live in `packages/mdcp-cli/test/cli.smoke.test.ts` and `packages/mdcp-core/test/refs-outputs.test.ts`.
+Specification for where `merlon compile` writes the [refs registry](../glossary/refs-registry.md) (`refs.json`). Parent concept: [refs](../glossary/refs.md). Regression tests live in `packages/merlon-docs-cli/test/cli.smoke.test.ts` and `packages/merlon-docs-core/test/refs-outputs.test.ts`.
 
 ## Purpose
 
-The refs registry is derived state under `outputDir`, not co-located with per-guide publish outputs. It catalogs compiled [heading slugs](../glossary/heading-slug.md) so [cross-links](../glossary/cross-link.md) can be checked after stitch. Consumers run `mdcp compile` then `mdcp check` (and optionally `mdcp refs-list`). Commands that read the registry must agree on the on-disk path.
+The refs registry is derived state under `outputDir`, not co-located with per-guide publish outputs. It catalogs compiled [heading slugs](../glossary/heading-slug.md) so [cross-links](../glossary/cross-link.md) can be checked after stitch. Consumers run `merlon compile` then `merlon check` (and optionally `merlon refs-list`). Commands that read the registry must agree on the on-disk path.
 
 ## Path resolution
 
-`refs.registryFile` resolves relative to **`outputDir`** only — the same rule as `resolveRefsPath` in `@bwilliamson/mdcp-core`. Per-guide `compile.outputFile` values (including subdirectory prefixes such as `compiled/guide-a.md`) do not change the registry base. <!-- mdcp-paths: illustrative -->
+`refs.registryFile` resolves by the rule in [Path layout](../client-cli/config-essentials.md#path-layout), which `resolveRefsPath` in `@merlon-docs/merlon-docs-core` applies. Per-guide `compile.outputFile` values (including subdirectory prefixes such as `compiled/guide-a.md`) do not change the registry base. <!-- merlon-paths: illustrative -->
 
 | Config                                                                   | Resolved path (`--docs-root docs`)                |
 | ------------------------------------------------------------------------ | ------------------------------------------------- |
@@ -17,14 +17,18 @@ The refs registry is derived state under `outputDir`, not co-located with per-gu
 
 ## Compile behaviour
 
-`mdcp compile` regenerates the refs registry after writing compiled guide outputs, from the same compile as `mdcp check` and `mdcp refs gen`. The registry lists the headings of every file compile writes, each output slugged on its own under its `file`. Publish outputs and the monolith are both in it. [Registry contents](../client-cli/compile-refs-registry.md#registry-contents) lists the fields.
+`merlon compile` regenerates the refs registry after writing compiled guide outputs, from the same compile as `merlon check` and `merlon refs-gen`. The registry lists the headings of every file compile writes, each output slugged on its own under its `file`. Publish outputs and the monolith are both in it. [Registry contents](../client-cli/compile-refs-registry.md#registry-contents) lists the fields.
+
+## Stale registry check
+
+`merlon check` rewrites `refs.json` before its refs stage verifies the file, so that stage can't fail on a stale one. `merlon refs-check` compiles without writing and compares the result with the file on disk. It fails when the file no longer matches the current shards, and when the file is missing. As a CI gate, it catches a stale registry only when `refs.json` is committed and the check runs before anything compiles. With `refs.json` committed, a CI step that compiles and then runs `git diff --exit-code` also fails on a stale registry, because compile writes the same file for the same shards. Of the Merlon Docs commands, only `merlon refs-check` fails on a stale file.
 
 ## Acceptance criteria
 
-1. After `mdcp compile` with nested `compile.outputFile` paths, `refs.json` exists at `{docsRoot}/{outputDir}/{registryFile}`.
+1. After `merlon compile` with nested `compile.outputFile` paths, `refs.json` exists where [Path layout](../client-cli/config-essentials.md#path-layout) resolves `refs.registryFile`.
 2. The registry is **not** written beside per-guide outputs (for example `docs/_build/compiled/refs.json`).
-3. `mdcp refs-list` succeeds immediately after `mdcp compile` without `mdcp refs gen`.
+3. `merlon refs-list` succeeds immediately after `merlon compile` without `merlon refs-gen`.
 4. With top-level `outputFile` set, `refs.json` lists the headings of every compiled guide, publish outputs included, and of the monolith. Each output's slugs are numbered without the others.
 5. Each heading in `outputs` has a `line` that is a line of its output as compile writes it, banner included.
 6. The top-level `headings` and `slugs` hold the monolith's headings when the config sets top-level `outputFile`.
-7. `mdcp refs-list` gives the `file` of each heading, and `mdcp refs-check` fails when only a publish output's headings changed.
+7. `merlon refs-list` gives the `file` of each heading, and `merlon refs-check` fails when only a publish output's headings changed.

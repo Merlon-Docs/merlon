@@ -2,7 +2,7 @@
 set -e
 
 ITERATION=${1:-1}
-WORKSPACE="skills/mdcp-workspace/iteration-$ITERATION"
+WORKSPACE=".agents/skills/merlon-docs-workspace/iteration-$ITERATION"
 
 if [ ! -d "$WORKSPACE" ]; then
   echo "Error: Workspace directory '$WORKSPACE' not found."
@@ -12,7 +12,7 @@ fi
 echo "Generating static viewer for $WORKSPACE..."
 PYTHONPATH=.agents/skills/skill-creator python3 .agents/skills/skill-creator/eval-viewer/generate_review.py \
   "$WORKSPACE" \
-  --skill-name mdcp \
+  --skill-name merlon-docs \
   --benchmark "$WORKSPACE/benchmark.json" \
   --static "$WORKSPACE/viewer.html"
 

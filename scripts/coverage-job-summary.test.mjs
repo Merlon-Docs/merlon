@@ -41,14 +41,14 @@ describe('formatCoverageJobSummary', () => {
     );
 
     const md = await formatCoverageJobSummary([
-      { name: 'mdcp-core', summaryPath: path.join(coreDir, 'coverage-summary.json') },
-      { name: 'mdcp-cli', summaryPath: path.join(cliDir, 'coverage-summary.json') },
+      { name: 'merlon-docs-core', summaryPath: path.join(coreDir, 'coverage-summary.json') },
+      { name: 'merlon-docs-cli', summaryPath: path.join(cliDir, 'coverage-summary.json') },
     ]);
 
     assert.match(md, /## Package code coverage/);
     assert.match(md, /\| Package \| Statements \| Branches \| Functions \| Lines \|/);
-    assert.match(md, /\| mdcp-core \| 80\.1% \| 70% \| 90\.25% \| 81% \|/);
-    assert.match(md, /\| mdcp-cli \| 60% \| 50\.5% \| 55% \| 61\.1% \|/);
+    assert.match(md, /\| merlon-docs-core \| 80\.1% \| 70% \| 90\.25% \| 81% \|/);
+    assert.match(md, /\| merlon-docs-cli \| 60% \| 50\.5% \| 55% \| 61\.1% \|/);
   });
 
   it('emits n/a for missing or unreadable summaries, but succeeds if at least one works', async () => {
@@ -73,19 +73,19 @@ describe('formatCoverageJobSummary', () => {
     );
 
     const md = await formatCoverageJobSummary([
-      { name: 'mdcp-core', summaryPath: path.join(coreDir, 'coverage-summary.json') },
-      { name: 'mdcp-cli', summaryPath: path.join(root, 'missing', 'coverage-summary.json') },
+      { name: 'merlon-docs-core', summaryPath: path.join(coreDir, 'coverage-summary.json') },
+      { name: 'merlon-docs-cli', summaryPath: path.join(root, 'missing', 'coverage-summary.json') },
     ]);
 
-    assert.match(md, /\| mdcp-core \| 80\.1% \| 70% \| 90\.25% \| 81% \|/);
-    assert.match(md, /\| mdcp-cli \| n\/a \| n\/a \| n\/a \| n\/a \|/);
+    assert.match(md, /\| merlon-docs-core \| 80\.1% \| 70% \| 90\.25% \| 81% \|/);
+    assert.match(md, /\| merlon-docs-cli \| n\/a \| n\/a \| n\/a \| n\/a \|/);
   });
 
   it('throws an error if all packages fail', async () => {
     await assert.rejects(
       formatCoverageJobSummary([
-        { name: 'mdcp-core', summaryPath: 'does-not-exist.json' },
-        { name: 'mdcp-cli', summaryPath: 'also-does-not-exist.json' },
+        { name: 'merlon-docs-core', summaryPath: 'does-not-exist.json' },
+        { name: 'merlon-docs-cli', summaryPath: 'also-does-not-exist.json' },
       ]),
       /All packages failed to provide coverage summaries/,
     );

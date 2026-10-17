@@ -1,5 +1,5 @@
 ---
-'@bwilliamson/mdcp-core': patch
+'@merlon-docs/merlon-docs-core': patch
 ---
 
 Write each `l` of a line fragment as `L`, and trim slashes and backticks in linear time

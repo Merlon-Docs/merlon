@@ -1,6 +1,6 @@
 # CODEOWNERS — owner review for critical paths (OWASP external-contributor control).
 # Branch protection must enable "Require review from Code Owners"; see
-# docs/developer/github-actions-security.md.
+# docs/developer/repository-settings.md.
 
 # Default owner for all changes
 * @betsalel-williamson

@@ -13,6 +13,10 @@
  * is one that deletes a changeset and writes a packages/<name>/CHANGELOG.md,
  * as `changeset version` does, so a branch that adds a changeset and then
  * deletes it still needs one.
+ *
+ * In prerelease mode `changeset version` moves each changeset it consumes into
+ * `.changeset/pre/`, and leaving pre mode deletes them from there. Both count:
+ * renames are not followed, so the move reads as a deletion of the original.
  */
 import { execFileSync } from 'node:child_process';
 
@@ -86,7 +90,15 @@ function deletedByReleaseCommits(since, cwd) {
  */
 export function consumedChangesets(since, { cwd = process.cwd() } = {}) {
   const deleted = git(
-    ['diff', '--name-only', '--diff-filter=D', `${since}..HEAD`, '--', '.changeset/'],
+    [
+      'diff',
+      '--no-renames',
+      '--name-only',
+      '--diff-filter=D',
+      `${since}..HEAD`,
+      '--',
+      '.changeset/',
+    ],
     cwd,
   );
   const fromTree = deleted.split('\n').filter(isChangesetFile);

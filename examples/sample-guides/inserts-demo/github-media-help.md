@@ -1,6 +1,6 @@
 ## GitHub markdown media reference
 
-GitHub renders the following in repository `.md` files (and most GFM viewers). mdcp insert shards are `.md` wrappers that embed each format; guides link to the shard, and `inlineInserts` inlines the body on first mention.
+GitHub renders the following in repository `.md` files (and most GFM viewers). Merlon Docs insert shards are `.md` wrappers that embed each format; guides link to the shard, and `inlineInserts` inlines the body on first mention.
 
 | Kind         | Format                     | GitHub rendering                               | Sample shard                         |
 | ------------ | -------------------------- | ---------------------------------------------- | ------------------------------------ |

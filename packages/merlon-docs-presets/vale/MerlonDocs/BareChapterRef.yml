@@ -1,0 +1,10 @@
+extends: existence
+message: "Bare heading mention '%s' should be a GFM markdown link, e.g. See [Chapter 2](./other.md#chapter-2) for details."
+link: https://github.com/Merlon-Docs/merlon/blob/main/docs/features/design-constraints/locale-and-language.md
+level: error
+scope: ~heading
+nonword: true
+tokens:
+  - '\bCh\.?\s*\d+(?:\s*[–—-]\s*[^\s|.\n]+)?'
+  - '\bChapter\s+\d+(?:\s*[–—-]\s*[^\s|.\n]+)?'
+  - '\b(?:Chs\.|Chapters)\s+\d+(?:\s*(?:,|and|&|/|-|to)\s*\d+)+\b'

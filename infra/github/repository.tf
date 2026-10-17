@@ -1,7 +1,7 @@
-resource "github_repository" "mdcp" {
-  name        = "mdcp"
-  description = "MarkDown Context Protocol is an AI Skill that assists with managing documentation"
-  homepage_url = "https://www.skills.sh/betsalel-williamson/mdcp"
+resource "github_repository" "merlon" {
+  name        = "merlon"
+  description = "Merlon Docs: a documentation system for software projects, run by an Agent Skill with human review"
+  homepage_url = "https://www.skills.sh/Merlon-Docs/merlon"
 
   visibility = "public"
   archived   = false

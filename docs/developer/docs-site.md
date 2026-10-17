@@ -1,20 +1,20 @@
 # Documentation site
 
-The public docs site at <https://betsalel-williamson.github.io/mdcp/> is an [Astro Starlight](https://starlight.astro.build/) build in [`packages/mdcp-site/`](../../packages/mdcp-site/). It is a private workspace package with no version. Changesets ignores it, and release tooling never tags or publishes it.
+The public docs site at <https://merlon-docs.github.io/merlon/> is an [Astro Starlight](https://starlight.astro.build/) build in [`packages/merlon-docs-site/`](../../packages/merlon-docs-site/). It is a private workspace package with no version. Changesets ignores it, and release tooling never tags or publishes it.
 
 ## Content comes from shards
 
-Only the landing page (`packages/mdcp-site/src/content/docs/index.mdx`) is hand-authored. The other pages are generated at build time by [`packages/mdcp-site/scripts/sync-content.mjs`](../../packages/mdcp-site/scripts/sync-content.mjs) from these guides:
+The landing page (`packages/merlon-docs-site/src/content/docs/index.mdx`) and the Learn page (`packages/merlon-docs-site/src/content/docs/learn.mdx`) are hand-authored. The other pages are generated at build time by [`packages/merlon-docs-site/scripts/sync-content.mjs`](../../packages/merlon-docs-site/scripts/sync-content.mjs) from these guides:
 
-| Shards              | Site section        | Route            |
-| ------------------- | ------------------- | ---------------- |
-| `docs/client-cli/`  | User guide          | `/guide/`        |
-| `docs/features/`    | Concepts & protocol | `/concepts/`     |
-| `docs/client-core/` | Library API         | `/api/`          |
-| `docs/glossary/`    | Glossary            | `/glossary/`     |
-| `docs/developer/`   | Contributing        | `/contributing/` |
+| Shards              | Site section | Route            |
+| ------------------- | ------------ | ---------------- |
+| `docs/client-cli/`  | User guide   | `/guide/`        |
+| `docs/features/`    | Concepts     | `/concepts/`     |
+| `docs/client-core/` | Library API  | `/api/`          |
+| `docs/glossary/`    | Glossary     | `/glossary/`     |
+| `docs/developer/`   | Contributing | `/contributing/` |
 
-The sync script reads `docs/mdcp.config.json` and each guide's `index.md` for sidebar order, and uses each shard's first `#` heading as the page title. These manifest entries become sidebar groups:
+The sync script reads `docs/merlon.config.json` and each guide's `index.md` for sidebar order, and uses each shard's first `#` heading as the page title. These manifest entries become sidebar groups:
 
 - A page entry with nested items, other than a sub-index, groups its page and those items.
 - A sub-index (`index.md`) shows its page as the overview, then the entries nested under it whose pages are in its directory. Nested entries outside its directory follow the group at the same level. When it has no nested entries in its directory, it shows the pages its own list links under its directory that no earlier entry has placed.
@@ -25,7 +25,7 @@ The first group whose list links a page claims it. A page other than an `index.m
 The sync script rewrites links for the site:
 
 - Relative `.md` links between published shards become site routes.
-- Compiled cross-links such as `[text](#slug)` resolve through the refs registry (`docs/_build/refs.json`) and the per-guide compiled outputs. The `mdcp-shard` source markers in each compiled file name the shard that defines the slug.
+- Compiled cross-links such as `[text](#slug)` resolve through the refs registry (`docs/_build/refs.json`) and the per-guide compiled outputs. The `merlon-shard` source markers in each compiled file name the shard that defines the slug.
 - Links to other repository files point at the file on GitHub.
 
 The sync fails on any internal link it cannot resolve, and the build then checks every internal link and anchor in the generated HTML. Generated pages, the sidebar file, and Astro output are gitignored. Edit the shard under `docs/`, never the generated page. Each page's edit link opens the shard.
@@ -35,14 +35,16 @@ The sync fails on any internal link it cannot resolve, and the build then checks
 ```bash
 pnpm site:dev     # build packages, compile docs, sync, then astro dev
 pnpm site:build   # same steps, then astro build and the dist link check
+pnpm site:a11y    # axe-core WCAG 2.2 A and AA checks on the built site
+pnpm --filter @merlon-docs/merlon-docs-site test   # unit tests of the site scripts
 ```
 
-Both commands run `pnpm build` and `pnpm docs:compile:repo` first, because the sync needs the CLI build and the refs registry.
+The first two commands run `pnpm build` and `pnpm docs:compile:repo` first, because the sync needs the CLI build and the refs registry. `pnpm site:a11y` checks the `dist/` that `pnpm site:build` wrote. It opens a sample of pages in a local Chrome, in both themes at desktop and phone widths, and fails on any violation. Set `CHROME_PATH` to use another Chrome or Chromium binary.
 
 ## Deployment
 
-[`.github/workflows/pages.yml`](../../.github/workflows/pages.yml) builds the site on pull requests that touch `docs/` or the site package, and deploys it to GitHub Pages from `develop`. Landings push `develop` with the workflow's own token, which starts no other workflows, so the [land workflow](../../.github/workflows/land-develop.yml) dispatches the deploy after each landing. The repository's Pages source must be set to **GitHub Actions**, and the `github-pages` environment must allow deployments from `develop`.
+[`.github/workflows/pages.yml`](../../.github/workflows/pages.yml) runs only when dispatched. The [land workflow](../../.github/workflows/land-develop.yml) dispatches it on `develop` after each landing, in its Deploy the docs site from develop step, because the landing's push to `develop` uses the workflow's own token, which doesn't start a workflow. A maintainer can also dispatch it by hand, on `develop`. The run executes the site tests, `pnpm site:build` and the accessibility check, and deploys the result to GitHub Pages from the ref it was dispatched on. A pull request doesn't build the site, so run `pnpm site:build` before landing; otherwise a sync or link failure shows up in the deploy run after the landing. [Repository settings](./repository-settings.md) lists the Pages source and the `github-pages` environment that the deploy needs.
 
 ## Coverage scan
 
-The site generates its pages into gitignored paths, and the [coverage](../glossary/coverage.md) scan honors `.gitignore`, so generated pages never show up as uncaptured files. The scan only reads `.md` files, so the hand-authored `index.mdx` landing page is outside `mdcp check`; the post-build link check covers its links instead. No `scan.ignore` entry is needed.
+The site generates its pages into gitignored paths, and the [coverage](../glossary/coverage.md) scan honors `.gitignore`, so generated pages never show up as uncaptured files. The scan only reads `.md` files, so the hand-authored `index.mdx` and `learn.mdx` pages are outside `merlon check`. The post-build link check covers their links instead. No `scan.ignore` entry is needed.

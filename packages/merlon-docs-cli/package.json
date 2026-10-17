@@ -1,0 +1,56 @@
+{
+  "name": "@merlon-docs/merlon-docs-cli",
+  "version": "0.7.6",
+  "description": "Merlon Docs CLI: compile and check a sharded documentation tree",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "bin": {
+    "merlon": "./dist/cli.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Merlon-Docs/merlon.git",
+    "directory": "packages/merlon-docs-cli"
+  },
+  "bugs": {
+    "url": "https://github.com/Merlon-Docs/merlon/issues"
+  },
+  "homepage": "https://github.com/Merlon-Docs/merlon/tree/main/packages/merlon-docs-cli#readme",
+  "keywords": [
+    "markdown",
+    "documentation",
+    "cli",
+    "merlon",
+    "merlon-docs"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup src/cli.ts --format esm --clean",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage --testTimeout=20000",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "pnpm run build"
+  },
+  "dependencies": {
+    "@merlon-docs/merlon-docs-core": "workspace:*",
+    "cac": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "@vitest/coverage-v8": "^5.0.1",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.1"
+  }
+}

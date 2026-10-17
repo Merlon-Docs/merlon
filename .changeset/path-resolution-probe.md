@@ -1,11 +1,11 @@
 ---
-'@bwilliamson/mdcp-core': minor
-'@bwilliamson/mdcp-cli': minor
+'@merlon-docs/merlon-docs-core': minor
+'@merlon-docs/merlon-docs-cli': minor
 ---
 
 Add opt-in path resolution for backtick paths in prose
 
-`mdcp check` can now resolve backtick-quoted repository paths in shards and
+`merlon check` can now resolve backtick-quoted repository paths in shards and
 standalone guides, and fail on the ones that resolve nowhere. This catches a
 document describing code, files or a component that no longer exists — prose a
 link check never reads.
@@ -23,9 +23,9 @@ Two config lists declare why a path legitimately does not resolve, and they say
 which case they are rather than sharing one allow-list. `lint.paths.generated`
 covers paths that exist only after a build or install, matched as a prefix since
 nothing under one exists yet. `lint.paths.vocabulary` covers a name the
-repository documents without having, such as a protocol tier a consumer creates,
+repository documents without having, such as a tier the standard defines and a consumer creates,
 matched exactly so an invented file beneath that name still has to resolve.
 
 Because no pattern separates a stale path from an always-illustrative one, the
-discriminator is authorial: `<!-- mdcp-paths: illustrative -->` exempts the file
+discriminator is authorial: `<!-- merlon-paths: illustrative -->` exempts the file
 when it stands alone on a line, or one line when it trails content.

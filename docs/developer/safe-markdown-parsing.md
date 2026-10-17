@@ -1,6 +1,6 @@
-# Safe markdown parsing (heading helpers)
+# Safe markdown parsing
 
-Maintainer note for why `mdcp-core` parses headings and related markup with shared **language-agnostic** helpers instead of ad-hoc regular expressions, and which regexes remain in the package. [ADR 0005](../features/adr/0005-keep-ts-scanners-over-rg-peggy-rust.md) records how the rule came about and why the scanners stay in TypeScript.
+Maintainer note on the `merlon-docs-core` parsers for headings, fences, broken-link markers and links. It says why they are shared **language-agnostic** helpers and hand-written scanners instead of ad-hoc regular expressions, and which regexes remain in the package. The table reader has its own page, [Tables after link rewriting](../features/compile-pipeline/tables-after-link-rewriting.md). [ADR 0005](../features/adr/0005-keep-ts-scanners-over-rg-peggy-rust.md) records how the rule came about and why the scanners stay in TypeScript.
 
 ## Why this is necessary
 
@@ -10,30 +10,29 @@ Everyday docs rarely hit the pathological case, but open alerts block a clean se
 
 ## Shared linear helpers
 
-The helpers in `packages/mdcp-core/src/markdown/` run in linear time. They cover these jobs:
+The helpers in `packages/merlon-docs-core/src/markdown/` run in linear time. They cover these jobs:
 
 - parsing each heading line with `parseHeading` (ATX kind today; see [GFM scope](../features/design-constraints/gfm-scope.md#headings)) and writing it back as ATX with `formatHeadingAsAtx`
-- stripping leftover Pandoc IDs (`{#…}`) when cleaning compiled output, as defensive cleanup (the Vale style `MDCP-PandocId` reports an error on a heading that has one)
+- stripping leftover Pandoc IDs (`{#…}`) when cleaning compiled output, as defensive cleanup (the Vale style `MerlonDocs-PandocId` reports an error on a heading that has one)
 - producing plain heading text for language-agnostic [heading slug](../glossary/heading-slug.md) generation
 - tracking fenced code blocks line by line, masking non-prose regions and counting words for prose checks
 
-Heading demotion in `compile/headings.ts` runs `parseHeading` and `formatHeadingAsAtx` on each line outside fenced blocks. It finds those blocks with `createCodeFenceScanner`, the same scan that the slug registry's heading reader runs, and that scan reads a CRLF line too. Demotion starts a new scan on each text it demotes, such as one shard, while the registry reads a whole guide with one scan. A shard that ends inside an open fence can make the two disagree about the shard after it.
+Heading demotion in `compile/headings.ts` runs `parseHeading` and `formatHeadingAsAtx` on each line outside fenced blocks. It finds those blocks with `createCodeFenceScanner`, the same scan that the slug registry's heading reader runs, and that scan reads a CRLF line too. [Fence scan limits](../features/compile-pipeline/fence-scan.md#fence-scan-limits) says when the two can disagree about a shard.
 
 The link passes, `codeEvidence`, broken-link marking and link lint find fenced code with `createQuotedFenceScanner` in `markdown/prose.ts`. It runs the scan behind `createCodeFenceScanner` on each line, and another one on the text of each blockquote up to ten deep, in time that grows linearly with the text. A `>` four or more columns past its container doesn't open a quote, since that scan reads the line as indented code or paragraph text.
 
 Link validation finds broken-link markers with `findTemplateMatches`, a scanner in `locale/create-locale-pack.ts`. It splits the locale's `markerTemplate` at each variable but `markerLabel` and finds the parts in order, with no line terminator between two of them. It returns the markers that a pattern with a lazy `.*?` for each variable matches, and its time grows linearly with the length of the line. Compiled link lint asks about a line a fixed number of times, however many links it holds.
 
-The manifest walk and the `inlineInserts` hook find links in a whole manifest or shard body with the scanners in `compile/link-scan.ts`. The walk reads `.md` links and `](#slug)` links with them, and the hook reads links into an insert library. Each scanner returns the matches of a link regex, such as `\[[^\]]*\]\(([^)]+\.md)(?:#[^)]*)?\)` for `.md` links, in time that grows linearly with the text. The regex itself reads a target with `[^)]`, which crosses line breaks, so on a crafted text its time can grow with the cube of the text's length.
+The manifest walk and the `inlineInserts` hook read a whole manifest or shard body with `scanMarkdownLinks` in `compile/link-scan.ts`, the scanner that [Link idioms](#link-idioms) describes. The walk also reads `](#slug)` links with `slugLinkTargets` in that file. It returns what the regex `\]\(#([^)]+)\)` matches, a target that can span lines, in time that grows linearly with the text.
 
-`codeEvidence` reads line ranges such as `L6-L8` or `lines 12–15` with `lineRangeFromText`, an imperative scanner in `compile/hooks/line-range.ts`. It takes its words from the locale pack. The hook trims the backticks around a link label with a loop, and `shardLintPaths` uses one too, for the slashes at the end of a `shardsGlobs` entry that starts with `../`. Public package APIs keep their names, and call sites delegate to the helpers. Duration-budget tests in `packages/mdcp-core/test/redos-budget.test.ts` run the helpers and scanners on pump inputs, so a regex that brings the class back fails CI.
+`codeEvidence` reads line ranges such as `L6-L8` or `lines 12–15` with `lineRangeFromText`, an imperative scanner in `compile/hooks/line-range.ts`. It takes its words from the locale pack. The hook trims the backticks around a link label with a loop, and `shardLintPaths` uses one too, for the slashes at the end of a `shardsGlobs` entry that starts with `../`. Public package APIs keep their names, and call sites delegate to the helpers. Duration-budget tests in `packages/merlon-docs-core/test/redos-budget.test.ts` run the helpers and scanners on pump inputs, so a regex that brings the class back fails CI.
 
 ## Regex sites that remain
 
-A regex in `packages/mdcp-core/src/` falls under this rule:
+A regex in `packages/merlon-docs-core/src/` falls under this rule:
 
 - **Keep** a pattern that is clearly linear.
 - **Rewrite** a pattern next to the CodeQL class, such as `\s*` or overlapping optional groups next to digits, as a scanner with a duration-budget test.
-- **Keep** the Markdown link idioms that [Link idioms](#link-idioms) lists as regexes, and fix any `js/polynomial-redos` alert on one with a scanner.
 - Leave prose and language opinion out of core, because it belongs in Vale.
 
 ### Kept (linear)
@@ -55,19 +54,31 @@ A regex in `packages/mdcp-core/src/` falls under this rule:
 | Path and glob helpers                                      | `./`, `../` and `.` prefixes, a leading `!`, `#` or `:`, and one trailing `/`                                                             | Anchored                                                                              |
 | Adornment, escape and split helpers                        | `**` and emphasis markers, backslashes, regex and glob escaping, letter and number classes, whitespace and separator splits               | Literal or one character class                                                        |
 
-### Link idioms
+## Link idioms
 
-| Location                                      | Pattern role                                              | Input                                                         |
-| --------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------- |
-| `links/extract.ts` `MD_LINK_RE`               | Non-image `[label](target)`                               | One line at a time, with code spans masked                    |
-| `compile/publish-links.ts`                    | Cross-guide, intra-guide and publish-relative link shapes | One line at a time, with code spans masked                    |
-| `compile/hooks/code-evidence.ts` `MD_LINK_RE` | `[label](target)` for evidence links                      | Each run of lines between fenced code, with code spans masked |
+| Location                             | Links it reads                                                                                  | Input                                                         |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `links/extract.ts`                   | Links with a target of one character or more, but no images                                     | One line at a time, with code spans masked                    |
+| `compile/publish-links.ts`           | Links and images whose targets the cross-guide, intra-guide and publish-relative passes rewrite | One line at a time, with code spans masked                    |
+| `compile/hooks/code-evidence.ts`     | Links and images with a target of one character or more                                         | Each run of lines between fenced code, with code spans masked |
+| `compile/link-scan.ts` `mdLinkPaths` | Links and images whose path ends in `.md`, for the manifest walk                                | A whole manifest or shard, code included                      |
+| `compile/hooks/inline-inserts.ts`    | Links into an insert library, but no images                                                     | A whole shard body, code included                             |
 
-Each of these matches the `[label](target)` form with negated character classes. They aren't linear. On a crafted input the time grows at least with the square of the input's length. The Input column says which length counts. A negated class such as `[^)]` crosses line breaks, so short lines don't limit a regex that reads the whole text. Phase B kept these idioms as regexes, as [ADR 0005](../features/adr/0005-keep-ts-scanners-over-rg-peggy-rust.md) records, and the maintainers decided to keep them. If CodeQL opens `js/polynomial-redos` on one of these sites, fix it with a linear scanner and a duration-budget test. A fix can start from `scanInlineLinks` in `compile/link-scan.ts`, which walks the `[label](target)` shape these regexes match in linear time and lets a callback accept or turn down each target. Its callback doesn't get the index of the `[`, and the scan turns down each link that shares a label end it turned down before, so a caller that skips image links has to extend it first.
+Each of these finds links with `scanMarkdownLinks` in `compile/link-scan.ts`, which reads a label and a target as [Link passes](../features/compile-pipeline/link-passes.md) says. A `]` closes the nearest `[` or `![` still open, and `\![a](x)` is a link after a literal `!`. Once a link closes, each `[` still open before it turns into text, while an open `![` can still close around it. In `[![Diagram](./d.png)](./page.md)` the scan gives the image and then the link around it, and each reader treats the image as it treats any image.
+
+The scan ends a target at its line, so an unfinished link such as `[x](see` doesn't take in a link on the next line, and a label can wrap onto the next line where a reader reads more than one line at a time. The scan doesn't read reference-style links, code spans, autolinks or inline HTML, so a bracket inside one still counts, and the table says which readers mask code spans first.
+
+[No placeholder links](../features/link-validation.md#no-placeholder-links) states the rule that link validation leaves an image's src unchecked. Neither built-in list behind `lint.codeExtensions` and `lint.dataExtensions` has an image extension, so a check of srcs would pass one with an image extension or an https: URL without reading the disk, and it would read a src such as `./x.md` as a page.
+
+The scan stops only at a backslash, a `!` or a bracket, and a regex of one character class finds the next one, so it reads each index of its input a fixed number of times. Images nest, so on a line of nested images the alts add up to the square of the line's length. So `codeEvidence` reads a label without the links and images in it, both for a line range or a symbol and for the text that tells the links it rebased apart. Broken-link marking scans the label of each link for the images in it, and links don't nest, so it reads each index once. It then splices each marker into the body on its own, so marking takes time that grows with the number of marked links times the length of the body. Duration-budget tests run each reader on a line that repeats an unfinished link, and compile and `codeEvidence` on a line of nested images.
+
+[ADR 0005](../features/adr/0005-keep-ts-scanners-over-rg-peggy-rust.md) keeps hand-written TypeScript scanners for the core micro-parsers, and these readers follow it. None of them is a regex now. CommonMark's bracket rule needs a stack of the brackets still open, and `scanMarkdownLinks` keeps one in a hand-written loop, so it doesn't meet the ADR's trigger for a grammar.
+
+Link lint, broken-link marking, the link passes and `codeEvidence` mask code spans with `maskInlineCode` before they scan. It searches the rest of the line for the closer of each backtick run, and on a line of unmatched backtick runs whose lengths fall, its time grows faster than the line's length.
 
 ## Authoring implications
 
 - Prefer the shared helpers for new heading or slug logic; do not add new polynomial-risk regexes for those jobs.
 - Prefer imperative scanners when adding line-range style matchers (optional whitespace next to digits or overlapping alternatives). Authored **word** cues for line ranges belong in the locale pack; keep `L` / `:` forms and `#L…` output language-neutral in the scanner.
 - Prefer GFM auto-slugs. Don't author Pandoc IDs on headings, since Vale reports an error on one in this repo. Compile still strips them from legacy content.
-- Don't reintroduce `lintXrefs` or chapter-cue regexes in `mdcp-core`. Unlinked chapter and section cues in prose are Vale's job, as [Locale and language boundary](../features/design-constraints/locale-and-language.md) describes.
+- Don't reintroduce `lintXrefs` or chapter-cue regexes in `merlon-docs-core`. Unlinked chapter and section cues in prose are Vale's job, as [Locale and language boundary](../features/design-constraints/locale-and-language.md) describes.

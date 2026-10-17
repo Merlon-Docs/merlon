@@ -1,5 +1,5 @@
 ---
-'@bwilliamson/mdcp-core': patch
+'@merlon-docs/merlon-docs-core': patch
 ---
 
-The core README gives "Tables after link rewriting" a section of its own after "Publish-relative link rewriting", where it was a subsection of the compile hooks overview. Its `#tables-after-link-rewriting` anchor stays the same.
+Tables after link rewriting is a shard of its own, `docs/features/compile-pipeline/tables-after-link-rewriting.md` in the Features Guide's Compile pipeline group, where it was a subsection of the core README's compile hooks overview. The core README links it.

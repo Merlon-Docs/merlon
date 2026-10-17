@@ -20,7 +20,7 @@ import { execSync } from 'node:child_process';
 import { writeFileSync, unlinkSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { findMajorBumps, pendingChangesetFiles } from './lib/changeset-bumps.mjs';
+import { pendingChangesetFiles } from './lib/changeset-bumps.mjs';
 import {
   packageJsonRelPath,
   packagesNeedingReleaseHeal,
@@ -125,8 +125,10 @@ function createGithubRelease(tag, notes, target) {
       run(`gh release edit "${tag}" --notes-file .tmp-release-notes.md`, { env });
     } catch {
       // --target creates the tag on GitHub when missing; prefer matching the version commit.
+      // A prerelease version such as 1.0.0-draft.0 gets a GitHub prerelease, so it never shows as Latest.
+      const prerelease = tag.slice(tag.lastIndexOf('@') + 1).includes('-') ? ' --prerelease' : '';
       run(
-        `gh release create "${tag}" --title "${tag}" --notes-file .tmp-release-notes.md --target "${target}"`,
+        `gh release create "${tag}" --title "${tag}" --notes-file .tmp-release-notes.md --target "${target}"${prerelease}`,
         { env },
       );
     }
@@ -233,15 +235,6 @@ if (pending.length === 0) {
   process.exit(0);
 }
 
-const majors = findMajorBumps(changesetDir);
-if (majors.length > 0) {
-  console.error(
-    'Refusing to release: major bumps are disabled.\n' +
-      majors.map((m) => `  ${m.file}: ${m.package}`).join('\n'),
-  );
-  process.exit(1);
-}
-
 console.log(`Pending changesets (${pending.length}): ${pending.join(', ')}`);
 
 const before = readWorkspacePackages(root);
@@ -250,6 +243,10 @@ run('pnpm exec changeset version');
 run('node scripts/sync-skill-versions.mjs');
 run('pnpm skill:validate');
 run('pnpm build');
+// The pre-commit hook no longer builds or tests, so the release checks the bumped packages here.
+run('pnpm typecheck');
+run('pnpm test');
+run('node scripts/validate-presets.mjs');
 
 const after = readWorkspacePackages(root);
 const bumped = [];

@@ -1,0 +1,446 @@
+import { existsSync, readFileSync } from 'node:fs';
+import { basename, dirname, relative, resolve, isAbsolute } from 'node:path';
+import { defaultSearchRoots, resolveRelativeFile } from './hooks/path-resolve.js';
+import { maskInlineCode } from '../links/extract.js';
+import { createQuotedFenceScanner } from '../markdown/index.js';
+import { createNextIndexReader, replaceLinkTargets, scanMarkdownLinks } from './link-scan.js';
+import type { GuideLinkIndex, GuideLinkEntry } from './guide-link-index.js';
+import { sectionBodyForSlug, slugForDemotedSection } from './section-slug.js';
+import { assignSectionSlugs, type SectionSlugContext, type ShardCache } from './shard-cache.js';
+
+/** Slug for a shard file after compile demotion (shared by index build and hooks). */
+export function slugForSectionFile(filePath: string, cache?: ShardCache): string | null {
+  const name = basename(filePath);
+  if (cache) {
+    const absPath = resolve(filePath);
+    const cached = cache.get(absPath);
+    if (cached) return cached.slug;
+  }
+  const raw = readFileSync(filePath, 'utf-8').trim();
+  const processed = sectionBodyForSlug(name, raw);
+  return slugForDemotedSection(name, processed);
+}
+
+/**
+ * Assembly opens a link target with this mark when the cross-guide or publish-relative pass writes
+ * it, or when `codeEvidence` rebased it. The target is then relative to the link base rather than
+ * the shard, so a later pass leaves the link alone: the publish-relative pattern needs a target
+ * that opens with `../`, and the intra-guide pass skips a marked target. `unmarkLinkTargets`
+ * removes the marks after the last pass. CommonMark replaces U+0000 in its input, so no shard link
+ * means the character.
+ */
+const WRITTEN_LINK_MARK = '\u0000';
+
+/** `target` opened with the mark that tells assembly's later link passes to leave it alone. */
+export function markLinkTarget(target: string): string {
+  return `${WRITTEN_LINK_MARK}${target}`;
+}
+
+/** Remove the marks that assembly's link passes put on the targets they wrote. */
+export function unmarkLinkTargets(markdown: string): string {
+  return markdown.replaceAll(`](${WRITTEN_LINK_MARK}`, '](');
+}
+
+/** Reads the target of a link in `text` from its first index to its `)`. */
+type TargetReader<T> = (targetStart: number, close: number) => T | undefined;
+
+/**
+ * Apply a link target reader line-wise with inline-code masking (labels may contain `]` inside
+ * backticks). Each line gets a reader of its own from `reader`, which `scanMarkdownLinks` gives
+ * each link and image of the line in the order of their targets. `rewrite` gets the value the
+ * reader gave and returns the new target, or undefined to leave the link as written. Lines of
+ * fenced code stay as written, in a blockquote too, as `extractLinks` skips them.
+ */
+function rewriteMarkdownLinkLines<T>(
+  markdown: string,
+  reader: (masked: string) => TargetReader<T>,
+  rewrite: (value: T) => string | undefined,
+): string {
+  const lines = markdown.split('\n');
+  const inFence = createQuotedFenceScanner();
+
+  return lines
+    .map((line) => {
+      if (inFence(line)) return line;
+
+      const masked = maskInlineCode(line);
+      const links = scanMarkdownLinks(masked);
+      if (links.length === 0) return line;
+      const read = reader(masked);
+      const targets = links.map((link) => {
+        const value = read(link.labelEnd + 2, link.close);
+        return value === undefined ? undefined : rewrite(value);
+      });
+      return replaceLinkTargets(line, links, targets).text;
+    })
+    .join('\n');
+}
+
+/** A `.md` path that a link target opens with, and the `#fragment` after it. */
+interface MdLinkTarget {
+  file: string;
+  fragment?: string;
+}
+
+function startsWithHttp(text: string, at: number): boolean {
+  return text.startsWith('http:', at) || text.startsWith('https:', at);
+}
+
+/** True for a character that can open a link path: not a `/` or whitespace. */
+function opensPath(char: string | undefined): boolean {
+  return char !== undefined && char !== '/' && !/\s/.test(char);
+}
+
+/**
+ * The path of a target in `text` that starts at `targetStart` and ends at its `)` or first `#`,
+ * when it ends in `.md`, and the `#fragment` after it. `nextHash` reads the first `#` from an index.
+ */
+function mdTargetParts(
+  text: string,
+  targetStart: number,
+  close: number,
+  nextHash: (from: number) => number,
+): { pathEnd: number; target: MdLinkTarget } | undefined {
+  const hash = nextHash(targetStart);
+  const pathEnd = hash !== -1 && hash < close ? hash : close;
+  if (pathEnd - targetStart < 4 || !text.startsWith('.md', pathEnd - 3)) return undefined;
+  const file = text.slice(targetStart, pathEnd);
+  const fragment = pathEnd < close ? text.slice(pathEnd, close) : undefined;
+  return { pathEnd, target: { file, fragment } };
+}
+
+/**
+ * The targets the intra-guide pass reads: a path that ends in `.md`, doesn't start with `http:`,
+ * `https:`, a `/` or whitespace, and holds at least one character before its `.md`, then an
+ * optional `#fragment`: each target that `(?!https?:)(?:\.\/)?[^#/\s][^#]*\.md(#.*)?` matches whole.
+ */
+function intraGuideTargets(text: string): TargetReader<MdLinkTarget> {
+  const nextHash = createNextIndexReader(text, '#');
+  return (targetStart, close) => {
+    if (startsWithHttp(text, targetStart) || !opensPath(text[targetStart])) return undefined;
+    return mdTargetParts(text, targetStart, close, nextHash)?.target;
+  };
+}
+
+/**
+ * The targets the cross-guide pass reads: a path that ends in `.md` and starts with `./` or with a
+ * run of `../`, then an optional `#fragment`. The rest of the path after `./` holds at least four
+ * characters and opens with neither a `/` nor whitespace. So does the rest after the run, unless the
+ * run holds two `../` or more, since the last `../` can then be that rest. These are the targets
+ * that `(?:(?:\.\.\/)+|\.\/)[^#/\s][^#]*\.md(#.*)?` matches whole.
+ */
+function crossGuideTargets(text: string): TargetReader<MdLinkTarget> {
+  const nextHash = createNextIndexReader(text, '#');
+  return (targetStart, close) => {
+    const parts = mdTargetParts(text, targetStart, close, nextHash);
+    if (!parts) return undefined;
+    let rest = targetStart;
+    if (text.startsWith('./', rest)) {
+      rest += 2;
+    } else {
+      while (text.startsWith('../', rest)) rest += 3;
+      if (rest === targetStart) return undefined;
+      if (rest - targetStart >= 6) return parts.target;
+    }
+    return parts.pathEnd - rest >= 4 && opensPath(text[rest]) ? parts.target : undefined;
+  };
+}
+
+/**
+ * The targets the publish-relative pass reads: each one that starts with `../`, such as `../` or
+ * `../../` alone.
+ */
+function publishRelativeTargets(text: string): TargetReader<string> {
+  return (targetStart, close) =>
+    text.startsWith('../', targetStart) ? text.slice(targetStart, close) : undefined;
+}
+
+/** Map shard file paths to the slug each section's opening heading gets in the compiled guide. */
+export function buildSectionSlugMap(
+  sectionPaths: string[],
+  cache?: ShardCache,
+  preambleSection = 'about-this-guide.md',
+  context: SectionSlugContext = {},
+): Map<string, string> {
+  return assignSectionSlugs(sectionPaths, cache, preambleSection, context);
+}
+
+export interface PublishRelativeLinkRewriteOptions {
+  sourceFile: string;
+  guideDir: string;
+  scopeRoot?: string;
+  currentGuideName?: string;
+  /** Absolute path to the document being assembled: the guide's compiled guide or the monolith. */
+  currentOutputFile: string;
+  linkIndex?: GuideLinkIndex;
+  searchRoots?: string[];
+  /** Open each target the pass writes with the mark that tells later passes to leave it alone. */
+  markWritten?: boolean;
+  /**
+   * Absolute paths of the files the run writes. A target that names one resolves before the file
+   * is on disk, so a link to an output compiles the same on a first run and on later ones.
+   */
+  runOutputFiles?: ReadonlySet<string>;
+  /**
+   * Absolute paths of configured outputs the run never writes. A target that names one counts as
+   * missing, so a file an earlier run left there doesn't change the compiled link.
+   */
+  unwrittenOutputFiles?: ReadonlySet<string>;
+}
+
+function parseLinkPath(target: string): { path: string; suffix: string } {
+  const hash = target.indexOf('#');
+  if (hash === -1) return { path: target, suffix: '' };
+  return { path: target.slice(0, hash), suffix: target.slice(hash) };
+}
+
+function resolvePublishLinkTarget(
+  filePart: string,
+  options: PublishRelativeLinkRewriteOptions,
+): string | null {
+  const bases = [
+    dirname(options.sourceFile),
+    ...(options.scopeRoot ? [options.scopeRoot] : []),
+    options.guideDir,
+  ];
+  for (const base of bases) {
+    const candidate = resolve(base, filePart);
+    if (options.runOutputFiles?.has(candidate)) return candidate;
+    if (options.unwrittenOutputFiles?.has(candidate)) continue;
+    if (existsSync(candidate)) return candidate;
+  }
+  return null;
+}
+
+function skipPublishRelativeRewrite(
+  resolvedAbs: string,
+  options: PublishRelativeLinkRewriteOptions,
+): boolean {
+  if (!options.linkIndex || !options.currentGuideName) return false;
+  const entry = options.linkIndex.get(resolvedAbs);
+  return entry?.guideName === options.currentGuideName;
+}
+
+/** Rewrite shard-relative file links to paths relative to the document being assembled (a compiled guide or the monolith). */
+export function rewritePublishRelativeLinks(
+  markdown: string,
+  options: PublishRelativeLinkRewriteOptions,
+): string {
+  const outputAbs = resolve(options.currentOutputFile);
+  if (!isAbsolute(outputAbs)) return markdown;
+
+  return rewriteMarkdownLinkLines(markdown, publishRelativeTargets, (target) => {
+    const { path: filePart, suffix } = parseLinkPath(target);
+    if (!filePart) return undefined;
+
+    const resolved = resolvePublishLinkTarget(filePart, options);
+    if (!resolved) return undefined;
+    if (skipPublishRelativeRewrite(resolved, options)) return undefined;
+
+    const fromDir = dirname(outputAbs);
+    // A target in the link base's own directory relativizes to '', which would leave an empty href.
+    const rel = relative(fromDir, resolve(resolved)).replace(/\\/g, '/') || './';
+    const mark = options.markWritten ? WRITTEN_LINK_MARK : '';
+    return `${mark}${rel}${suffix}`;
+  });
+}
+
+export interface IntraGuideLinkRewriteOptions {
+  sourceFile?: string;
+}
+
+/** Rewrite same-guide shard links to in-document anchors in every compiled guide. */
+export function rewriteIntraGuideFileLinks(
+  markdown: string,
+  slugByPath: Map<string, string>,
+  guideDir: string,
+  options?: IntraGuideLinkRewriteOptions,
+): string {
+  return rewriteMarkdownLinkLines(markdown, intraGuideTargets, (link) => {
+    const { file, fragment } = link;
+    // An earlier pass wrote this target relative to the link base, not to a shard.
+    if (file.startsWith(WRITTEN_LINK_MARK)) return undefined;
+    const normalized = file.replace(/^\.\//, '');
+    if (options?.sourceFile && normalized.startsWith('../')) return undefined;
+    let slug: string | undefined;
+
+    if (options?.sourceFile) {
+      slug = slugByPath.get(resolve(dirname(options.sourceFile), normalized));
+    }
+
+    if (!slug) {
+      slug = slugByPath.get(resolve(guideDir, normalized));
+    }
+
+    if (!slug) {
+      for (const [path, pathSlug] of slugByPath) {
+        if (basename(path) === normalized) {
+          slug = pathSlug;
+          break;
+        }
+      }
+    }
+    if (!slug) return undefined;
+    return fragment ? `#${fragment.slice(1)}` : `#${slug}`;
+  });
+}
+
+export interface CrossGuideLinkRewriteOptions {
+  sourceFile: string;
+  guideDir: string;
+  scopeRoot?: string;
+  currentGuideName?: string;
+  currentOutputBasename?: string;
+  /** Absolute path to the guide output being assembled. */
+  currentOutputFile?: string;
+  /**
+   * Absolute path to the monolith, set only when the guide being assembled is stitched into it.
+   * While such a guide assembles its own compiled guide, a link to another monolith guide's shard
+   * targets that guide's compiled guide (`GuideLinkEntry.guideFile`) instead of the monolith.
+   */
+  monolithFile?: string;
+  linkIndex: GuideLinkIndex;
+  /**
+   * Slugs for shards co-compiled into the current output. When a link resolves to a
+   * path in this map, rewrite to an in-document `#anchor` even if the shared index
+   * attributes the shard to another guide (multi-guide transitive co-inclusion).
+   */
+  slugByPath?: Map<string, string>;
+  /**
+   * Target guide names: links from the compiling guide to shards of a listed guide keep source
+   * `.md` paths instead of `#slug` targets in the target guide's compiled guide or in the monolith.
+   * Same compiled output preference comes first: a link to a shard in `slugByPath` whose owner in
+   * `linkIndex` is non-canonical still takes its in-document anchor.
+   */
+  ignoreGuides?: string[];
+  searchRoots?: string[];
+}
+
+function resolveIndexedMarkdownLink(
+  file: string,
+  options: CrossGuideLinkRewriteOptions,
+): GuideLinkEntry | null {
+  const shardDir = dirname(options.sourceFile);
+  const searchRoots = [
+    ...(options.searchRoots ?? defaultSearchRoots()),
+    ...(options.scopeRoot ? [options.scopeRoot] : []),
+  ];
+
+  const resolved =
+    resolveRelativeFile(file, shardDir, searchRoots) ??
+    resolveRelativeFile(file, options.guideDir, searchRoots);
+  if (!resolved) return null;
+
+  const entry = options.linkIndex.get(resolved);
+  const sameOutputSlug = options.slugByPath?.get(resolved);
+  // Prefer in-document anchors for co-compiled shards unless another guide has
+  // canonical (manifest / guideDir) ownership — those keep cross-output targets.
+  const preferSameOutput =
+    sameOutputSlug !== undefined &&
+    (!entry || entry.guideName === options.currentGuideName || entry.canonical === false);
+  if (preferSameOutput) {
+    return {
+      guideName: options.currentGuideName ?? '',
+      outputBasename: options.currentOutputBasename ?? '',
+      outputFile: options.currentOutputFile ?? '',
+      slug: sameOutputSlug,
+      canonical: false,
+    };
+  }
+
+  return entry ?? null;
+}
+
+/**
+ * The anchor a link to `entry`'s section gets in the document it lands in. An explicit
+ * `#fragment` stays as written. A section link takes the monolith's numbering when it lands in
+ * the monolith (`entry.outputFile` for a monolith guide's shard), and the owner's own numbering
+ * anywhere else.
+ */
+function sectionAnchor(
+  entry: GuideLinkEntry,
+  fragment: string | undefined,
+  landsInEntryOutput: boolean,
+): string {
+  if (fragment) return fragment.slice(1);
+  return landsInEntryOutput && entry.monolithSlug !== undefined ? entry.monolithSlug : entry.slug;
+}
+
+function formatCrossGuideTarget(
+  mark: string,
+  fragment: string | undefined,
+  entry: GuideLinkEntry,
+  options: CrossGuideLinkRewriteOptions,
+): string {
+  const sameGuide =
+    options.currentGuideName !== undefined && entry.guideName === options.currentGuideName;
+  const sameOutputFile =
+    options.currentOutputFile !== undefined && entry.outputFile === options.currentOutputFile;
+  const sameBasenameLegacy =
+    options.currentOutputBasename !== undefined &&
+    entry.outputBasename === options.currentOutputBasename &&
+    options.currentOutputFile === undefined;
+
+  if (sameGuide || sameOutputFile || sameBasenameLegacy) {
+    return `${mark}#${sectionAnchor(entry, fragment, sameOutputFile || sameBasenameLegacy)}`;
+  }
+
+  // A monolith guide's own compiled guide links another monolith guide's compiled guide.
+  const toGuideFile =
+    options.monolithFile !== undefined &&
+    options.currentOutputFile !== options.monolithFile &&
+    entry.outputFile === options.monolithFile &&
+    entry.guideFile !== undefined;
+  const toFile = toGuideFile ? entry.guideFile! : entry.outputFile;
+  const anchor = sectionAnchor(entry, fragment, !toGuideFile);
+
+  if (options.currentOutputFile) {
+    const fromDir = dirname(options.currentOutputFile);
+    if (dirname(toFile) === fromDir) {
+      return `${mark}${basename(toFile)}#${anchor}`;
+    }
+    let rel = relative(fromDir, toFile).replace(/\\/g, '/');
+    if (!rel.startsWith('.')) rel = `./${rel}`;
+    return `${mark}${rel}#${anchor}`;
+  }
+
+  return `${mark}${toGuideFile ? basename(toFile) : entry.outputBasename}#${anchor}`;
+}
+
+function crossGuidePass(
+  markdown: string,
+  options: CrossGuideLinkRewriteOptions,
+  mark: string,
+): string {
+  return rewriteMarkdownLinkLines(markdown, crossGuideTargets, (link) => {
+    const { file, fragment } = link;
+    const entry = resolveIndexedMarkdownLink(file, options);
+    if (!entry) return undefined;
+    if (options.ignoreGuides?.includes(entry.guideName)) return undefined;
+    return formatCrossGuideTarget(mark, fragment, entry, options);
+  });
+}
+
+/**
+ * Rewrite cross-guide `.md` links using the compile-time guide link index. The targets it writes
+ * carry no mark, so `rewriteIntraGuideFileLinks` run on its output can still read one as a shard
+ * link: `glossary.md#term` becomes `#term` when `slugByPath` has a shard named `glossary.md`.
+ * Compile uses a variant that marks each target it writes, so its later passes leave them alone.
+ */
+export function rewriteCrossGuideFileLinks(
+  markdown: string,
+  options: CrossGuideLinkRewriteOptions,
+): string {
+  return crossGuidePass(markdown, options, '');
+}
+
+/**
+ * `rewriteCrossGuideFileLinks` for assembly: each target the pass writes opens with a mark, so the
+ * later link passes leave it alone. Assembly removes the marks with `unmarkLinkTargets`.
+ */
+export function rewriteCrossGuideFileLinksMarked(
+  markdown: string,
+  options: CrossGuideLinkRewriteOptions,
+): string {
+  return crossGuidePass(markdown, options, WRITTEN_LINK_MARK);
+}

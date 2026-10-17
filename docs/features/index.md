@@ -1,6 +1,6 @@
 # Features Guide
 
-Product documentation for **what mdcp is designed to do**: the problems it solves and how commands connect.
+Product documentation for **what Merlon Docs is designed to do**: the problems it solves and how commands connect.
 
 - [Features Guide](#table-of-contents)
   - [About this guide](./about-this-guide.md)
@@ -16,6 +16,7 @@ Product documentation for **what mdcp is designed to do**: the problems it solve
 
 - [Manifest compile order](./manifest-compile-order.md)
 - [Default compile hooks](./default-compile-hooks.md)
+- [Compile pipeline](./compile-pipeline/index.md)
 - [Source tags and default banner](./source-tags-and-banner.md)
 - [Compile output backup](./compile-output-backup.md)
 - [Check gate](./check-gate.md)
@@ -23,32 +24,39 @@ Product documentation for **what mdcp is designed to do**: the problems it solve
 - [Monolith link lint](./monolith-link-lint.md)
 - [Path resolution in prose](./path-resolution.md)
 - [Documentation coverage scan](./coverage-scan.md)
+- [Standalone guides](./standalone-guides.md)
 - [Refs registry path](./refs-registry-path.md)
 
 ## Agent Skill and its workflows
 
 - [Agent Skill](./agent-skill.md)
-- [Skill workflows](./protocol/skill-workflows.md)
+- [Skill workflows](./system/skill-workflows.md)
+- [Getting-started workflow](./system/workflows/getting-started.md)
+- [Feature-level workflow](./system/workflows/feature-level.md)
+- [Doc-only workflow](./system/workflows/doc-only.md)
+- [Design-architecture workflow](./system/workflows/design-architecture.md)
+- [UX workflow](./system/workflows/ux.md)
+- [Doc-review workflow](./system/workflows/doc-review.md)
 
 ## Decisions and constraints
 
 - [Architecture decision records](./adr/index.md)
 - [Design constraints](./design-constraints/index.md)
 
-## Protocol
+## The system
 
-- [Vision and roadmap](./protocol/00-vision-and-roadmap.md)
-- [Scope and positioning](./protocol/01-scope-and-positioning.md)
-- [Alternatives and adoption](./protocol/02-alternatives-and-adoption.md)
-- [Usage model](./protocol/usage-model.md)
-- [Shard single responsibility and idea mitosis](./protocol/shard-srp-and-mitosis.md)
-- [Extensions and archetypes](./protocol/extensions-and-archetypes.md)
-- [MDCP 1.0 spec (draft)](./protocol/mdcp-1.0-spec.md)
-- [Acknowledgments](./protocol/acknowledgments.md)
+- [Vision and roadmap](./system/00-vision-and-roadmap.md)
+- [Scope and positioning](./system/01-scope-and-positioning.md)
+- [Alternatives and adoption](./system/02-alternatives-and-adoption.md)
+- [Usage model](./system/usage-model.md)
+- [Shard single responsibility and idea mitosis](./system/shard-srp-and-mitosis.md)
+- [Extensions and archetypes](./system/extensions-and-archetypes.md)
+- [Merlon Docs 1.0 spec (draft)](./system/merlon-docs-1.0-spec.md)
+- [Acknowledgments](./system/acknowledgments.md)
 
 ## Evidence and research
 
-- [Documentation and software reliability](./protocol/documentation-and-reliability.md)
-- [Benefit claims and evidence](./protocol/benefit-claims-and-evidence.md)
-- [Performance goals](./protocol/performance.md)
-- [Research records](./protocol/research/about-research-records.md)
+- [Documentation and software reliability](./system/documentation-and-reliability.md)
+- [Benefit claims and evidence](./system/benefit-claims-and-evidence.md)
+- [Performance goals](./system/performance.md)
+- [Research records](./system/research/about-research-records.md)

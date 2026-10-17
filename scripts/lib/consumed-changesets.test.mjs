@@ -80,6 +80,20 @@ describe('consumedChangesets', () => {
     assert.deepEqual(consumedChangesets(develop, { cwd: r.cwd }), ['.changeset/core-work.md']);
   });
 
+  it('finds a changeset that a prerelease moved into .changeset/pre/', () => {
+    const r = repo();
+    r.write('.changeset/pre.json', '{ "mode": "pre", "tag": "draft" }\n');
+    r.write('packages/core/src/index.ts', 'export const a = 1;\n');
+    r.write('.changeset/core-work.md', changeset('core'));
+    const develop = r.commit('feat: core work');
+    r.git('rm', '-q', '.changeset/core-work.md');
+    r.write('.changeset/pre/core-work.md', changeset('core'));
+    r.write('packages/core/package.json', '{ "name": "core", "version": "1.0.0-draft.0" }\n');
+    r.write('packages/core/CHANGELOG.md', '# core\n\n## 1.0.0-draft.0\n\n- A change.\n');
+    r.commit('chore: release');
+    assert.deepEqual(consumedChangesets(develop, { cwd: r.cwd }), ['.changeset/core-work.md']);
+  });
+
   it('finds a hotfix changeset that main added and released without develop seeing it', () => {
     // develop: work since the last release, with its own changeset.
     const r = repo();

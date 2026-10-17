@@ -16,17 +16,17 @@ import { performance } from 'node:perf_hooks';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, '..');
 const DOCS_ROOT = join(REPO_ROOT, 'docs');
-const CONFIG = join(DOCS_ROOT, 'mdcp.config.json');
-const CLI = join(REPO_ROOT, 'packages/mdcp-cli/dist/cli.js');
-const RESEARCH_DIR = join(DOCS_ROOT, 'features/protocol/research');
+const CONFIG = join(DOCS_ROOT, 'merlon.config.json');
+const CLI = join(REPO_ROOT, 'packages/merlon-docs-cli/dist/cli.js');
+const RESEARCH_DIR = join(DOCS_ROOT, 'features/system/research');
 
 /** Historical pre-P0 baselines — source: GitHub issue #64 (2026-06-18). */
 const PRE_P0 = {
   'compileGuideResults (core)': { value: 700, unit: 'ms', source: 'github-issue-64' },
   'built-in link lint': { value: 3000, unit: 'ms', source: 'github-issue-64' },
-  'mdcp compile (CLI)': { value: 4900, unit: 'ms', source: 'github-issue-64' },
-  'mdcp check (core, no peers)': { value: 4000, unit: 'ms', source: 'github-issue-64' },
-  'mdcp check (+ peers)': { value: 6600, unit: 'ms', source: 'github-issue-64' },
+  'merlon compile (CLI)': { value: 4900, unit: 'ms', source: 'github-issue-64' },
+  'merlon check (core, no peers)': { value: 4000, unit: 'ms', source: 'github-issue-64' },
+  'merlon check (+ peers)': { value: 6600, unit: 'ms', source: 'github-issue-64' },
   'link lint ms per link': { value: 8, unit: 'ms/link', source: 'github-issue-64' },
   'compile invocations per check': { value: 3, unit: 'count', source: 'github-issue-64' },
   'file reads per shard (compile)': { value: 5, unit: 'count', source: 'github-issue-64' },
@@ -45,7 +45,7 @@ function runCli(args, cwd = REPO_ROOT) {
   const r = spawnSync('node', [CLI, ...args], { encoding: 'utf-8', cwd });
   const wallMs = Math.round(performance.now() - start);
   if (r.status !== 0) {
-    throw new Error(`mdcp ${args[0]} failed (${r.status}): ${r.stderr?.slice(0, 500)}`);
+    throw new Error(`merlon ${args[0]} failed (${r.status}): ${r.stderr?.slice(0, 500)}`);
   }
   return wallMs;
 }
@@ -57,8 +57,8 @@ function timeCliMedian(args, runs = 3, cwd = REPO_ROOT) {
 }
 
 async function timeCorePhases() {
-  const core = await import(join(REPO_ROOT, 'packages/mdcp-core/dist/index.js'));
-  const config = core.loadConfig('mdcp.config.json', DOCS_ROOT);
+  const core = await import(join(REPO_ROOT, 'packages/merlon-docs-core/dist/index.js'));
+  const config = core.loadConfig('merlon.config.json', DOCS_ROOT);
   const opts = {
     guidesRoot: core.resolveDocsRoot(config, DOCS_ROOT),
     compileOrder: config.compileOrder,
@@ -150,7 +150,7 @@ async function main() {
   const compileCliMs = timeCliMedian([
     'compile',
     '--config',
-    'docs/mdcp.config.json',
+    'docs/merlon.config.json',
     '--docs-root',
     'docs',
     '--warn-broken-links',
@@ -158,14 +158,14 @@ async function main() {
   const checkPeersMs = timeCliMedian([
     'check',
     '--config',
-    'docs/mdcp.config.json',
+    'docs/merlon.config.json',
     '--docs-root',
     'docs',
     '--require-lint',
     '--require-vale',
   ]);
 
-  const benchDir = mkdtempSync(join(tmpdir(), 'mdcp-bench-'));
+  const benchDir = mkdtempSync(join(tmpdir(), 'merlon-bench-'));
   const coreConfig = join(benchDir, 'core-check.config.json');
   let checkCoreMs;
   try {
@@ -184,11 +184,11 @@ async function main() {
 
   const rows = [
     scorecardRow({
-      operation: 'mdcp compile (full repo)',
+      operation: 'merlon compile (full repo)',
       tier: 1,
       sloTarget: '< 2 s',
       sloShards: 200,
-      pre: PRE_P0['mdcp compile (CLI)'],
+      pre: PRE_P0['merlon compile (CLI)'],
       post: { value: compileCliMs, unit: 'ms' },
       postSource,
       status: compileCliMs < 2000 ? 'met' : 'miss',
@@ -196,11 +196,11 @@ async function main() {
       recordedAt,
     }),
     scorecardRow({
-      operation: 'mdcp check (core, no peers)',
+      operation: 'merlon check (core, no peers)',
       tier: 2,
       sloTarget: '< 5 s',
       sloShards: 200,
-      pre: PRE_P0['mdcp check (core, no peers)'],
+      pre: PRE_P0['merlon check (core, no peers)'],
       post: { value: checkCoreMs, unit: 'ms' },
       postSource,
       status: checkCoreMs < 5000 ? 'met' : 'miss',
@@ -208,11 +208,11 @@ async function main() {
       recordedAt,
     }),
     scorecardRow({
-      operation: 'mdcp check (+ peers)',
+      operation: 'merlon check (+ peers)',
       tier: 3,
       sloTarget: '< 30 s',
       sloShards: 200,
-      pre: PRE_P0['mdcp check (+ peers)'],
+      pre: PRE_P0['merlon check (+ peers)'],
       post: { value: checkPeersMs, unit: 'ms' },
       postSource,
       status: checkPeersMs < 30000 ? 'met' : 'miss',
@@ -262,7 +262,7 @@ async function main() {
       sloShards: '',
       pre: PRE_P0['compile invocations per check'],
       post: { value: compileInvocations, unit: 'count' },
-      postSource: 'packages/mdcp-cli/test/compile-workspace.test.ts',
+      postSource: 'packages/merlon-docs-cli/test/compile-workspace.test.ts',
       status: compileInvocations === 1 ? 'met' : 'miss',
       notes: 'Verified by unit test spy on compileGuideResultsWithContext',
       recordedAt,
@@ -274,7 +274,7 @@ async function main() {
       sloShards: '',
       pre: PRE_P0['file reads per shard (compile)'],
       post: { value: fileReadsPerShard, unit: 'count' },
-      postSource: 'packages/mdcp-core/test/shard-cache.test.ts',
+      postSource: 'packages/merlon-docs-core/test/shard-cache.test.ts',
       status: fileReadsPerShard === 1 ? 'met' : 'miss',
       notes: 'Verified by unit test readFileSync count during compileGuideResultsWithContext',
       recordedAt,

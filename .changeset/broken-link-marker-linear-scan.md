@@ -1,5 +1,5 @@
 ---
-'@bwilliamson/mdcp-core': patch
+'@merlon-docs/merlon-docs-core': patch
 ---
 
 Find broken-link markers in linear time

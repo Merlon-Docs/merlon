@@ -1,8 +1,8 @@
 # Manifest compile order
 
-Each guide's **compile order** comes from markdown links in its manifest file: `index.md` by default, or `shards.md` when configured under `guides[].compile.manifest`. mdcp collects every link to a `.md` file in **document order** and stitches those shards in that sequence. A same-document `#slug` link also adds `slug.md` when that file exists in the guide directory. Those shards compile after the shards the manifest links by path.
+Each guide's **compile order** comes from markdown links in its manifest file: `index.md` by default, or `shards.md` when configured under `guides[].compile.manifest`. Merlon Docs collects every link to a `.md` file in **document order** and stitches those shards in that sequence. A same-document `#slug` link also adds `slug.md` when that file exists in the guide directory. Those shards compile after the shards the manifest links by path. The rule skips `#table-of-contents`: the `[Guide title](#table-of-contents)` self-link that opens the manifests in this repository doesn't add a shard.
 
-Guide directories are **human source only** (`index.md`, shard files). Generated outputs (per-guide `{name}.md`, optional monolith, `.caches/refs.json`, explicit `compile.outputFile`) live under `outputDir`.
+Guide directories are **human source only** (`index.md`, shard files). Under `outputDir`, compile writes a per-guide `{name}.md` for each guide that has no `compile.outputFile`, the optional monolith and `.caches/refs.json`. A publish output goes where its `compile.outputFile` points, which can be outside `outputDir`. [Path layout](../client-cli/config-essentials.md#path-layout) gives the rules.
 
 ## Default behavior
 
@@ -39,7 +39,7 @@ Content-Security-Policy ([CSP](04-security-sync.md#glossary-csp)).
 
 ### Without `sectionsHeading`
 
-mdcp collects **all** `.md` links in file order:
+Merlon Docs collects **all** `.md` links in file order:
 
 | Order | Link                     | Author intent                                  |
 | ----- | ------------------------ | ---------------------------------------------- |
@@ -66,7 +66,7 @@ Set `guides[].compile.sectionsHeading` to the `##` heading that starts the real 
 }
 ```
 
-mdcp only considers links **at or after** `## Sections`. Preamble example links are ignored for compile order. Order becomes `01` → `02` → `03` → `04` → `05`.
+Merlon Docs only considers links **at or after** `## Sections`. Preamble example links are ignored for compile order. Order becomes `01` → `02` → `03` → `04` → `05`.
 
 `04-security-sync.md` still compiles because it appears under `## Sections`, not because it is mentioned in the policy paragraph.
 
@@ -78,28 +78,41 @@ mdcp only considers links **at or after** `## Sections`. Preamble example links 
 | `shards.md` lists cross-tree shards only (compiled review guides)                                                                | Usually omit                 |
 | Preamble has inline `.md` links that are examples or cross-references, plus a separate ordered section list under a `##` heading | **Set** to that heading text |
 
-The heading match is exact: `sectionsHeading` `"Sections"` matches a line that starts with `##` followed by `Sections`, not `## Section list`.
+`sectionsHeading` matches a `##` line whose text equals it, ignoring case: `"Sections"` matches `## Sections` and `## SECTIONS`, not `## Section list`. When no `##` line matches, compile reads every link in the manifest, as it does without `sectionsHeading`.
 
 ## Linked shards and the file-name fallback
 
-Compile also follows inline `.md` links inside the shards it stitches. A guide compiles its manifest's shards plus every shard it finds by following links from shard to shard, a set the code calls `linkedSectionFiles`. Each link resolves from the directory that contains its shard, and the walk keeps a target that exists in the guide directory or under `compile.scopeRoot`. Those shards compile after the manifest's shards, in the order the walk finds them. [Cross-guide purpose](../client-core/compile-hooks/cross-guide-links.md#cross-guide-purpose) says which shards in the set get an entry in the guide link index.
+Compile also follows inline `.md` links inside the shards it stitches. A guide compiles its manifest's shards plus every shard it finds by following links from shard to shard, a set the code calls `linkedSectionFiles`. Each link resolves from the directory that contains its shard, and the walk keeps a target that exists in the guide directory or under `compile.scopeRoot`. Those shards compile after the manifest's shards, in the order the walk finds them. [Guide link index](./compile-pipeline/cross-guide-links.md#guide-link-index) says which shards in the set get an entry in the guide link index.
 
-| Authoring form                                                | Walk follows it |
-| ------------------------------------------------------------- | --------------- |
-| Inline link `[label](path.md)` or `[label](path.md#fragment)` | Yes             |
-| Reference-style link `[label][ref]` with `[ref]: path.md`     | No              |
-| File path in backticks, such as `` `path.md` ``               | No              |
+| Authoring form                                                                                           | Walk follows it |
+| -------------------------------------------------------------------------------------------------------- | --------------- |
+| Inline link `[label](path.md)` or `[label](path.md#fragment)`                                            | Yes             |
+| Linked image `[![alt](img.png)](path.md)`, or a label with balanced brackets such as `[arr[0]](path.md)` | Yes             |
+| Image `![alt](path.md)`                                                                                  | Yes             |
+| Link after a backslash, `\[label](path.md)`                                                              | No              |
+| Reference-style link `[label][ref]` with `[ref]: path.md`                                                | No              |
+| File path in backticks, such as `` `path.md` ``                                                          | No              |
 
-The walk reads each shard's raw text. It also follows an inline link written in a code span or a fenced code block. The walk skips a reference-style link and a path in backticks, so either one can refer to a shard that the guide doesn't compile. No link pass rewrites either form, and the path stays as written in the compiled output.
+The walk reads a label and a target as the [link passes](./compile-pipeline/link-passes.md) do. It reads each shard's raw text, so it also follows an inline link written in a code span or a fenced code block. The walk skips a reference-style link and a path in backticks, so either one can refer to a shard that the guide doesn't compile. No link pass rewrites either form, and the path stays as written in the compiled output.
 
-That walk serves shards in guide subdirectories and under `compile.scopeRoot`. The manifest must link every top-level shard in the guide directory directly, because the [orphan check](./feature-catalog.md#orphan-check) reads only the manifest. A top-level shard that only another shard links still compiles, and `mdcp check` reports it as an orphan.
+That walk serves shards in guide subdirectories and under `compile.scopeRoot`. The manifest must link every top-level shard in the guide directory directly, because the [orphan check](#orphan-check-scope) reads only the manifest. A top-level shard that only another shard links still compiles, and `merlon check` reports it as an orphan.
 
-When the manifest links no shards, compile takes the other top-level `.md` files in the guide directory in file-name order, leaving out any `shards.md`, and the orphan check reports nothing for that guide.
+When the manifest links no shards, compile takes the other top-level `.md` files in the guide directory in file-name order, leaving out any `shards.md`.
+
+## Orphan check scope
+
+The orphan check compares each guide directory in `compileOrder` with the shards its manifest links, read the way compile reads them, from `compile.sectionsHeading` on when that is set. It reports:
+
+- a top-level `.md` file in the guide directory that the manifest doesn't link, other than the manifest and `shards.md`
+- a manifest link to a file that doesn't exist
+- a guide directory that doesn't exist, or a manifest that is missing or can't be read
+
+The check doesn't follow links from shard to shard, and it doesn't read guide subdirectories or `compile.scopeRoot`. When the manifest links no shards, every top-level file compiles through the file-name fallback, and the check reports none of them for that guide. `merlon check` runs it first and stops on any issue, as [Check gate stages](./check-gate.md#check-gate-stages) says. [Relationship to the orphan check](./coverage-scan.md#relationship-to-the-orphan-check) says which unlinked shards neither the orphan check nor the coverage scan reports.
 
 ## Workflow
 
 1. Edit shard files and `index.md` link order as needed.
-2. Run `mdcp compile` — there is no separate manifest sync step.
-3. Run `mdcp check` — orphan validation uses the same manifest rules as compile.
+2. Run `merlon compile` — there is no separate manifest sync step.
+3. Run `merlon check` — orphan validation uses the same manifest rules as compile.
 
-Code: `manifestTextForSections` and `sectionFiles` in `packages/mdcp-core/src/compile/section-manifest.ts`.
+Code: `manifestTextForSections` and `sectionFiles` in `packages/merlon-docs-core/src/compile/section-manifest.ts`.

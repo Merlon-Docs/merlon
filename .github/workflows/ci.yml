@@ -8,12 +8,16 @@ on:
   pull_request:
     # Any target branch (stacked feature PRs, not only main).
     # Changeset checks use github.event.pull_request.base.sha — never a hardcoded branch name.
+    # PRs open as drafts, and every job skips a draft. GitHub won't merge
+    # a draft, so the skipped run it records, which counts as passing for a
+    # required check, can't let one merge. `ready_for_review` runs CI once
+    # when the PR is marked ready, and later pushes run it again.
     # `edited` fires when a PR's base changes, so a PR moved to another base is
     # tested against that base before it can merge. It also fires on title and
-    # body edits. No job-level `if` skips those: a skipped run counts as passing
-    # for a required check and would replace an earlier failed run. The
-    # concurrency group below cancels the run an edit makes stale.
-    types: [opened, synchronize, reopened, edited]
+    # body edits. No job-level `if` skips those on a ready PR: a skipped run
+    # counts as passing for a required check and would replace an earlier
+    # failed run. The concurrency group below cancels the run an edit makes stale.
+    types: [opened, synchronize, reopened, edited, ready_for_review]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -30,6 +34,7 @@ jobs:
   check:
     name: Check
     runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     permissions:
       contents: read
     steps:
@@ -71,15 +76,15 @@ jobs:
           CORE_DUMP="$(mktemp)"
           CLI_DUMP="$(mktemp)"
           set +e
-          GITHUB_STEP_SUMMARY="$CORE_DUMP" pnpm --filter @bwilliamson/mdcp-core test
+          GITHUB_STEP_SUMMARY="$CORE_DUMP" pnpm --filter @merlon-docs/merlon-docs-core test
           CORE_STATUS=$?
-          GITHUB_STEP_SUMMARY="$CLI_DUMP" pnpm --filter @bwilliamson/mdcp-cli test
+          GITHUB_STEP_SUMMARY="$CLI_DUMP" pnpm --filter @merlon-docs/merlon-docs-cli test
           CLI_STATUS=$?
           node --test scripts/*.test.mjs scripts/**/*.test.mjs
           SCRIPTS_STATUS=$?
           set -e
-          GITHUB_STEP_SUMMARY="$REAL_SUMMARY" node scripts/append-labeled-vitest-summary.mjs mdcp-core "$CORE_DUMP"
-          GITHUB_STEP_SUMMARY="$REAL_SUMMARY" node scripts/append-labeled-vitest-summary.mjs mdcp-cli "$CLI_DUMP"
+          GITHUB_STEP_SUMMARY="$REAL_SUMMARY" node scripts/append-labeled-vitest-summary.mjs merlon-docs-core "$CORE_DUMP"
+          GITHUB_STEP_SUMMARY="$REAL_SUMMARY" node scripts/append-labeled-vitest-summary.mjs merlon-docs-cli "$CLI_DUMP"
           if [ "$CORE_STATUS" -ne 0 ] || [ "$CLI_STATUS" -ne 0 ] || [ "$SCRIPTS_STATUS" -ne 0 ]; then
             exit 1
           fi
@@ -93,6 +98,7 @@ jobs:
   coverage:
     name: Coverage
     runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     permissions:
       contents: read
     steps:
@@ -120,13 +126,13 @@ jobs:
           CORE_DUMP="$(mktemp)"
           CLI_DUMP="$(mktemp)"
           set +e
-          GITHUB_STEP_SUMMARY="$CORE_DUMP" pnpm --filter @bwilliamson/mdcp-core run test:coverage
+          GITHUB_STEP_SUMMARY="$CORE_DUMP" pnpm --filter @merlon-docs/merlon-docs-core run test:coverage
           CORE_STATUS=$?
-          GITHUB_STEP_SUMMARY="$CLI_DUMP" pnpm --filter @bwilliamson/mdcp-cli run test:coverage
+          GITHUB_STEP_SUMMARY="$CLI_DUMP" pnpm --filter @merlon-docs/merlon-docs-cli run test:coverage
           CLI_STATUS=$?
           set -e
-          GITHUB_STEP_SUMMARY="$REAL_SUMMARY" node scripts/append-labeled-vitest-summary.mjs mdcp-core "$CORE_DUMP"
-          GITHUB_STEP_SUMMARY="$REAL_SUMMARY" node scripts/append-labeled-vitest-summary.mjs mdcp-cli "$CLI_DUMP"
+          GITHUB_STEP_SUMMARY="$REAL_SUMMARY" node scripts/append-labeled-vitest-summary.mjs merlon-docs-core "$CORE_DUMP"
+          GITHUB_STEP_SUMMARY="$REAL_SUMMARY" node scripts/append-labeled-vitest-summary.mjs merlon-docs-cli "$CLI_DUMP"
           if [ "$CORE_STATUS" -ne 0 ] || [ "$CLI_STATUS" -ne 0 ]; then
             exit 1
           fi
@@ -135,26 +141,26 @@ jobs:
         if: always()
         run: node scripts/coverage-job-summary.mjs >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload mdcp-core coverage
+      - name: Upload merlon-docs-core coverage
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: coverage-mdcp-core
-          path: packages/mdcp-core/coverage
+          name: coverage-merlon-docs-core
+          path: packages/merlon-docs-core/coverage
           if-no-files-found: warn
 
-      - name: Upload mdcp-cli coverage
+      - name: Upload merlon-docs-cli coverage
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: coverage-mdcp-cli
-          path: packages/mdcp-cli/coverage
+          name: coverage-merlon-docs-cli
+          path: packages/merlon-docs-cli/coverage
           if-no-files-found: warn
 
   changeset:
     name: Changeset
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && !github.event.pull_request.draft
     permissions:
       contents: read
     steps:
@@ -183,12 +189,12 @@ jobs:
           PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: |
           echo "Changeset since PR base: $CHANGESET_SINCE ($PR_BASE_REF)"
-          pnpm changeset:reject-major
           pnpm changeset:status
 
   formal:
     name: Formal models
     runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     permissions:
       contents: read
     steps:

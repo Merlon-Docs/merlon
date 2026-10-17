@@ -1,6 +1,6 @@
 ---
-'@bwilliamson/mdcp-core': minor
-'@bwilliamson/mdcp-cli': patch
+'@merlon-docs/merlon-docs-core': minor
+'@merlon-docs/merlon-docs-cli': patch
 ---
 
 Lint each compiled output against its own slugs, and lint the monolith as a document
@@ -8,7 +8,7 @@ Lint each compiled output against its own slugs, and lint the monolith as a docu
 `lintLinks` accepted a compiled `#fragment` when it matched a heading of the
 output or the slug of any shard in the guide link index. So a guide could link
 `#topic` to a heading that only another guide's compiled guide has, and
-`mdcp check` passed. The monolith was never linted as a document, apart from
+`merlon check` passed. The monolith was never linted as a document, apart from
 its BROKEN LINK markers. Issue lines also left out the banner, so a diagnostic
 named a line two lines above the link in the written file.
 
@@ -44,7 +44,7 @@ guide whose copy holds its line, as it does for a compiled guide. Called without
 numbers and lints the monolith too. The `knownSlugs` option of `assembleGuide`
 is now marked deprecated. Assembly already ignored it.
 
-`mdcp compile` and `mdcp check` report these issues. A diagnostic now gives the
+`merlon compile` and `merlon check` report these issues. A diagnostic now gives the
 line of the written file, banner included, and a monolith issue gives the guide
 whose copy holds its line.
 

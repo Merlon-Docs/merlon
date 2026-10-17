@@ -4,7 +4,7 @@
  * package-labeled heading, then append it to $GITHUB_STEP_SUMMARY.
  *
  * Vitest 4.1 always emits the same H2 for every run (no project name), which
- * is unreadable when mdcp-core and mdcp-cli both append to the same summary.
+ * is unreadable when merlon-docs-core and merlon-docs-cli both append to the same summary.
  *
  * Usage:
  *   GITHUB_STEP_SUMMARY=/path/to/real-summary \

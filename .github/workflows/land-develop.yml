@@ -123,7 +123,6 @@ jobs:
           if ! git diff --quiet "$CHANGESET_SINCE" HEAD -- formal scripts/formal-check.mjs scripts/lib/alloy-receipt.mjs; then
             pnpm formal:check
           fi
-          pnpm changeset:reject-major
           pnpm changeset:status
 
   land:

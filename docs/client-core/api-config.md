@@ -1,28 +1,32 @@
-# API — Config
+# Config API
 
-| Export                                                                                 | Purpose                                                                     |
-| -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| `loadConfig(path, configBase)`                                                         | Load and validate `mdcp.config.json` (`path` is resolved from `configBase`) |
-| `resolveOutputPath`, `resolveRefsPath`, `resolveGuideDir`, `defaultGuideOutputFile`    | Path resolvers for docs root and `outputDir`                                |
-| `getGuideConfig`, `guideScanDirs`, `shardLintPaths`                                    | In-scope guide fileset and shard lint helpers                               |
-| `MdcpConfigSchema`, `MdcpConfig`, `MdcpConfigInput`, `GuideConfig`, `GuideConfigInput` | Zod schema and types                                                        |
-| `DEFAULT_COMPILE_HOOKS`, `resolveCompileHooks`                                         | Default built-in hook pipeline and guide-level resolution                   |
+| Export                                                                                       | Purpose                                                                                       |
+| -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `loadConfig(path, configBase)`                                                               | Load and validate `merlon.config.json` (`path` is resolved from `configBase`)                 |
+| `parseConfig(raw)`                                                                           | Validate a config object that is already parsed, as `loadConfig` does after it reads the file |
+| `resolveOutputPath`, `resolveRefsPath`, `resolveGuideDir`, `resolveUnderOutputDir`           | Path resolvers for docs root and `outputDir`                                                  |
+| `defaultGuideOutputFile`, `effectiveGuideOutputFile`                                         | A guide's default output file name, and its `compile.outputFile` or that default              |
+| `resolveDocsRoot(config, docsRoot)`                                                          | The docs root, which is `docsRoot` as given                                                   |
+| `resolveGuideLinkBase(config, docsRoot, name, compileOrderLength, compile)`                  | The output a publish output links to for a guide                                              |
+| `getGuideConfig`, `guideScanDirs`, `shardLintPaths`                                          | In-scope guide fileset and shard lint helpers                                                 |
+| `MerlonConfigSchema`, `MerlonConfig`, `MerlonConfigInput`, `GuideConfig`, `GuideConfigInput` | Zod schema and types                                                                          |
+| `DEFAULT_COMPILE_HOOKS`, `resolveCompileHooks`                                               | Default built-in hook pipeline and guide-level resolution                                     |
+
+`resolveGuideLinkBase` returns the guide's `compile.outputFile` when the guide sets one. Without one, it returns the monolith when the config has one, and the guide's compiled guide otherwise. Despite its name, the result is the [link base](../features/compile-pipeline/publish-relative-links.md#when-it-runs) of only the assembly that writes that file. A guide in the monolith has one link base per document, and its own compiled guide rebases on its own path rather than on the monolith this returns.
 
 ## Path resolution: `configBase` vs docs root
 
-| Concern                    | Base                          | Example                                                                          |
-| -------------------------- | ----------------------------- | -------------------------------------------------------------------------------- |
-| Finding `mdcp.config.json` | `configBase` (invocation dir) | `--config docs/mdcp.config.json` → `<repo>/docs/mdcp.config.json`                |
-| Guide shards (default)     | Docs root (`--docs-root`)     | `resolveGuideDir('features', config, docsRoot)` → absolute `<docsRoot>/features` |
-| `outputDir`                | Docs root                     | `_build` → `<docsRoot>/_build`                                                   |
-| All generated paths        | `outputDir`                   | `features.md` → `<docsRoot>/_build/features.md`; `.caches/refs.json` for refs    |
+| Concern                      | Base                          | Example                                                                          |
+| ---------------------------- | ----------------------------- | -------------------------------------------------------------------------------- |
+| Finding `merlon.config.json` | `configBase` (invocation dir) | `--config docs/merlon.config.json` → `<repo>/docs/merlon.config.json`            |
+| Guide shards (default)       | Docs root (`--docs-root`)     | `resolveGuideDir('features', config, docsRoot)` → absolute `<docsRoot>/features` |
 
-All generated paths use `resolveUnderOutputDir(docsRoot, outputDir, file)` — relative to `outputDir` unless `file` is absolute. Details: [API — Refs](./api-refs-validation.md).
+`resolveOutputPath` and `resolveRefsPath` resolve a generated path with `resolveUnderOutputDir(docsRoot, outputDir, file)`. [Resolution bases](../client-cli/config-essentials.md#resolution-bases) in Config essentials gives the base of `outputDir` and of each generated path.
 
 ```typescript
-import { loadConfig, resolveGuideDir } from '@bwilliamson/mdcp-core';
+import { loadConfig, resolveGuideDir } from '@merlon-docs/merlon-docs-core';
 
-const config = loadConfig('docs/mdcp.config.json', process.cwd());
+const config = loadConfig('docs/merlon.config.json', process.cwd());
 const featuresDir = resolveGuideDir('features', config, join(process.cwd(), 'docs'));
 ```
 
@@ -30,36 +34,28 @@ Pass `process.cwd()` as `configBase` for `loadConfig`. Pass the docs root as `do
 
 `resolveGuideDir` and `guideScanDirs` return absolute paths. A relative `docsRoot` such as `docs` resolves against the process cwd. The CLI runs markdownlint-cli2 and Vale with the docs root as their cwd, where a relative `docs/features` would name `docs/docs/features`, a directory that doesn't exist.
 
-`shardLintPaths` returns paths for markdownlint-cli2 running with the docs root as its cwd, as the CLI runs it. Run markdownlint-cli2 from the docs root with them. From any other cwd, markdownlint-cli2 resolves the relative paths against that directory, so it misses the guide shards and lints the wrong files or none. It returns most `lint.markdownlint.shardsGlobs` entries as written, so a negated entry still excludes files. A `.` entry comes back as `**`, so markdownlint-cli2 lints every file under the docs root. Given `.` as its only path, it would lint the Markdown files at the top of the docs root and nothing below them.
+`shardLintPaths(config, docsRoot)` returns paths for markdownlint-cli2 run with the docs root as its cwd, as `merlon lint` and `merlon check` run it. From another cwd, the relative paths match the wrong files or none. Without `lint.markdownlint.shardsGlobs`, it returns one glob per guide directory, as [In-scope guide fileset](../client-cli/optional-linters.md#in-scope-guide-fileset) describes, and `**/*.{md,markdown}` for a guide whose directory is the docs root. A relative glob that would start with `!`, `#` or `:` gets a leading `./`, so markdownlint-cli2 doesn't read it as a negation or a literal path. Use `guideScanDirs` for the directories themselves.
 
-Without `shardsGlobs`, `shardLintPaths` returns a glob for the Markdown files in each guide directory, such as `features/**/*.{md,markdown}`. markdownlint-cli2 expands a bare directory to every file in it, images included. A guide under the docs root gets a glob relative to it, which keeps glob characters in the checkout path, such as the parentheses in `repo (copy)`, out of the pattern. A guide outside the docs root gets an absolute glob. As a `../` glob next to an in-root glob, it would lose the shard preset's `!**/index.md`, because globby rebases a `**/` negation onto `../` only when every pattern starts with the same `../`. Under a symlinked docs root, markdownlint-cli2 runs in the link target, where `../` names another directory. Glob characters and quotes in the path are escaped. Use `guideScanDirs` for the directories themselves.
+With `shardsGlobs`, it returns each entry as written, negated entries included, with two exceptions. A `.` entry becomes `**`. An entry that starts with `../` gets the escaped absolute directory those segments name in their place, then `/**` when the entry is a directory, and a negated one gets `**` in front.
 
-A `shardsGlobs` entry that starts with `../` gets the escaped absolute path of the directory those segments name in their place, followed by `/**` when the entry is a directory. A negated entry gets `**` in front of the absolute path, because globby reads most absolute negations as relative to its cwd.
+`loadConfig` validates the file with `MerlonConfigSchema` through `parseConfig`, and fills the top-level defaults, such as `outputDir`, `banner`, `sourceTags`, `scan`, `backup`, `refs` and `review`. A key inside an omitted optional object, such as `lint`, `lint.links`, `vale` or a guide's `compile`, is `undefined` after loading, and the code that reads it applies the documented default. Config essentials lists the output layout and its defaults under [Path layout](../client-cli/config-essentials.md#path-layout). [Source tags and default banner](../features/source-tags-and-banner.md) gives the default banner text and the per-guide `compile.includeBanner` and `compile.sourceTags` keys.
 
-`loadConfig` validates the file with `MdcpConfigSchema` and fills the top-level defaults, such as `outputDir`, `banner`, `sourceTags`, `scan`, `backup`, `refs` and `review`. A key inside an omitted optional object, such as `lint`, `lint.links`, `vale` or a guide's `compile`, is `undefined` after loading, and the code that reads it applies the documented default. Config essentials lists the output layout and its defaults under [Path layout](../client-cli/config-essentials.md#path-layout). The default banner text is in [Source tags and default banner](../features/source-tags-and-banner.md).
-
-`compile.includeBanner` controls whether the global banner is prepended (defaults to `true` for all outputs). `compile.sourceTags` overrides the top-level `sourceTags` setting per guide (for example, set `false` on a Slidev deck whose leading frontmatter must stay at the top of the file).
+A config written before the rename stores the standard version under `protocolVersion`. `parseConfig` copies that value to `standardVersion` when `standardVersion` is absent, and it sets `protocolVersion` to the result. Different values under the two keys are an error. Parsing with `MerlonConfigSchema` alone skips that copy, so `standardVersion` takes its default.
 
 ### Publish outputs and link paths
 
 Guides with `compile.outputFile` publish outside the shard tree (npm READMEs, `DEVELOPERS.md`, and similar).
 
-After the cross-guide and intra-guide rewrites, compile resolves the `../` links a shard still has and writes them relative to the guide's [link base](./compile-hooks/publish-relative-links.md#when-it-runs). [Publish-relative exclusions](./compile-hooks/publish-relative-links.md#publish-relative-exclusions) lists the links it leaves as written, such as a path that leads to no file. A guide doesn't need path-prefix config for this. [Link passes](./compile-hooks/index.md#link-passes) lists the passes in order, and [Publish-relative link rewriting](./compile-hooks/publish-relative-links.md) has examples from MDCP's own docs.
+After the cross-guide and intra-guide rewrites, compile resolves the `../` links a shard still has and writes them relative to the guide's [link base](../features/compile-pipeline/publish-relative-links.md#when-it-runs). [Publish-relative exclusions](../features/compile-pipeline/publish-relative-links.md#publish-relative-exclusions) lists the links it leaves as written, such as a path that leads to no file. A guide doesn't need path-prefix config for this. [Link passes](../features/compile-pipeline/link-passes.md) lists the passes in order, and [Publish-relative link rewriting](../features/compile-pipeline/publish-relative-links.md) has examples from Merlon Docs’ own docs.
 
 ## `compile.hooks`
 
-Built-in hooks run by default when `compile.hooks` is omitted. See [Default compile hooks](../features/default-compile-hooks.md).
-
-- **Omitted** — run `DEFAULT_COMPILE_HOOKS` in order: `stripAnchors`, `codeEvidence`, `inlineInserts`
-- **`string[]`** — explicit override; replaces defaults entirely (backward compatible)
-- **`Record<string, boolean>`** — opt out; keys with `false` remove that hook from defaults
-
-Optional per-hook settings: `compile.hooksConfig` (`inlineInserts.searchRoots`). Post-stitch anchor stripping: `compile.stripAnchors` (default `true`), independent of the per-shard `stripAnchors` hook unless opted out.
+`resolveCompileHooks(compile)` returns the list of hooks a guide runs, which is `DEFAULT_COMPILE_HOOKS` when `compile.hooks` is omitted. [Configuration](./compile-hooks/index.md#configuration) in the hooks overview covers the config keys.
 
 ## `compile.crossGuideLinks`
 
 Assembly-time cross-guide link options on the **compiling** guide (not a compile hook):
 
-- **`ignoreGuides`**: `string[]` of guide names. Links from the compiling guide to shards of a listed guide keep source `.md` paths instead of rewriting to `#slug` targets, except in the cases that [its config section](./compile-hooks/cross-guide-links.md#compilecrossguidelinksignoreguides) points to
+- **`ignoreGuides`**: `string[]` of guide names. Links from the compiling guide to shards of a listed guide keep source `.md` paths instead of rewriting to `#slug` targets, except where a link to a shard the compiling guide stitches takes its in-document anchor, as [ignoreGuides](../glossary/ignore-guides.md) says.
 
-See [Cross-guide link rewriting](./compile-hooks/cross-guide-links.md) and [ignoreGuides](../glossary/ignore-guides.md).
+See [Cross-guide link rewriting](../features/compile-pipeline/cross-guide-links.md).

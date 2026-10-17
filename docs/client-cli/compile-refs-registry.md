@@ -1,27 +1,6 @@
 # Compile and the refs registry
 
-## End-user value
-
-When you organize compiled outputs in subdirectories (`compile.outputFile: "compiled/guide-a.md"`), `mdcp compile` still keeps the refs registry at the documented cache path under `outputDir`. You can run `mdcp refs-list` right after compile when writing cross-links, without moving the file or running `mdcp refs-gen` first.
-
-## Registry location
-
-`refs.registryFile` is always relative to `outputDir`, not to each guide's `compile.outputFile`. See [Config essentials — path layout](./config-essentials.md#path-layout).
-
-Example:
-
-```json
-{
-  "outputDir": "_build",
-  "refs": { "registryFile": ".caches/refs.json" },
-  "guides": [{ "name": "guide-a", "compile": { "outputFile": "compiled/guide-a.md" } }]
-}
-```
-
-| Artifact       | Path                              |
-| -------------- | --------------------------------- |
-| Compiled guide | `docs/_build/compiled/guide-a.md` |
-| Refs registry  | `docs/_build/.caches/refs.json`   |
+`merlon compile` writes the [refs registry](../glossary/refs-registry.md) to `refs.registryFile`, which resolves by the rule in [Path layout](./config-essentials.md#path-layout). A guide's `compile.outputFile` doesn't move the registry. `merlon refs-list` reads it right after compile, with no `merlon refs-gen` run first. [Refs registry path](../features/refs-registry-path.md#path-resolution) is the spec and has an example. [Cross-links and refs](./cross-links-and-refs.md) shows when to run each command while you write cross-links.
 
 ## Registry contents
 
@@ -38,14 +17,4 @@ Each output numbers its headings without the others. So when two guides in the m
 
 The top-level `headings` and `slugs` hold the headings of one text. That text is the monolith when the config sets top-level `outputFile`, and otherwise every compiled guide joined in `compileOrder`, without banners. So a publish output's headings reach the top level only in a config without a monolith. Read `outputs` to find the slugs of one file.
 
-`mdcp refs-list` prints the headings of every entry in `outputs`, each with its `file`. With `--format table`, it prints one tab-separated line for each heading, which starts with the file and ends with the heading's slug and title. A registry without `outputs`, such as one that `genRefsFromCompiled` writes from one text, has no files to give. `mdcp refs-list` then prints the top-level headings, and on stderr it gives the registry's path and says to run `mdcp refs-gen`.
-
-## Workflow
-
-```bash
-mdcp compile --config docs/mdcp.config.json --docs-root docs
-mdcp check --config docs/mdcp.config.json --docs-root docs
-mdcp refs-list --config docs/mdcp.config.json --docs-root docs
-```
-
-`mdcp check` validates cross-link fragments against compiled slugs. `mdcp refs-list` reads the registry file that `compile` just wrote. When `mdcp check` reports a dead anchor on a link into a compiled output, look up that file's slugs in `mdcp refs-list --format table`. [Cross-links and refs](./cross-links-and-refs.md) lists the other targets a `#fragment` may name.
+`merlon refs-list` prints the headings of every entry in `outputs`, each with its `file`. With `--format table`, it prints one tab-separated line for each heading, which starts with the file and ends with the heading's slug and title. A registry without `outputs`, such as one that `genRefsFromCompiled` writes from one text, has no files to give. `merlon refs-list` then prints the top-level headings, and on stderr it gives the registry's path and says to run `merlon refs-gen`.

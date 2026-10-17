@@ -20,6 +20,11 @@ module landing
  * head. It also runs on the edited event a base change sends, which is the
  * CIOnRetarget guard. A check's latest run on a head commit is the one a
  * branch rule reads.
+ * A PR may open as a draft, and every ci.yml job skips a draft. A skipped run
+ * counts as passing for a required check, so it records its head as checked
+ * without testing anything, and GitHub merges no draft. ci.yml also runs when
+ * a draft is marked ready, which is the CIOnReady guard. release-source.yml
+ * runs on drafts too.
  * release-source.yml runs the Release source job on pull requests into main,
  * also when a base changes to main, which is the ReleaseSourceOnRetarget guard.
  * On any other base the model counts that check as passing, since only main
@@ -72,6 +77,7 @@ sig PR {
   var sourceOk: set Commit     -- head commits whose Release source job passed or was skipped
 }
 var sig Open in PR {}
+var sig Draft in PR {}
 
 abstract sig Guard {}
 one sig
@@ -79,6 +85,7 @@ one sig
   UpToDatePRsToDevelop,     -- branch rule: a PR's head must contain develop's tip before it merges; workflow pushes exempt
   SyncThroughGate,          -- sync-develop starts the land gate on its merge instead of pushing it
   CIOnRetarget,             -- ci.yml also runs when a PR's base changes
+  CIOnReady,                -- ci.yml runs when a draft PR is marked ready
   ReleaseSourceRequired,    -- branch rule: the Release source check is required on main
   ReleaseSourceOnRetarget,  -- the Release source job also runs when a PR's base changes
   NoDirectPushToMain,       -- branch rule: people cannot push main; only the release job can
@@ -88,11 +95,11 @@ one sig
 sig On in Guard {}
 
 abstract sig Kind {}
-one sig KNone, KPush, KLand, KSync, KPushDevelop, KPushMain, KRelease, KOpen, KRetarget, KMerge extends Kind {}
+one sig KNone, KPush, KLand, KSync, KPushDevelop, KPushMain, KRelease, KOpen, KRetarget, KReady, KDraft, KMerge extends Kind {}
 one sig Step { var kind: one Kind }
 
 pred keepTips[bs: set Branch] { all b: bs | b.tip' = b.tip }
-pred keepPRs { Open' = Open and base' = base }
+pred keepPRs { Open' = Open and base' = base and Draft' = Draft }
 pred keepCI[ps: set PR] { all p: ps | p.ran' = p.ran and p.sourceOk' = p.sourceOk }
 
 -- The Release source job on PR p, for its head and base after this step. On a
@@ -104,17 +111,19 @@ pred sourceCheck[p: PR] {
 }
 
 -- ci.yml runs on every PR in ps, against its head and base after this step,
--- and tests the merge of the two. Its new run replaces any earlier one on that head.
-pred runCI[ps: set PR] {
+-- and tests the merge of the two. On the drafts in skips its jobs skip, which
+-- records the head as passing and tests nothing. A new run replaces any
+-- earlier one on that head.
+pred runCI[ps, skips: set PR] {
   all p: ps | some m: Commit | result[m, (p.base.tip)', (p.head.tip)']
-  all p: ps | p.ran' = p.ran ++ (p.head.tip)' -> (p.base.tip)'
-  all p: PR - ps | p.ran' = p.ran
+  all p: ps + skips | p.ran' = p.ran ++ (p.head.tip)' -> (p.base.tip)'
+  all p: PR - ps - skips | p.ran' = p.ran
   Tested' = Tested + { t: Tree | some p: ps, m: Commit | result[m, (p.base.tip)', (p.head.tip)'] and t = m.tree }
 }
 
--- Every pull request workflow runs on the PRs in ps.
+-- Every pull request workflow runs on the PRs in ps. ci.yml skips the drafts among them.
 pred ci[ps: set PR] {
-  runCI[ps]
+  runCI[ps - Draft', ps & Draft']
   all p: ps | sourceCheck[p]
   all p: PR - ps | p.sourceOk' = p.sourceOk
 }
@@ -194,6 +203,7 @@ pred openPR[p: PR, b: Develop + Main] {
   some p.head.tip
   b != p.head
   Open' = Open + p
+  Draft' = Draft + p or Draft' = Draft - p
   p.base' = b
   all q: PR - p | q.base' = q.base
   keepTips[Branch]
@@ -210,10 +220,36 @@ pred retarget[p: PR, b: Develop + Main] {
   p.base' = b
   all q: PR - p | q.base' = q.base
   Open' = Open
+  Draft' = Draft
   keepTips[Branch]
-  CIOnRetarget in On implies runCI[p] else (Tested' = Tested and all q: PR | q.ran' = q.ran)
+  CIOnRetarget in On implies runCI[p - Draft, p & Draft] else (Tested' = Tested and all q: PR | q.ran' = q.ran)
   ReleaseSourceOnRetarget in On implies sourceCheck[p] else p.sourceOk' = p.sourceOk
   all q: PR - p | q.sourceOk' = q.sourceOk
+}
+
+-- The author marks a draft PR ready. ci.yml runs only with the CIOnReady guard,
+-- and the Release source job doesn't run.
+pred markReady[p: PR] {
+  Step.kind = KReady
+  p in Open & Draft
+  Draft' = Draft - p
+  Open' = Open
+  base' = base
+  keepTips[Branch]
+  CIOnReady in On implies runCI[p, none] else (Tested' = Tested and all q: PR | q.ran' = q.ran)
+  all q: PR | q.sourceOk' = q.sourceOk
+}
+
+-- The author moves a ready PR back to draft. No workflow runs.
+pred toDraft[p: PR] {
+  Step.kind = KDraft
+  p in Open - Draft
+  Draft' = Draft + p
+  Open' = Open
+  base' = base
+  keepTips[Branch]
+  keepCI[PR]
+  Tested' = Tested
 }
 
 -- A maintainer merges an open PR once its required checks pass on its head.
@@ -221,7 +257,7 @@ pred retarget[p: PR, b: Develop + Main] {
 -- does not ask which base the latest run was against.
 pred mergePR[p: PR, m: Commit] {
   Step.kind = KMerge
-  p in Open
+  p in Open - Draft
   let B = p.base, h = p.head.tip | {
     result[m, B.tip, h]
     m != B.tip
@@ -232,6 +268,7 @@ pred mergePR[p: PR, m: Commit] {
     B.tip' = m
     keepTips[Branch - B]
     Open' = Open - p
+    Draft' = Draft
     base' = base
     -- The merge is a person's push, so CI reruns on open PRs whose head is the base.
     ci[(Open - p) & head.B]
@@ -255,6 +292,7 @@ fact init {
   }
   no (Land + Hotfix + Topic).tip
   no Open
+  no Draft
   no base
   no ran
   no sourceOk
@@ -268,6 +306,7 @@ fact transitions {
     or (some m: Commit | sync[m])
     or (some c: Commit | pushDevelop[c] or pushMain[c] or releaseCommit[c])
     or (some p: PR, b: Develop + Main | openPR[p, b] or retarget[p, b])
+    or (some p: PR | markReady[p] or toDraft[p])
     or (some p: PR, m: Commit | mergePR[p, m])
   )
 }
@@ -284,11 +323,11 @@ pred mainFromReleaseSources {
     (Step.kind = KRelease or (Step.kind = KMerge and some p: PR, m: Commit | mergePR[p, m] and p.base = Main and p.head in Develop + Hotfix)))
 }
 
-let developGuards = NoDirectPushToDevelop + UpToDatePRsToDevelop + SyncThroughGate + CIOnRetarget
-let mainTreeGuards = NoDirectPushToMain + UpToDatePRsToMain + ReleaseCommitGated + CIOnRetarget
+let developGuards = NoDirectPushToDevelop + UpToDatePRsToDevelop + SyncThroughGate + CIOnRetarget + CIOnReady
+let mainTreeGuards = NoDirectPushToMain + UpToDatePRsToMain + ReleaseCommitGated + CIOnRetarget + CIOnReady
 let mainSourceGuards = NoDirectPushToMain + ReleaseSourceRequired + ReleaseSourceOnRetarget
 
--- develop: the four guards together suffice, and each is needed.
+-- develop: the five guards together suffice, and each is needed.
 check DevelopTested { developGuards in On implies developTested }
   for 4 but 6 Commit, 1 PR, 1 Land, 1 Topic, 0 Hotfix, 1..7 steps expect 0
 check DevelopTestedWithoutNoDirectPush { On = developGuards - NoDirectPushToDevelop implies developTested }
@@ -299,8 +338,10 @@ check DevelopTestedWithoutGatedSync { On = developGuards - SyncThroughGate impli
   for 4 but 6 Commit, 1 PR, 1 Land, 1 Topic, 0 Hotfix, 1..7 steps expect 1
 check DevelopTestedWithoutRetargetCI { On = developGuards - CIOnRetarget implies developTested }
   for 4 but 6 Commit, 1 PR, 1 Land, 1 Topic, 0 Hotfix, 1..7 steps expect 1
+check DevelopTestedWithoutReadyCI { On = developGuards - CIOnReady implies developTested }
+  for 4 but 6 Commit, 1 PR, 1 Land, 1 Topic, 0 Hotfix, 1..7 steps expect 1
 
--- main's trees: the four guards together suffice, and each is needed.
+-- main's trees: the five guards together suffice, and each is needed.
 check MainTested { mainTreeGuards in On implies mainTested }
   for 4 but 6 Commit, 1 PR, 1 Land, 1 Topic, 1 Hotfix, 1..7 steps expect 0
 check MainTestedWithoutNoDirectPush { On = mainTreeGuards - NoDirectPushToMain implies mainTested }
@@ -310,6 +351,8 @@ check MainTestedWithoutUpToDatePRs { On = mainTreeGuards - UpToDatePRsToMain imp
 check MainTestedWithoutGatedRelease { On = mainTreeGuards - ReleaseCommitGated implies mainTested }
   for 4 but 6 Commit, 1 PR, 1 Land, 1 Topic, 1 Hotfix, 1..7 steps expect 1
 check MainTestedWithoutRetargetCI { On = mainTreeGuards - CIOnRetarget implies mainTested }
+  for 4 but 6 Commit, 1 PR, 1 Land, 1 Topic, 1 Hotfix, 1..7 steps expect 1
+check MainTestedWithoutReadyCI { On = mainTreeGuards - CIOnReady implies mainTested }
   for 4 but 6 Commit, 1 PR, 1 Land, 1 Topic, 1 Hotfix, 1..7 steps expect 1
 
 -- main's sources: the three guards together suffice, and each is needed.
@@ -344,3 +387,9 @@ run HotfixReachesDevelop {
   eventually (some p: PR, m: Commit | mergePR[p, m] and p.head in Hotfix and p.base = Main
     and eventually p.head.tip in history[Develop.tip])
 } for 4 but 6 Commit, 1 PR, 1 Land, 0 Topic, 1 Hotfix, 1..7 steps expect 1
+
+run DraftMarkedReadyMerges {
+  On = Guard
+  eventually (Step.kind = KOpen and some Draft' and eventually (Step.kind = KReady
+    and eventually (some p: PR, m: Commit | mergePR[p, m] and p.base = Develop)))
+} for 4 but 6 Commit, 1 PR, 1 Land, 1 Topic, 0 Hotfix, 1..7 steps expect 1

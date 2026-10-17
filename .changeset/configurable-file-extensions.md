@@ -1,6 +1,6 @@
 ---
-'@bwilliamson/mdcp-core': minor
-'@bwilliamson/mdcp-cli': minor
+'@merlon-docs/merlon-docs-core': minor
+'@merlon-docs/merlon-docs-cli': minor
 ---
 
 Make the file extension lists broad, split and configurable

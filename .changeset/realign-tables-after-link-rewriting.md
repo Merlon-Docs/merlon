@@ -1,5 +1,5 @@
 ---
-'@bwilliamson/mdcp-core': patch
+'@merlon-docs/merlon-docs-core': patch
 ---
 
 Compile re-aligns a GFM table whose links it rewrote. Compile can rewrite a link target to a path or anchor of another length, and a broken link becomes a longer marker. Either change moved the pipes of an aligned table from a shard, and markdownlint's MD060 rule failed on the table in the compiled guide. The last step of each assembly now prints such a table as Prettier does with its default `proseWrap` setting. It measures a wide or fullwidth East Asian character, or an emoji shown as an emoji, as two columns, and a nonspacing mark or a format character as none. A text-style emoji such as ☝ counts one column, as markdownlint counts it.

@@ -1,6 +1,6 @@
-# @bwilliamson/mdcp-core
+# @merlon-docs/merlon-docs-core
 
-- [@bwilliamson/mdcp-core](#table-of-contents)
+- [@merlon-docs/merlon-docs-core](#table-of-contents)
   - [About](./about.md)
 
 ## Get started
@@ -9,20 +9,17 @@
 
 ## API
 
-- [API — Config](./api-config.md)
-- [API — Compile](./api-compile.md)
-- [API — Refs and validation](./api-refs-validation.md)
-- [API — Shard and peers](./api-export-shard.md)
+- [Config API](./api-config.md)
+- [Compile API](./api-compile.md)
+- [Refs and validation API](./api-refs-validation.md)
+- [Shard and peers API](./api-shard-and-peers.md)
 
 ## Compile hooks
 
-- [Compile hooks — overview](./compile-hooks/index.md)
+- [Compile hooks overview](./compile-hooks/index.md)
 - [stripAnchors](./compile-hooks/strip-anchors.md)
 - [codeEvidence](./compile-hooks/code-evidence.md)
 - [inlineInserts](./compile-hooks/inline-inserts.md)
-- [Cross-guide link rewriting](./compile-hooks/cross-guide-links.md)
-- [Publish-relative link rewriting](./compile-hooks/publish-relative-links.md)
-- [Tables after link rewriting](./compile-hooks/tables-after-link-rewriting.md)
 
 ## See also
 

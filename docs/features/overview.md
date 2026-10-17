@@ -1,6 +1,6 @@
 # Overview
 
-**mdcp** ([MarkDown Context Protocol](../glossary/mdcp.md)) helps teams maintain large documentation in **small shard files**, **compile them into canonical outputs**, and **validate before merge**. It is built for LLM-assisted authoring, human review, and compiled output for agents and end-user readers.
+[**Merlon Docs**](../glossary/merlon-docs.md), a documentation system delivered as a toolchain and an Agent Skill, helps teams maintain large documentation in **small shard files**, **compile them into canonical outputs**, and **validate before merge**. It is built for LLM-assisted authoring, human review, and compiled output for agents and end-user readers.
 
 This page is the **mental model** for the whole system. Use it to orient yourself before diving into command details, API modules, or config fields.
 
@@ -8,11 +8,11 @@ This page is the **mental model** for the whole system. Use it to orient yoursel
 
 Large Markdown guides are hard to edit, diff, and link correctly. A single `README.md` or `guides.md` with dozens of headings invites merge conflicts, broken cross-references, and orphan sections that no longer appear in the table of contents.
 
-MDCP inverts the workflow:
+Merlon Docs inverts the workflow:
 
 1. **Authors edit shards**: one file per section, listed in the [manifest](../glossary/manifest.md) (`index.md` or `shards.md`) of their [guide](../glossary/guide.md).
-2. **Compile stitches shards**: it normalizes heading levels, strips preambles, and rewrites links.
-3. **Validation catches drift**: [orphans](../glossary/orphan.md), stale refs, broken internal links, optional prose/style linters.
+2. **Compile stitches shards**: it normalizes heading levels and rewrites links.
+3. **Validation catches drift**: [orphans](../glossary/orphan.md) and broken internal links or `#` anchors, plus optional prose and style linters.
 4. **Compiled output serves consumers**: compiled guides (some as [publish outputs](../glossary/publish-output.md)) and the optional [monolith](../glossary/monolith.md).
 
 You never hand-maintain the compiled file. Shards are the source of truth. Each [compiled guide](../glossary/compiled-guide.md) is generated, whether it is `{name}.md` under `outputDir` or a publish output such as `README.md`.
@@ -39,11 +39,11 @@ flowchart TB
     index["index.md / shards.md"]
   end
 
-  subgraph mdcp["MDCP"]
-    cli["@bwilliamson/mdcp-cli"]
-    core["@bwilliamson/mdcp-core"]
-    presets["@bwilliamson/mdcp-presets"]
-    config["mdcp.config.json"]
+  subgraph merlon["Merlon Docs"]
+    cli["@merlon-docs/merlon-docs-cli"]
+    core["@merlon-docs/merlon-docs-core"]
+    presets["@merlon-docs/merlon-docs-presets"]
+    config["merlon.config.json"]
   end
 
   subgraph outputs["Generated outputs"]
@@ -73,11 +73,11 @@ flowchart TB
   shards --> validate
 ```
 
-| Package                         | Role                                                                                      |
-| ------------------------------- | ----------------------------------------------------------------------------------------- |
-| **`@bwilliamson/mdcp-cli`**     | Command-line entry point: `compile`, `check`, `shard`, `refs`, peer linter wrappers.      |
-| **`@bwilliamson/mdcp-core`**    | Library implementation: compile/assemble, refs, validation, shard orchestration, hooks.   |
-| **`@bwilliamson/mdcp-presets`** | Starter markdownlint configs and the `MDCP` Vale style (opt-in via config / `.vale.ini`). |
+| Package                                | Role                                                                                            |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| **`@merlon-docs/merlon-docs-cli`**     | Command-line entry point: `compile`, `check`, `review`, `shard`, `refs`, peer linter wrappers.  |
+| **`@merlon-docs/merlon-docs-core`**    | Library behind the CLI: compile/assemble, refs, validation, shard orchestration, hooks.         |
+| **`@merlon-docs/merlon-docs-presets`** | Starter markdownlint configs and the `MerlonDocs` Vale style (opt-in via config / `.vale.ini`). |
 
 The CLI is a thin wrapper over core. Integrators (CI, editors, agents) can call core directly or shell out to the CLI.
 
@@ -86,37 +86,37 @@ The CLI is a thin wrapper over core. Integrators (CI, editors, agents) can call 
 Understanding this sequence explains why most commands exist:
 
 ```text
-  [optional] mdcp shard          Split a source document into guide shards (md-tree)
+  [optional] merlon shard          Split a source document into guide shards (md-tree)
            ↓
   Edit shards + index.md
            ↓
-  mdcp compile                 Assemble outputs, rewrite links, write refs.json
+  merlon compile                 Assemble outputs, rewrite links, write refs.json
            ↓
-  mdcp check                   Run the validation gate
+  merlon check                   Run the validation gate
 ```
 
-**Split** (`mdcp shard`) is the inverse path. Use it to bootstrap shards from an existing source document, not on every edit cycle.
+**Split** (`merlon shard`) is the inverse path. Use it to bootstrap shards from an existing source document, not on every edit cycle.
 
 ## What compile actually does
 
 For each guide in `compileOrder`, core:
 
 1. **Reads section files**: from link order in the manifest (`index.md` / `shards.md`). See [Manifest compile order](./manifest-compile-order.md) when the manifest mixes preamble example links with a `## Sections` list (`compile.sectionsHeading`).
-2. **Transforms each shard**: demotes headings to fit the guide level; strips `about-this-guide` preamble; runs **compile hooks** (`stripAnchors`, `codeEvidence`, `inlineInserts`) by default. See [Default compile hooks](./default-compile-hooks.md). Cross-guide link rewrite runs at assembly. See [Cross-guide link rewriting](../client-core/compile-hooks/cross-guide-links.md).
+2. **Transforms each shard**: demotes headings to fit the guide level and handles the preamble shard (`compile.preambleSection`) as [Project layout](../client-cli/project-layout.md#one-subdirectory--one-guide) says. Then it runs the **compile hooks** (`stripAnchors`, `codeEvidence`, `inlineInserts`) by default. See [Default compile hooks](./default-compile-hooks.md). Cross-guide link rewrite runs at assembly. See [Cross-guide link rewriting](./compile-pipeline/cross-guide-links.md).
 3. **Assembles the guide body**: injects optional `compile.title` as a `##` heading followed by a blank line, then concatenates sections in order. When the first shard’s top heading matches the title, that duplicate heading is stripped.
-4. **Rewrites links**: the [link passes](../client-core/compile-hooks/index.md#link-passes) turn a shard's links to other shards into `#slug` targets, in the same document or in another output. They rewrite a `./` or `../` link to any indexed shard, and a bare link to a shard the guide stitches. A link to a guide that `compile.crossGuideLinks.ignoreGuides` names keeps a path to the shard instead, except in the cases that [its config section](../client-core/compile-hooks/cross-guide-links.md#compilecrossguidelinksignoreguides) points to. The passes then rebase the shard's `../` paths, kept ones included, relative to the guide's [link base](../client-core/compile-hooks/publish-relative-links.md#when-it-runs), except the ones [Publish-relative exclusions](../client-core/compile-hooks/publish-relative-links.md#publish-relative-exclusions) lists, such as a path that leads to no file.
-5. **Marks broken links and re-aligns tables**: by default, a [BROKEN LINK marker](./link-validation.md#broken-link-marker) replaces each `#fragment` link that matches no heading or section slug in the compiled guide. A link to a missing file stays a link, and link lint reports it. Then core re-aligns each aligned table whose links changed width. See [Tables after link rewriting](../client-core/compile-hooks/tables-after-link-rewriting.md).
+4. **Rewrites links**: the [link passes](./compile-pipeline/link-passes.md) turn a shard's links to other shards into `#slug` targets, in the same document or in another output. They rewrite a `./` or `../` link to any indexed shard, and a bare link to a shard the guide stitches. A link to a guide that [`compile.crossGuideLinks.ignoreGuides`](../glossary/ignore-guides.md) names keeps a path to the shard instead, except where a link to a shard the compiling guide stitches takes its in-document anchor. The passes then rebase the shard's `../` paths, kept ones included, relative to the guide's [link base](./compile-pipeline/publish-relative-links.md#when-it-runs), except the ones [Publish-relative exclusions](./compile-pipeline/publish-relative-links.md#publish-relative-exclusions) lists, such as a path that leads to no file.
+5. **Marks broken links and re-aligns tables**: by default, a [BROKEN LINK marker](./link-validation.md#broken-link-marker) replaces each `#fragment` link that matches no heading or section slug in the compiled guide. A link to a missing file stays a link, and link lint reports it. Then core re-aligns each aligned table whose links changed width. See [Tables after link rewriting](./compile-pipeline/tables-after-link-rewriting.md).
 6. **Writes outputs**: one [compiled guide](../glossary/compiled-guide.md) per guide (at `compile.outputFile` or the default path), plus the [monolith](../glossary/monolith.md) when top-level `outputFile` is set and at least one guide has no `compile.outputFile`.
 
 Guides with `compile.outputFile` are **excluded from the monolith** so you can publish npm READMEs, `DEVELOPERS.md`, or compiled review guides side by side.
 
 ## What validation checks
 
-`mdcp check` runs a fixed order of stages, from the orphan check to the coverage scan. A failure in one of the first three stops the run at once, while most later stages report a failure and let the run go on. [Check gate](./check-gate.md) lists the stages and when each one runs.
+`merlon check` runs a fixed order of stages, from the orphan check to the coverage scan. A failure in one of the first three stops the run at once, while most later stages report a failure and let the run go on. [Check gate](./check-gate.md) lists the stages and when each one runs.
 
 ## Config as the wiring layer
 
-`mdcp.config.json` is the single contract between your repo layout and every command:
+`merlon.config.json` is the single contract between your repo layout and every command:
 
 - **`compileOrder`**: which guides exist and in what order they appear in the monolith.
 - **`guides[].compile`**: per-guide manifest name, hooks, publish path, title, scope root, etc.
@@ -124,17 +124,17 @@ Guides with `compile.outputFile` are **excluded from the monolith** so you can p
 - **`refs`**: registry file path and slug algorithm.
 - **`lint` / `vale`**: peer linter config paths and scan globs.
 
-This repository uses MDCP on its own docs under `docs/`. The features guide compiles to `docs/_build/features.md` and is the only guide in the monolith `docs/_build/guides.md`. The other guides compile to publish outputs such as `DEVELOPERS.md` and the package READMEs. See `docs/mdcp.config.json` for a multi-output layout.
+This repository uses Merlon Docs on its own docs under `docs/`, and its `docs/merlon.config.json` is an example of a multi-output layout. [Guide directories](../developer/docs-dogfooding.md#guide-directories) lists the output each of its guides compiles to.
 
 ## Where to go next
 
 - **Commands and priority tiers**: the [Feature catalog](./feature-catalog.md) and [Personas and priority tiers](./personas-and-priority-tiers.md)
-- **Who runs which command**: the [Actors and obligations](./protocol/usage-model.md#actors-and-obligations) table in the usage model
+- **Who runs which command**: the [Actors and obligations](./system/usage-model.md#actors-and-obligations) table in the usage model
 - **Intentional limits**: the [Design constraints](./design-constraints/index.md), each with a one-line summary
 - **Install and daily commands**: the [Client CLI guide](../client-cli/index.md)
 - **Programmatic API**: the [Client core guide](../client-core/index.md)
 - **Config fields**: the [config API](../client-core/api-config.md)
 - **Compile hooks**: the [Compile hooks overview](../client-core/compile-hooks/index.md)
 - **Contributing to this repo**: the [Developer guide](../developer/index.md)
-- **Performance SLOs at scale**: the [Performance goals](./protocol/performance.md) page
-- **A publish landing example**: this repository compiles its root `README.md` from [`docs/repo-readme/`](../repo-readme/index.md). Its copy follows the [Publish landing style](./personas-and-priority-tiers.md#publish-landing-style) and the claim tiers in [Benefit claims and evidence](./protocol/benefit-claims-and-evidence.md)
+- **Performance SLOs at scale**: the [Performance goals](./system/performance.md) page
+- **A publish landing example**: this repository compiles its root `README.md` from [`docs/repo-readme/`](../repo-readme/index.md). Its copy follows the [Publish landing style](./personas-and-priority-tiers.md#publish-landing-style) and the claim tiers in [Benefit claims and evidence](./system/benefit-claims-and-evidence.md)
