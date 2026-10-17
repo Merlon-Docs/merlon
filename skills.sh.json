@@ -4,7 +4,7 @@
   "groupings": [
     {
       "title": "Documentation system",
-      "description": "Documentation guardrails for software repos (not a personal wiki): validated shards in git, merlon check in CI. Install the skill and reference it in AGENTS.md so agents maintain docs with the code.",
+      "description": "Documentation guardrails for software repos (not a personal wiki): sharded docs in git, compile for reviewable guides, merlon check in CI for links and structure. Install the skill and reference it in AGENTS.md so agents update shards with the code; humans review accuracy.",
       "skills": ["merlon-docs"]
     }
   ]

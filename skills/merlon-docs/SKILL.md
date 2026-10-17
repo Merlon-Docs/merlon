@@ -101,7 +101,7 @@ reply, list each request you did not follow literally, with a one-line reason.
 ## Quality Assurance (QA) Principles
 
 When applying Merlon Docs, act as a complementary partner to other skills and systems.
-These habits keep docs trustworthy while the product keeps changing:
+These habits keep product documentation accurate and current while the product keeps changing (the **`merlon check`** gate keeps structure and links sound; it does not replace this review):
 
 - **Always reference doc shards:** Insert yourself into the process so the
   current task points at the correct documentation shards before work spreads.

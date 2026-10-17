@@ -11,7 +11,7 @@ Agents forget. Chat threads disappear. Giant READMEs and dump files overwhelm bo
 1. **You** decide what must stay true (product intent, constraints, glossary).
 2. **The agent** drafts or updates small **[shards](../glossary/shard.md)** (one topic per file) _before_ coding.
 3. **You** review those shards in pull requests (PRs) — you do not need to be a Markdown expert on day one.
-4. **`merlon check`** (locally or in CI) proves links and compile still work.
+4. **`merlon compile`** builds the guides you review (for example one README or monolith per guide). **`merlon check`** (locally or in CI) proves the documentation tree still compiles and that links and configured lint gates pass — it does **not** judge whether the words are correct; you and the agent do that in review.
 
 ### Prompt loop
 

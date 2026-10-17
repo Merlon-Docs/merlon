@@ -4,11 +4,11 @@ Merlon Docs relies on the `@merlon-docs/merlon-docs-cli` package to perform docu
 
 ## What compile / check / refs mean
 
-| Command          | Means                                                                                                                                                                                                                 |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `merlon compile` | **Build the docs.** Merge Markdown shards into compiled guide outputs (for example under `docs/_build/`) using `merlon.config.json` and `compileOrder`. Shards are the source of truth; compiled files are generated. |
-| `merlon check`   | **Validate the documentation tree.** Run structural checks (cross-links, orphans, and optional lint/prose gates) so shards and compiled output stay trustworthy. Prefer this before trusting compiled docs.           |
-| `merlon refs`    | **Cross-link registry tools** (`refs list`, `refs gen`, …). Inspect or regenerate the fragment/slug registry (for example `refs.json`) so `#` links match **compiled** headings, not hand-guessed shard titles.       |
+| Command          | Means                                                                                                                                                                                                                                                                                   |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `merlon compile` | **Build the docs.** Merge Markdown shards into compiled guide outputs (for example under `docs/_build/`) using `merlon.config.json` and `compileOrder`. Shards are the source of truth; compiled files are generated so reviewers can read one guide file instead of many shards.       |
+| `merlon check`   | **Validate the documentation tree.** Run structural checks (cross-links, orphans, compile, refs, and optional lint/prose gates). It does **not** verify that product claims are true — people and agents do that in review. Prefer this before trusting compiled output for navigation. |
+| `merlon refs`    | **Cross-link registry tools** (`refs list`, `refs gen`, …). Inspect or regenerate the fragment/slug registry (for example `refs.json`) so `#` links match **compiled** headings, not hand-guessed shard titles.                                                                         |
 
 ## Why an installed CLI instead of self-contained skill engines
 

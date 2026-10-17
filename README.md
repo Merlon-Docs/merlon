@@ -8,7 +8,7 @@
 
 [![skills.sh](https://skills.sh/b/Merlon-Docs/merlon)](https://skills.sh/Merlon-Docs/merlon)
 
-**Merlon Docs** is a **documentation system** delivered as an [Agent Skill](https://agentskills.io) plus a small compile/check toolchain. It is for **software projects** whose docs must stay trustworthy as the code changes — especially for teams and agents who **operate the system for the long haul**, not for the engineer who keeps the whole scope in their head. If you are comparing it to other skills on [skills.sh](https://skills.sh) (for example LLM Wiki or aDNA-style vaults), [What kind of Agent Skill is this?](#what-kind-of-agent-skill-is-this) places it in that category and shows how to wire it through your project's `AGENTS.md`. If you are evaluating it for a team, [Vision and roadmap](docs/features/system/00-vision-and-roadmap.md) explains the problem it solves and the principles behind it.
+**Merlon Docs** is a **documentation system** delivered as an [Agent Skill](https://agentskills.io) plus a small compile/check toolchain. It is for **software projects** whose product documentation must stay **reviewable and structurally sound** as the code changes — especially for teams and agents who **operate the system for the long haul**, not for the engineer who keeps the whole scope in their head. **Accuracy** of what the docs say is a **human and agent** responsibility in review; **`merlon check`** validates links, compile output, and related gates, not whether the claims are true. If you are comparing it to other skills on [skills.sh](https://skills.sh) (for example LLM Wiki or aDNA-style vaults), [What kind of Agent Skill is this?](#what-kind-of-agent-skill-is-this) places it in that category and shows how to wire it through your project's `AGENTS.md`. If you are evaluating it for a team, [Vision and roadmap](docs/features/system/00-vision-and-roadmap.md) explains the problem it solves and the principles behind it.
 
 Merlon Docs, formerly MDCP (MarkDown Context Protocol), is an open standard and an open-source project, MIT licensed.
 
@@ -60,7 +60,7 @@ It is **not** aimed at the engineer who keeps the entire project scope in their 
 
    - Install: `merlon-docs` skill (see `.agents/skills/merlon-docs` or your agent's skills directory).
    - For documentation work, invoke `/merlon-docs` before editing shards or product behavior.
-   - After shard edits, run `merlon compile` and `merlon check` (or `pnpm docs:check` if wired in this repo).
+   - After shard edits, run `merlon compile` and `merlon check` (or `pnpm docs:check` if wired in this repo). Compile builds the guides you review; check validates links and the docs tree — not whether the prose is factually correct.
    - Do not hand-edit files that contain `<!-- merlon-shard:` markers.
    ```
 
@@ -145,7 +145,7 @@ Agents forget. Chat threads disappear. Giant READMEs and dump files overwhelm bo
 1. **You** decide what must stay true (product intent, constraints, glossary).
 2. **The agent** drafts or updates small **[shards](docs/glossary/shard.md)** (one topic per file) _before_ coding.
 3. **You** review those shards in pull requests (PRs) — you do not need to be a Markdown expert on day one.
-4. **`merlon check`** (locally or in CI) proves links and compile still work.
+4. **`merlon compile`** builds the guides you review (for example one README or monolith per guide). **`merlon check`** (locally or in CI) proves the documentation tree still compiles and that links and configured lint gates pass — it does **not** judge whether the words are correct; you and the agent do that in review.
 
 #### Prompt loop
 

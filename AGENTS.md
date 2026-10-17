@@ -10,6 +10,8 @@ This is the Merlon Docs monorepo: a documentation-system Agent Skill plus a Type
 
 Documentation is sharded under `docs/`. Shards are the source of truth and compiled output is generated. **Never hand-edit compiled files.** Edit the source shard under `docs/` and run `pnpm docs:compile:repo`. A file with `<!-- merlon-shard: start ... -->` markers is compiled output, and each marker gives the path of its source shard. [Guide directories](docs/developer/docs-dogfooding.md#guide-directories) lists every compiled output and its shard directory. CI recompiles every guide and fails when `git diff` shows a stale compiled file.
 
+**Compile and check vs review:** `merlon compile` (via `docs:compile:repo`) stitches shards into compiled guides so humans can review fewer, fuller files. `merlon check` (via `docs:check`) validates the documentation system — compile output, cross-links, orphans, optional lint — not whether product documentation is **accurate**. Factual quality comes from following the Merlon Docs skill (update shards with the code, current-docs-only) and from **human review** in pull requests. See [Documentation and software reliability](docs/features/system/documentation-and-reliability.md#where-merlon-docs-fits).
+
 ## Before you run anything
 
 Run `pnpm build` after a fresh checkout and after editing `packages/*/src`, before any docs script or CLI command. [First-time bootstrap](docs/developer/local-setup.md#first-time-bootstrap) has the rest of the setup, and [Requirements](docs/developer/local-setup.md#requirements) lists the toolchain, including Vale for the docs checks and Java for the formal models.

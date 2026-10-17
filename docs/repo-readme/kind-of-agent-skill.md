@@ -40,7 +40,7 @@ It is **not** aimed at the engineer who keeps the entire project scope in their 
 
    - Install: `merlon-docs` skill (see `.agents/skills/merlon-docs` or your agent's skills directory).
    - For documentation work, invoke `/merlon-docs` before editing shards or product behavior.
-   - After shard edits, run `merlon compile` and `merlon check` (or `pnpm docs:check` if wired in this repo).
+   - After shard edits, run `merlon compile` and `merlon check` (or `pnpm docs:check` if wired in this repo). Compile builds the guides you review; check validates links and the docs tree — not whether the prose is factually correct.
    - Do not hand-edit files that contain `<!-- merlon-shard:` markers.
    ```
 

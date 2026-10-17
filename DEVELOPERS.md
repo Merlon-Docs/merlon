@@ -1864,7 +1864,7 @@ Read [Cross-guide link rewriting](docs/features/compile-pipeline/cross-guide-lin
 
 ## check
 
-**`merlon check`** is Merlon Docs’ validation gate, run locally and in CI before a merge. See [Check gate](docs/features/check-gate.md) for what it runs.
+**`merlon check`** is Merlon Docs’ validation gate, run locally and in CI before a merge. It validates the documentation **system** (compile output, cross-links, orphans, optional lint and prose rules) — not whether product claims are factually correct. See [Check gate](docs/features/check-gate.md) for what it runs and [Documentation and software reliability](docs/features/system/documentation-and-reliability.md#where-merlon-docs-fits) for where human and agent review fit.
 
 <!-- merlon-shard: end docs/glossary/check.md -->
 

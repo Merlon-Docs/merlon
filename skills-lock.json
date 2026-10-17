@@ -2,9 +2,9 @@
   "version": 1,
   "skills": {
     "merlon-docs": {
-      "source": ".",
+      "source": "/workspace",
       "sourceType": "local",
-      "computedHash": "23468cfaeec827635ffccc55980be62b170e2ddc240c5298757be7fadb22a48b"
+      "computedHash": "6b06e25dc48761ae41fbb1016da9866e276cacc36c57e314acafa85bff55c33e"
     },
     "merlon-docs-arch-gtm": {
       "source": ".",
