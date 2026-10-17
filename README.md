@@ -37,6 +37,10 @@ Those patterns optimize for **broad knowledge** or **whole-vault organization**.
 
 Merlon Docs can **compile** into READMEs, monoliths, or downstream site generators. It is not a replacement for Docusaurus or MkDocs when you only need a public website with no agent discipline — see [Alternatives and adoption](docs/features/system/02-alternatives-and-adoption.md).
 
+### Text in git, visuals beside it
+
+Merlon Docs is **text-first**: shards and `merlon check` cover Markdown structure, links, and compile — not editing a Figma or Excalidraw file directly. Use a **canvas MCP** (Excalidraw, Figma, or your tool) alongside Merlon Docs: shards hold the durable wording and system facts; exported figures live in insert libraries and compile into the guides you review. Agents can read shards to populate or update a canvas, and update shards when the diagram changes. See [Text-first content and canvas tools](docs/features/system/01-scope-and-positioning.md#text-first-content-and-canvas-tools).
+
 ### Who it is for (and who can skip it)
 
 Merlon Docs is for people who **operate or extend the software for the long haul**: teammates who onboard later, agents that were not in last week's chat, you six months from now.

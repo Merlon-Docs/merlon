@@ -36,6 +36,23 @@ Merlon Docs is for **technical documentation** broadly: durable procedural or sy
 
 Content domain is **orthogonal** to transport. The [Code Repository Archetype](./extensions-and-archetypes.md#archetypes-battery-types) is the default layout for software teams, not the system's only use.
 
+## Text-first content and canvas tools
+
+Merlon Docs is built around **textual** product documentation: Markdown **shards**, [GFM](../design-constraints/gfm-scope.md), compile, and `merlon check`. That is where durable intent, terminology, ADRs, and procedures live in git and in pull request review.
+
+**Canvas-native** systems — whiteboards and design tools such as **Excalidraw**, **Figma**, Miro, or similar — store a different artifact (scenes, layers, vectors). Merlon Docs does not replace them. To **edit** those formats in an agent session, connect an **MCP server** (or another host integration) for the tool you use.
+
+The two approaches work **together**:
+
+| Role                                                  | Merlon Docs                                                                                                                                         | Canvas tool + MCP                                                                       |
+| ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Source of truth for names, constraints, and narrative | Shards under `docs/`                                                                                                                                | Optional; often a visual view of the same system                                        |
+| Agent updates prose and structure                     | Skill + shards                                                                                                                                      | MCP updates the canvas file or cloud doc                                                |
+| Published guides                                      | Compile stitches shards; [inline inserts](../client-core/compile-hooks/inline-inserts.md) pull in `figures/`, `diagrams/`, and tables from the repo | Export PNG/SVG (or embed links) into those insert libraries so guides stay link-checked |
+| Validation gate                                       | `merlon check` on the text tree and linked assets                                                                                                   | Tool-specific; not part of `merlon check`                                               |
+
+Typical flow: maintain the **wording and relationships** in shards; export or snapshot visuals into the repo (or reference stable URLs where your policy allows); let compile inline them into reviewable guides. When a diagram must change, an agent reads the relevant shard for acceptance criteria, uses the canvas MCP to edit the drawing, and updates the shard or caption in the same change. See [Alternatives and adoption](./02-alternatives-and-adoption.md#text-and-canvas-together).
+
 ## OpenAPI analogy
 
 OpenAPI defines HTTP API contracts. Merlon Docs defines **documentation context contracts** for a shard tree: shard layout, compile invariants, and the refs registry. The analogy is about clear contracts. Merlon Docs is an open standard that any tool can follow, and this repository contains its Agent Skill and reference toolchain.

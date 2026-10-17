@@ -15,6 +15,16 @@ Read [Scope and positioning](./01-scope-and-positioning.md) and [Vision and road
 | Cursor rules / `AGENTS.md`           | Host-native friction                                | Validated product context separate from host config                    |
 | Custom IDE extension                 | Editor UI / bundled CLI                             | Portable Agent Skill + unchanged CLI                                   |
 | MCP filesystem                       | Live file reads                                     | Upstream authoring discipline and validated artifacts                  |
+| Excalidraw / Figma / whiteboard MCP  | Native canvas editing                               | Text shards + compile; link exported figures into guides               |
+
+## Text and canvas together
+
+Merlon Docs owns **Markdown shards** in git — specs, ADRs, runbooks, glossary — not the live canvas file format. For **Excalidraw**, **Figma**, or similar, enable an **MCP** (or your host's integration) so agents can edit those artifacts while Merlon Docs keeps the **textual** layer reviewable.
+
+- **Shards → canvas:** Agents read shards for labels, boundaries, and acceptance criteria, then fill or update a diagram through the canvas MCP.
+- **Canvas → guides:** Export images (or checked-in `.excalidraw` / assets) under insert libraries such as `figures/` or `diagrams/`; [inline inserts](../client-core/compile-hooks/inline-inserts.md) embed them in compiled output and `merlon check` keeps links valid.
+
+Positioning detail: [Scope and positioning — Text-first content and canvas tools](./01-scope-and-positioning.md#text-first-content-and-canvas-tools).
 
 ## Pandoc and advanced publish stacks
 

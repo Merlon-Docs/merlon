@@ -12,6 +12,8 @@ Documentation is sharded under `docs/`. Shards are the source of truth and compi
 
 **Compile and check vs review:** `merlon compile` (via `docs:compile:repo`) stitches shards into compiled guides so humans can review fewer, fuller files. `merlon check` (via `docs:check`) validates the documentation system — compile output, cross-links, orphans, optional lint — not whether product documentation is **accurate**. Factual quality comes from following the Merlon Docs skill (update shards with the code, current-docs-only) and from **human review** in pull requests. See [Documentation and software reliability](docs/features/system/documentation-and-reliability.md#where-merlon-docs-fits).
 
+**Text vs canvas:** This repository's Merlon Docs tree is **textual** (Markdown shards). Diagrams and screenshots belong in insert libraries (`figures/`, `diagrams/`, etc.) and compile into guides via [inline inserts](docs/client-core/compile-hooks/inline-inserts.md). To edit **canvas-native** files (Excalidraw, Figma, …) in an agent session, enable the appropriate **MCP**; use shards as the durable source for names and intent, and keep exports in git so `merlon check` can link them. See [Text-first content and canvas tools](docs/features/system/01-scope-and-positioning.md#text-first-content-and-canvas-tools).
+
 ## Before you run anything
 
 Run `pnpm build` after a fresh checkout and after editing `packages/*/src`, before any docs script or CLI command. [First-time bootstrap](docs/developer/local-setup.md#first-time-bootstrap) has the rest of the setup, and [Requirements](docs/developer/local-setup.md#requirements) lists the toolchain, including Vale for the docs checks and Java for the formal models.
