@@ -25,8 +25,8 @@ function argValue(flag) {
 }
 
 function bumpBuild(version) {
-  const match = version.match(/^(\d+\.\d+\.\d+)(?:-build\.(\d+))?$/);
-  if (!match) {
+  const match = version.match(/^(.*?)(?:-build\.(\d+))?$/);
+  if (!match || !match[1]) {
     throw new Error(`Unsupported version for build bump: ${version}`);
   }
   const base = match[1];

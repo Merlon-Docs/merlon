@@ -15,7 +15,7 @@ describe('migrateFormerConfigText', () => {
   });
 
   it('leaves a config that already sets standardVersion unchanged', () => {
-    const text = '{ "standardVersion": "0.5.0.0", "protocolVersion": "0.5.0.0" }';
+    const text = '{ "standardVersion": "1.0.0-draft.0", "protocolVersion": "1.0.0-draft.0" }';
     expect(migrateFormerConfigText(text)).toBe(text);
   });
 

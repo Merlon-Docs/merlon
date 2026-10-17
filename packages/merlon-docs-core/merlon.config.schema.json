@@ -6,7 +6,7 @@
   "properties": {
     "standardVersion": {
       "type": "string",
-      "default": "0.5.0.0",
+      "default": "1.0.0-draft.0",
       "description": "Four-part version of the Merlon Docs standard the repository conforms to."
     },
     "protocolVersion": {

@@ -1,5 +1,6 @@
 {
   "$schema": "../packages/merlon-docs-core/merlon.config.schema.json",
+  "standardVersion": "1.0.0-draft.0",
   "outputDir": "_build",
   "outputFile": "guides.md",
   "compileOrder": ["features", "developer", "client-cli", "client-core", "repo-readme"],

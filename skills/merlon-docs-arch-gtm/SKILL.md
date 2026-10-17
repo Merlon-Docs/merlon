@@ -13,7 +13,7 @@ compatibility: >-
 metadata:
   author: Merlon-Docs
   internal: true
-  version: '0.7.2'
+  version: '1.0.0-draft.0'
   openclaw:
     category: 'documentation'
 ---

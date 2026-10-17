@@ -1,6 +1,6 @@
 {
   "name": "@merlon-docs/merlon-docs-cli",
-  "version": "0.7.6",
+  "version": "1.0.0-draft.0",
   "description": "Merlon Docs CLI: compile and check a sharded documentation tree",
   "license": "MIT",
   "type": "module",

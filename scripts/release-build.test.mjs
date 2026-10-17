@@ -15,7 +15,7 @@ describe('release-build', () => {
       { cwd: root, encoding: 'utf8' },
     );
     assert.equal(result.status, 0, result.stderr);
-    assert.match(result.stdout, /merlon-docs-cli: 0\.\d+\.\d+ → 0\.\d+\.\d+-build\.1/);
+    assert.match(result.stdout, /merlon-docs-cli: 1\.0\.0-draft\.0 → 1\.0\.0-draft\.0-build\.1/);
     const version = JSON.parse(
       readFileSync(join(root, 'packages/merlon-docs-cli/package.json'), 'utf8'),
     ).version;

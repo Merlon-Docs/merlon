@@ -1,6 +1,6 @@
 {
   "name": "@merlon-docs/merlon-docs-core",
-  "version": "0.8.1",
+  "version": "1.0.0-draft.0",
   "description": "Merlon Docs core: compile, refs and validation library for a sharded documentation tree",
   "license": "MIT",
   "type": "module",

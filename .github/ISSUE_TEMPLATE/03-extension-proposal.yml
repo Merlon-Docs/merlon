@@ -100,7 +100,7 @@ body:
     attributes:
       label: Target standardVersion
       description: Four-part spec version (`standardVersion`, formerly `protocolVersion`) this extension claims to support
-      placeholder: '0.5.0.0'
+      placeholder: '1.0.0-draft.0'
     validations:
       required: true
 

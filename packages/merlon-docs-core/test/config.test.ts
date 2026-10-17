@@ -116,10 +116,10 @@ describe('MerlonConfigSchema', () => {
 });
 
 describe('standardVersion', () => {
-  it('defaults to 0.5.0.0 and mirrors it in protocolVersion', () => {
+  it('defaults to 1.0.0-draft.0 and mirrors it in protocolVersion', () => {
     const cfg = parseConfig({ compileOrder: ['a'] });
-    expect(cfg.standardVersion).toBe('0.5.0.0');
-    expect(cfg.protocolVersion).toBe('0.5.0.0');
+    expect(cfg.standardVersion).toBe('1.0.0-draft.0');
+    expect(cfg.protocolVersion).toBe('1.0.0-draft.0');
   });
 
   it('reads the former protocolVersion key', () => {

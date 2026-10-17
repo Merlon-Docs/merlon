@@ -20,7 +20,7 @@ compatibility: >-
   wrappers; they do not replace the CLI.
 metadata:
   author: Merlon-Docs
-  version: '0.7.2'
+  version: '1.0.0-draft.0'
   openclaw:
     category: 'documentation'
     requires:

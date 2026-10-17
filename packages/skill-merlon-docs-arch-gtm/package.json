@@ -1,6 +1,6 @@
 {
   "name": "@merlon-docs/skill-merlon-docs-arch-gtm",
-  "version": "0.7.2",
+  "version": "1.0.0-draft.0",
   "private": true,
   "description": "Version carrier for skills/merlon-docs-arch-gtm (private; CHANGELOG + GitHub Releases; syncs version to SKILL.md). Not published to npm."
 }
