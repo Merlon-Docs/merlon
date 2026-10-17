@@ -4,7 +4,7 @@
   "groupings": [
     {
       "title": "Documentation system",
-      "description": "Merlon Docs: one skill that picks its workflow for bootstrap, docs-only, design, feature, UX, and doc review.",
+      "description": "Documentation guardrails for software repos (not a personal wiki): validated shards in git, merlon check in CI. Install the skill and reference it in AGENTS.md so agents maintain docs with the code.",
       "skills": ["merlon-docs"]
     }
   ]

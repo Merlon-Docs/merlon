@@ -2,7 +2,7 @@
 
 [![skills.sh](https://skills.sh/b/Merlon-Docs/merlon)](https://skills.sh/Merlon-Docs/merlon)
 
-**Merlon Docs** is a **documentation system** delivered as an [Agent Skill](https://agentskills.io) plus a small compile/check toolchain. It is for people whose docs grow as product ideas keep arriving and who want each topic in a small file that a check validates. If you are evaluating it for a team, [Vision and roadmap](../features/system/00-vision-and-roadmap.md) explains the problem it solves and the principles behind it.
+**Merlon Docs** is a **documentation system** delivered as an [Agent Skill](https://agentskills.io) plus a small compile/check toolchain. It is for **software projects** whose docs must stay trustworthy as the code changes — especially for teams and agents who **operate the system for the long haul**, not for the engineer who keeps the whole scope in their head. If you are comparing it to other skills on [skills.sh](https://skills.sh) (for example LLM Wiki or aDNA-style vaults), [What kind of Agent Skill is this?](./kind-of-agent-skill.md) places it in that category and shows how to wire it through your project's `AGENTS.md`. If you are evaluating it for a team, [Vision and roadmap](../features/system/00-vision-and-roadmap.md) explains the problem it solves and the principles behind it.
 
 Merlon Docs, formerly MDCP (MarkDown Context Protocol), is an open standard and an open-source project, MIT licensed.
 

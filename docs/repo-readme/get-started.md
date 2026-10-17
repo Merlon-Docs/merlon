@@ -21,6 +21,8 @@ npx skills add Merlon-Docs/merlon --skill merlon-docs
 
 _This copies the skill into your agent's skills directory. The [`skills` CLI](https://www.skills.sh/docs/cli) picks the directory from `--agent` or by detecting the agent, and its docs list the path for each agent. Commit the copy to git so every teammate and agent shares the same documentation discipline._
 
+Then **reference Merlon Docs in your project's `AGENTS.md`** (or host equivalent). A short Documentation section that names the skill, `/merlon-docs`, and `merlon check` turns documentation into shared policy — see [What kind of Agent Skill is this?](./kind-of-agent-skill.md#add-it-to-your-project-and-wire-agentsmd) for example lines.
+
 Then start a bootstrap session:
 
 ```text

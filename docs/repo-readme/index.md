@@ -2,6 +2,7 @@
 
 - [Merlon Docs — documentation system Agent Skill](#table-of-contents)
   - [What this tool is](./what-this-tool-is.md)
+  - [What kind of Agent Skill is this?](./kind-of-agent-skill.md)
   - [Why use Merlon Docs?](./about.md)
   - [Get started](./get-started.md)
   - [Merlon Docs 101](./merlon-docs-101.md)
