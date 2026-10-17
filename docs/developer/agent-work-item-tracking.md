@@ -9,12 +9,14 @@ How coding agents load tracker issues and delivery conventions **for this reposi
 ```text
 Host=GitHub (Merlon-Docs/merlon)
 Issues=https://github.com/Merlon-Docs/merlon/issues/  (record WORK_ITEMs here)
-Project board=https://github.com/users/betsalel-williamson/projects/4  (project plan / delivery board)
+Project board=https://github.com/orgs/Merlon-Docs/projects/1  (Merlon Docs - Public Roadmap)
 Issue base URL=https://github.com/Merlon-Docs/merlon/issues/
 WORK_ITEM=enough to resolve the issue — number, URL, or short name/description
 ```
 
-Every open issue must appear on the public [Merlon Docs project board](https://github.com/users/betsalel-williamson/projects/4).
+Every open issue must appear on the public [Merlon Docs project board](https://github.com/orgs/Merlon-Docs/projects/1) with **Status** set (see [Issue intake and labels](./issue-intake-and-labels.md)).
+
+During a **release cut**, only one pull request from `develop` to `main` should stay open (the release PR). Close or land other PRs first so CI and review focus on that train.
 
 [Issue intake and labels](./issue-intake-and-labels.md) gives the board fields and labels each issue gets, and the checklist for a new issue.
 
@@ -23,7 +25,7 @@ Every open issue must appear on the public [Merlon Docs project board](https://g
 **GitHub CLI** (when `gh` is on `PATH` and authenticated):
 
 ```bash
-gh issue view <number> --comments
+gh issue view <number> --repo Merlon-Docs/merlon --comments
 ```
 
 **GitHub MCP** (when enabled in Cursor or another host): use GitHub issue tools to fetch the issue named in `WORK_ITEM` — title, body, labels, and comments.
@@ -49,7 +51,7 @@ Landing=push the branch; put "Closes #N" in the commit message
 3. **Plan atomic commit groups**: list them in a coding or multi-concern plan before review, as [Atomic commit groups (plan obligation)](../features/system/skill-workflows.md#atomic-commit-groups-plan-obligation) requires. After approval, commit one group at a time.
 4. **Docs describe now**: update shards to match as-built behavior, and keep consumer notices out of durable shards ([Durable docs vs pending changesets](./versioning-and-releases.md#durable-docs-vs-pending-changesets)).
 5. **Add a changeset**: see [When to add a changeset](./versioning-and-releases.md#when-to-add-a-changeset).
-6. **Issue intake**: when opening or first touching an issue, complete [New issue intake](./issue-intake-and-labels.md#new-issue-intake-required) (labels, board, Track, Status, milestone).
+6. **Issue intake**: when opening or first touching an issue, complete [New issue intake](./issue-intake-and-labels.md#new-issue-intake-required) (labels, board, Status, milestone).
 7. **Weekly triage**: run the advisory [Weekly issue triage](./weekly-issue-triage.md). It asks humans to confirm before any stale or duplicate ticket is closed.
 
 ## Example intake answers

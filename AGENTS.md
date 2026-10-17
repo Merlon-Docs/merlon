@@ -35,6 +35,22 @@ pnpm formal:check        # the Alloy models in formal/alloy/
 
 Open every pull request as a draft, and mark it ready once, when the work is done. CI skips drafts, as [Pull requests](docs/developer/versioning-and-releases.md#pull-requests) explains. The pre-commit hook runs fast offline checks, and the pre-push hook runs the full gate. [Git hooks](docs/developer/local-setup.md#git-hooks) lists what each one runs.
 
+## Issues, labels, and the public roadmap
+
+Work is tracked in GitHub, not in ad-hoc markdown backlogs.
+
+| Surface                         | URL                                            |
+| ------------------------------- | ---------------------------------------------- |
+| Issues                          | https://github.com/Merlon-Docs/merlon/issues   |
+| Public roadmap (Project)        | https://github.com/orgs/Merlon-Docs/projects/1 |
+| Release PR (`develop` → `main`) | https://github.com/Merlon-Docs/merlon/pulls    |
+
+Before you edit code for a scoped task, load a **WORK_ITEM** (issue number or URL) and follow [Agent work-item tracking](docs/developer/agent-work-item-tracking.md). When you open or first touch an issue, complete [New issue intake](docs/developer/issue-intake-and-labels.md#new-issue-intake-required): one `priority:*` label, type/component labels, a `track:*` label when the roadmap area is clear, **Status** on the org project board, and a milestone when the issue belongs to the current delivery cut.
+
+During a release window, keep **only the develop → main release PR** open; close or land other pull requests so review and CI focus on that train. Dependabot stacks can be closed and refreshed on `develop` after the release lands.
+
+Maintainers with `project` scope on `gh` can backfill board items with `node scripts/populate-github-project.mjs --open-only`. Agents without project scope should still fix labels and leave a comment if an issue is missing from the board.
+
 ## Developer guides
 
 - [Versioning and releases](docs/developer/versioning-and-releases.md) covers how work reaches `develop` and how releases reach `main`.

@@ -1,15 +1,16 @@
 #!/usr/bin/env node
 /**
- * One-shot: add all Merlon Docs repo issues to GitHub project #4 and set Status + Track.
- * Usage: node scripts/populate-github-project.mjs [--dry-run]
+ * One-shot: add Merlon Docs repo issues to org GitHub project #1 and set Status.
+ * Applies track:* labels from issue metadata when missing (org board has no Track column).
+ * Usage: node scripts/populate-github-project.mjs [--dry-run] [--open-only]
  */
 import { execSync } from 'node:child_process';
 
 const DRY_RUN = process.argv.includes('--dry-run');
-const REPO = 'Merlon-Docs/merlon'; // eslint-disable-line @typescript-eslint/no-unused-vars
-const PROJECT_ID = 'PVT_kwHOAJLCJ84BbroI';
-const STATUS_FIELD = 'PVTSSF_lAHOAJLCJ84BbroIzhWaeqg';
-const TRACK_FIELD = 'PVTSSF_lAHOAJLCJ84BbroIzhWafDI';
+const OPEN_ONLY = process.argv.includes('--open-only');
+
+const ORG = 'Merlon-Docs';
+const PROJECT_NUMBER = 1;
 
 const STATUS = {
   todo: 'f75ad846',
@@ -17,12 +18,11 @@ const STATUS = {
   done: '98236657',
 };
 
-const TRACK = {
-  0.5: 'b05efaec',
-  '1.0': '54748d16',
-  maintenance: '0294358c',
-  performance: '4fc723b4',
-  future: 'c68bc060',
+const TRACK_LABEL = {
+  '1.0': 'track:1.0-formalization',
+  maintenance: 'track:maintenance',
+  performance: 'track:performance',
+  future: 'track:future',
 };
 
 function gh(args) {
@@ -37,16 +37,49 @@ function graphql(query, variables = {}) {
   return JSON.parse(gh(`api graphql -f query='${q.replace(/'/g, "'\\''")}' ${vars}`));
 }
 
-function trackForIssue(issue) {
+function loadProjectIds() {
+  const data = graphql(`
+    query {
+      organization(login: "${ORG}") {
+        projectV2(number: ${PROJECT_NUMBER}) {
+          id
+          fields(first: 30) {
+            nodes {
+              ... on ProjectV2SingleSelectField {
+                id
+                name
+                options { id name }
+              }
+            }
+          }
+        }
+      }
+    }
+  `);
+  const project = data.data.organization.projectV2;
+  const statusField = project.fields.nodes.find((f) => f.name === 'Status');
+  if (!statusField) throw new Error('Status field not found on org project #1');
+  const statusByName = Object.fromEntries(statusField.options.map((o) => [o.name, o.id]));
+  return {
+    projectId: project.id,
+    statusFieldId: statusField.id,
+    statusTodo: statusByName.Todo ?? STATUS.todo,
+    statusDone: statusByName.Done ?? STATUS.done,
+  };
+}
+
+function trackKeyForIssue(issue) {
   const labels = issue.labels.map((l) => l.name);
   const n = issue.number;
   const title = issue.title.toLowerCase();
 
-  if (labels.includes('0.5') || (n >= 74 && n <= 88)) return TRACK['0.5'];
-  if (n === 59 || n === 60 || title.startsWith('v2:') || title.startsWith('v3:'))
-    return TRACK.future;
-  if (n === 66 || n === 67 || n === 64 || title.includes('performance')) return TRACK.performance;
-  if (n === 69 || n === 70 || labels.includes('bug')) return TRACK.maintenance;
+  if (labels.some((l) => l.startsWith('track:'))) return null;
+
+  if (labels.includes('0.5') || (n >= 74 && n <= 88)) return '1.0';
+  if (n === 59 || n === 60 || title.startsWith('v2:') || title.startsWith('v3:')) return 'future';
+  if (n === 66 || n === 67 || n === 64 || title.includes('performance')) return 'performance';
+  if (n === 169 || title.includes('typescript 7')) return 'performance';
+  if (n === 69 || labels.includes('bug') || labels.includes('chore')) return 'maintenance';
   if (
     (n >= 44 && n <= 49) ||
     n === 52 ||
@@ -54,12 +87,13 @@ function trackForIssue(issue) {
     title.includes('1.0') ||
     title.includes('formalization') ||
     title.includes('normative specification') ||
-    title.includes('conformance')
+    title.includes('conformance') ||
+    labels.includes('standard')
   )
-    return TRACK['1.0'];
+    return '1.0';
   if (labels.includes('compile') || labels.includes('cli') || labels.includes('refs'))
-    return TRACK.maintenance;
-  return null;
+    return 'maintenance';
+  return 'maintenance';
 }
 
 function fetchIssues() {
@@ -67,8 +101,9 @@ function fetchIssues() {
   let cursor = null;
   for (;;) {
     const after = cursor ? `, after: "${cursor}"` : '';
+    const states = OPEN_ONLY ? '[OPEN]' : '[OPEN, CLOSED]';
     const data = graphql(
-      `{ repository(owner: "Merlon-Docs", name: "merlon") { issues(first: 100, states: [OPEN, CLOSED]${after}) { pageInfo { hasNextPage endCursor } nodes { id number title state labels(first: 20) { nodes { name } } } } } }`,
+      `{ repository(owner: "Merlon-Docs", name: "merlon") { issues(first: 100, states: ${states}${after}) { pageInfo { hasNextPage endCursor } nodes { id number title state labels(first: 30) { nodes { name } } } } } }`,
     );
     const batch = data.data.repository.issues;
     for (const node of batch.nodes) {
@@ -86,7 +121,7 @@ function fetchIssues() {
   return issues.sort((a, b) => b.number - a.number);
 }
 
-function addToProject(contentId) {
+function addToProject(projectId, contentId) {
   const data = graphql(
     `
       mutation ($projectId: ID!, $contentId: ID!) {
@@ -97,12 +132,12 @@ function addToProject(contentId) {
         }
       }
     `,
-    { projectId: PROJECT_ID, contentId },
+    { projectId, contentId },
   );
   return data.data.addProjectV2ItemById.item.id;
 }
 
-function setField(itemId, fieldId, optionId) {
+function setStatus(projectId, itemId, statusFieldId, optionId) {
   graphql(
     `
       mutation ($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
@@ -120,38 +155,56 @@ function setField(itemId, fieldId, optionId) {
         }
       }
     `,
-    { projectId: PROJECT_ID, itemId, fieldId, optionId },
+    { projectId, itemId, fieldId: statusFieldId, optionId },
   );
 }
 
+function ensureTrackLabel(issue, trackKey) {
+  if (!trackKey || trackKey === null) return;
+  const label = TRACK_LABEL[trackKey];
+  if (!label) return;
+  if (issue.labels.some((l) => l.name === label)) return;
+  if (DRY_RUN) {
+    console.log(`  would add label ${label}`);
+    return;
+  }
+  try {
+    gh(`issue edit ${issue.number} --repo Merlon-Docs/merlon --add-label "${label}"`);
+  } catch (err) {
+    console.warn(
+      `#${issue.number}: could not add ${label} (${err.message?.split('\n')[0] ?? err})`,
+    );
+  }
+}
+
+const { projectId, statusFieldId, statusTodo, statusDone } = loadProjectIds();
 const issues = fetchIssues();
-console.log(`Found ${issues.length} issues`);
+console.log(`Found ${issues.length} issues (project ${projectId})`);
 
 let added = 0;
 let skipped = 0;
 for (const issue of issues) {
-  const status = issue.state === 'CLOSED' ? STATUS.done : STATUS.todo;
-  const track = trackForIssue(issue);
-  const trackName = Object.entries(TRACK).find(([, id]) => id === track)?.[0] ?? '—';
+  const statusOption = issue.state === 'CLOSED' ? statusDone : statusTodo;
+  const trackKey = trackKeyForIssue(issue);
 
   if (DRY_RUN) {
     console.log(
-      `#${issue.number} [${issue.state}] status=${issue.state === 'CLOSED' ? 'Done' : 'Todo'} track=${trackName}`,
+      `#${issue.number} [${issue.state}] status=${issue.state === 'CLOSED' ? 'Done' : 'Todo'} track=${trackKey ?? '—'}`,
     );
     continue;
   }
 
   try {
-    const itemId = addToProject(issue.id);
-    setField(itemId, STATUS_FIELD, status);
-    if (track) setField(itemId, TRACK_FIELD, track);
+    ensureTrackLabel(issue, trackKey);
+    const itemId = addToProject(projectId, issue.id);
+    setStatus(projectId, itemId, statusFieldId, statusOption);
     console.log(
-      `#${issue.number} added (status=${issue.state === 'CLOSED' ? 'Done' : 'Todo'}, track=${trackName})`,
+      `#${issue.number} added (status=${issue.state === 'CLOSED' ? 'Done' : 'Todo'}, track=${trackKey ?? '—'})`,
     );
     added++;
   } catch (err) {
     if (String(err.stderr ?? err.message).includes('already exists')) {
-      console.log(`#${issue.number} already in project, skipping`);
+      console.log(`#${issue.number} already in project, skipping add`);
       skipped++;
     } else {
       throw err;
