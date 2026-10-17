@@ -53,7 +53,7 @@
   "dependencies": {
     "fast-glob": "^3.3.3",
     "github-slugger": "^2.0.0",
-    "ignore": "^7.0.10",
+    "ignore": "^7.0.12",
     "semver": "^7.8.5",
     "zod": "^4.6.5"
   },
