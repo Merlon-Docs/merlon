@@ -11,7 +11,6 @@ import {
   createQuotedFenceScanner,
 } from '../src/markdown/index.js';
 import { filterScanIgnored } from '../src/validate/coverage.js';
-import { manySpaces, timeMs } from './helpers/redos-pumps.js';
 import { useTmpDir } from './helpers/tmp-dir.js';
 
 describe('maskNonProse', () => {
@@ -240,23 +239,6 @@ describe('createCodeFenceScanner', () => {
     // Inside a fence, a marker line is content.
     expect(fenced(['```', '- ```', 'x', '```', 'y'])).toEqual([true, true, true, true, false]);
   });
-
-  it('stays linear on long indents and long fence runs', () => {
-    const lines = [manySpaces(40_000) + '```', '`'.repeat(40_000), '- ' + '`'.repeat(40_000)];
-    const ms = timeMs(() => {
-      for (let i = 0; i < 20; i++) fenced(lines);
-    });
-    expect(ms).toBeLessThan(200);
-  });
-
-  it('stays linear on deeply nested list markers and the lines after them', () => {
-    const lines = ['- '.repeat(5_000) + 'x', ...Array.from({ length: 500 }, () => 'lazy')];
-    lines.push(manySpaces(5_000) + '```', 'x');
-    const ms = timeMs(() => {
-      for (let i = 0; i < 20; i++) fenced(lines);
-    });
-    expect(ms).toBeLessThan(200);
-  });
 });
 
 /** Run a fresh quote-aware scanner over `lines` and return its answer for each line. */
@@ -347,26 +329,6 @@ describe('createQuotedFenceScanner', () => {
       false,
     ]);
   });
-
-  it('stays linear on long lines of quote and list markers', () => {
-    const lines = [
-      '> '.repeat(20_000) + '```',
-      '- > '.repeat(10_000) + 'x',
-      '>'.repeat(40_000),
-      '- '.repeat(20_000) + '> ```',
-      '> '.repeat(9) + '- '.repeat(20_000) + '> x',
-      '>\t'.repeat(20_000) + '```',
-    ];
-    // Lines ten quotes deep with long text, which each quote's scanner reads.
-    const deep = Array.from({ length: 200 }, () => '> '.repeat(10) + 'x '.repeat(500));
-    const ms = timeMs(() => {
-      for (let i = 0; i < 5; i++) {
-        quotedFenced(lines);
-        quotedFenced(deep);
-      }
-    });
-    expect(ms).toBeLessThan(200);
-  });
 });
 
 describe('inline helpers', () => {
@@ -388,13 +350,6 @@ describe('inline helpers', () => {
   it('counts only tokens with letters or digits', () => {
     expect(countWords('one — two | --- 3')).toBe(3);
     expect(countWords('')).toBe(0);
-  });
-
-  it('stays linear on long pathological input', () => {
-    const input = '[' + manySpaces(40_000) + '](' + manySpaces(40_000);
-    expect(timeMs(() => inlineToPlain(input))).toBeLessThan(50);
-    const comments = '<!--'.repeat(20_000);
-    expect(timeMs(() => maskNonProse(comments))).toBeLessThan(50);
   });
 });
 

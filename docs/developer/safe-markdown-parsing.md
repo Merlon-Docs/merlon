@@ -25,14 +25,14 @@ Link validation finds broken-link markers with `findTemplateMatches`, a scanner 
 
 The manifest walk and the `inlineInserts` hook read a whole manifest or shard body with `scanMarkdownLinks` in `compile/link-scan.ts`, the scanner that [Link idioms](#link-idioms) describes. The walk also reads `](#slug)` links with `slugLinkTargets` in that file. It returns what the regex `\]\(#([^)]+)\)` matches, a target that can span lines, in time that grows linearly with the text.
 
-`codeEvidence` reads line ranges such as `L6-L8` or `lines 12–15` with `lineRangeFromText`, an imperative scanner in `compile/hooks/line-range.ts`. It takes its words from the locale pack. The hook trims the backticks around a link label with a loop, and `shardLintPaths` uses one too, for the slashes at the end of a `shardsGlobs` entry that starts with `../`. Public package APIs keep their names, and call sites delegate to the helpers. Duration-budget tests in `packages/merlon-docs-core/test/redos-budget.test.ts` run the helpers and scanners on pump inputs, so a regex that brings the class back fails CI.
+`codeEvidence` reads line ranges such as `L6-L8` or `lines 12–15` with `lineRangeFromText`, an imperative scanner in `compile/hooks/line-range.ts`. It takes its words from the locale pack. The hook trims the backticks around a link label with a loop, and `shardLintPaths` uses one too, for the slashes at the end of a `shardsGlobs` entry that starts with `../`. Public package APIs keep their names, and call sites delegate to the helpers. Growth benchmarks in `packages/merlon-docs-core/bench/redos-growth.test.ts` run the helpers and scanners on pump inputs of two sizes, so a regex that brings the class back fails CI's Benchmarks job. [Growth benchmarks](./packages-and-tests.md#growth-benchmarks) explains how they measure.
 
 ## Regex sites that remain
 
 A regex in `packages/merlon-docs-core/src/` falls under this rule:
 
 - **Keep** a pattern that is clearly linear.
-- **Rewrite** a pattern next to the CodeQL class, such as `\s*` or overlapping optional groups next to digits, as a scanner with a duration-budget test.
+- **Rewrite** a pattern next to the CodeQL class, such as `\s*` or overlapping optional groups next to digits, as a scanner with a growth benchmark.
 - Leave prose and language opinion out of core, because it belongs in Vale.
 
 ### Kept (linear)
@@ -70,7 +70,7 @@ The scan ends a target at its line, so an unfinished link such as `[x](see` does
 
 [No placeholder links](../features/link-validation.md#no-placeholder-links) states the rule that link validation leaves an image's src unchecked. Neither built-in list behind `lint.codeExtensions` and `lint.dataExtensions` has an image extension, so a check of srcs would pass one with an image extension or an https: URL without reading the disk, and it would read a src such as `./x.md` as a page.
 
-The scan stops only at a backslash, a `!` or a bracket, and a regex of one character class finds the next one, so it reads each index of its input a fixed number of times. Images nest, so on a line of nested images the alts add up to the square of the line's length. So `codeEvidence` reads a label without the links and images in it, both for a line range or a symbol and for the text that tells the links it rebased apart. Broken-link marking scans the label of each link for the images in it, and links don't nest, so it reads each index once. It then splices each marker into the body on its own, so marking takes time that grows with the number of marked links times the length of the body. Duration-budget tests run each reader on a line that repeats an unfinished link, and compile and `codeEvidence` on a line of nested images.
+The scan stops only at a backslash, a `!` or a bracket, and a regex of one character class finds the next one, so it reads each index of its input a fixed number of times. Images nest, so on a line of nested images the alts add up to the square of the line's length. So `codeEvidence` reads a label without the links and images in it, both for a line range or a symbol and for the text that tells the links it rebased apart. Broken-link marking scans the label of each link for the images in it, and links don't nest, so it reads each index once. It then splices each marker into the body on its own, so marking takes time that grows with the number of marked links times the length of the body. Growth benchmarks run each reader on a line that repeats an unfinished link, and compile and `codeEvidence` on a line of nested images.
 
 [ADR 0005](../features/adr/0005-keep-ts-scanners-over-rg-peggy-rust.md) keeps hand-written TypeScript scanners for the core micro-parsers, and these readers follow it. None of them is a regex now. CommonMark's bracket rule needs a stack of the brackets still open, and `scanMarkdownLinks` keeps one in a hand-written loop, so it doesn't meet the ADR's trigger for a grammar.
 
