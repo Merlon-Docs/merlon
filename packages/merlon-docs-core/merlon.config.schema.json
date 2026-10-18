@@ -50,6 +50,7 @@
             "type": "string"
           },
           "path": {
+            "description": "Shard directory relative to docs root (default: {docsRoot}/{name}/).",
             "type": "string"
           },
           "splitLevel": {
@@ -155,28 +156,35 @@
               },
               "manifest": {
                 "default": "index.md",
+                "description": "Manifest file name; review trees use shards.md.",
                 "type": "string"
               },
               "sectionsHeading": {
+                "description": "When set, only links after this ## heading in the manifest set compile order.",
                 "type": "string"
               },
               "title": {
+                "description": "Compile title, injected as a ## heading before the first section.",
                 "type": "string"
               },
               "scopeRoot": {
                 "type": "string"
               },
               "outputFile": {
+                "description": "Output path for this guide, relative to outputDir or absolute.",
                 "type": "string"
               },
               "includeBanner": {
                 "default": true,
+                "description": "Put the top-level banner at the head of this guide's output.",
                 "type": "boolean"
               },
               "sourceTags": {
+                "description": "Wrap each shard in source tags for this guide (default: top-level sourceTags).",
                 "type": "boolean"
               },
               "hooks": {
+                "description": "Named compile hooks. An array replaces the defaults; an object turns named hooks on or off.",
                 "anyOf": [
                   {
                     "type": "array",
@@ -196,9 +204,11 @@
                 ]
               },
               "crossGuideLinks": {
+                "description": "How links to other guides are rewritten when this guide is assembled.",
                 "type": "object",
                 "properties": {
                   "ignoreGuides": {
+                    "description": "Guides whose shards this guide's links keep as .md paths instead of #slug targets. A link to a shard this guide stitches still gets its in-document anchor.",
                     "type": "array",
                     "items": {
                       "type": "string"
@@ -262,7 +272,7 @@
       "properties": {
         "gitignore": {
           "default": true,
-          "description": "Honor the repository .gitignore when walking for markdown files.",
+          "description": "Honor .gitignore when walking for markdown files: the repository root's inside git, the scan root's outside it.",
           "type": "boolean"
         },
         "ignore": {
@@ -290,6 +300,7 @@
         "dir": ".caches/backups",
         "ext": ""
       },
+      "description": "Back up existing compile targets before overwriting them.",
       "type": "object",
       "properties": {
         "enabled": {
@@ -298,10 +309,12 @@
         },
         "dir": {
           "default": ".caches/backups",
+          "description": "Backup directory relative to outputDir.",
           "type": "string"
         },
         "ext": {
           "default": "",
+          "description": "Suffix appended to each backup file name.",
           "type": "string"
         }
       }
@@ -315,6 +328,7 @@
       "properties": {
         "registryFile": {
           "default": ".caches/refs.json",
+          "description": "Slug registry path relative to outputDir.",
           "type": "string"
         },
         "slugAlgorithm": {
@@ -339,6 +353,7 @@
               "type": "string"
             },
             "shardsGlobs": {
+              "description": "Shard lint paths relative to docs root (default: the compileOrder guide directories).",
               "type": "array",
               "items": {
                 "type": "string"
@@ -371,7 +386,7 @@
         },
         "codeExtensions": {
           "default": [],
-          "description": "Extra code extensions, added to the built-in defaults. Validated for existence and citable by line.",
+          "description": "Extra code extensions, added to the built-in defaults. A link or path to such a file must resolve, and a symbol in the link label can cite a line in it, as for a stack the defaults leave out or for workflow YAML.",
           "type": "array",
           "items": {
             "type": "string"
@@ -379,7 +394,7 @@
         },
         "dataExtensions": {
           "default": [],
-          "description": "Extra data extensions, added to the built-in defaults. Validated for existence, never cited by line.",
+          "description": "Extra data extensions, added to the built-in defaults. A link or path to such a file must resolve; its lines are never cited.",
           "type": "array",
           "items": {
             "type": "string"
@@ -400,7 +415,7 @@
             },
             "searchRoots": {
               "default": [],
-              "description": "Extra resolution roots relative to the scan root.",
+              "description": "Extra resolution roots relative to the scan root, tried after it.",
               "type": "array",
               "items": {
                 "type": "string"
@@ -408,7 +423,7 @@
             },
             "generated": {
               "default": [],
-              "description": "Prefixes that are real but absent in a clean checkout: build output, caches, vendor-managed installs.",
+              "description": "Scan-root-relative prefixes that are real but absent in a clean checkout: build output, caches, vendor-managed installs. Everything beneath a prefix is covered.",
               "type": "array",
               "items": {
                 "type": "string"
@@ -416,7 +431,7 @@
             },
             "vocabulary": {
               "default": [],
-              "description": "Exact names this repository documents without having, such as a tier the standard defines and a consumer creates.",
+              "description": "Paths this repository documents without having: names the standard defines for a consumer repository, or another project's tree. Matched exactly, so a file beneath one still has to resolve.",
               "type": "array",
               "items": {
                 "type": "string"
