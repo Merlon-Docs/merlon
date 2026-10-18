@@ -84,10 +84,15 @@ describe('markdown scanning', () => {
     ]);
   });
 
-  it('extractTitle takes the first h1 (outside code) and strips it from the body', () => {
+  it('extractTitle takes the first h1 (outside code or YAML frontmatter) and strips it from the body', () => {
     const { title, body } = extractTitle('```\n# not me\n```\n# The `merlon` title\n\nBody text\n');
     assert.equal(title, 'The merlon title');
     assert.equal(body, '```\n# not me\n```\nBody text\n');
+    const withFm = extractTitle(
+      '---\nname: merlon-docs\nversion: "1.0.0"\n---\n\n# Merlon Docs\n\nSkill body.\n',
+    );
+    assert.equal(withFm.title, 'Merlon Docs');
+    assert.equal(withFm.body, 'Skill body.\n');
   });
 
   it('extractTitle falls back to an opening h2 and fails without any heading', () => {
@@ -575,5 +580,70 @@ describe('syncContent (fixture repository)', () => {
   it('fails on a missing anchor in another shard', () => {
     setup('Broken: [leaf](./deep/leaf.md#missing)');
     assert.throws(run, /anchor #missing not found/);
+  });
+
+  it('publishes repo-readme as Part 1 alongside skills/merlon-docs pages and rewrites links between them', () => {
+    setup();
+    write(
+      'docs/merlon.config.json',
+      JSON.stringify({
+        outputDir: '_build',
+        outputFile: 'guides.md',
+        compileOrder: ['repo-readme', 'guide'],
+        guides: [
+          { name: 'repo-readme', compile: { outputFile: '../../README.md' } },
+          { name: 'guide', compile: { scopeRoot: 'glossary' } },
+        ],
+        refs: { registryFile: '_build/refs.json' },
+      }),
+    );
+    write(
+      'docs/repo-readme/index.md',
+      '# Merlon Docs Skill\n\n- [Get started](./get-started.md)\n',
+    );
+    write(
+      'docs/repo-readme/get-started.md',
+      '# Get started\n\nRead the [skill catalog](../skills.md) or [SKILL.md](../../skills/merlon-docs/SKILL.md).\n',
+    );
+    write('docs/skills.md', '# Skills Index\n\n- [Merlon Docs](../skills/merlon-docs/SKILL.md)\n');
+    write(
+      'skills/merlon-docs/SKILL.md',
+      '---\nname: merlon-docs\n---\n\n# Merlon Docs\n\nSee [Pick the workflow](#pick-the-workflow) and [install](references/install.md).\n\n## Pick the workflow\n\nText.\n',
+    );
+    write('skills/merlon-docs/references/install.md', '# Install the skill\n\nSteps.\n');
+    const readmeText = [
+      '# Merlon Docs Skill',
+      '<!-- merlon-shard: start docs/repo-readme/get-started.md -->',
+      '## Get started',
+      '<!-- merlon-shard: end docs/repo-readme/get-started.md -->',
+    ].join('\n');
+    write('README.md', readmeText);
+    const result = syncContent({
+      repoRoot: root,
+      docsRoot: join(root, 'docs'),
+      configPath: join(root, 'docs/merlon.config.json'),
+      contentDir: join(root, 'site/src/content/docs'),
+      generatedDir: join(root, 'site/.generated'),
+      buildSlugRegistry: fakeRegistry,
+      guides: [{ name: 'repo-readme', route: 'skill', label: 'Part 1: Agent Skill' }, ...guides],
+      base: '/b',
+      repoUrl: 'https://github.com/o/r',
+      branch: 'main',
+    });
+    assert.ok(result.pages.includes('skill/merlon-docs'));
+    assert.ok(result.pages.includes('skill/catalog'));
+    assert.ok(result.pages.includes('skill/references/install'));
+    const getStartedPage = readFileSync(
+      join(root, 'site/src/content/docs/skill/get-started.md'),
+      'utf8',
+    );
+    assert.ok(getStartedPage.includes('[skill catalog](/b/skill/catalog/)'));
+    assert.ok(getStartedPage.includes('[SKILL.md](/b/skill/merlon-docs/)'));
+    const skillPage = readFileSync(
+      join(root, 'site/src/content/docs/skill/merlon-docs.md'),
+      'utf8',
+    );
+    assert.ok(skillPage.includes('[Pick the workflow](#pick-the-workflow)'));
+    assert.ok(skillPage.includes('[install](/b/skill/references/install/)'));
   });
 });

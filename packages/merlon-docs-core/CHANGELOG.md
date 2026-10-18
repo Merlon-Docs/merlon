@@ -308,6 +308,7 @@
 
 ### Patch Changes
 
+- c71caad: Update runtime and development dependencies to the latest stable versions past the 7-day release-age gate (`cac` 7.0.1, `ignore` 7.0.12), publish the Agent Skill (`repo-readme` and `skills/merlon-docs/**`) as Part 1 on the documentation site ahead of the CLI guide (Part 2), and link `[Agent Skill]` in `why-merlon-docs-for-agents.md` directly to the Agent Skill spec and workflows.
 - d4d05ac: The core README's section on the shard and peer tool exports comes from `docs/client-core/api-shard-and-peers.md`, the shard's new name. Its shard markers name that path.
 - 9bc05cd: Find broken-link markers in linear time
 

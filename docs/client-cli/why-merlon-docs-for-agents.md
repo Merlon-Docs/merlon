@@ -12,4 +12,4 @@ Common docs failures when agents edit the repo, and what helps:
 
 Typical loop: edit shards → `merlon compile` → `merlon check` → optional `merlon refs-list` → read one shard when the next turn needs doc context.
 
-[Install and quick start](./install-and-quick-start.md) covers install and flags, and the [Agent Skill](./about.md#not-the-agent-skill) contains the docs workflows an agent follows.
+[Install and quick start](./install-and-quick-start.md) covers install and flags, and the [Agent Skill](../features/agent-skill.md) ([skill workflows](../features/system/skill-workflows.md)) contains the docs workflows an agent follows (see [Not the Agent Skill](./about.md#not-the-agent-skill) for how the CLI and the skill fit together).

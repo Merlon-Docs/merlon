@@ -3,15 +3,6 @@ packages:
 
 # pnpm supply-chain (2026 best practice)
 minimumReleaseAge: 10080
-# Security patches published inside the age gate (must be allowed through explicitly).
-# - js-yaml@5.2.2: GHSA-pm4m-ph32-ghv5 (markdownlint-cli2 → js-yaml)
-# - js-yaml@4.3.2: CVE-2026-59870 (astro, commitlint, and skills-ref → js-yaml 4.x)
-# - nanoid@3.3.18: GHSA-2v37-7h3g-55p8 (postcss → nanoid)
-minimumReleaseAgeExclude:
-  - js-yaml@4.3.2 || 5.2.2
-  - nanoid@3.3.18
-  - smol-toml@1.7.1
-  - source-map-js@1.2.2
 strictDepBuilds: true
 allowBuilds:
   esbuild: true
@@ -30,33 +21,33 @@ overrides:
   # merlon-docs-site → mermaid → chevrotain / dagre-d3-es → lodash-es (dev-only docs site).
   # GHSA-r5fr-rjxr-66jc: vulnerable <=4.17.23, patched >=4.18.1.
   lodash-es@<4.18.1: 4.18.1
-  # GHSA-r28c-9q8g-f849: vulnerable <=8.5.17, patched >=8.5.18.
-  postcss@<8.5.18: 8.5.18
-  # GHSA-pm4m-ph32-ghv5: vulnerable >=5.0.0 <=5.2.1, patched >=5.2.2.
-  js-yaml@5: 5.2.2
+  # GHSA-r28c-9q8g-f849 (<=8.5.17) + GHSA-fxqj-rqcc-2cmp (<=8.5.22): patched >=8.5.23.
+  postcss@<8.5.29: 8.5.29
+  # GHSA-pm4m-ph32-ghv5 (<=5.2.1) + GHSA-r3ph-w7gj-g6xm (<=5.4.0): patched >=5.4.1.
+  js-yaml@5: 5.4.3
   # CVE-2026-59870 + GHSA-2883-xcg3-v3hh: patched >=4.3.2.
   js-yaml@4: 4.3.2
   # GHSA-2v37-7h3g-55p8: timing attack on nanoid, patched >=3.3.18.
   nanoid@<3.3.18: 3.3.18
-  # GHSA-7w5x-hrqm-74c2: DoS via malformed TOML, patched >=1.7.1.
-  smol-toml@<=1.7.0: 1.7.1
+  # GHSA-7w5x-hrqm-74c2 (<=1.7.0) + GHSA-r4xh-jqrq-34v2 (<=1.8.0): patched >=1.9.0.
+  smol-toml@<1.9.1: 1.9.1
   # merlon-docs-site → mermaid → dompurify (dev-only docs site).
   # GHSA-v2wj-7wpq-c8vv / GHSA-h7mw-gpvr-xq4m / GHSA-crv5-9vww-q3g8: patched >=3.4.0.
   dompurify: ^3.4.0
   # @changesets/cli → launch-editor → shell-quote (dev-only release tooling).
   # GHSA-pqg4-j6r4-53mv: command injection in quote(), patched >=1.11.0.
-  shell-quote@<1.11.0: 1.11.0
+  shell-quote@<1.12.0: 1.12.0
   # merlon-docs-site → astro → sharp (dev-only docs site build).
   # GHSA-wq5f-xc86-pv6w / CVE-2026-96889: librsvg dependency, patched >=0.35.5.
   sharp@<0.35.5: 0.35.5
+  # merlon-docs-site → astro → http-cache-semantics (dev-only docs site build).
+  # GHSA-ch52-4w7c-c8xp: vulnerable <=4.2.0, patched >=4.3.0.
+  http-cache-semantics@<4.3.0: 4.3.0
 # Unfixable advisories (no patched version published yet). Ignore so
 # `pnpm audit --audit-level=high` exits 0 without --ignore-unfixable.
 # - GHSA-vfj7-8cjw-p6xm: braces <=3.0.3, no patched version
 #   (merlon-docs-core → fast-glob → micromatch, and markdownlint-cli2 → globby).
 #   Added 2026-10-03; recheck 2026-11-03.
-# - GHSA-ch52-4w7c-c8xp: http-cache-semantics <=4.2.0, no patched version
-#   (merlon-docs-site → astro, dev-only docs site build). Added 2026-10-03; recheck 2026-11-03.
 audit:
   ignore:
     - GHSA-vfj7-8cjw-p6xm
-    - GHSA-ch52-4w7c-c8xp

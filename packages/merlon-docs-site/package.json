@@ -13,12 +13,12 @@
     "check:a11y": "node scripts/check-a11y.mjs"
   },
   "devDependencies": {
-    "@astrojs/starlight": "^0.42.4",
+    "@astrojs/starlight": "^0.42.6",
     "@merlon-docs/merlon-docs-core": "workspace:*",
-    "astro": "^7.3.5",
-    "axe-core": "^4.13.0",
+    "astro": "^7.3.8",
+    "axe-core": "^4.14.0",
     "github-slugger": "^2.0.0",
-    "mermaid": "^12.0.0",
-    "playwright-core": "^1.63.0"
+    "mermaid": "^12.1.0",
+    "playwright-core": "^1.64.0"
   }
 }

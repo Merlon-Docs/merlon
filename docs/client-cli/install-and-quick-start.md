@@ -4,7 +4,7 @@
 
 This package installs the **`merlon` CLI** for use in your repo or CI. It works in **any** codebase, whatever its stack or layout, because Merlon Docs manages only your documentation shards and compile pipeline.
 
-To install the Agent Skill instead, see [Not the Agent Skill](./about.md#not-the-agent-skill).
+To install the Agent Skill instead, see [Get started](../../README.md#get-started) and the [skill catalog](../skills.md) (or [Not the Agent Skill](./about.md#not-the-agent-skill)).
 
 ## Requirements
 

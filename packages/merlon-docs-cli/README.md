@@ -38,7 +38,7 @@ Common docs failures when agents edit the repo, and what helps:
 
 Typical loop: edit shards → `merlon compile` → `merlon check` → optional `merlon refs-list` → read one shard when the next turn needs doc context.
 
-[Install and quick start](#install-and-quick-start) covers install and flags, and the [Agent Skill](#not-the-agent-skill) contains the docs workflows an agent follows.
+[Install and quick start](#install-and-quick-start) covers install and flags, and the [Agent Skill](../../docs/features/agent-skill.md) ([skill workflows](../../docs/features/system/skill-workflows.md)) contains the docs workflows an agent follows (see [Not the Agent Skill](#not-the-agent-skill) for how the CLI and the skill fit together).
 
 <!-- merlon-shard: end ../../docs/client-cli/why-merlon-docs-for-agents.md -->
 
@@ -50,7 +50,7 @@ Typical loop: edit shards → `merlon compile` → `merlon check` → optional `
 
 This package installs the **`merlon` CLI** for use in your repo or CI. It works in **any** codebase, whatever its stack or layout, because Merlon Docs manages only your documentation shards and compile pipeline.
 
-To install the Agent Skill instead, see [Not the Agent Skill](#not-the-agent-skill).
+To install the Agent Skill instead, see [Get started](../../README.md#get-started) and the [skill catalog](../../docs/skills.md) (or [Not the Agent Skill](#not-the-agent-skill)).
 
 ### Requirements
 
