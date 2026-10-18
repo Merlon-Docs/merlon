@@ -1,6 +1,13 @@
 #!/usr/bin/env node
 import cac from 'cac';
-import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  realpathSync,
+  unlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { dirname, isAbsolute, resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -100,12 +107,29 @@ function getConfig(opts: GlobalOpts) {
 }
 
 /**
+ * The invocation dir, spelled like `--docs-root` when both name the same directory.
+ * `process.cwd()` is always the real path, so on macOS a docs root under `/var` (a symlink
+ * to `/private/var`) would otherwise not match the scan root that coverage compares it to.
+ */
+function getInvocationDir(opts: GlobalOpts): string {
+  const cwd = process.cwd();
+  if (opts.docsRoot === undefined) return cwd;
+  const docsRoot = resolve(opts.docsRoot);
+  try {
+    return realpathSync(docsRoot) === cwd ? docsRoot : cwd;
+  } catch {
+    return cwd;
+  }
+}
+
+/**
  * Scan root for coverage: `scan.root` (resolved against the invocation dir) else the
  * invocation dir — not the docs root, since package READMEs live outside `docs/`.
  */
-function getScanRoot(config: MerlonConfig): string {
-  if (config.scan?.root) return resolve(process.cwd(), config.scan.root);
-  return process.cwd();
+function getScanRoot(config: MerlonConfig, opts: GlobalOpts): string {
+  const dir = getInvocationDir(opts);
+  if (config.scan?.root) return resolve(dir, config.scan.root);
+  return dir;
 }
 
 function coverageInputs(config: MerlonConfig, opts: GlobalOpts): CoverageOptions {
@@ -125,7 +149,7 @@ function coverageInputs(config: MerlonConfig, opts: GlobalOpts): CoverageOptions
   const topOutput = resolveOutputPath(config, docsRoot);
   if (topOutput) outputFiles.push(topOutput);
   return {
-    root: getScanRoot(config),
+    root: getScanRoot(config, opts),
     guideDirs,
     outputFiles,
     standaloneGuides: config.standaloneGuides,
@@ -494,7 +518,7 @@ cli
   .action((opts: GlobalOpts & { strict?: boolean; requireVale?: boolean }) => {
     const config = getConfig(opts);
     const tool = findPeerBinary('vale', getDocsRoot(opts));
-    const scanPaths = valeScanPaths(config, getDocsRoot(opts), getScanRoot(config));
+    const scanPaths = valeScanPaths(config, getDocsRoot(opts), getScanRoot(config, opts));
     const args = valeArgs(config, scanPaths, opts.strict === true);
     const r = runPeer(tool, { require: opts.requireVale, cwd: getDocsRoot(opts), args });
     if (r.exitCode !== 0) process.exit(r.exitCode);
@@ -617,7 +641,7 @@ cli
         docsRoot,
         opts,
         workspace,
-        getScanRoot(config),
+        getScanRoot(config, opts),
       );
       const linkSink = linkSeverity === 'error' ? errorLines : warningLines;
       if (reportLinkIssues(linkIssues, linkSeverity, linkSink)) {
@@ -704,7 +728,7 @@ cli
 
       if (!opts.skipVale) {
         const vale = findPeerBinary('vale', docsRoot);
-        const scanPaths = valeScanPaths(config, docsRoot, getScanRoot(config));
+        const scanPaths = valeScanPaths(config, docsRoot, getScanRoot(config, opts));
         const r = runPeer(vale, {
           require: opts.requireVale,
           cwd: docsRoot,
@@ -738,7 +762,7 @@ cli
       const pathSeverity = config.lint?.paths?.severity ?? 'off';
       if (pathSeverity !== 'off') {
         const pathIssues = probeDocumentPaths(
-          pathProbeInputs(config, docsRoot, getScanRoot(config)),
+          pathProbeInputs(config, docsRoot, getScanRoot(config, opts)),
         );
         const pathSink = pathSeverity === 'error' ? errorLines : warningLines;
         for (const issue of pathIssues) {
@@ -826,7 +850,7 @@ cli
       guide: opts.guide,
       guides: guideEntries(config, docsRoot),
       docsRoot,
-      scanRoot: getScanRoot(config),
+      scanRoot: getScanRoot(config, opts),
       ignore: config.scan?.ignore ?? [],
       thresholds: config.review,
     });

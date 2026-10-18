@@ -119,7 +119,8 @@ describe('MerlonDocs Vale style', { skip: !hasVale && 'vale not on PATH' }, () =
 
   it('MerlonDocs.DatedClaim flags a reference-style link label and can miss a claim split by emphasis', () => {
     // Pins the limits the presets README documents. TokenIgnores skips inline
-    // links only, and Vale can miss a match that emphasis markers split.
+    // links only, and Vale can miss a match that emphasis markers split: CI's
+    // Vale 3.15.1 misses line 5, while newer releases (3.24.0) flag it.
     const md = [
       '# Doc', // 1
       '', // 2
@@ -130,7 +131,11 @@ describe('MerlonDocs Vale style', { skip: !hasVale && 'vale not on PATH' }, () =
       '[snap]: ./x.md', // 7
       '',
     ].join('\n');
-    assert.deepEqual(linesFor('MerlonDocs.DatedClaim', lint(md)), [3]);
+    const flagged = linesFor('MerlonDocs.DatedClaim', lint(md));
+    assert.ok(
+      [[3], [3, 5]].some((want) => JSON.stringify(want) === JSON.stringify(flagged)),
+      `expected [3] or [3, 5], got ${JSON.stringify(flagged)}`,
+    );
   });
 
   it('MerlonDocs.DatedClaim skips undated cues, other dated forms, code, link labels and the opt-out', () => {
