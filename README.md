@@ -22,30 +22,30 @@ Instead of putting every architecture note and spec into one file, Merlon Docs s
 
 <!-- merlon-paths: illustrative -->
 
-On [skills.sh](https://skills.sh) you will find many skills that teach an agent a repeatable procedure. Merlon Docs belongs with **project knowledge and documentation guardrails** — the same neighborhood as skills such as **[LLM Wiki](https://github.com/alainbrown/skills/tree/main/skills/llm-wiki)** (bootstrap, ingest, query, and lint a compounding markdown wiki) and **[aDNA](https://adna.network/reference/specification/)**-style vaults (what / who / how layout, `AGENTS.md` in each area, and procedural skill files in the vault's how leg).
+On [skills.sh](https://skills.sh) you will find many task skills that teach an agent a repeatable procedure. Merlon Docs belongs to the family of **foundational AI skills** for durable context and documentation guardrails, alongside skills such as **[LLM Wiki](https://github.com/alainbrown/skills/tree/main/skills/llm-wiki)** (bootstrap, ingest, query, and lint a compounding Markdown wiki) and **[aDNA](https://adna.network/reference/specification/)**-style vaults (what, who, and how layout, `AGENTS.md` in each area, and procedural skill files in the vault's how leg).
 
-Those patterns optimize for **broad knowledge** or **whole-vault organization**. Merlon Docs optimizes for **software you ship from git**: small validated **shards**, a compile step, and **`merlon check`** in CI so docs stay reviewable and link-safe as the code changes.
+LLM Wiki and aDNA optimize for **general knowledge** or **whole-vault organization** across any domain. Merlon Docs optimizes for **software projects in git**: small validated **shards** next to source code, `merlon compile` to build single-file guides for review, and **`merlon check`** in CI so links, paths, and indexes stay sound as the code changes.
 
 ### Comparison at a glance
 
-| Pattern                             | What it is optimized for                                                                                 | Merlon Docs difference                                                                                                                                                                                      |
+| Pattern                             | Primary focus                                                                                            | Merlon Docs difference                                                                                                                                                                                      |
 | ----------------------------------- | -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **LLM Wiki**                        | A persistent wiki you ingest sources into and query across sessions                                      | Shards live **in your product repo** next to code; validation is structural (orphans, links, compile), not wiki lint alone                                                                                  |
-| **aDNA vault**                      | Full project vault: missions, pipelines, skills, per-folder `AGENTS.md`                                  | **Documentation-system** skill + CLI; default [Code Repository Archetype](docs/features/system/extensions-and-archetypes.md#archetypes-battery-types) for `features/`, `developer/`, `client/`, `glossary/` |
+| **LLM Wiki**                        | A compounding general-knowledge wiki you ingest sources into and query across sessions                   | Shards live **in your software repo** next to code; validation checks orphans, repository file and directory links, and compiled outputs                                                                    |
+| **aDNA vault**                      | General-purpose vault across any domain: what, who, and how directories with per-folder `AGENTS.md`      | **Documentation-system** skill + CLI; default [Code Repository Archetype](docs/features/system/extensions-and-archetypes.md#archetypes-battery-types) for `features/`, `developer/`, `client/`, `glossary/` |
 | **Cursor rules / lone `AGENTS.md`** | Host-native hints                                                                                        | Product intent lives in **shards**, not only in host config; the skill enforces **update docs before you change what they describe**                                                                        |
 | **Merlon Docs**                     | Long-lived **software projects** where humans and agents co-maintain specs, ADRs, runbooks, and API docs | Agent Skill + `merlon` CLI; installs from [skills.sh/Merlon-Docs/merlon](https://skills.sh/Merlon-Docs/merlon)                                                                                              |
 
-Merlon Docs can **compile** into READMEs, monoliths, or downstream site generators. It is not a replacement for Docusaurus or MkDocs when you only need a public website with no agent discipline — see [Alternatives and adoption](docs/features/system/02-alternatives-and-adoption.md).
+Merlon Docs can **compile** into READMEs, monoliths, or downstream site generators. It is not a replacement for Docusaurus or MkDocs when you only need a public website with no agent discipline. See [Alternatives and adoption](docs/features/system/02-alternatives-and-adoption.md).
 
 ### Text in git, visuals beside it
 
-Merlon Docs is **text-first**: shards and `merlon check` cover Markdown structure, links, and compile — not editing a Figma or Excalidraw file directly. Use a **canvas MCP** (Excalidraw, Figma, or your tool) alongside Merlon Docs: shards hold the durable wording and system facts; exported figures live in insert libraries and compile into the guides you review. Agents can read shards to populate or update a canvas, and update shards when the diagram changes. See [Text-first content and canvas tools](docs/features/system/01-scope-and-positioning.md#text-first-content-and-canvas-tools).
+Merlon Docs is **text-first**: shards and `merlon check` cover Markdown structure, links, and compile. It does not edit Figma or Excalidraw files directly. Use a **canvas MCP** (Excalidraw, Figma, or your tool) alongside Merlon Docs: shards hold the durable wording and system facts; exported figures live in insert libraries and compile into the guides you review. Agents can read shards to populate or update a canvas, and update shards when the diagram changes. See [Text-first content and canvas tools](docs/features/system/01-scope-and-positioning.md#text-first-content-and-canvas-tools).
 
 ### Who it is for (and who can skip it)
 
-Merlon Docs is for people who **operate or extend the software for the long haul**: teammates who onboard later, agents that were not in last week's chat, you six months from now.
+Merlon Docs is for people who **operate or extend the software for the long haul**: teammates who onboard later, agents that were not in last week's chat, and you six months from now.
 
-It is **not** aimed at the engineer who keeps the entire project scope in their head and sees no documentation debt. That can work for a while; Merlon Docs is for **everyone else** who pays when that knowledge is missing — and for leads who want **guardrails** so agents do not ship code without updating the shards that describe it. The personas page names this reader explicitly: [Anti-persona: the engineer who keeps the system in their head](docs/features/personas-and-priority-tiers.md#audience-priority).
+It is **not** aimed at the engineer who keeps the entire project scope in their head and sees no documentation debt. That can work for a while; Merlon Docs is for **everyone else** who pays when that knowledge is missing, and for leads who want **guardrails** so agents do not ship code without updating the shards that describe it. The personas page names this reader explicitly: [Anti-persona: the engineer who keeps the system in their head](docs/features/personas-and-priority-tiers.md#audience-priority).
 
 ### Add it to your project (and wire `AGENTS.md`)
 
@@ -64,19 +64,19 @@ It is **not** aimed at the engineer who keeps the entire project scope in their 
 
    - Install: `merlon-docs` skill (see `.agents/skills/merlon-docs` or your agent's skills directory).
    - For documentation work, invoke `/merlon-docs` before editing shards or product behavior.
-   - After shard edits, run `merlon compile` and `merlon check` (or `pnpm docs:check` if wired in this repo). Compile builds the guides you review; check validates links and the docs tree — not whether the prose is factually correct.
+   - After shard edits, run `merlon compile` and `merlon check` (or `pnpm docs:check` if wired in this repo). Compile builds the guides you review; check validates links and the docs tree, not whether the prose is factually correct.
    - Do not hand-edit files that contain `<!-- merlon-shard:` markers.
    ```
 
-3. **Add the CLI to scripts or CI** when you are ready — [Get started](#get-started) Path B, or let Path A's bootstrap session wire it.
+3. **Add the CLI to scripts or CI** when you are ready: see [Get started](#get-started) Path B, or let Path A's bootstrap session wire it.
 
 The skill does not replace `AGENTS.md`; it **works with** it. Host config says _that documentation discipline exists_; the skill says _how_ to shard, compile, check, and review.
 
 ### Where to go next
 
-- [Get started](#get-started) — Path A (skill) and Path B (CLI)
-- [Vision and roadmap](docs/features/system/00-vision-and-roadmap.md) — problem and principles
-- [Merlon Docs 101](#merlon-docs-101) — habit and readiness checklist
+- [Get started](#get-started): Path A (skill) and Path B (CLI)
+- [Vision and roadmap](docs/features/system/00-vision-and-roadmap.md): problem and principles
+- [Merlon Docs 101](#merlon-docs-101): habit and readiness checklist
 
 <!-- merlon-shard: end docs/repo-readme/kind-of-agent-skill.md -->
 

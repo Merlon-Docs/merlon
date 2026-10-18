@@ -16,13 +16,13 @@ All three are industry studies, and each sponsor sells tools for the problem it 
 
 ## Documentation is one cause among several
 
-The CISQ report doesn't identify one root cause. Its own focus areas are exploited vulnerabilities, weaknesses in the software supply chain, and technical debt. Missing or stale documentation sits beside those causes:
+The CISQ report doesn't identify one root cause. Its own focus areas are security vulnerabilities, weaknesses in the software supply chain, and technical debt. Missing or stale documentation sits beside those causes:
 
 - **Requirements and intent.** A decision made in a ticket or a pull request and never written down. The next change can undo it.
 - **People.** Knowledge that lives in one person's head and leaves with them.
 - **Process.** Reviews that can't check intent, because the intent isn't recorded anywhere a reviewer reads.
 
-Merlon Docs addresses the documentation cause only. It doesn't fix vulnerabilities, supply chains or technical debt.
+Merlon Docs addresses the documentation cause only. It doesn't fix vulnerabilities, supply chains, or technical debt.
 
 ## Why documentation quality matters
 
@@ -36,12 +36,12 @@ DORA 2022 and 2023 didn't find a direct effect of documentation quality on softw
 
 ## Where Merlon Docs fits
 
-There's no substitute for knowing the system. When a project leaves its intent, features and operating knowledge unwritten, from the technical parts to the non-technical ones, the software is released with gaps that someone later pays for.
+There's no substitute for knowing the system. When a project leaves its intent, features, and operating knowledge unwritten, from the technical parts to the non-technical ones, teams ship software with gaps that someone later pays for.
 
 Merlon Docs is a keystone AI skill for that one cause. It gives the knowledge a place to live that people and agents both read, in small shards that change in the same pull request as the code. `merlon check` keeps the structure intact. Whether the words are true still depends on the agent following the skill and on human review. See [Usage model](./usage-model.md) for the workflow.
 
 ## Related
 
-- [Benefit claims and evidence](./benefit-claims-and-evidence.md): how these figures may be used in public copy
+- [Benefit claims and evidence](./benefit-claims-and-evidence.md): how public copy may cite these figures
 - [Vision and roadmap](./00-vision-and-roadmap.md): what the project is building toward
 - [Field report: a fully automated repository](./research/field-report-automated-repository.md): what the checks caught and what they missed

@@ -42,7 +42,7 @@ import ContextSizes from '../../components/ContextSizes.astro';
 
 <div class="merlon-evidence-note">
 
-Sources: [CISQ 2022](https://www.it-cisq.org/wp-content/uploads/sites/6/2022/11/CPSQ-Report-Nov-22-2.pdf), [Splunk and Oxford Economics 2024](https://www.oxfordeconomics.com/resource/the-hidden-costs-of-downtime-the-400b-problem-facing-the-global-2000/) and [DORA 2023](https://dora.dev/research/2023/dora-report/2023-accelerate-state-of-devops-report.pdf). The first two are sponsored industry estimates, so read them as orders of magnitude. [How these figures connect to documentation](./concepts/system/documentation-and-reliability/).
+Sources: [CISQ 2022](https://www.it-cisq.org/wp-content/uploads/sites/6/2022/11/CPSQ-Report-Nov-22-2.pdf), [Splunk and Oxford Economics 2024](https://www.oxfordeconomics.com/resource/the-hidden-costs-of-downtime-the-400b-problem-facing-the-global-2000/), and [DORA 2023](https://dora.dev/research/2023/dora-report/2023-accelerate-state-of-devops-report.pdf). Industry sponsors funded the first two estimates, so read them as orders of magnitude. [How these figures connect to documentation](./concepts/system/documentation-and-reliability/).
 
 </div>
 
@@ -50,26 +50,26 @@ Sources: [CISQ 2022](https://www.it-cisq.org/wp-content/uploads/sites/6/2022/11/
 
 <p class="merlon-kicker">Why it matters</p>
 
-## Unreliable software is expensive, and missing docs are part of why
+## Unreliable software is costly, and missing documentation is the fix you can ship next
 
 <div class="merlon-lead">
-  Software failures cost hundreds of billions to trillions of dollars a year. Documentation isn't
-  the only cause. Vulnerabilities, supply chains and technical debt all play a part. But it's the
-  cause a team can act on in its next pull request.
+  Software failures cost hundreds of billions to trillions of dollars a year. Security
+  vulnerabilities, fragile supply chains, and technical debt all drive those losses, but missing
+  documentation is the risk factor your team can address in its next pull request.
 </div>
 
 <div class="merlon-split merlon-split--text">
   <div>
-    There's no substitute for knowing the system. When a project leaves its intent, features and
-    operating knowledge unwritten, from the technical parts to the non-technical ones, the software
-    is released with gaps: a decision nobody recorded, a workflow only one person knows, a guide
-    that still describes a component someone removed.
+    When engineers leave design decisions and runbooks unwritten, teams ship with blind spots: a
+    constraint nobody recorded, an operational step only one person knows, or a guide that still
+    describes a removed component. That gap slows down releases, incident response, and onboarding.
   </div>
   <div>
-    DORA's research doesn't say documentation caused these costs. It finds that documentation
-    quality amplifies the other practices a team invests in. Merlon Docs is a keystone AI skill for
-    that one cause. It gives the knowledge a place to live that people and agents both read, and it
-    checks the links, indexes and compiled files.
+    DORA research finds that documentation quality amplifies the other engineering practices a team
+    invests in. Merlon Docs gives human engineers and AI coding agents a shared home for system
+    knowledge in git. <code>merlon compile</code> builds single-file guides for review, and{' '}
+    <code>merlon check</code> validates indexes, links, and paths in CI while engineers and agents
+    verify that the prose stays accurate.
   </div>
 </div>
 
@@ -231,9 +231,9 @@ Already the person who writes things down? Merlon Docs gives your notes a struct
 ## A keystone among your helper skills
 
 <div class="merlon-lead">
-  Agents pick up helper skills for each task, such as planning, test-driven development or code
+  Agents pick up helper skills for each task, such as planning, test-driven development, or code
   review. Those skills help finish the task in front of them. Merlon Docs looks after what outlasts
-  the task, from the intent behind a feature to how the system is built and operated.
+  the task, from the intent behind a feature to how the team builds and operates the system.
 </div>
 
 <ol class="merlon-steps">
@@ -255,10 +255,73 @@ Already the person who writes things down? Merlon Docs gives your notes a struct
     <h3>The CLI checks structure</h3>
     <div>
       <code>merlon check</code> fails CI on broken links and anchors, missing files, unindexed
-      shards and stale compiled files. It doesn't judge whether the prose is true.
+      shards, and stale compiled files. It doesn't judge whether the prose is true.
     </div>
   </li>
 </ol>
+
+</section>
+
+<section class="merlon-section">
+
+<p class="merlon-kicker">Foundational AI skills</p>
+
+## Built for software repositories, in the same family as LLM Wiki and aDNA
+
+<div class="merlon-lead">
+  Task skills help an agent finish one job, like writing a test, fixing a bug, or reviewing a diff.
+  Foundational AI skills manage the durable context that outlasts a single chat session.{' '}
+  <a href="https://github.com/alainbrown/skills/tree/main/skills/llm-wiki">LLM Wiki</a>,{' '}
+  <a href="https://adna.network/reference/specification/">aDNA</a>, and Merlon Docs all solve that
+  problem with plain Markdown files, but they target different scopes.
+</div>
+
+<div class="merlon-split merlon-split--text">
+  <div>
+    LLM Wiki and aDNA organize general knowledge across any domain. LLM Wiki runs a compounding wiki
+    loop (init, ingest, query, and lint), while aDNA structures a broad knowledge vault into what,
+    who, and how directories across any subject.
+  </div>
+  <div>
+    Merlon Docs is purpose-built for software projects maintained in git. Shards sit next to source
+    code, <code>merlon compile</code> stitches them into single-file guides for review, and{' '}
+    <code>merlon check</code> validates links against real repository files, directories, and
+    headings in CI.
+  </div>
+</div>
+
+<ul class="merlon-features">
+  <li>
+    <h3>LLM Wiki</h3>
+    <div>
+      Compounding general-knowledge wiki. Agents initialize a wiki, ingest external sources, query
+      across sessions, and lint wiki pages for consistency.
+    </div>
+  </li>
+  <li>
+    <h3>aDNA</h3>
+    <div>
+      General-purpose knowledge vault organized into what, who, and how directories. It pairs folder
+      instructions, domain notes, and procedural skills across any subject.
+    </div>
+  </li>
+  <li>
+    <h3>Merlon Docs</h3>
+    <div>
+      Purpose-built for software repositories. Shards hold specs, decision records, runbooks, and
+      glossaries next to code, compiled with <code>merlon compile</code> and gated in CI by{' '}
+      <code>merlon check</code>.
+    </div>
+  </li>
+  <li>
+    <h3>Wired into AGENTS.md</h3>
+    <div>
+      Point <code>AGENTS.md</code> at the <code>merlon-docs</code> skill so coding agents read and
+      update the relevant shards in the same pull request as the code, for engineers who maintain
+      the system over the long haul.
+    </div>
+  </li>
+</ul>
 
 </section>
 
@@ -340,7 +403,7 @@ Already the person who writes things down? Merlon Docs gives your notes a struct
 
 <div class="merlon-panel">
 
-Merlon Docs is an early project, built by one maintainer with help from a colleague. It's useful today and still being refined. On a [repository where agents wrote every commit](./concepts/system/research/field-report-automated-repository/), the structural checks held: every shard was indexed and no broken internal link reached trunk. The agents produced useful documentation, but it sprawled, with seven shards past 300 lines and one guide still describing a removed component. A person used the skill's doc-review workflow to reorganize it. That gap between structure and meaning is what current work on the system and the skill targets.
+Merlon Docs is an early project, built by one maintainer with help from a colleague. It is useful today and under active refinement. On a [repository where agents wrote every commit](./concepts/system/research/field-report-automated-repository/), the structural checks held: guide manifests indexed every shard and no broken internal link reached trunk. The agents produced useful documentation, but it sprawled, with seven shards past 300 lines and one guide still describing a removed component. A person used the skill's doc-review workflow to reorganize it. That gap between structure and meaning is what current work on the system and the skill targets.
 
 </div>
 
@@ -430,21 +493,21 @@ Not by itself. The CLI checks that docs refer to each other and to files correct
 <details>
   <summary>Does Merlon Docs replace my other skills?</summary>
 
-No. Helper skills plan, write and review code. Merlon Docs records what the project needs to remember about that code. Install both.
+No. Helper skills plan, write, and review code. Merlon Docs records what the project needs to remember about that code. Install both.
 
 </details>
 
 <details>
   <summary>Do I need the agent skill to use it?</summary>
 
-No. The `merlon` CLI compiles and checks docs on its own, in CI or locally. The skill adds the instructions an agent follows to update shards as it works.
+No. The `merlon` CLI compiles and checks docs on its own in CI or locally. The skill adds the instructions an agent follows to update shards as it works.
 
 </details>
 
 <details>
   <summary>Which agents does it work with?</summary>
 
-Any host that supports [Agent Skills](https://agentskills.io), including Claude Code, Cursor and GitHub Copilot.
+Any host that supports [Agent Skills](https://agentskills.io), including Claude Code, Cursor, and GitHub Copilot.
 
 </details>
 

@@ -2,7 +2,7 @@
 
 Specification for `merlon check`, the validation gate a change passes locally and in CI before it merges. The [Spec-to-test map](../developer/packages-and-tests.md#spec-to-test-map) names the tests behind this spec.
 
-`merlon check` does **not** review whether documentation content is accurate or complete for the product. It enforces structural integrity: shards are captured, compile succeeds, links and anchors resolve, and optional linters run. **`merlon compile`** produces the compiled guides people review as single files. Whether the prose matches the product still depends on agents following the skill and on **human review** in pull requests ([Documentation and software reliability](./documentation-and-reliability.md#where-merlon-docs-fits)).
+`merlon check` does **not** review whether documentation content is accurate or complete for the product. It enforces structural integrity: shards are captured, compile succeeds, links and anchors resolve, and optional linters run. **`merlon compile`** produces the compiled guides people review as single files. Whether the prose matches the product still depends on agents following the skill and on **human review** in pull requests ([Documentation and software reliability](./system/documentation-and-reliability.md#where-merlon-docs-fits)).
 
 ## Check gate stages
 
