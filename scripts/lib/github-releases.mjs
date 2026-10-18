@@ -3,9 +3,13 @@
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { changelogNotesForVersion } from './skill-packages.mjs';
+import { changelogNotesForVersion, skillIdFromPackageName } from './skill-packages.mjs';
 
-/** @typedef {{ name: string, version: string, dir: string, private: boolean }} WorkspacePackage */
+/**
+ * @typedef {{ name: string, version: string, dir: string, private: boolean, internal: boolean }} WorkspacePackage
+ * `internal` marks a skill carrier whose skills/<id>/SKILL.md sets `metadata.internal: true`: an
+ * unreleased skill that gets no git tag and no GitHub Release.
+ */
 
 /**
  * @param {string} root
@@ -25,10 +29,24 @@ export function readWorkspacePackages(root) {
         version: json.version,
         dir: name,
         private: Boolean(json.private),
+        internal: isInternalSkill(root, json.name),
       });
     }
   }
   return versions;
+}
+
+/** Whether `name` is a skill carrier whose SKILL.md front matter sets `metadata.internal: true`. */
+export function isInternalSkill(root, name) {
+  const skillId = skillIdFromPackageName(name);
+  if (!skillId) return false;
+  const skillPath = join(root, 'skills', skillId, 'SKILL.md');
+  if (!existsSync(skillPath)) return false;
+  const frontMatter = readFileSync(skillPath, 'utf-8').match(/^---\n([\s\S]*?)\n---/);
+  return Boolean(
+    frontMatter &&
+    /^metadata:\n(?:[ \t]+.*\n)*?[ \t]+internal:[ \t]*true[ \t]*$/m.test(`${frontMatter[1]}\n`),
+  );
 }
 
 /** @param {string} name @param {string} version */
@@ -68,7 +86,8 @@ export function parseGitLsRemoteTags(lsRemoteOutput) {
 }
 
 /**
- * Packages whose current `name@version` lacks a GitHub Release and/or a git tag.
+ * Packages whose current `name@version` lacks a GitHub Release and/or a git tag. Internal skills
+ * are left out, since they get neither.
  * @param {Iterable<WorkspacePackage>} packages
  * @param {ReadonlySet<string>} existingReleaseTags
  * @param {ReadonlySet<string>} existingGitTags
@@ -77,6 +96,7 @@ export function parseGitLsRemoteTags(lsRemoteOutput) {
 export function packagesNeedingReleaseHeal(packages, existingReleaseTags, existingGitTags) {
   const needing = [];
   for (const pkg of packages) {
+    if (pkg.internal) continue;
     const tag = releaseTag(pkg.name, pkg.version);
     const missingRelease = !existingReleaseTags.has(tag);
     const missingTag = !existingGitTags.has(tag);
