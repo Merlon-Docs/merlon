@@ -15,7 +15,10 @@ module landing
  * Modelled from the workflows. land-develop.yml runs the gate on the merge and
  * pushes it with GITHUB_TOKEN, which starts no workflow. sync-develop.yml pushes
  * its merge to land/sync-main and dispatches land-develop.yml on it, which is
- * the SyncThroughGate guard; the sync step here includes that landing.
+ * the SyncThroughGate guard; the sync step here includes that landing. When
+ * develop already holds main's tree, which is what a squashed release leaves,
+ * sync-develop resets develop to main instead (the reset step), with a lease on
+ * the develop commit it compared.
  * ci.yml runs on a pull request when it opens and when a person pushes its
  * head. It also runs on the edited event a base change sends, which is the
  * CIOnRetarget guard. A check's latest run on a head commit is the one a
@@ -34,9 +37,9 @@ module landing
  * Bounded: every check covers traces of up to seven steps over six commits and
  * one pull request, which is enough for each counterexample below to appear.
  *
- * Assumed throughout: force-push to develop and main is blocked, while a
- * pushed branch may move to any commit, as the sync's force-push of
- * land/sync-main does. Merges are clean (two commits merge to one tree, so
+ * Assumed throughout: force-push to develop and main is blocked, except the
+ * sync's reset of develop to main, while a pushed branch may move to any
+ * commit, as the sync's force-push of land/sync-main does. Merges are clean (two commits merge to one tree, so
  * sync-develop never opens its conflict PR), and code owner approval is given
  * whenever it is needed. No branch or PR changes the workflow that checks it,
  * although a pushed branch runs its own copy of land-develop.yml and a PR its
@@ -95,7 +98,7 @@ one sig
 sig On in Guard {}
 
 abstract sig Kind {}
-one sig KNone, KPush, KLand, KSync, KPushDevelop, KPushMain, KRelease, KOpen, KRetarget, KReady, KDraft, KMerge extends Kind {}
+one sig KNone, KPush, KLand, KSync, KReset, KPushDevelop, KPushMain, KRelease, KOpen, KRetarget, KReady, KDraft, KMerge extends Kind {}
 one sig Step { var kind: one Kind }
 
 pred keepTips[bs: set Branch] { all b: bs | b.tip' = b.tip }
@@ -158,6 +161,19 @@ pred sync[m: Commit] {
   result[m, Develop.tip, Main.tip]
   Develop.tip' = m
   SyncThroughGate in On implies Tested' = Tested + m.tree else Tested' = Tested
+  keepTips[Branch - Develop]
+  keepPRs
+  keepCI[PR]
+}
+
+-- sync-develop.yml: when develop already holds main's tree, point develop at
+-- main. The tree develop shows doesn't change, so nothing untested reaches it.
+pred reset {
+  Step.kind = KReset
+  Main.tip not in history[Develop.tip]
+  Develop.tip.tree = Main.tip.tree
+  Develop.tip' = Main.tip
+  Tested' = Tested
   keepTips[Branch - Develop]
   keepPRs
   keepCI[PR]
@@ -304,6 +320,7 @@ fact transitions {
     or (some b: Land + Hotfix + Topic, c: Commit | push[b, c])
     or (some b: Land, m: Commit | land[b, m])
     or (some m: Commit | sync[m])
+    or reset
     or (some c: Commit | pushDevelop[c] or pushMain[c] or releaseCommit[c])
     or (some p: PR, b: Develop + Main | openPR[p, b] or retarget[p, b])
     or (some p: PR | markReady[p] or toDraft[p])
@@ -374,6 +391,12 @@ run LandThenRelease {
 run ReleaseSyncsBack {
   On = Guard
   eventually (some c: Commit | releaseCommit[c] and eventually c in history[Develop.tip])
+} for 4 but 6 Commit, 1 PR, 1 Land, 0 Topic, 0 Hotfix, 1..7 steps expect 1
+
+run ReleaseResetsDevelop {
+  On = Guard
+  eventually (some p: PR, m: Commit | mergePR[p, m] and p.head = Develop
+    and eventually (Step.kind = KReset and after Develop.tip = Main.tip))
 } for 4 but 6 Commit, 1 PR, 1 Land, 0 Topic, 0 Hotfix, 1..7 steps expect 1
 
 run DependabotMerges {

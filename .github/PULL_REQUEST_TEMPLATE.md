@@ -1,4 +1,5 @@
 <!-- Open this PR as a draft. Mark it ready once, when the work is done, and CI runs then. -->
+<!-- One concern per PR, from a topic branch into develop, so a reviewer sees only this change. A release PR from develop to main is reviewed on its Files changed tab. See docs/developer/versioning-and-releases.md#reviewing-a-change. -->
 
 ## Summary
 
