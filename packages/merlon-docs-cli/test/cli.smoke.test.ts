@@ -13,6 +13,7 @@ import {
   symlinkSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
+import { DEFAULT_STANDARD_VERSION } from '@merlon-docs/merlon-docs-core';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CLI = join(__dirname, '../dist/cli.js');
@@ -336,7 +337,7 @@ describe('cli smoke', () => {
           protocolVersion?: string;
           compileOrder?: string[];
         };
-        expect(upgraded.standardVersion).toBe('1.0.0-draft.0');
+        expect(upgraded.standardVersion).toBe(DEFAULT_STANDARD_VERSION);
         expect(upgraded.protocolVersion).toBeUndefined();
         expect(upgraded.compileOrder).toEqual(['g']);
         expect(existsSync(join(dir, '_build', 'guides.md'))).toBe(true);

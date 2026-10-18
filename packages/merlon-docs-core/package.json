@@ -44,7 +44,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts --clean && node scripts/generate-config-schema.mjs",
+    "build": "node scripts/generate-standard-version.mjs && tsup src/index.ts --format esm --dts --clean && node scripts/generate-config-schema.mjs",
     "test": "vitest run",
     "bench": "vitest run --config vitest.bench.config.ts",
     "test:coverage": "vitest run --coverage --testTimeout=20000",

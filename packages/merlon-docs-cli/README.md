@@ -531,11 +531,11 @@ This table links the page that documents each key:
 
 ### Schema-only fields
 
-| Field                | Notes                                                                                                                                                                                      |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `refs.slugAlgorithm` | Informational; only `github` is implemented                                                                                                                                                |
-| `standardVersion`    | The version of the Merlon Docs standard the repository conforms to. Defaults to `1.0.0-draft.0`, and no command reads it                                                                   |
-| `protocolVersion`    | Former name of `standardVersion`, read until 2.0.0. Migrates to the `1.0.0-draft.0` `standardVersion` default when `standardVersion` is absent, and loading fails when the two keys differ |
+| Field                | Notes                                                                                                                                                                                                                                                        |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `refs.slugAlgorithm` | Informational; only `github` is implemented                                                                                                                                                                                                                  |
+| `standardVersion`    | The version of the Merlon Docs standard the repository conforms to. Defaults to the version of the [specification](../../docs/features/system/merlon-docs-1.0-spec.md) the installed `@merlon-docs/merlon-docs-core` was built from, and no command reads it |
+| `protocolVersion`    | Former name of `standardVersion`, read until 2.0.0. Migrates to the `standardVersion` default when `standardVersion` is absent, and loading fails when the two keys differ                                                                                   |
 
 ### Full schema and sample config
 

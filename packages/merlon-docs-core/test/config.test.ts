@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { MerlonConfigSchema } from '../src/config/schema.js';
+import { DEFAULT_STANDARD_VERSION, MerlonConfigSchema } from '../src/config/schema.js';
 import { loadConfig, parseConfig, resolveOutputPath, resolveRefsPath } from '../src/config/load.js';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
@@ -116,16 +116,16 @@ describe('MerlonConfigSchema', () => {
 });
 
 describe('standardVersion', () => {
-  it('defaults to 1.0.0-draft.0 and mirrors it in protocolVersion', () => {
+  it('defaults to the package version and mirrors it in protocolVersion', () => {
     const cfg = parseConfig({ compileOrder: ['a'] });
-    expect(cfg.standardVersion).toBe('1.0.0-draft.0');
-    expect(cfg.protocolVersion).toBe('1.0.0-draft.0');
+    expect(cfg.standardVersion).toBe(DEFAULT_STANDARD_VERSION);
+    expect(cfg.protocolVersion).toBe(DEFAULT_STANDARD_VERSION);
   });
 
-  it('migrates the former protocolVersion key to 1.0.0-draft.0', () => {
+  it('migrates the former protocolVersion key to the package version', () => {
     const cfg = parseConfig({ compileOrder: ['a'], protocolVersion: '0.6.0.0' });
-    expect(cfg.standardVersion).toBe('1.0.0-draft.0');
-    expect(cfg.protocolVersion).toBe('1.0.0-draft.0');
+    expect(cfg.standardVersion).toBe(DEFAULT_STANDARD_VERSION);
+    expect(cfg.protocolVersion).toBe(DEFAULT_STANDARD_VERSION);
   });
 
   it('prefers standardVersion and accepts the same value under both keys', () => {
@@ -143,13 +143,13 @@ describe('standardVersion', () => {
     ).toThrow(/standardVersion.*protocolVersion/);
   });
 
-  it('loadConfig migrates protocolVersion from a file to 1.0.0-draft.0', () => {
+  it('loadConfig migrates protocolVersion from a file to the default standard version', () => {
     withTmpDir('merlon-config-', (dir) => {
       writeFileSync(
         join(dir, 'merlon.config.json'),
         JSON.stringify({ compileOrder: ['a'], protocolVersion: '0.6.0.0' }),
       );
-      expect(loadConfig('merlon.config.json', dir).standardVersion).toBe('1.0.0-draft.0');
+      expect(loadConfig('merlon.config.json', dir).standardVersion).toBe(DEFAULT_STANDARD_VERSION);
     });
   });
 });

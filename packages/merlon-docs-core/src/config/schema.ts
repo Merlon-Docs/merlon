@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { STANDARD_VERSION } from './standard-version.js';
 import { getLocalePack } from '../locale/index.js';
 
 const defaultAboutThisGuideTitle = () => getLocalePack().aboutThisGuideTitle;
@@ -82,11 +83,12 @@ const GuideSchema = z.object({
     .optional(),
 });
 
-export const DEFAULT_STANDARD_VERSION = '1.0.0-draft.0';
+/** The standard version a config conforms to by default: the version the specification declares. */
+export const DEFAULT_STANDARD_VERSION: string = STANDARD_VERSION;
 
 export const MerlonConfigSchema = z
   .object({
-    /** Version of the Merlon Docs standard the repository conforms to (default 1.0.0-draft.0). */
+    /** Version of the Merlon Docs standard the repository conforms to (default `DEFAULT_STANDARD_VERSION`). */
     standardVersion: z
       .string()
       .default(DEFAULT_STANDARD_VERSION)
@@ -94,7 +96,7 @@ export const MerlonConfigSchema = z
     /**
      * @deprecated Former name of `standardVersion`, still read until 2.0.0.
      * When `standardVersion` is absent, `parseConfig` and `loadConfig` migrate it to
-     * `DEFAULT_STANDARD_VERSION` (`1.0.0-draft.0`) and mirror `standardVersion` on `protocolVersion`.
+     * `DEFAULT_STANDARD_VERSION` and mirror `standardVersion` on `protocolVersion`.
      */
     protocolVersion: z.string().optional().meta({
       description: 'Former name of standardVersion, still read until 2.0.0. Use standardVersion.',
