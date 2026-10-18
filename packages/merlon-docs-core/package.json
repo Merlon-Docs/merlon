@@ -53,16 +53,16 @@
   "dependencies": {
     "fast-glob": "^3.3.3",
     "github-slugger": "^2.0.0",
-    "ignore": "^7.0.10",
+    "ignore": "^7.0.12",
     "semver": "^7.8.5",
     "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@types/node": "^26.6.2",
+    "@types/node": "^26.6.5",
     "@types/semver": "^7.8.0",
-    "@vitest/coverage-v8": "^5.0.1",
+    "@vitest/coverage-v8": "^5.0.3",
     "tsup": "^8.5.1",
     "typescript": "^6.0.3",
-    "vitest": "^5.0.1"
+    "vitest": "^5.0.3"
   }
 }

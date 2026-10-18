@@ -334,18 +334,28 @@ export function headingsOf(markdown) {
 }
 
 /**
+ * Split Markdown into optional leading YAML frontmatter (`---\n...\n---\n`) and the remaining
+ * content so skill files with `SKILL.md` frontmatter extract their `#` heading cleanly.
+ */
+function stripFrontmatter(markdown) {
+  const m = /^---[ \t]*\r?\n[\s\S]*?\r?\n---[ \t]*(?:\r?\n|$)/.exec(markdown);
+  return m ? markdown.slice(m[0].length) : markdown;
+}
+
+/**
  * Split a shard into its title and the body without that heading line. The
  * title is the first `#` heading; a shard that opens with a deeper heading
  * (some shards start at `##`) uses that opening heading instead.
  */
 export function extractTitle(markdown, label = 'shard') {
-  const firstLine = markdown.split('\n').find((l) => l.trim() !== '') ?? '';
+  const stripped = stripFrontmatter(markdown);
+  const firstLine = stripped.split('\n').find((l) => l.trim() !== '') ?? '';
   const opening = ATX.exec(firstLine);
-  const hasH1 = headingsOf(markdown).some((h) => h.level === 1);
+  const hasH1 = headingsOf(stripped).some((h) => h.level === 1);
   const wanted = hasH1 ? 1 : opening ? opening[1].length : null;
   if (wanted === null) throw new SyncError(`${label}: no heading to use as the page title`);
   let title = null;
-  const body = mapTextSegments(markdown, (text) => {
+  const body = mapTextSegments(stripped, (text) => {
     if (title !== null) return text;
     const lines = text.split('\n');
     const idx = lines.findIndex((l) => {
@@ -608,6 +618,125 @@ export function syncContent(opts) {
     }
   }
 
+  // When the Agent Skill guide (`repo-readme`) is published, also publish `docs/skills.md` and
+  // the source files under `skills/**` directly under that guide's route so readers can read
+  // `SKILL.md`, its workflows, and the archetype skills on the site as Part 1.
+  const skillGuide = guides.find((g) => g.name === 'repo-readme');
+  const skillSidebarGroups = [];
+  if (skillGuide) {
+    const registerExtraPage = (abs, routeSuffix, titleOverride) => {
+      if (!existsSync(abs)) return null;
+      const label = toPosix(relative(repoRoot, abs));
+      const route = `${skillGuide.route}/${routeSuffix}`;
+      if (routes.has(route)) {
+        throw new SyncError(`${label}: route /${route}/ collides with ${routes.get(route)}`);
+      }
+      routes.set(route, label);
+      const source = readFileSync(abs, 'utf8');
+      const extracted = extractTitle(source, label);
+      const title = titleOverride ?? extracted.title;
+      const body = extracted.body;
+      const entry = {
+        abs,
+        guide: skillGuide,
+        guideDir: dirname(abs),
+        rel: routeSuffix,
+        label,
+        route,
+        title,
+        body,
+        anchors: pageAnchors(body),
+        isIndex: false,
+        extraSkillPage: true,
+      };
+      pages.set(abs, entry);
+      return entry;
+    };
+
+    const skillsCatalogPage = registerExtraPage(
+      join(docsRoot, 'skills.md'),
+      'catalog',
+      'Skills & workflows index',
+    );
+    const mainSkillPage = registerExtraPage(
+      join(repoRoot, 'skills/merlon-docs/SKILL.md'),
+      'merlon-docs',
+      'SKILL.md (merlon-docs)',
+    );
+
+    const workflowFiles = [
+      ['getting-started.md', 'Getting-started workflow'],
+      ['doc-only.md', 'Doc-only workflow'],
+      ['design-architecture.md', 'Design-architecture workflow'],
+      ['feature-level.md', 'Feature-level workflow'],
+      ['ux.md', 'UX workflow'],
+      ['doc-review.md', 'Doc-review workflow'],
+      ['first-feature-tutorial.md', 'First-feature tutorial'],
+    ];
+    const workflowItems = [];
+    for (const [file, label] of workflowFiles) {
+      const slug = githubSlug(file.replace(/\.md$/, ''));
+      const p = registerExtraPage(
+        join(repoRoot, 'skills/merlon-docs/references/workflows', file),
+        `workflows/${slug}`,
+      );
+      if (p) workflowItems.push({ label, slug: p.route });
+    }
+
+    const refFiles = [
+      ['install.md', 'references/install', 'Install the skill'],
+      ['cli-and-scripts.md', 'references/cli-and-scripts', 'CLI commands reference'],
+      ['shard-responsibility.md', 'references/shard-responsibility', 'Shard single responsibility'],
+      ['review/lenses.md', 'references/review-lenses', 'Review lenses'],
+      ['review/consolidation.md', 'references/consolidation', 'Consolidation playbook'],
+      ['acknowledgments.md', 'references/acknowledgments', 'Acknowledgments'],
+    ];
+    const refItems = [];
+    for (const [relPath, suffix, label] of refFiles) {
+      const p = registerExtraPage(join(repoRoot, 'skills/merlon-docs/references', relPath), suffix);
+      if (p) refItems.push({ label, slug: p.route });
+    }
+
+    const archSkills = [
+      ['merlon-docs-arch-oss-library', 'OSS library archetype'],
+      ['merlon-docs-arch-product-docs-site', 'Product docs site archetype'],
+      ['merlon-docs-arch-gtm', 'Go-to-market archetype'],
+      ['merlon-docs-arch-research', 'Research project archetype'],
+    ];
+    const archItems = [];
+    for (const [dirName, label] of archSkills) {
+      const p = registerExtraPage(
+        join(repoRoot, 'skills', dirName, 'SKILL.md'),
+        `archetypes/${dirName}`,
+      );
+      if (p) archItems.push({ label, slug: p.route });
+    }
+
+    const readTheSkillItems = [];
+    if (skillsCatalogPage) {
+      readTheSkillItems.push({ label: 'Skills & workflows index', slug: skillsCatalogPage.route });
+    }
+    if (mainSkillPage) {
+      readTheSkillItems.push({ label: 'SKILL.md (merlon-docs)', slug: mainSkillPage.route });
+    }
+    if (workflowItems.length) {
+      readTheSkillItems.push({ label: 'Skill workflows', collapsed: false, items: workflowItems });
+    }
+    if (refItems.length) {
+      readTheSkillItems.push({ label: 'Skill references', collapsed: true, items: refItems });
+    }
+    if (archItems.length) {
+      readTheSkillItems.push({ label: 'Archetype skills', collapsed: true, items: archItems });
+    }
+    if (readTheSkillItems.length) {
+      skillSidebarGroups.push({
+        label: 'Read the Skill (SKILL.md)',
+        collapsed: false,
+        items: readTheSkillItems,
+      });
+    }
+  }
+
   const routeUrl = (route) => `${base}/${route}/`;
   const githubUrl = (abs) => {
     const rel = toPosix(relative(repoRoot, abs));
@@ -676,13 +805,17 @@ export function syncContent(opts) {
     const guideRoot = routeUrl(page.guide.route);
 
     if (pathPart === '') {
+      const decoded = decodeURIComponent(frag);
+      if (page.anchors.some((a) => a.slug === decoded)) {
+        stats.internal++;
+        return `#${decoded}`;
+      }
+      if (titleSlug(page) === decoded) {
+        stats.internal++;
+        return routeUrl(page.route);
+      }
       stats.crossLinks++;
-      return resolveCompiledSlug(
-        decodeURIComponent(frag),
-        preferredOutputs(page),
-        context,
-        guideRoot,
-      );
+      return resolveCompiledSlug(decoded, preferredOutputs(page), context, guideRoot);
     }
 
     const decoded = decodeURI(pathPart.split('?')[0]);
@@ -874,8 +1007,11 @@ export function syncContent(opts) {
     const items = [];
     if (hasProse(rootIndex.body)) items.push({ label: rootIndex.title, slug: rootIndex.route });
     items.push(...convert(parseManifest(readFileSync(rootIndex.abs, 'utf8')), guideDir));
+    if (guide.name === 'repo-readme' && skillSidebarGroups.length) {
+      items.push(...skillSidebarGroups);
+    }
     const extra = [...pages.values()]
-      .filter((p) => p.guide.name === guide.name && !used.has(p.abs))
+      .filter((p) => p.guide.name === guide.name && !used.has(p.abs) && !p.extraSkillPage)
       .sort((a, b) => a.rel.localeCompare(b.rel));
     for (const page of extra) {
       unlisted.push(page.label);

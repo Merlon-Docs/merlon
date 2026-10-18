@@ -232,7 +232,7 @@ Go deeper by goal:
 - **Own content, not the toolchain:** the [Overview](docs/features/overview.md) of how Merlon Docs fits together, and the [usage model](docs/features/system/usage-model.md) for how people and agents read shards.
 - **Evaluate or sponsor adoption:** the [vision and roadmap](docs/features/system/00-vision-and-roadmap.md), and the [benefit claims policy](docs/features/system/benefit-claims-and-evidence.md).
 
-The [docs site](https://merlon-docs.github.io/merlon/) publishes the CLI guide, the concepts, the library API and the glossary as web pages.
+The [docs site](https://merlon-docs.github.io/merlon/) publishes the Agent Skill (Part 1), the CLI guide (Part 2), the concepts, the library API, and the glossary as web pages.
 
 <!-- merlon-shard: end docs/repo-readme/learn-more.md -->
 
