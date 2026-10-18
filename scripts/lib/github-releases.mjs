@@ -36,6 +36,21 @@ export function releaseTag(name, version) {
   return `${name}@${version}`;
 }
 
+/** The package whose final release GitHub shows as the repository's Latest release. */
+export const LATEST_RELEASE_PACKAGE = '@merlon-docs/merlon-docs-cli';
+
+/**
+ * The `gh release create` flag that decides the Latest badge for this tag. A prerelease gets
+ * `--prerelease`, which already keeps it off Latest. A final release of LATEST_RELEASE_PACKAGE
+ * becomes Latest, and every other final release says `--latest=false`, so a release that doesn't
+ * bump the CLI leaves the badge on the CLI's previous release.
+ */
+export function releaseLatestFlag(tag) {
+  const at = tag.lastIndexOf('@');
+  if (tag.slice(at + 1).includes('-')) return '--prerelease';
+  return tag.slice(0, at) === LATEST_RELEASE_PACKAGE ? '--latest' : '--latest=false';
+}
+
 /**
  * Parse `git ls-remote --tags` output into a set of tag names (peeled ^{} lines skipped).
  * @param {string} lsRemoteOutput

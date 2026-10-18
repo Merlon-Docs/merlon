@@ -1163,6 +1163,8 @@ Merlon Docs uses [Semantic Versioning 2.0.0](https://semver.org/) and [Changeset
 | Presets     | `@merlon-docs/merlon-docs-presets` | npm + GitHub Release                                               |
 | Agent Skill | `@merlon-docs/skill-<id>`          | GitHub Release only (private carrier under `packages/skill-<id>/`) |
 
+The CLI's newest final release is the repository's Latest release on GitHub. The release job creates every other final release with `--latest=false`, so a release that doesn't bump the CLI leaves the badge where it is, and it marks each prerelease as a prerelease.
+
 Independent versioning is configured in [`.changeset/config.json`](.changeset/config.json) (`fixed` is empty). Dependents of a bumped workspace package still get a **patch** internal dependency update (`updateInternalDependencies`).
 
 ### Branches
