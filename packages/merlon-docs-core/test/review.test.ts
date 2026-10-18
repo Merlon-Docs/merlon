@@ -401,8 +401,8 @@ describe('reviewDocs', () => {
         'g/b.md': '# Same\n',
       });
       const text = formatReviewReport(run(docs, ['g']));
-      expect(text).toContain('similar-titles (1)\n  - g/a.md, g/b.md\n');
-      expect(text).toContain(`fix: ${REVIEW_FIXES['similar-titles']}`);
+      expect(text).toContain(`similar-titles (1) — fix: ${REVIEW_FIXES['similar-titles']}\n`);
+      expect(text).toContain('  - g/a.md, g/b.md: 2 shards in guide "g" share the title "Same"\n');
       expect(text).toContain('merlon review: 1 finding(s) in 3 shard(s)');
       const clean = formatReviewReport({
         findings: [],

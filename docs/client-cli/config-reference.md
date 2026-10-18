@@ -22,6 +22,10 @@ Each feature's spec defines its config keys and what they do. This table gives t
 | `backup.enabled`           | `false`           |
 | `backup.dir`               | `.caches/backups` |
 | `backup.ext`               | `""`              |
+| `diagnostics.splitFiles`   | `false`           |
+| `diagnostics.dir`          | none              |
+| `diagnostics.errorsFile`   | none              |
+| `diagnostics.warningsFile` | none              |
 
 ## Config key map
 
@@ -47,6 +51,7 @@ This table links the page that documents each key:
 | `scan.*`                                                                                                               | [Documentation coverage scan](../features/coverage-scan.md#config)                                                                                             |
 | `standaloneGuides`                                                                                                     | [Coverage in check](./coverage.md)                                                                                                                             |
 | `backup.*` and the `--backup` flags                                                                                    | [Compile output backup](../features/compile-output-backup.md)                                                                                                  |
+| `diagnostics.*` and `--diagnostics-dir`, `--errors-file`, `--warnings-file`                                            | [Check gate](../features/check-gate.md#check-failure-summary) and [Commands reference](./commands-reference.md#global-options)                                 |
 
 ## Review thresholds
 

@@ -1,9 +1,80 @@
+import { dirname, resolve } from 'node:path';
 import { getLocalePack, type LocalePack } from '../locale/index.js';
 import { createQuotedFenceScanner } from '../markdown/index.js';
 import { buildSlugRegistry, type RefsRegistry } from '../refs/slugs.js';
 import { extractLinks } from './extract.js';
 import { validateCompiledLinkTarget } from './validate.js';
 import type { LinkIssue } from './types.js';
+
+const SHARD_START_RE = /^<!--\s*merlon-shard:\s*start\s+(.+?)\s*-->$/;
+const SHARD_END_RE = /^<!--\s*merlon-shard:\s*end\s+(.+?)\s*-->$/;
+const BROKEN_MARKER_ORIG_RE = /\(`([^`\n]+)`\)\s*→\s*`([^`\n]+)`/;
+
+export interface CompiledShardSpan {
+  /** 1-based first content line after the `<!-- merlon-shard: start ... -->` tag and its blank line. */
+  startLine: number;
+  /** 1-based last content line before the `<!-- merlon-shard: end ... -->` tag. */
+  endLine: number;
+  /** Resolved shard file path. */
+  shardFile: string;
+}
+
+/**
+ * Parse `<!-- merlon-shard: start <relPath> -->` / `end` markers in `markdown` and map 1-based
+ * compiled line numbers to `{ shardFile, shardLine }`. Paths resolve against `dirname(outputFile)`.
+ */
+export function resolveCompiledShardLine(
+  lines: readonly string[],
+  outputFile: string,
+): (compiledLine: number) => { shardFile: string; shardLine: number } | undefined {
+  if (!outputFile) return () => undefined;
+  const baseDir = dirname(resolve(outputFile));
+  const spans: CompiledShardSpan[] = [];
+  const inFence = createQuotedFenceScanner();
+  let activeShard: { shardFile: string; firstContentLine: number } | undefined;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (inFence(line)) continue;
+    const trimmed = line.trim();
+    const startMatch = SHARD_START_RE.exec(trimmed);
+    if (startMatch) {
+      const rel = startMatch[1].trim();
+      // Assemble writes `<!-- merlon-shard: start rel -->\n\n<body>\n\n<!-- merlon-shard: end rel -->`
+      const nextIsBlank = (lines[i + 1] ?? '').trim() === '';
+      activeShard = {
+        shardFile: resolve(baseDir, rel),
+        firstContentLine: i + 1 + (nextIsBlank ? 2 : 1),
+      };
+      continue;
+    }
+    if (activeShard && SHARD_END_RE.test(trimmed)) {
+      const prevIsBlank = (lines[i - 1] ?? '').trim() === '';
+      const endLine = i + 1 - (prevIsBlank ? 2 : 1);
+      if (endLine >= activeShard.firstContentLine) {
+        spans.push({
+          startLine: activeShard.firstContentLine,
+          endLine,
+          shardFile: activeShard.shardFile,
+        });
+      }
+      activeShard = undefined;
+    }
+  }
+
+  if (spans.length === 0) return () => undefined;
+  return (compiledLine: number) => {
+    for (const s of spans) {
+      if (compiledLine >= s.startLine && compiledLine <= s.endLine) {
+        return {
+          shardFile: s.shardFile,
+          shardLine: compiledLine - s.startLine + 1,
+        };
+      }
+    }
+    return undefined;
+  };
+}
 
 export interface LintCompiledLinksOptions {
   markdown: string;
@@ -40,19 +111,23 @@ export function lintBrokenLinkMarkers(
   const issues: LinkIssue[] = [];
   const lines = markdown.split('\n');
   const inFence = createQuotedFenceScanner();
+  const shardAt = resolveCompiledShardLine(lines, outputFile);
 
   for (let i = 0; i < lines.length; i++) {
     if (inFence(lines[i])) continue;
 
     if (locale.brokenLinks.lineHasMarker(lines[i])) {
+      const shard = shardAt(i + 1);
+      const origMatch = BROKEN_MARKER_ORIG_RE.exec(lines[i]);
       issues.push({
         kind: 'dead anchor',
         file: outputFile,
         line: i + 1,
         label: '',
-        originalTarget: '',
+        originalTarget: origMatch ? origMatch[1] : '',
         brokenTarget: lines[i].trim(),
         guideName,
+        ...(shard ? { shardFile: shard.shardFile, shardLine: shard.shardLine } : {}),
       });
     }
   }
@@ -80,6 +155,7 @@ export function lintCompiledLinkTargets(
   const locale = options.locale ?? getLocalePack();
   const issues: LinkIssue[] = [];
   const lines = options.markdown.split('\n');
+  const shardAt = resolveCompiledShardLine(lines, options.outputFile);
   // A line can hold many links, so each line is searched for a marker once.
   const markerLines = new Map<number, boolean>();
   const lineHasMarker = (line: number): boolean => {
@@ -106,6 +182,7 @@ export function lintCompiledLinkTargets(
       fileExtensions: options.fileExtensions,
     });
     if (result.valid) continue;
+    const shard = shardAt(link.line);
     issues.push({
       kind: result.reason ?? 'dead anchor',
       file: options.outputFile,
@@ -114,6 +191,7 @@ export function lintCompiledLinkTargets(
       originalTarget: link.target,
       brokenTarget: result.brokenTarget ?? link.target,
       guideName: options.guideName,
+      ...(shard ? { shardFile: shard.shardFile, shardLine: shard.shardLine } : {}),
     });
   }
 

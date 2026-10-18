@@ -1458,7 +1458,7 @@ describe('cli smoke', () => {
     }
   });
 
-  it('stops at coverage under scan.strict after the continuing stages, with no failure summary', () => {
+  it('includes coverage under scan.strict alongside earlier continuing stages in the failure summary', () => {
     const docs = mkdtempSync(join(tmpdir(), 'merlon-gate-strict-'));
     try {
       writeGateFixture(docs, { strict: true });
@@ -1471,8 +1471,15 @@ describe('cli smoke', () => {
       expect(path).toBeGreaterThan(link);
       expect(uncaptured).toBeGreaterThan(path);
       expect(lineAt(r.stderr, /^merlon check failed: coverage gaps/)).toBeGreaterThan(uncaptured);
-      expect(r.stderr).not.toMatch(/^merlon check failed:$/m);
-      expect(r.stderr).not.toMatch(/Resolve the diagnostics above/);
+      const summary = lineAt(r.stderr, /^merlon check failed:$/);
+      expect(summary).toBeGreaterThan(uncaptured);
+      const linkStep = lineAt(r.stderr, /^ {2}- built-in links: 1 issue/);
+      const pathStep = lineAt(r.stderr, /^ {2}- path resolution: 1 unresolved/);
+      const covStep = lineAt(r.stderr, /^ {2}- coverage: 1 uncaptured, 0 missing standalone/);
+      expect(linkStep).toBeGreaterThan(summary);
+      expect(pathStep).toBeGreaterThan(linkStep);
+      expect(covStep).toBeGreaterThan(pathStep);
+      expect(r.stderr).toMatch(/Resolve the diagnostics above, then re-run: merlon check/);
     } finally {
       rmSync(docs, { recursive: true, force: true });
     }
@@ -1724,14 +1731,123 @@ describe('cli smoke', () => {
       expect(checked.status).toBe(1);
       const marker = (target: string) =>
         `**BROKEN LINK:** "x" (\`${target}\`) → \`#nope\` (dead anchor in compiled guide).`;
-      // No issue here records its shard, so no line gives one.
+      // Compiled outputs carry merlon-shard source tags, so each compiled issue records its shard.
       const reported = checked.output.split('\n').filter((l) => /^(link:|\s+→ shard:)/.test(l));
       expect(reported).toEqual([
         `link: ${join(docs, 'AGENTS.md')}:3: missing file "./gone.md"`,
         `link: ${join(docs, '_build', 'a.md')}:11: dead anchor "Then see ${marker('#nope')}" (compiled guide "a")`,
+        `  → shard: ${join(docs, 'a', 'intro.md')}:5 → #nope`,
         `link: ${join(docs, '_build', 'a.md')}:9: dead anchor "b.md#nope" (compiled guide "a")`,
+        `  → shard: ${join(docs, 'a', 'intro.md')}:3 → b.md#nope`,
         `link: ${join(docs, '_build', 'guides.md')}:9: dead anchor "First see ${marker('../b/topic.md#nope')}" (guide "a" in the monolith)`,
+        `  → shard: ${join(docs, 'a', 'intro.md')}:3 → ../b/topic.md#nope`,
       ]);
+    } finally {
+      rmSync(docs, { recursive: true, force: true });
+    }
+  });
+
+  it('summarizes warnings at the tail and writes split --errors-file, --warnings-file, and --diagnostics-dir sinks', () => {
+    const docs = mkdtempSync(join(tmpdir(), 'merlon-diagnostics-sinks-'));
+    try {
+      mkdirSync(join(docs, 'g'), { recursive: true });
+      writeFileSync(join(docs, 'g', 'index.md'), '# G\n\n- [s](s.md)\n');
+      writeFileSync(
+        join(docs, 'g', 's.md'),
+        '# G\n\n## Hi\n\n[bad](#nope)\n\nThe module is `src/gone/module.ts`.\n',
+      );
+      writeFileSync(join(docs, 'stray.md'), '# Stray\n');
+
+      // 1) Warn-only run with --diagnostics-dir: exits 0, prints merlon check warnings + merlon check passed with warning(s), writes warnings.txt and empty errors.txt.
+      writeFileSync(
+        join(docs, 'merlon.config.json'),
+        JSON.stringify({
+          outputDir: '_build',
+          outputFile: 'guides.md',
+          compileOrder: ['g'],
+          guides: [{ name: 'g', path: 'g' }],
+          refs: { registryFile: 'refs.json' },
+          scan: { gitignore: false, strict: false },
+          lint: {
+            links: { enabled: true, severity: 'warn' },
+            paths: { severity: 'warn' },
+          },
+        }),
+      );
+
+      const diagDir = join(docs, '_build', '.caches', 'diag-out');
+      const warnRun = runIn(docs, ['check', '--skip-vale', '--diagnostics-dir', diagDir]);
+      expect(warnRun.status).toBe(0);
+      expect(warnRun.output).toContain('merlon check passed with warning(s) (3 step(s))');
+      expect(warnRun.output).toContain('merlon check warnings (3 step(s)):');
+      expect(warnRun.output).toContain('  - built-in links: 1 warning(s)');
+      expect(warnRun.output).toContain('  - path resolution: 1 unresolved path(s)');
+      expect(warnRun.output).toContain('  - coverage: 1 uncaptured, 0 missing standalone');
+      expect(warnRun.output).toContain(`warnings_file: ${join(diagDir, 'warnings.txt')}`);
+      expect(existsSync(join(diagDir, 'warnings.txt'))).toBe(true);
+      expect(existsSync(join(diagDir, 'errors.txt'))).toBe(true);
+      const warningsText = readFileSync(join(diagDir, 'warnings.txt'), 'utf-8');
+      expect(warningsText).toContain('link-warn:');
+      expect(warningsText).toContain('path-warn:');
+      expect(warningsText).toContain('uncaptured: stray.md');
+      expect(readFileSync(join(diagDir, 'errors.txt'), 'utf-8')).toBe('');
+
+      // 2) Mixed errors (links) + warnings (paths + coverage) with explicit --errors-file and --warnings-file:
+      writeFileSync(
+        join(docs, 'merlon.config.json'),
+        JSON.stringify({
+          outputDir: '_build',
+          outputFile: 'guides.md',
+          compileOrder: ['g'],
+          guides: [{ name: 'g', path: 'g' }],
+          refs: { registryFile: 'refs.json' },
+          scan: { gitignore: false, strict: false },
+          lint: {
+            links: { enabled: true, severity: 'error' },
+            paths: { severity: 'warn' },
+          },
+        }),
+      );
+      const errFile = join(docs, '_build', 'custom-errors.txt');
+      const warnFile = join(docs, '_build', 'custom-warnings.txt');
+      const failRun = runIn(docs, [
+        'check',
+        '--skip-vale',
+        '--errors-file',
+        errFile,
+        '--warnings-file',
+        warnFile,
+      ]);
+      expect(failRun.status).toBe(1);
+      const warnHeaderAt = lineAt(failRun.output, /^merlon check warnings \(2 step\(s\)\):$/);
+      const failHeaderAt = lineAt(failRun.output, /^merlon check failed:$/);
+      expect(warnHeaderAt).toBeGreaterThanOrEqual(0);
+      expect(failHeaderAt).toBeGreaterThan(warnHeaderAt);
+      expect(failRun.output).toContain(`warnings_file: ${warnFile}`);
+      expect(failRun.output).toContain(`errors_file: ${errFile}`);
+      expect(readFileSync(errFile, 'utf-8')).toContain('link:');
+      expect(readFileSync(errFile, 'utf-8')).not.toContain('path-warn:');
+      expect(readFileSync(warnFile, 'utf-8')).toContain('path-warn:');
+      expect(readFileSync(warnFile, 'utf-8')).toContain('uncaptured: stray.md');
+      expect(readFileSync(warnFile, 'utf-8')).not.toContain('link:');
+
+      // 3) Config-driven diagnostics.splitFiles: true writes under {outputDir}/.caches/diagnostics
+      writeFileSync(
+        join(docs, 'merlon.config.json'),
+        JSON.stringify({
+          outputDir: '_build',
+          outputFile: 'guides.md',
+          compileOrder: ['g'],
+          guides: [{ name: 'g', path: 'g' }],
+          refs: { registryFile: 'refs.json' },
+          scan: { gitignore: false, strict: false },
+          diagnostics: { splitFiles: true },
+        }),
+      );
+      const cfgRun = runIn(docs, ['check', '--skip-vale']);
+      expect(cfgRun.status).toBe(1);
+      expect(existsSync(join(docs, '_build', '.caches', 'diagnostics', 'errors.txt'))).toBe(true);
+      expect(existsSync(join(docs, '_build', '.caches', 'diagnostics', 'warnings.txt'))).toBe(true);
     } finally {
       rmSync(docs, { recursive: true, force: true });
     }

@@ -365,14 +365,17 @@ To publish the glossary as its own file, add `glossary` to `compileOrder` and se
 
 Every command accepts:
 
-| Option                | Default              | Purpose                                                                          |
-| --------------------- | -------------------- | -------------------------------------------------------------------------------- |
-| `-c, --config <path>` | `merlon.config.json` | Config file path, resolved from the **invocation directory** (not `--docs-root`) |
-| `--docs-root <path>`  | current directory    | Docs root — one subdirectory per guide shard tree                                |
-| `--warn-broken-links` | off                  | Report broken internal links but exit 0 (overrides `lint.links.severity`)        |
-| `--backup`            | off                  | Move existing output files to the cache before overwriting them                  |
-| `--backup-dir <path>` | from config          | Backup directory, relative to `outputDir` or absolute                            |
-| `--backup-ext <ext>`  | from config          | Suffix for backup file names                                                     |
+| Option                    | Default              | Purpose                                                                          |
+| ------------------------- | -------------------- | -------------------------------------------------------------------------------- |
+| `-c, --config <path>`     | `merlon.config.json` | Config file path, resolved from the **invocation directory** (not `--docs-root`) |
+| `--docs-root <path>`      | current directory    | Docs root — one subdirectory per guide shard tree                                |
+| `--warn-broken-links`     | off                  | Report broken internal links but exit 0 (overrides `lint.links.severity`)        |
+| `--backup`                | off                  | Move existing output files to the cache before overwriting them                  |
+| `--backup-dir <path>`     | from config          | Backup directory, relative to `outputDir` or absolute                            |
+| `--backup-ext <ext>`      | from config          | Suffix for backup file names                                                     |
+| `--diagnostics-dir <dir>` | from config          | Write split `errors.txt` and `warnings.txt` diagnostic files into `<dir>`        |
+| `--errors-file <path>`    | from config          | Write error-severity diagnostics to `<path>`                                     |
+| `--warnings-file <path>`  | from config          | Write warning-severity diagnostics to `<path>`                                   |
 
 Repo-root npm scripts pass both `--config` and `--docs-root`, as [`--config` vs `--docs-root`](#--config-vs---docs-root) explains.
 
@@ -388,7 +391,7 @@ merlon check
 
 `merlon compile` and `merlon check` exit **1** when broken internal links are found (default). Use `--warn-broken-links` to surface `link-warn:` diagnostics without failing CI. See [Link validation](../../docs/features/link-validation.md).
 
-When a continuing stage of `merlon check` fails, the run ends with a stderr **failure summary** of the failed steps and how to fix each one, unless coverage stops it first under `scan.strict: true`. A CI log then shows why the run failed, even after a peer's own success lines. [Check gate](../../docs/features/check-gate.md) lists the stages in order and says which of them stop the run.
+When a continuing stage of `merlon check` fails, the run ends with a stderr **failure summary** of the failed steps and how to fix each one, and any non-fatal warnings are summarized in a `merlon check warnings` block right above it. A CI log or coding agent then sees both warnings and why the run failed at the tail of the output. [Check gate](../../docs/features/check-gate.md) lists the stages in order and says which of them stop the run.
 
 ### Command summary
 
@@ -473,6 +476,10 @@ Each feature's spec defines its config keys and what they do. This table gives t
 | `backup.enabled`           | `false`           |
 | `backup.dir`               | `.caches/backups` |
 | `backup.ext`               | `""`              |
+| `diagnostics.splitFiles`   | `false`           |
+| `diagnostics.dir`          | none              |
+| `diagnostics.errorsFile`   | none              |
+| `diagnostics.warningsFile` | none              |
 
 ### Config key map
 
@@ -498,6 +505,7 @@ This table links the page that documents each key:
 | `scan.*`                                                                                                               | [Documentation coverage scan](../../docs/features/coverage-scan.md#config)                                                                                                   |
 | `standaloneGuides`                                                                                                     | [Coverage in check](#coverage-in-check)                                                                                                                                      |
 | `backup.*` and the `--backup` flags                                                                                    | [Compile output backup](../../docs/features/compile-output-backup.md)                                                                                                        |
+| `diagnostics.*` and `--diagnostics-dir`, `--errors-file`, `--warnings-file`                                            | [Check gate](../../docs/features/check-gate.md#check-failure-summary) and [Commands reference](#global-options)                                                              |
 
 ### Review thresholds
 

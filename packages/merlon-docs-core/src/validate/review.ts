@@ -409,11 +409,9 @@ export function formatReviewReport(result: ReviewResult): string {
   for (const signal of REVIEW_SIGNALS) {
     const group = result.findings.filter((f) => f.signal === signal);
     if (group.length === 0) continue;
-    out.push(`${signal} (${group.length})`);
+    out.push(`${signal} (${group.length}) — fix: ${REVIEW_FIXES[signal]}`);
     for (const f of group) {
-      out.push(`  - ${f.files.join(', ')}`);
-      out.push(`    ${f.detail}`);
-      out.push(`    fix: ${f.fix}`);
+      out.push(`  - ${f.files.join(', ')}: ${f.detail}`);
     }
     out.push('');
   }

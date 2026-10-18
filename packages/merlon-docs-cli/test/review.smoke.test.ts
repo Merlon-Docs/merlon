@@ -41,9 +41,10 @@ describe('merlon review', () => {
     try {
       const r = review(project);
       expect(r.status).toBe(0);
-      expect(r.stdout).toContain('similar-titles (1)');
-      expect(r.stdout).toContain('  - g/a.md, g/b.md');
-      expect(r.stdout).toContain('fix: Merge the shards');
+      expect(r.stdout).toContain('similar-titles (1) — fix: Merge the shards');
+      expect(r.stdout).toContain(
+        '  - g/a.md, g/b.md: 2 shards in guide "g" share the title "Setup"',
+      );
       expect(r.stdout).toContain('merlon review: 1 finding(s) in 4 shard(s)');
     } finally {
       rmSync(project, { recursive: true, force: true });

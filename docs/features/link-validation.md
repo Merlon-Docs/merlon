@@ -131,16 +131,14 @@ Each issue starts with the file and line where link lint found it. The reason an
 ```text
 link: /repo/docs/AGENTS.md:3: missing file "./gone.md"
 link: /repo/docs/_build/a.md:11: dead anchor "Then see **BROKEN LINK:** "x" (`#nope`) → `#nope` (dead anchor in compiled guide)." (compiled guide "a")
-link: /repo/docs/_build/a.md:9: dead anchor "b.md#nope" (compiled guide "a")
-link: /repo/docs/_build/guides.md:9: dead anchor "First see **BROKEN LINK:** "x" (`../b/topic.md#nope`) → `#nope` (dead anchor in compiled guide)." (guide "a" in the monolith)
-```
-
-`formatLinkIssue` adds a second line for an issue that records the shard it came from, with that shard's line and the target as written. The issues `markBrokenLinks` returns to an API caller record it, and their line is a line of the markdown it marked. Link lint reports a marked link by its marker line, as above, and that issue doesn't record a shard. This example comes from `markBrokenLinks` on a short string, not from the fixture above.
-
-```text
-link: /repo/docs/_build/a.md:5: dead anchor "#nope" (compiled guide "a")
   → shard: /repo/docs/a/intro.md:5 → #nope
+link: /repo/docs/_build/a.md:9: dead anchor "b.md#nope" (compiled guide "a")
+  → shard: /repo/docs/a/intro.md:3 → b.md#nope
+link: /repo/docs/_build/guides.md:9: dead anchor "First see **BROKEN LINK:** "x" (`../b/topic.md#nope`) → `#nope` (dead anchor in compiled guide)." (guide "a" in the monolith)
+  → shard: /repo/docs/a/intro.md:3 → ../b/topic.md#nope
 ```
+
+`formatLinkIssue` adds a second line for an issue that records the shard it came from, with that shard's line and the target as written. When source tags (`<!-- merlon-shard: start ... -->`) are enabled, compiled link lint resolves each issue's line back to its shard and line, and `markBrokenLinks` also records it for API callers.
 
 ## Link validation acceptance criteria
 

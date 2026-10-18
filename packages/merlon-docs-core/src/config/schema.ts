@@ -223,6 +223,20 @@ export const MerlonConfigSchema = z.object({
       minDuplicateWords: z.number().int().positive().default(25),
     })
     .default({ maxIndexEntries: 12, maxShardWords: 2500, minDuplicateWords: 25 }),
+
+  /** Optional split diagnostic file sinks for `merlon check`, `merlon compile`, and `merlon review`. */
+  diagnostics: z
+    .object({
+      /** Directory for split `errors.txt` and `warnings.txt` files (relative to outputDir or absolute). */
+      dir: z.string().optional(),
+      /** File path for error-severity diagnostics (relative to invocation directory or absolute). */
+      errorsFile: z.string().optional(),
+      /** File path for warning-severity diagnostics (relative to invocation directory or absolute). */
+      warningsFile: z.string().optional(),
+      /** Write `errors.txt` and `warnings.txt` under `diagnostics.dir` (default `.caches/diagnostics` under `outputDir`). */
+      splitFiles: z.boolean().default(false),
+    })
+    .optional(),
 });
 
 export type MerlonConfig = z.infer<typeof MerlonConfigSchema>;

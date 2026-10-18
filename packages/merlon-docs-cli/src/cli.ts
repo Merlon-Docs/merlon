@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import cac from 'cac';
-import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
-import { dirname, resolve, join } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
+import { dirname, isAbsolute, resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   loadConfig,
@@ -52,6 +52,9 @@ interface GlobalOpts {
   backupDir?: string;
   backupExt?: string;
   warnBrokenLinks?: boolean;
+  diagnosticsDir?: string;
+  errorsFile?: string;
+  warningsFile?: string;
 }
 
 function getDocsRoot(opts: GlobalOpts): string {
@@ -158,9 +161,15 @@ function cliBackupFlags(opts: GlobalOpts) {
 }
 
 /** Print link diagnostics; returns true when caller should fail (severity error + issues). */
-function reportLinkIssues(issues: LinkIssue[], severity: LinkSeverity): boolean {
+function reportLinkIssues(
+  issues: LinkIssue[],
+  severity: LinkSeverity,
+  sinkLines?: string[],
+): boolean {
   for (const issue of issues) {
-    console.error(formatLinkIssue(issue, severity));
+    const formatted = formatLinkIssue(issue, severity);
+    console.error(formatted);
+    sinkLines?.push(formatted);
   }
   return severity === 'error' && issues.length > 0;
 }
@@ -184,10 +193,19 @@ function runBuiltInLinkLint(
   workspace: ReturnType<typeof compileWorkspace>,
 ): boolean {
   const { issues, severity } = collectBuiltInLinkIssues(config, docsRoot, globalOpts, workspace);
-  return reportLinkIssues(issues, severity);
+  const lines: string[] = [];
+  const failed = reportLinkIssues(issues, severity, lines);
+  writeDiagnosticSinks(
+    config,
+    docsRoot,
+    globalOpts,
+    severity === 'error' ? lines : [],
+    severity === 'warn' ? lines : [],
+  );
+  return failed;
 }
 
-interface CheckFailure {
+interface CheckStepDiagnostic {
   step: string;
   detail: string;
   hints: string[];
@@ -201,22 +219,111 @@ const LINK_KIND_HINTS: Record<LinkIssue['kind'], string> = {
     'missing publish path: link a published guide outputFile, or list the target guide in compile.crossGuideLinks.ignoreGuides when shard paths are intentional. Do not link durable docs to pending .changeset/*.md files.',
 };
 
+const PATH_RESOLUTION_HINTS = [
+  'Update the path to what the repository now contains, or delete the claim when the thing it names is gone.',
+  `Add ${ILLUSTRATIVE_MARKER} on its own line when a file's paths teach syntax instead of describing this repository.`,
+  'Add lint.paths.generated for paths that only exist after a build or install.',
+  'Add lint.paths.vocabulary for a name this repository documents without having.',
+];
+
+const COVERAGE_HINTS = ['Fold files into a guide, register standaloneGuides, or add scan.ignore.'];
+
 function linkRemediationHints(issues: LinkIssue[]): string[] {
   const kinds = [...new Set(issues.map((i) => i.kind))];
   return kinds.map((k) => LINK_KIND_HINTS[k]);
 }
 
-function reportCheckFailures(failures: CheckFailure[]): void {
-  console.error('');
-  console.error('merlon check failed:');
-  for (const f of failures) {
-    console.error(`  - ${f.step}: ${f.detail}`);
-    for (const hint of f.hints) {
-      console.error(`    → ${hint}`);
+function resolveDiagnosticSinkPaths(
+  config: MerlonConfig,
+  docsRoot: string,
+  opts: GlobalOpts,
+): { errorsFile?: string; warningsFile?: string } {
+  const diagCfg = config.diagnostics;
+  const dirOpt =
+    opts.diagnosticsDir ??
+    diagCfg?.dir ??
+    (diagCfg?.splitFiles ? '.caches/diagnostics' : undefined);
+  let baseDir: string | undefined;
+  if (dirOpt !== undefined) {
+    baseDir = isAbsolute(dirOpt)
+      ? dirOpt
+      : opts.diagnosticsDir !== undefined
+        ? resolve(process.cwd(), dirOpt)
+        : resolveUnderOutputDir(docsRoot, config.outputDir, dirOpt);
+  }
+  const errOpt = opts.errorsFile ?? diagCfg?.errorsFile;
+  const warnOpt = opts.warningsFile ?? diagCfg?.warningsFile;
+  const errorsFile =
+    errOpt !== undefined
+      ? resolve(process.cwd(), errOpt)
+      : baseDir !== undefined
+        ? join(baseDir, 'errors.txt')
+        : undefined;
+  const warningsFile =
+    warnOpt !== undefined
+      ? resolve(process.cwd(), warnOpt)
+      : baseDir !== undefined
+        ? join(baseDir, 'warnings.txt')
+        : undefined;
+  return { errorsFile, warningsFile };
+}
+
+function writeDiagnosticSinks(
+  config: MerlonConfig,
+  docsRoot: string,
+  opts: GlobalOpts,
+  errorLines: string[],
+  warningLines: string[],
+): { errorsFile?: string; warningsFile?: string } {
+  const { errorsFile, warningsFile } = resolveDiagnosticSinkPaths(config, docsRoot, opts);
+  if (errorsFile) {
+    mkdirSync(dirname(errorsFile), { recursive: true });
+    writeFileSync(errorsFile, errorLines.length > 0 ? errorLines.join('\n') + '\n' : '', 'utf-8');
+  }
+  if (warningsFile) {
+    mkdirSync(dirname(warningsFile), { recursive: true });
+    writeFileSync(
+      warningsFile,
+      warningLines.length > 0 ? warningLines.join('\n') + '\n' : '',
+      'utf-8',
+    );
+  }
+  return { errorsFile, warningsFile };
+}
+
+function reportCheckSummary(
+  failures: CheckStepDiagnostic[],
+  warnings: CheckStepDiagnostic[],
+  sinks: { errorsFile?: string; warningsFile?: string },
+): void {
+  if (warnings.length > 0) {
+    console.error('');
+    console.error(`merlon check warnings (${warnings.length} step(s)):`);
+    for (const w of warnings) {
+      console.error(`  - ${w.step}: ${w.detail}`);
+      for (const hint of w.hints) {
+        console.error(`    → ${hint}`);
+      }
+    }
+    if (sinks.warningsFile) {
+      console.error(`  warnings_file: ${sinks.warningsFile}`);
     }
   }
-  console.error('');
-  console.error('Resolve the diagnostics above, then re-run: merlon check');
+  if (failures.length > 0) {
+    console.error('');
+    console.error('merlon check failed:');
+    for (const f of failures) {
+      console.error(`  - ${f.step}: ${f.detail}`);
+      for (const hint of f.hints) {
+        console.error(`    → ${hint}`);
+      }
+    }
+    if (sinks.errorsFile) {
+      console.error(`  errors_file: ${sinks.errorsFile}`);
+    }
+    console.error('');
+    console.error('Resolve the diagnostics above, then re-run: merlon check');
+  }
 }
 
 function logWritten(results: { path: string; lines: number; backupPath?: string }[]): void {
@@ -283,7 +390,10 @@ cli
   .option('--backup', 'Move existing output files to cache before overwrite')
   .option('--backup-dir <path>', 'Backup directory relative to outputDir')
   .option('--backup-ext <ext>', 'Suffix for backup filenames')
-  .option('--warn-broken-links', 'Report broken links but exit 0');
+  .option('--warn-broken-links', 'Report broken links but exit 0')
+  .option('--diagnostics-dir <dir>', 'Write split errors.txt and warnings.txt into <dir>')
+  .option('--errors-file <path>', 'Write error diagnostics to <path>')
+  .option('--warnings-file <path>', 'Write warning diagnostics to <path>');
 
 cli.command('compile', 'Stitch shards into compiled guides').action((opts: GlobalOpts) => {
   const config = getConfig(opts);
@@ -462,13 +572,20 @@ cli
   .action(
     (opts: GlobalOpts & { requireLint?: boolean; requireVale?: boolean; skipVale?: boolean }) => {
       const config = getConfig(opts);
-      const failures: CheckFailure[] = [];
+      const docsRoot = getDocsRoot(opts);
+      const failures: CheckStepDiagnostic[] = [];
+      const warnings: CheckStepDiagnostic[] = [];
+      const errorLines: string[] = [];
+      const warningLines: string[] = [];
 
-      const orphans = checkOrphansForGuides(guideEntries(config, getDocsRoot(opts)));
+      const orphans = checkOrphansForGuides(guideEntries(config, docsRoot));
       for (const o of orphans) {
-        console.error(`orphan: ${o.message}`);
+        const line = `orphan: ${o.message}`;
+        console.error(line);
+        errorLines.push(line);
       }
       if (orphans.length > 0) {
+        writeDiagnosticSinks(config, docsRoot, opts, errorLines, warningLines);
         console.error('');
         console.error(
           `merlon check failed: ${orphans.length} orphan shard(s). Add them to a guide index or remove unused files.`,
@@ -476,7 +593,6 @@ cli
         process.exit(1);
       }
 
-      const docsRoot = getDocsRoot(opts);
       const workspace = compileWorkspace(config, docsRoot, cliBackupFlags(opts));
       const written = writeCompiledFromWorkspace(config, docsRoot, workspace);
       logWritten(written);
@@ -487,6 +603,8 @@ cli
       const refsResult = checkRefs(workspace, refsPath, refsOutputs);
       console.log(refsResult.message);
       if (!refsResult.ok) {
+        errorLines.push(refsResult.message);
+        writeDiagnosticSinks(config, docsRoot, opts, errorLines, warningLines);
         console.error('');
         console.error(
           'merlon check failed: refs registry mismatch. Re-run `merlon compile` or `merlon refs gen`, then `merlon check`.',
@@ -501,25 +619,36 @@ cli
         workspace,
         getScanRoot(config),
       );
-      if (reportLinkIssues(linkIssues, linkSeverity)) {
+      const linkSink = linkSeverity === 'error' ? errorLines : warningLines;
+      if (reportLinkIssues(linkIssues, linkSeverity, linkSink)) {
         failures.push({
           step: 'built-in links',
           detail: `${linkIssues.length} issue(s) (see \`link:\` lines above)`,
           hints: linkRemediationHints(linkIssues),
         });
+      } else if (linkIssues.length > 0) {
+        warnings.push({
+          step: 'built-in links',
+          detail: `${linkIssues.length} warning(s) (see \`link-warn:\` lines above)`,
+          hints: linkRemediationHints(linkIssues),
+        });
       }
 
-      const mdlint = findPeerBinary('markdownlint-cli2', getDocsRoot(opts));
+      const mdlint = findPeerBinary('markdownlint-cli2', docsRoot);
       const shardsCfg = config.lint?.markdownlint?.shardsConfig;
       const compiledCfg = config.lint?.markdownlint?.compiledConfig;
       if (shardsCfg) {
-        const shardPaths = shardLintPaths(config, getDocsRoot(opts));
+        const shardPaths = shardLintPaths(config, docsRoot);
         const r = runPeer(mdlint, {
           require: opts.requireLint,
-          cwd: getDocsRoot(opts),
+          cwd: docsRoot,
           args: ['--config', shardsCfg, ...shardPaths],
+          stdio: 'pipe',
         });
+        const peerOut = [r.stdout, r.stderr].filter(Boolean).join('');
+        if (peerOut) process.stderr.write(peerOut);
         if (r.exitCode !== 0) {
+          if (peerOut) errorLines.push(peerOut.trimEnd());
           failures.push({
             step: 'markdownlint (shards)',
             detail: 'peer exited non-zero (see markdownlint output above)',
@@ -532,10 +661,14 @@ cli
       if (compiledCfg) {
         const r = runPeer(mdlint, {
           require: opts.requireLint,
-          cwd: getDocsRoot(opts),
+          cwd: docsRoot,
           args: ['--config', compiledCfg],
+          stdio: 'pipe',
         });
+        const peerOut = [r.stdout, r.stderr].filter(Boolean).join('');
+        if (peerOut) process.stderr.write(peerOut);
         if (r.exitCode !== 0) {
+          if (peerOut) errorLines.push(peerOut.trimEnd());
           failures.push({
             step: 'markdownlint (compiled)',
             detail: 'peer exited non-zero (see markdownlint output above)',
@@ -544,15 +677,21 @@ cli
         }
       }
 
-      const linkTool = findPeerBinary('markdown-link-check', getDocsRoot(opts));
-      const linkTarget = resolveLinkTarget(config, getDocsRoot(opts));
+      const linkTool = findPeerBinary('markdown-link-check', docsRoot);
+      const linkTarget = resolveLinkTarget(config, docsRoot);
       const linkCfg = config.lint?.links?.config;
       if (linkTool.found && linkCfg && linkTarget) {
         const r = runPeer(linkTool, {
-          cwd: getDocsRoot(opts),
+          cwd: docsRoot,
           args: [linkTarget, '--config', linkCfg],
+          stdio: 'pipe',
         });
+        const peerOut = [r.stdout, r.stderr].filter(Boolean).join('');
         if (r.exitCode !== 0) {
+          if (peerOut) {
+            process.stderr.write(peerOut);
+            errorLines.push(peerOut.trimEnd());
+          }
           failures.push({
             step: 'markdown-link-check',
             detail: 'peer exited non-zero (see peer output above)',
@@ -564,17 +703,33 @@ cli
       }
 
       if (!opts.skipVale) {
-        const vale = findPeerBinary('vale', getDocsRoot(opts));
-        const scanPaths = valeScanPaths(config, getDocsRoot(opts), getScanRoot(config));
+        const vale = findPeerBinary('vale', docsRoot);
+        const scanPaths = valeScanPaths(config, docsRoot, getScanRoot(config));
         const r = runPeer(vale, {
           require: opts.requireVale,
-          cwd: getDocsRoot(opts),
+          cwd: docsRoot,
           args: valeArgs(config, scanPaths, true),
+          stdio: 'pipe',
         });
+        const peerOut = [r.stdout, r.stderr].filter(Boolean).join('');
+        if (peerOut) process.stderr.write(peerOut);
         if (r.exitCode !== 0) {
+          if (peerOut) errorLines.push(peerOut.trimEnd());
           failures.push({
             step: 'vale',
             detail: 'peer exited non-zero (see Vale output above)',
+            hints: valeCheckHints(r),
+          });
+        } else if (
+          r.ran &&
+          /\b\d+\s+(?:warnings?|suggestions?)\b/i.test(peerOut) &&
+          !/\b0\s+warnings?,\s*0\s+suggestions?\b/i.test(peerOut) &&
+          !/\b0\s+errors?,\s*0\s+warnings?\s+and\s+0\s+suggestions?\b/i.test(peerOut)
+        ) {
+          warningLines.push(peerOut.trimEnd());
+          warnings.push({
+            step: 'vale',
+            detail: 'warnings or suggestions reported (see Vale output above)',
             hints: valeCheckHints(r),
           });
         }
@@ -583,49 +738,79 @@ cli
       const pathSeverity = config.lint?.paths?.severity ?? 'off';
       if (pathSeverity !== 'off') {
         const pathIssues = probeDocumentPaths(
-          pathProbeInputs(config, getDocsRoot(opts), getScanRoot(config)),
+          pathProbeInputs(config, docsRoot, getScanRoot(config)),
         );
+        const pathSink = pathSeverity === 'error' ? errorLines : warningLines;
         for (const issue of pathIssues) {
-          console.error(formatPathProbeIssue(issue, pathSeverity));
+          const formatted = formatPathProbeIssue(issue, pathSeverity);
+          console.error(formatted);
+          pathSink.push(formatted);
         }
         if (pathIssues.length > 0 && pathSeverity === 'error') {
           failures.push({
             step: 'path resolution',
             detail: `${pathIssues.length} unresolved path(s) in prose (see \`path:\` lines above)`,
-            hints: [
-              'Update the path to what the repository now contains, or delete the claim when the thing it names is gone.',
-              `Add ${ILLUSTRATIVE_MARKER} on its own line when a file's paths teach syntax instead of describing this repository.`,
-              'Add lint.paths.generated for paths that only exist after a build or install.',
-              'Add lint.paths.vocabulary for a name this repository documents without having.',
-            ],
+            hints: PATH_RESOLUTION_HINTS,
+          });
+        } else if (pathIssues.length > 0 && pathSeverity === 'warn') {
+          warnings.push({
+            step: 'path resolution',
+            detail: `${pathIssues.length} unresolved path(s) in prose (see \`path-warn:\` lines above)`,
+            hints: PATH_RESOLUTION_HINTS,
           });
         }
       }
 
       const coverage = computeCoverage(coverageInputs(config, opts));
-      for (const p of coverage.uncaptured) console.error(`uncaptured: ${p}`);
-      for (const p of coverage.missingStandalone) console.error(`missing-standalone: ${p}`);
+      const strictCoverage = config.scan?.strict === true;
+      const coverageSink = strictCoverage ? errorLines : warningLines;
+      for (const p of coverage.uncaptured) {
+        const line = `uncaptured: ${p}`;
+        console.error(line);
+        coverageSink.push(line);
+      }
+      for (const p of coverage.missingStandalone) {
+        const line = `missing-standalone: ${p}`;
+        console.error(line);
+        coverageSink.push(line);
+      }
       const coverageGaps = coverage.uncaptured.length + coverage.missingStandalone.length;
       if (coverageGaps > 0) {
-        const strict = config.scan?.strict === true;
-        console.error(
+        const covSummary =
           `coverage: ${coverage.uncaptured.length} uncaptured, ${coverage.missingStandalone.length} missing standalone` +
-            (strict ? '' : ' (non-fatal; set scan.strict to fail check)'),
-        );
-        if (strict) {
+          (strictCoverage ? '' : ' (non-fatal; set scan.strict to fail check)');
+        console.error(covSummary);
+        coverageSink.push(covSummary);
+        if (strictCoverage) {
           console.error('');
           console.error(
             'merlon check failed: coverage gaps. Fold files into a guide, register standaloneGuides, or add scan.ignore.',
           );
-          process.exit(1);
+          failures.push({
+            step: 'coverage',
+            detail: `${coverage.uncaptured.length} uncaptured, ${coverage.missingStandalone.length} missing standalone (see \`uncaptured:\` / \`missing-standalone:\` lines above)`,
+            hints: COVERAGE_HINTS,
+          });
+        } else {
+          warnings.push({
+            step: 'coverage',
+            detail: `${coverage.uncaptured.length} uncaptured, ${coverage.missingStandalone.length} missing standalone (non-fatal; set scan.strict to fail check)`,
+            hints: COVERAGE_HINTS,
+          });
         }
       }
 
+      const sinks = writeDiagnosticSinks(config, docsRoot, opts, errorLines, warningLines);
+      reportCheckSummary(failures, warnings, sinks);
+
       if (failures.length > 0) {
-        reportCheckFailures(failures);
         process.exit(1);
       }
-      console.log('merlon check passed');
+      if (warnings.length > 0) {
+        console.log(`merlon check passed with warning(s) (${warnings.length} step(s))`);
+      } else {
+        console.log('merlon check passed');
+      }
     },
   );
 
@@ -646,9 +831,28 @@ cli
       thresholds: config.review,
     });
     if (opts.json) {
-      console.log(JSON.stringify(result.findings, null, 2));
+      const jsonOut = JSON.stringify(result.findings, null, 2);
+      console.log(jsonOut);
+      writeDiagnosticSinks(
+        config,
+        docsRoot,
+        opts,
+        opts.strict && result.findings.length > 0 ? [jsonOut] : [],
+        result.findings.map((f) => `${f.signal}: ${f.files.join(', ')}: ${f.detail} -> ${f.fix}`),
+      );
     } else {
-      console.log(formatReviewReport(result));
+      const report = formatReviewReport(result);
+      console.log(report);
+      const findingLines = result.findings.map(
+        (f) => `${f.signal}: ${f.files.join(', ')}: ${f.detail} -> ${f.fix}`,
+      );
+      writeDiagnosticSinks(
+        config,
+        docsRoot,
+        opts,
+        opts.strict && findingLines.length > 0 ? findingLines : [],
+        findingLines,
+      );
     }
     if (opts.strict && result.findings.length > 0) process.exitCode = 1;
   });

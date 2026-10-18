@@ -416,6 +416,29 @@
           "description": "Fewest words a paragraph needs before duplicate-paragraph compares it across shards."
         }
       }
+    },
+    "diagnostics": {
+      "type": "object",
+      "description": "Optional split diagnostic file sinks for merlon check, merlon compile, and merlon review.",
+      "properties": {
+        "dir": {
+          "type": "string",
+          "description": "Directory for split errors.txt and warnings.txt files (relative to outputDir or absolute)."
+        },
+        "errorsFile": {
+          "type": "string",
+          "description": "File path for error-severity diagnostics (relative to invocation directory or absolute)."
+        },
+        "warningsFile": {
+          "type": "string",
+          "description": "File path for warning-severity diagnostics (relative to invocation directory or absolute)."
+        },
+        "splitFiles": {
+          "type": "boolean",
+          "default": false,
+          "description": "Write errors.txt and warnings.txt under diagnostics.dir (default .caches/diagnostics under outputDir)."
+        }
+      }
     }
   },
   "required": ["compileOrder"]
