@@ -34,14 +34,13 @@ The hook finds fenced code and code spans as the [link passes](../../features/co
 
 Line ranges are parsed from the **link label** first, then from the path (before any `#` fragment). The hook always emits GitHub-style **`#L…` fragments** (a fixed format that isn't localized).
 
-**Language-neutral forms** (always recognized):
+**Language-neutral forms** (always recognized). A bare range such as `1-2` isn't one: it could as well be a version or page range, so a line range needs `L`, `:` or a locale word:
 
 | Form in label or path | Fragment           |
 | --------------------- | ------------------ |
 | `L6-L8`, `L6–L8`      | `#L6-L8`           |
 | `L42`                 | `#L42`             |
 | `:10-20`, `:10`       | `#L10-L20`, `#L10` |
-| bare `1-2`            | `#L1-L2`           |
 
 **Locale word forms** come from the active [locale pack](../../glossary/locale-pack.md) (`lineRangeWords`). Default **en-US** recognizes `line` / `lines` (case-insensitive), for example `line 42` → `#L42` and `lines 12–15` → `#L12-L15`. Other locales may supply different authored words; they are not part of the Merlon Docs format. See [Locale and language boundary](../../features/design-constraints/locale-and-language.md).
 
