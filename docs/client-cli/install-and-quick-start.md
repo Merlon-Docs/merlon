@@ -33,10 +33,11 @@ Before upgrading, read the changelog and release notes of each Merlon Docs packa
 
 ## Quick start
 
-1. Create `merlon.config.json` in your docs root. Start with this minimal config for two guides, `overview` and `admin-guide`. [Minimal config](./config-essentials.md#minimal-config) says what each field does:
+1. Create `merlon.config.json` in your docs root. Start with this minimal config for two guides, `overview` and `admin-guide`. Set `configVersion` to the version of `@merlon-docs/merlon-docs-core` you install; when it's missing, loading the config fails and names the value to add. [Minimal config](./config-essentials.md#minimal-config) says what each field does:
 
    ```json
    {
+     "configVersion": "1.0.0-draft.0",
      "compileOrder": ["overview", "admin-guide"],
      "guides": [{ "name": "overview" }, { "name": "admin-guide" }]
    }
@@ -46,6 +47,7 @@ Before upgrading, read the changelog and release notes of each Merlon Docs packa
 
    ```json
    {
+     "configVersion": "1.0.0-draft.0",
      "compileOrder": ["overview", "admin-guide"],
      "guides": [{ "name": "overview" }, { "name": "admin-guide" }],
      "lint": {

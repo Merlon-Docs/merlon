@@ -13,7 +13,7 @@ import {
   symlinkSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { DEFAULT_STANDARD_VERSION } from '@merlon-docs/merlon-docs-core';
+import { DEFAULT_CONFIG_VERSION } from '@merlon-docs/merlon-docs-core';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CLI = join(__dirname, '../dist/cli.js');
@@ -53,6 +53,7 @@ function writeInScopeLintFixture(docs: string, configExtra: Record<string, unkno
   writeFileSync(
     join(docs, 'merlon.config.json'),
     JSON.stringify({
+      configVersion: DEFAULT_CONFIG_VERSION,
       outputDir: '.',
       outputFile: 'guides.md',
       compileOrder: ['guide'],
@@ -118,6 +119,7 @@ function writeStandaloneValeFixture(
   writeFileSync(
     join(docs, 'merlon.config.json'),
     JSON.stringify({
+      configVersion: DEFAULT_CONFIG_VERSION,
       outputDir: '.',
       outputFile: 'guides.md',
       compileOrder: ['guide'],
@@ -169,7 +171,12 @@ function writeMarkdownlintFixture(repo: string, markdownlint: Record<string, unk
   writeFileSync(join(docs, 'guide', 'section.md'), '# Guide\n\n## Hello\nNo blank line.\n');
   writeFileSync(
     join(docs, 'merlon.config.json'),
-    JSON.stringify({ outputFile: 'guides.md', compileOrder: ['guide'], lint: { markdownlint } }),
+    JSON.stringify({
+      configVersion: DEFAULT_CONFIG_VERSION,
+      outputFile: 'guides.md',
+      compileOrder: ['guide'],
+      lint: { markdownlint },
+    }),
   );
 }
 
@@ -190,6 +197,7 @@ function writeGateFixture(docs: string, scan: Record<string, unknown> = {}): voi
   writeFileSync(
     join(docs, 'merlon.config.json'),
     JSON.stringify({
+      configVersion: DEFAULT_CONFIG_VERSION,
       outputDir: '.',
       outputFile: 'guides.md',
       compileOrder: ['g'],
@@ -228,6 +236,7 @@ describe('cli smoke', () => {
       writeFileSync(
         join(docs, 'merlon.config.json'),
         JSON.stringify({
+          configVersion: DEFAULT_CONFIG_VERSION,
           outputDir: '.',
           outputFile: 'guides.md',
           compileOrder: ['g'],
@@ -260,6 +269,7 @@ describe('cli smoke', () => {
       writeFileSync(
         join(docs, 'merlon.config.json'),
         JSON.stringify({
+          configVersion: DEFAULT_CONFIG_VERSION,
           outputDir: '_build',
           outputFile: 'guides.md',
           compileOrder: ['g'],
@@ -291,6 +301,8 @@ describe('cli smoke', () => {
       writeFileSync(
         join(dir, configName),
         JSON.stringify({
+          // A former config carries its old version key in `extra` instead.
+          ...('protocolVersion' in extra ? {} : { configVersion: DEFAULT_CONFIG_VERSION }),
           outputDir: '_build',
           outputFile: 'guides.md',
           compileOrder: ['g'],
@@ -329,15 +341,15 @@ describe('cli smoke', () => {
         const r = compileWithoutConfigFlag(dir);
         expect(r.status).toBe(0);
         expect(r.stderr).toMatch(
-          /Upgraded mdcp\.config\.json to merlon\.config\.json, and its protocolVersion key is now standardVersion/,
+          /Upgraded mdcp\.config\.json to merlon\.config\.json, and its version key is now configVersion/,
         );
         expect(existsSync(join(dir, 'mdcp.config.json'))).toBe(false);
         const upgraded = JSON.parse(readFileSync(join(dir, 'merlon.config.json'), 'utf-8')) as {
-          standardVersion?: string;
+          configVersion?: string;
           protocolVersion?: string;
           compileOrder?: string[];
         };
-        expect(upgraded.standardVersion).toBe(DEFAULT_STANDARD_VERSION);
+        expect(upgraded.configVersion).toBe(DEFAULT_CONFIG_VERSION);
         expect(upgraded.protocolVersion).toBeUndefined();
         expect(upgraded.compileOrder).toEqual(['g']);
         expect(existsSync(join(dir, '_build', 'guides.md'))).toBe(true);
@@ -389,6 +401,7 @@ describe('cli smoke', () => {
       writeFileSync(
         join(docs, 'merlon.config.json'),
         JSON.stringify({
+          configVersion: DEFAULT_CONFIG_VERSION,
           outputDir: '_build',
           compileOrder: ['guide-a'],
           guides: [{ name: 'guide-a', compile: { outputFile: 'compiled/guide-a.md' } }],
@@ -447,6 +460,7 @@ describe('cli smoke', () => {
       writeFileSync(
         join(docs, 'merlon.config.json'),
         JSON.stringify({
+          configVersion: DEFAULT_CONFIG_VERSION,
           outputFile: 'guides.md',
           compileOrder: ['a', 'p'],
           guides: [{ name: 'p', compile: { outputFile: '../../README.md' } }],
@@ -503,7 +517,11 @@ describe('cli smoke', () => {
       // The registry has another name, so the message has to give its path.
       writeFileSync(
         join(docs, 'merlon.config.json'),
-        JSON.stringify({ compileOrder: ['a'], refs: { registryFile: 'registry.json' } }),
+        JSON.stringify({
+          configVersion: DEFAULT_CONFIG_VERSION,
+          compileOrder: ['a'],
+          refs: { registryFile: 'registry.json' },
+        }),
       );
       const heading = {
         key: 'guide-a.guide-a',
@@ -552,6 +570,7 @@ describe('cli smoke', () => {
       writeFileSync(
         join(docs, 'merlon.config.json'),
         JSON.stringify({
+          configVersion: DEFAULT_CONFIG_VERSION,
           outputDir: '_build/compiled',
           outputFile: 'guides.md',
           compileOrder: ['g'],
@@ -581,6 +600,7 @@ describe('cli smoke', () => {
       writeFileSync(
         join(docs, 'merlon.config.json'),
         JSON.stringify({
+          configVersion: DEFAULT_CONFIG_VERSION,
           outputDir: '_build',
           outputFile: 'guides.md',
           compileOrder: ['g'],
@@ -623,6 +643,7 @@ describe('cli smoke', () => {
       writeFileSync(
         join(docs, 'merlon.config.json'),
         JSON.stringify({
+          configVersion: DEFAULT_CONFIG_VERSION,
           outputDir: '_build/compiled',
           compileOrder: ['glossary'],
           guides: [{ name: 'glossary' }],
@@ -680,6 +701,7 @@ describe('cli smoke', () => {
       writeFileSync(
         join(docs, 'merlon.config.json'),
         JSON.stringify({
+          configVersion: DEFAULT_CONFIG_VERSION,
           outputDir: '.',
           outputFile: 'guides.md',
           compileOrder: ['narrow', 'wide'],
@@ -812,6 +834,7 @@ describe('cli smoke', () => {
       writeFileSync(
         join(repo, 'docs', 'merlon.config.json'),
         JSON.stringify({
+          configVersion: DEFAULT_CONFIG_VERSION,
           outputFile: 'guides.md',
           compileOrder: ['guide'],
           guides: [{ name: 'guide', path: 'guide (v2) {a,b}' }],
@@ -866,6 +889,7 @@ describe('cli smoke', () => {
       writeFileSync(
         join(real, 'merlon.config.json'),
         JSON.stringify({
+          configVersion: DEFAULT_CONFIG_VERSION,
           outputFile: 'guides.md',
           compileOrder: ['inner', 'outer'],
           guides: [{ name: 'outer', path: '../pkg/guide' }],
@@ -895,6 +919,7 @@ describe('cli smoke', () => {
       writeFileSync(
         join(docs, 'merlon.config.json'),
         JSON.stringify({
+          configVersion: DEFAULT_CONFIG_VERSION,
           outputFile: 'guides.md',
           compileOrder: names,
           lint: { markdownlint: { shardsConfig: SHARDS_PRESET } },
@@ -925,7 +950,11 @@ describe('cli smoke', () => {
       writeFileSync(join(guide, 'a.md'), '# Guide\n\n## Top A\n');
       writeFileSync(
         join(repo, 'docs', 'merlon.config.json'),
-        JSON.stringify({ outputFile: 'guides.md', compileOrder: ['guide'] }),
+        JSON.stringify({
+          configVersion: DEFAULT_CONFIG_VERSION,
+          outputFile: 'guides.md',
+          compileOrder: ['guide'],
+        }),
       );
       const check = runAtRepo(repo, ['check', '--skip-vale']);
       expect(check.output).toMatch(/Orphaned shard not in sections manifest: guide\/a\.md/);
@@ -1101,6 +1130,7 @@ describe('cli smoke', () => {
       writeFileSync(
         join(docs, 'merlon.config.json'),
         JSON.stringify({
+          configVersion: DEFAULT_CONFIG_VERSION,
           outputDir: '.',
           outputFile: 'guides.md',
           compileOrder: ['g'],
@@ -1203,6 +1233,7 @@ describe('cli smoke', () => {
       writeFileSync(
         join(docs, 'merlon.config.json'),
         JSON.stringify({
+          configVersion: DEFAULT_CONFIG_VERSION,
           outputDir: '.',
           outputFile: 'guides.md',
           compileOrder: ['g'],
@@ -1242,6 +1273,7 @@ describe('cli smoke', () => {
       writeFileSync(
         join(docs, 'merlon.config.json'),
         JSON.stringify({
+          configVersion: DEFAULT_CONFIG_VERSION,
           outputDir: '.',
           outputFile: 'guides.md',
           compileOrder: ['g'],
@@ -1281,6 +1313,7 @@ describe('cli smoke', () => {
       writeFileSync(
         join(docs, 'merlon.config.json'),
         JSON.stringify({
+          configVersion: DEFAULT_CONFIG_VERSION,
           outputDir: '_build',
           outputFile: 'sub/guides.md',
           compileOrder: ['a', 'b', 'c'],
@@ -1323,7 +1356,11 @@ describe('cli smoke', () => {
       }
       writeFileSync(
         join(docs, 'merlon.config.json'),
-        JSON.stringify({ outputFile: 'guides.md', compileOrder: ['a', 'b'] }),
+        JSON.stringify({
+          configVersion: DEFAULT_CONFIG_VERSION,
+          outputFile: 'guides.md',
+          compileOrder: ['a', 'b'],
+        }),
       );
 
       const compiled = runIn(docs, ['compile']);
@@ -1360,6 +1397,7 @@ describe('cli smoke', () => {
       writeFileSync(
         join(docs, 'merlon.config.json'),
         JSON.stringify({
+          configVersion: DEFAULT_CONFIG_VERSION,
           outputFile: 'guides.md',
           compileOrder: ['a', 'b'],
           guides: [{ name: 'a', compile: { links: { markBroken: false } } }],
@@ -1416,7 +1454,11 @@ describe('cli smoke', () => {
       );
       writeFileSync(
         join(docs, 'merlon.config.json'),
-        JSON.stringify({ outputFile: 'guides.md', compileOrder: ['g'] }),
+        JSON.stringify({
+          configVersion: DEFAULT_CONFIG_VERSION,
+          outputFile: 'guides.md',
+          compileOrder: ['g'],
+        }),
       );
 
       const checked = runIn(docs, ['check', '--skip-vale']);
@@ -1447,6 +1489,7 @@ describe('cli smoke', () => {
       writeFileSync(
         join(docs, 'merlon.config.json'),
         JSON.stringify({
+          configVersion: DEFAULT_CONFIG_VERSION,
           outputFile: 'guides.md',
           compileOrder: ['a', 'b'],
           standaloneGuides: ['AGENTS.md'],
@@ -1488,6 +1531,7 @@ describe('cli smoke', () => {
       writeFileSync(
         join(docs, 'merlon.config.json'),
         JSON.stringify({
+          configVersion: DEFAULT_CONFIG_VERSION,
           outputDir: '_build',
           outputFile: 'guides.md',
           compileOrder: ['g'],
@@ -1522,6 +1566,7 @@ describe('cli smoke', () => {
       writeFileSync(
         join(docs, 'merlon.config.json'),
         JSON.stringify({
+          configVersion: DEFAULT_CONFIG_VERSION,
           outputDir: '_build',
           outputFile: 'guides.md',
           compileOrder: ['g'],
@@ -1561,6 +1606,7 @@ describe('cli smoke', () => {
       writeFileSync(
         join(docs, 'merlon.config.json'),
         JSON.stringify({
+          configVersion: DEFAULT_CONFIG_VERSION,
           outputDir: '_build',
           outputFile: 'guides.md',
           compileOrder: ['g'],

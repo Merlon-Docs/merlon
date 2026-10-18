@@ -79,10 +79,11 @@ Before upgrading, read the changelog and release notes of each Merlon Docs packa
 
 ### Quick start
 
-1. Create `merlon.config.json` in your docs root. Start with this minimal config for two guides, `overview` and `admin-guide`. [Minimal config](#minimal-config) says what each field does:
+1. Create `merlon.config.json` in your docs root. Start with this minimal config for two guides, `overview` and `admin-guide`. Set `configVersion` to the version of `@merlon-docs/merlon-docs-core` you install; when it's missing, loading the config fails and names the value to add. [Minimal config](#minimal-config) says what each field does:
 
    ```json
    {
+     "configVersion": "1.0.0-draft.0",
      "compileOrder": ["overview", "admin-guide"],
      "guides": [{ "name": "overview" }, { "name": "admin-guide" }]
    }
@@ -92,6 +93,7 @@ Before upgrading, read the changelog and release notes of each Merlon Docs packa
 
    ```json
    {
+     "configVersion": "1.0.0-draft.0",
      "compileOrder": ["overview", "admin-guide"],
      "guides": [{ "name": "overview" }, { "name": "admin-guide" }],
      "lint": {
@@ -209,18 +211,19 @@ The core library takes the same two bases, and [Config API](../merlon-docs-core/
 
 Step 1 of [Quick start](#quick-start) shows a minimal `merlon.config.json` for two guides, `overview` and `admin-guide`. The fields it leaves out take their defaults, so that config writes `overview.md` and `admin-guide.md` to `_build/` under the docs root and builds no monolith. [Path layout](#path-layout) gives each default and says how each path resolves.
 
-| Field                | Purpose                                                             |
-| -------------------- | ------------------------------------------------------------------- |
-| `compileOrder`       | Guide directories to compile, in stitch order for optional monolith |
-| `guides`             | Per-guide options (hooks, manifests, publish paths)                 |
-| `outputDir`          | Generated output root (relative to `--docs-root`)                   |
-| `outputFile`         | Optional stitched monolith                                          |
-| `refs.registryFile`  | Refs registry file (default `.caches/refs.json`)                    |
-| `sourceTags`         | Wrap shards in HTML comments with relative paths (default `true`)   |
-| `banner`             | Global banner prepended to outputs (has default warning text)       |
-| `compile.outputFile` | Override per-guide output path                                      |
-| `compile.scopeRoot`  | Shared tree (relative to the docs root) that guide links pull from  |
-| `compile.sourceTags` | Per-guide override of the global `sourceTags` setting               |
+| Field                | Purpose                                                                                                                                                                                                                                                                           |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `configVersion`      | Required. The config format version the file follows: the version of `@merlon-docs/merlon-docs-core` it was written for. A file that declares only a former name, `standardVersion` or `protocolVersion`, migrates to the installed version, and those names are read until 2.0.0 |
+| `compileOrder`       | Guide directories to compile, in stitch order for optional monolith                                                                                                                                                                                                               |
+| `guides`             | Per-guide options (hooks, manifests, publish paths)                                                                                                                                                                                                                               |
+| `outputDir`          | Generated output root (relative to `--docs-root`)                                                                                                                                                                                                                                 |
+| `outputFile`         | Optional stitched monolith                                                                                                                                                                                                                                                        |
+| `refs.registryFile`  | Refs registry file (default `.caches/refs.json`)                                                                                                                                                                                                                                  |
+| `sourceTags`         | Wrap shards in HTML comments with relative paths (default `true`)                                                                                                                                                                                                                 |
+| `banner`             | Global banner prepended to outputs (has default warning text)                                                                                                                                                                                                                     |
+| `compile.outputFile` | Override per-guide output path                                                                                                                                                                                                                                                    |
+| `compile.scopeRoot`  | Shared tree (relative to the docs root) that guide links pull from                                                                                                                                                                                                                |
+| `compile.sourceTags` | Per-guide override of the global `sourceTags` setting                                                                                                                                                                                                                             |
 
 ### Path layout
 
@@ -307,6 +310,7 @@ This config makes the first H1 section the `overview` guide, and the second and 
 
 ```json
 {
+  "configVersion": "1.0.0-draft.0",
   "source": "old.md",
   "compileOrder": ["overview", "admin"],
   "guides": [
@@ -490,7 +494,8 @@ This table links the page that documents each key:
 | `compileOrder`, `guides[].name`, `guides[].path`, `outputDir`, `outputFile`, `refs.registryFile`, `compile.outputFile` | [Minimal config](#minimal-config) and [Path layout](#path-layout)                                                                                                            |
 | `compile.scopeRoot`                                                                                                    | [Shared glossary](#shared-glossary)                                                                                                                                          |
 | `review.*`                                                                                                             | [Review thresholds](#review-thresholds) on this page                                                                                                                         |
-| `standardVersion`, `protocolVersion`, `refs.slugAlgorithm`                                                             | [Schema-only fields](#schema-only-fields) on this page                                                                                                                       |
+| `configVersion`, `standardVersion`, `protocolVersion`                                                                  | [Minimal config](#minimal-config)                                                                                                                                            |
+| `refs.slugAlgorithm`                                                                                                   | [Schema-only fields](#schema-only-fields) on this page                                                                                                                       |
 | `source`, `guides[].source`, `guides[].splitLevel`                                                                     | [Consumer migration](#map-the-document-to-guides)                                                                                                                            |
 | `compile.preambleSection`                                                                                              | [Project layout](#project-layout)                                                                                                                                            |
 | `banner`, `sourceTags`, `compile.includeBanner`, `compile.sourceTags`                                                  | [Source tags and banner](../../docs/features/source-tags-and-banner.md)                                                                                                      |
@@ -531,11 +536,9 @@ This table links the page that documents each key:
 
 ### Schema-only fields
 
-| Field                | Notes                                                                                                                                                                                                                                                        |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `refs.slugAlgorithm` | Informational; only `github` is implemented                                                                                                                                                                                                                  |
-| `standardVersion`    | The version of the Merlon Docs standard the repository conforms to. Defaults to the version of the [specification](../../docs/features/system/merlon-docs-1.0-spec.md) the installed `@merlon-docs/merlon-docs-core` was built from, and no command reads it |
-| `protocolVersion`    | Former name of `standardVersion`, read until 2.0.0. Migrates to the `standardVersion` default when `standardVersion` is absent, and loading fails when the two keys differ                                                                                   |
+| Field                | Notes                                       |
+| -------------------- | ------------------------------------------- |
+| `refs.slugAlgorithm` | Informational; only `github` is implemented |
 
 ### Full schema and sample config
 

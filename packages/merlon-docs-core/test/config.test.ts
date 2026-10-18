@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { DEFAULT_STANDARD_VERSION, MerlonConfigSchema } from '../src/config/schema.js';
+import { DEFAULT_CONFIG_VERSION, MerlonConfigSchema } from '../src/config/schema.js';
 import { loadConfig, parseConfig, resolveOutputPath, resolveRefsPath } from '../src/config/load.js';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
@@ -115,41 +115,42 @@ describe('MerlonConfigSchema', () => {
   });
 });
 
-describe('standardVersion', () => {
-  it('defaults to the package version and mirrors it in protocolVersion', () => {
-    const cfg = parseConfig({ compileOrder: ['a'] });
-    expect(cfg.standardVersion).toBe(DEFAULT_STANDARD_VERSION);
-    expect(cfg.protocolVersion).toBe(DEFAULT_STANDARD_VERSION);
+describe('configVersion', () => {
+  it('keeps the version a config declares', () => {
+    expect(parseConfig({ configVersion: '0.9.0', compileOrder: ['a'] }).configVersion).toBe(
+      '0.9.0',
+    );
   });
 
-  it('migrates the former protocolVersion key to the package version', () => {
-    const cfg = parseConfig({ compileOrder: ['a'], protocolVersion: '0.6.0.0' });
-    expect(cfg.standardVersion).toBe(DEFAULT_STANDARD_VERSION);
-    expect(cfg.protocolVersion).toBe(DEFAULT_STANDARD_VERSION);
+  it('rejects a config that declares no version and names the key to add', () => {
+    expect(() => parseConfig({ compileOrder: ['a'] })).toThrow(
+      `Add "configVersion": "${DEFAULT_CONFIG_VERSION}"`,
+    );
   });
 
-  it('prefers standardVersion and accepts the same value under both keys', () => {
+  it.each(['standardVersion', 'protocolVersion'])(
+    'migrates the former %s key to this release and mirrors it on the former keys',
+    (key) => {
+      const cfg = parseConfig({ compileOrder: ['a'], [key]: '0.6.0.0' });
+      expect(cfg.configVersion).toBe(DEFAULT_CONFIG_VERSION);
+      expect(cfg.standardVersion).toBe(DEFAULT_CONFIG_VERSION);
+      expect(cfg.protocolVersion).toBe(DEFAULT_CONFIG_VERSION);
+    },
+  );
+
+  it('prefers configVersion over a former key', () => {
     const cfg = parseConfig({
       compileOrder: ['a'],
+      configVersion: '0.9.0',
       standardVersion: '0.6.0.0',
-      protocolVersion: '0.6.0.0',
     });
-    expect(cfg.standardVersion).toBe('0.6.0.0');
+    expect(cfg.configVersion).toBe('0.9.0');
   });
 
-  it('rejects different values under the two keys', () => {
-    expect(() =>
-      parseConfig({ compileOrder: ['a'], standardVersion: '0.6.0.0', protocolVersion: '0.5.0.0' }),
-    ).toThrow(/standardVersion.*protocolVersion/);
-  });
-
-  it('loadConfig migrates protocolVersion from a file to the default standard version', () => {
+  it('loadConfig rejects a file that declares no version', () => {
     withTmpDir('merlon-config-', (dir) => {
-      writeFileSync(
-        join(dir, 'merlon.config.json'),
-        JSON.stringify({ compileOrder: ['a'], protocolVersion: '0.6.0.0' }),
-      );
-      expect(loadConfig('merlon.config.json', dir).standardVersion).toBe(DEFAULT_STANDARD_VERSION);
+      writeFileSync(join(dir, 'merlon.config.json'), JSON.stringify({ compileOrder: ['a'] }));
+      expect(() => loadConfig('merlon.config.json', dir)).toThrow(/configVersion/);
     });
   });
 });
@@ -158,7 +159,10 @@ describe('loadConfig', () => {
   const work = useTmpDir('merlon-config-');
 
   it('loads config from disk', () => {
-    writeFileSync(join(work.path, 'merlon.config.json'), JSON.stringify({ compileOrder: ['a'] }));
+    writeFileSync(
+      join(work.path, 'merlon.config.json'),
+      JSON.stringify({ configVersion: DEFAULT_CONFIG_VERSION, compileOrder: ['a'] }),
+    );
     const cfg = loadConfig('merlon.config.json', work.path);
     expect(cfg.compileOrder).toEqual(['a']);
   });
@@ -171,7 +175,10 @@ describe('loadConfig', () => {
     withTmpDir('merlon-config-', (repo) => {
       const docs = join(repo, 'docs');
       mkdirSync(docs, { recursive: true });
-      writeFileSync(join(docs, 'merlon.config.json'), JSON.stringify({ compileOrder: ['a'] }));
+      writeFileSync(
+        join(docs, 'merlon.config.json'),
+        JSON.stringify({ configVersion: DEFAULT_CONFIG_VERSION, compileOrder: ['a'] }),
+      );
       const cfg = loadConfig('docs/merlon.config.json', repo);
       expect(cfg.compileOrder).toEqual(['a']);
     });

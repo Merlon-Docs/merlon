@@ -3,13 +3,17 @@
   "$comment": "GENERATED FILE, do not edit. Change packages/merlon-docs-core/src/config/schema.ts and run pnpm build, which runs packages/merlon-docs-core/scripts/generate-config-schema.mjs.",
   "type": "object",
   "properties": {
+    "configVersion": {
+      "type": "string",
+      "description": "Version of @merlon-docs/merlon-docs-core whose config format this file follows."
+    },
     "standardVersion": {
-      "default": "1.0.0-draft.0",
-      "description": "Four-part version of the Merlon Docs standard the repository conforms to.",
+      "description": "Former name of configVersion, still read until 2.0.0. Use configVersion.",
+      "deprecated": true,
       "type": "string"
     },
     "protocolVersion": {
-      "description": "Former name of standardVersion, still read until 2.0.0. Use standardVersion.",
+      "description": "Former name of configVersion, still read until 2.0.0. Use configVersion.",
       "deprecated": true,
       "type": "string"
     },
@@ -517,6 +521,7 @@
     }
   },
   "required": [
+    "configVersion",
     "compileOrder"
   ],
   "title": "Merlon Docs configuration",

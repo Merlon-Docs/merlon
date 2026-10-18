@@ -4,7 +4,7 @@ Normative specification for [Merlon Docs](../../glossary/merlon-docs.md), the op
 
 **Version:** `1.0.0-draft.0`
 
-> The reference implementation leads and this text follows it. The **Version** line above is the specification version, and the only place it is set. The core build copies it into `DEFAULT_STANDARD_VERSION`, the default of `standardVersion` in the config schema. It is independent of package semver. Configs written before the rename name it `protocolVersion`, which the toolchain reads until 2.0.0. Agent entrypoint is the parent **Agent Skill** (`/merlon-docs`).
+> The reference implementation leads and this text follows it. The **Version** line above is the specification's version, independent of package semver. A `merlon.config.json` declares something else: its config format version, `configVersion`, which follows `@merlon-docs/merlon-docs-core` because core defines the config format. Agent entrypoint is the parent **Agent Skill** (`/merlon-docs`).
 
 ## 1. Introduction
 
@@ -35,16 +35,20 @@ Other documentation systems **MAY** introduce their own [archetypes](./extension
 
 ## 3. Compile and validation
 
-The normative clauses for compile and validation are the twelve shards that the Features guide's manifest, `docs/features/index.md`, groups under Compile and validate. These eight are the entry points, and they link the other four:
+The normative clauses for compile and validation are the twelve shards that the Features guide's manifest, `docs/features/index.md`, groups under Compile and validate:
 
 - [Manifest compile order](../manifest-compile-order.md): the order a guide's manifest gives its shards in compiled output
 - [Default compile hooks](../default-compile-hooks.md): the hooks that run on each shard unless a guide switches them off
 - [Compile pipeline](../compile-pipeline/index.md): the assembly steps that run whatever `compile.hooks` says, link rewriting and table re-alignment among them
-- [Check gate](../check-gate.md): the stages of `merlon check`, the validation gate
-- [Link validation](../link-validation.md): the internal links and anchors that must resolve
-- [Refs registry path](../refs-registry-path.md): where compile writes the refs registry and where commands read it
 - [Source tags and default banner](../source-tags-and-banner.md): the source tags and the warning banner compile writes into each output unless the config switches them off
 - [Compile output backup](../compile-output-backup.md): the opt-in backup of an output before compile overwrites it
+- [Check gate](../check-gate.md): the stages of `merlon check`, the validation gate
+- [Link validation](../link-validation.md): the internal links and anchors that must resolve
+- [Monolith link lint](../monolith-link-lint.md): how link lint checks the monolith, which holds a copy of every guide without its own output file
+- [Path resolution in prose](../path-resolution.md): how check resolves backtick-quoted repository paths in prose
+- [Documentation coverage scan](../coverage-scan.md): the markdown files nothing in the config accounts for
+- [Standalone guides](../standalone-guides.md): how compile and each check treat a file registered in `standaloneGuides`
+- [Refs registry path](../refs-registry-path.md): where compile writes the refs registry and where commands read it
 
 ## 4. Skill workflows
 

@@ -36,7 +36,8 @@ This table links the page that documents each key:
 | `compileOrder`, `guides[].name`, `guides[].path`, `outputDir`, `outputFile`, `refs.registryFile`, `compile.outputFile` | [Minimal config](./config-essentials.md#minimal-config) and [Path layout](./config-essentials.md#path-layout)                                                  |
 | `compile.scopeRoot`                                                                                                    | [Shared glossary](./shared-glossary.md)                                                                                                                        |
 | `review.*`                                                                                                             | [Review thresholds](#review-thresholds) on this page                                                                                                           |
-| `standardVersion`, `protocolVersion`, `refs.slugAlgorithm`                                                             | [Schema-only fields](#schema-only-fields) on this page                                                                                                         |
+| `configVersion`, `standardVersion`, `protocolVersion`                                                                  | [Minimal config](./config-essentials.md#minimal-config)                                                                                                        |
+| `refs.slugAlgorithm`                                                                                                   | [Schema-only fields](#schema-only-fields) on this page                                                                                                         |
 | `source`, `guides[].source`, `guides[].splitLevel`                                                                     | [Consumer migration](./consumer-migration.md#map-the-document-to-guides)                                                                                       |
 | `compile.preambleSection`                                                                                              | [Project layout](./project-layout.md)                                                                                                                          |
 | `banner`, `sourceTags`, `compile.includeBanner`, `compile.sourceTags`                                                  | [Source tags and banner](../features/source-tags-and-banner.md)                                                                                                |
@@ -77,11 +78,9 @@ This table links the page that documents each key:
 
 ## Schema-only fields
 
-| Field                | Notes                                                                                                                                                                                                                                                |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `refs.slugAlgorithm` | Informational; only `github` is implemented                                                                                                                                                                                                          |
-| `standardVersion`    | The version of the Merlon Docs standard the repository conforms to. Defaults to the version of the [specification](../features/system/merlon-docs-1.0-spec.md) the installed `@merlon-docs/merlon-docs-core` was built from, and no command reads it |
-| `protocolVersion`    | Former name of `standardVersion`, read until 2.0.0. Migrates to the `standardVersion` default when `standardVersion` is absent, and loading fails when the two keys differ                                                                           |
+| Field                | Notes                                       |
+| -------------------- | ------------------------------------------- |
+| `refs.slugAlgorithm` | Informational; only `github` is implemented |
 
 ## Full schema and sample config
 

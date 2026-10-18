@@ -1,6 +1,8 @@
 export {
+  DEFAULT_CONFIG_VERSION,
   DEFAULT_STANDARD_VERSION,
   MerlonConfigSchema,
+  MerlonConfigFileSchema,
   type MerlonConfig,
   type MerlonConfigInput,
   MdcpConfigSchema,

@@ -40,18 +40,19 @@ The core library takes the same two bases, and [Config API](../client-core/api-c
 
 Step 1 of [Quick start](./install-and-quick-start.md#quick-start) shows a minimal `merlon.config.json` for two guides, `overview` and `admin-guide`. The fields it leaves out take their defaults, so that config writes `overview.md` and `admin-guide.md` to `_build/` under the docs root and builds no monolith. [Path layout](#path-layout) gives each default and says how each path resolves.
 
-| Field                | Purpose                                                             |
-| -------------------- | ------------------------------------------------------------------- |
-| `compileOrder`       | Guide directories to compile, in stitch order for optional monolith |
-| `guides`             | Per-guide options (hooks, manifests, publish paths)                 |
-| `outputDir`          | Generated output root (relative to `--docs-root`)                   |
-| `outputFile`         | Optional stitched monolith                                          |
-| `refs.registryFile`  | Refs registry file (default `.caches/refs.json`)                    |
-| `sourceTags`         | Wrap shards in HTML comments with relative paths (default `true`)   |
-| `banner`             | Global banner prepended to outputs (has default warning text)       |
-| `compile.outputFile` | Override per-guide output path                                      |
-| `compile.scopeRoot`  | Shared tree (relative to the docs root) that guide links pull from  |
-| `compile.sourceTags` | Per-guide override of the global `sourceTags` setting               |
+| Field                | Purpose                                                                                                                                                                                                                                                                           |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `configVersion`      | Required. The config format version the file follows: the version of `@merlon-docs/merlon-docs-core` it was written for. A file that declares only a former name, `standardVersion` or `protocolVersion`, migrates to the installed version, and those names are read until 2.0.0 |
+| `compileOrder`       | Guide directories to compile, in stitch order for optional monolith                                                                                                                                                                                                               |
+| `guides`             | Per-guide options (hooks, manifests, publish paths)                                                                                                                                                                                                                               |
+| `outputDir`          | Generated output root (relative to `--docs-root`)                                                                                                                                                                                                                                 |
+| `outputFile`         | Optional stitched monolith                                                                                                                                                                                                                                                        |
+| `refs.registryFile`  | Refs registry file (default `.caches/refs.json`)                                                                                                                                                                                                                                  |
+| `sourceTags`         | Wrap shards in HTML comments with relative paths (default `true`)                                                                                                                                                                                                                 |
+| `banner`             | Global banner prepended to outputs (has default warning text)                                                                                                                                                                                                                     |
+| `compile.outputFile` | Override per-guide output path                                                                                                                                                                                                                                                    |
+| `compile.scopeRoot`  | Shared tree (relative to the docs root) that guide links pull from                                                                                                                                                                                                                |
+| `compile.sourceTags` | Per-guide override of the global `sourceTags` setting                                                                                                                                                                                                                             |
 
 ## Path layout
 
