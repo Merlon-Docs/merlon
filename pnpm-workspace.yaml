@@ -40,14 +40,14 @@ overrides:
   # merlon-docs-site → astro → sharp (dev-only docs site build).
   # GHSA-wq5f-xc86-pv6w / CVE-2026-96889: librsvg dependency, patched >=0.35.5.
   sharp@<0.35.5: 0.35.5
+  # merlon-docs-site → astro → http-cache-semantics (dev-only docs site build).
+  # GHSA-ch52-4w7c-c8xp: vulnerable <=4.2.0, patched >=4.3.0.
+  http-cache-semantics@<4.3.0: 4.3.0
 # Unfixable advisories (no patched version published yet). Ignore so
 # `pnpm audit --audit-level=high` exits 0 without --ignore-unfixable.
 # - GHSA-vfj7-8cjw-p6xm: braces <=3.0.3, no patched version
 #   (merlon-docs-core → fast-glob → micromatch, and markdownlint-cli2 → globby).
 #   Added 2026-10-03; recheck 2026-11-03.
-# - GHSA-ch52-4w7c-c8xp: http-cache-semantics <=4.2.0, no patched version
-#   (merlon-docs-site → astro, dev-only docs site build). Added 2026-10-03; recheck 2026-11-03.
 audit:
   ignore:
     - GHSA-vfj7-8cjw-p6xm
-    - GHSA-ch52-4w7c-c8xp
