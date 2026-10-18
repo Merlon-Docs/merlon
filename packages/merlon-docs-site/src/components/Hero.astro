@@ -22,7 +22,17 @@ const installs = [
       alt: 'Merlon Docs on skills.sh',
     },
   },
-  { label: 'CLI', where: 'in your repo and CI', command: 'npm install -D @merlon-docs/merlon-docs-cli' },
+  {
+    label: 'CLI',
+    where: 'in your repo and CI',
+    command: 'npm install -D @merlon-docs/merlon-docs-cli',
+    // shields.io's badge for the version npm serves under latest, linking to the package page.
+    badge: {
+      href: 'https://www.npmjs.com/package/@merlon-docs/merlon-docs-cli',
+      src: 'https://img.shields.io/npm/v/@merlon-docs/merlon-docs-cli',
+      alt: 'Latest @merlon-docs/merlon-docs-cli version on npm',
+    },
+  },
 ];
 ---
 
@@ -48,12 +58,12 @@ const installs = [
         installs.map(({ label, where, command, badge }) => (
           <div class="merlon-hero__install">
             <p class="merlon-hero__install-label">
-              {label} <span>{where}</span>
               {badge && (
                 <a class="merlon-hero__badge" href={badge.href}>
-                  <img src={badge.src} alt={badge.alt} width="73" height="20" />
+                  <img src={badge.src} alt={badge.alt} height="20" />
                 </a>
               )}
+              {label} <span>{where}</span>
             </p>
             <code>
               <span aria-hidden="true">$ </span>

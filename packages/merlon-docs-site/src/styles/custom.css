@@ -146,13 +146,16 @@
 
 .merlon-hero__badge {
   display: inline-block;
-  margin-left: 0.5rem;
+  margin-right: 0.5rem;
   vertical-align: middle;
   line-height: 0;
 }
 
+/* Badges load from skills.sh and shields.io, and their width follows their text. */
 .merlon-hero__badge img {
   display: block;
+  width: auto;
+  height: 20px;
 }
 
 .merlon-hero__install-label span {
