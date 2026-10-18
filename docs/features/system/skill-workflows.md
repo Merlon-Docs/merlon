@@ -1,6 +1,6 @@
 # Skill workflows
 
-Normative profile for the **workflows** inside the Merlon Docs Agent Skill that drive shard authoring across the four [guide tiers](../../glossary/guide-tier.md). Parent spec: [Merlon Docs 1.0 (draft)](./merlon-docs-1.0-spec.md).
+Normative profile for the **workflows** inside the Merlon Docs Agent Skill that drive shard authoring across the four [guide tiers](../../glossary/guide-tier.md). Parent spec: [Merlon Docs 1.0](./merlon-docs-1.0-spec.md).
 
 ## Purpose
 

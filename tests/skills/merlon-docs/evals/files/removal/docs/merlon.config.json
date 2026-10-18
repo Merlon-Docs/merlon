@@ -1,5 +1,5 @@
 {
-  "configVersion": "1.0.0-draft.0",
+  "configVersion": "1.0.0",
   "compileOrder": ["features"],
   "standaloneGuides": ["AGENTS.md"]
 }

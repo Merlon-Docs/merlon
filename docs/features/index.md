@@ -51,7 +51,7 @@ Product documentation for **what Merlon Docs is designed to do**: the problems i
 - [Usage model](./system/usage-model.md)
 - [Shard single responsibility and idea mitosis](./system/shard-srp-and-mitosis.md)
 - [Extensions and archetypes](./system/extensions-and-archetypes.md)
-- [Merlon Docs 1.0 spec (draft)](./system/merlon-docs-1.0-spec.md)
+- [Merlon Docs 1.0 spec](./system/merlon-docs-1.0-spec.md)
 - [Acknowledgments](./system/acknowledgments.md)
 
 ## Evidence and research

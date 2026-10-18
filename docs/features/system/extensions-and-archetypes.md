@@ -1,6 +1,6 @@
 # Extensions and archetypes
 
-How Merlon Docs stays **broadly applicable** while allowing **project-specific** (and proprietary) customization. Parent spec: [Merlon Docs 1.0 (draft)](./merlon-docs-1.0-spec.md).
+How Merlon Docs stays **broadly applicable** while allowing **project-specific** (and proprietary) customization. Parent spec: [Merlon Docs 1.0](./merlon-docs-1.0-spec.md).
 
 ## Problem
 

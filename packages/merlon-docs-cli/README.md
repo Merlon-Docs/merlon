@@ -83,7 +83,7 @@ Before upgrading, read the changelog and release notes of each Merlon Docs packa
 
    ```json
    {
-     "configVersion": "1.0.0-draft.0",
+     "configVersion": "1.0.0",
      "compileOrder": ["overview", "admin-guide"],
      "guides": [{ "name": "overview" }, { "name": "admin-guide" }]
    }
@@ -93,7 +93,7 @@ Before upgrading, read the changelog and release notes of each Merlon Docs packa
 
    ```json
    {
-     "configVersion": "1.0.0-draft.0",
+     "configVersion": "1.0.0",
      "compileOrder": ["overview", "admin-guide"],
      "guides": [{ "name": "overview" }, { "name": "admin-guide" }],
      "lint": {
@@ -310,7 +310,7 @@ This config makes the first H1 section the `overview` guide, and the second and 
 
 ```json
 {
-  "configVersion": "1.0.0-draft.0",
+  "configVersion": "1.0.0",
   "source": "old.md",
   "compileOrder": ["overview", "admin"],
   "guides": [

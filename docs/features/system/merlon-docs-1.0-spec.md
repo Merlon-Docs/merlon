@@ -1,8 +1,8 @@
-# Merlon Docs 1.0 specification (draft)
+# Merlon Docs 1.0 specification
 
 Normative specification for [Merlon Docs](../../glossary/merlon-docs.md), the open standard for a documentation system.
 
-**Version:** `1.0.0-draft.0`
+**Version:** `1.0.0`
 
 > The reference implementation leads and this text follows it. The **Version** line above is the specification's version, independent of package semver. A `merlon.config.json` declares something else: its config format version, `configVersion`, which follows `@merlon-docs/merlon-docs-core` because core defines the config format. Agent entrypoint is the parent **Agent Skill** (`/merlon-docs`).
 

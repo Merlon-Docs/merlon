@@ -74,11 +74,9 @@ Packages and skills are **pre-1.0** while on `0.x.y`. Until an item reaches **1.
 
 ## Prereleases
 
-While `.changeset/pre.json` exists, the repository is in Changesets prerelease mode. A release then publishes prerelease versions in place of final ones. The current line is `draft`, which leads to 1.0.0: each release versions the items it bumps as `1.0.0-draft.N` and publishes them under the npm `draft` dist-tag. Their GitHub Releases are marked as prereleases.
+While `.changeset/pre.json` says `"mode": "pre"`, the repository is in Changesets prerelease mode. Each release then versions the items it bumps as prereleases of the line's tag, such as `1.0.0-draft.N` for the `draft` line, publishes them under that npm dist-tag, and marks their GitHub Releases as prereleases. `changeset version` moves each changeset it consumes into `.changeset/pre/`; leave the files there, because the final release reads them to write each item's CHANGELOG entry. The changeset status check counts a moved changeset as consumed. `pnpm release:build` refuses a prerelease version.
 
-In prerelease mode, `changeset version` moves each changeset it consumes into `.changeset/pre/`. Leave the files there, because the final release reads them to write each item's 1.0.0 CHANGELOG entry. The changeset status check counts a moved changeset as consumed. `pnpm release:build` refuses a prerelease version.
-
-To release 1.0.0, run `pnpm changeset pre exit` on `develop` and land the change. The next release versions each drafted item as `1.0.0` and publishes it under `latest`. That release also deletes `.changeset/pre/` and `pre.json`. `pnpm changeset pre enter <tag>` starts a new prerelease line.
+`pnpm changeset pre exit` ends a line by setting `"mode": "exit"`. The next release then versions each item the line drafted at its final version, publishes it under `latest`, and deletes `.changeset/pre/` and `pre.json`. The `draft` line ended this way at 1.0.0, so every package and skill carrier releases as `1.0.0`. `pnpm changeset pre enter <tag>` starts a new prerelease line.
 
 ## Durable docs vs pending changesets
 
