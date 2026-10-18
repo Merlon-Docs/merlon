@@ -124,7 +124,8 @@
         "node_modules",
         ".claude/skills",
         ".windsurf/skills",
-        ".changeset/pre"
+        ".changeset/pre",
+        "packages/merlon-docs-site/.generated"
       ],
       "vocabulary": ["docs/client", "docs/extensions"]
     }
