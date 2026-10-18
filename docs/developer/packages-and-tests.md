@@ -30,7 +30,7 @@ pnpm --filter @merlon-docs/merlon-docs-core run typecheck
 
 Tests live under `packages/merlon-docs-core/test/`. Integration tests invoke the built CLI against `examples/sample-guides/`.
 
-`merlon.config.schema.json` is the editor schema for `merlon.config.json`, maintained by hand. A commit that changes a config key in the zod schema in `src/config/schema.ts` updates `merlon.config.schema.json` to match. No test compares the two files.
+`merlon.config.schema.json` is the editor schema for `merlon.config.json`. It is generated: `pnpm build` runs `scripts/generate-config-schema.mjs` after tsup, which writes the file from the zod schema in `src/config/schema.ts`, descriptions included. Don't edit the JSON file. Change a key, its default or its description in `src/config/schema.ts`, run `pnpm build` and commit both files. CI, the land gate and the pre-push hook run `git diff --exit-code` after the build, so a stale copy fails them.
 
 ## merlon-docs-cli
 
@@ -68,9 +68,24 @@ Don't write tests that check these things, because none of them is our code's be
 - **A value that changes by design.** For example, our own package versions, the current date, or a host path such as a temp directory, which macOS reaches through the `/var` → `/private/var` symlink. Derive an expected value from the test's own input instead.
 - **Another tool's output.** For example, the wording, banners, limits or version-specific behavior of Vale, markdownlint-cli2, npm, git or a library such as zod. Check our own lines about the tool's result instead, such as our hint or our `peer exited non-zero` line.
 - **That a script runs.** Running a script or command only to see that it exits 0 or prints a line doesn't test its logic. Move the logic into a function, the way `scripts/lib/` does, and test the function on fixed inputs.
+- **How long a run takes.** A wall-clock limit such as 50 ms passes or fails with the machine's speed. Check the growth rate in a [benchmark](#growth-benchmarks) instead.
 - **The shape of the code.** For example, that a module does or doesn't export a name, that a constant equals a literal, or how many times an internal function was called.
 
 When a test like this fails, delete it, or rewrite it to check behavior. Don't widen it to accept the new value.
+
+## Growth benchmarks
+
+`packages/merlon-docs-core/bench/` holds growth benchmarks: checks that a reader's running time grows in proportion to its input, so a crafted line can't make it take the square of the line's length. CodeQL's `js/polynomial-redos` alerts describe that kind of input, and [Safe Markdown parsing](./safe-markdown-parsing.md) explains the readers they guard.
+
+Each benchmark calls `expectLinearGrowth` from `bench/helpers/growth.ts` with a function that builds the input for a size `n` and returns the call to time. The helper times the call at `n / 4` and at `n`, taking the fastest of five runs at each size, and fails when the time grows 10× or more. A linear reader grows about 4×, and a quadratic one about 16×. Times under 1 ms count as 1 ms, so noise can't fail a fast reader. Pick `n` so that a quadratic reader takes over a second at `n`. The ratio decides the result, not the machine's speed.
+
+The benchmarks are slower than the unit tests, so `pnpm test`, the git hooks and the land gate leave them out. CI's Benchmarks job runs them on every ready pull request. To run them locally:
+
+```bash
+pnpm bench
+```
+
+`pnpm bench:dogfood` and `pnpm bench:context-size` are a different kind of benchmark: measurements of this repository's own docs that a developer runs by hand, as [Benchmarks](./benchmarks.md) describes.
 
 ## Test code coverage
 

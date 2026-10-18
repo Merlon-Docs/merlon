@@ -158,7 +158,7 @@ CI doesn't rely on any hook, since a contributor may skip them or never install 
 
 CI's Check job runs the steps of `pnpm run check`, except that it tests only merlon-docs-core, merlon-docs-cli and the repository scripts. The site's tests run in the Pages workflow. Before those steps it runs `pnpm run verify:peers`, which confirms that markdownlint-cli2 and Vale are on `PATH`, and the dependency audit `pnpm audit --audit-level=high`. A new high advisory, even on a devDependency, fails the audit, and the build and test steps after it don't run. [Overrides and the release-age gate](#overrides-and-the-release-age-gate) says how to resolve one. Before `docs:check` it runs `pnpm run prepare:docs`, which repeats the peer check and syncs the Vale styles. Last, it recompiles every guide and fails if `git diff` shows a change.
 
-CI skips a draft pull request and runs when the PR is marked ready, as [Pull requests](#pull-requests) describes. The other CI jobs run beside Check. The Coverage job runs `pnpm test:coverage`, as [Test code coverage](#test-code-coverage) describes, and the Formal models job runs `pnpm formal:check`. On pull requests the Changeset job runs the changeset checks that [When to add a changeset](#when-to-add-a-changeset) describes.
+CI skips a draft pull request and runs when the PR is marked ready, as [Pull requests](#pull-requests) describes. The other CI jobs run beside Check. The Coverage job runs `pnpm test:coverage`, as [Test code coverage](#test-code-coverage) describes, and the Formal models job runs `pnpm formal:check`. On pull requests the Changeset job runs the changeset checks that [When to add a changeset](#when-to-add-a-changeset) describes, and the Benchmarks job runs `pnpm bench`, the [growth benchmarks](#growth-benchmarks) that `pnpm run check` and the git hooks leave out.
 
 The land gate's test step is the full `pnpm test`, so it also runs the site's tests. [Landing on `develop`](#landing-on-develop) says what else it runs and what it pushes.
 
@@ -298,7 +298,7 @@ pnpm --filter @merlon-docs/merlon-docs-core run typecheck
 
 Tests live under `packages/merlon-docs-core/test/`. Integration tests invoke the built CLI against `examples/sample-guides/`.
 
-`merlon.config.schema.json` is the editor schema for `merlon.config.json`, maintained by hand. A commit that changes a config key in the zod schema in `src/config/schema.ts` updates `merlon.config.schema.json` to match. No test compares the two files.
+`merlon.config.schema.json` is the editor schema for `merlon.config.json`. It is generated: `pnpm build` runs `scripts/generate-config-schema.mjs` after tsup, which writes the file from the zod schema in `src/config/schema.ts`, descriptions included. Don't edit the JSON file. Change a key, its default or its description in `src/config/schema.ts`, run `pnpm build` and commit both files. CI, the land gate and the pre-push hook run `git diff --exit-code` after the build, so a stale copy fails them.
 
 ### merlon-docs-cli
 
@@ -336,9 +336,24 @@ Don't write tests that check these things, because none of them is our code's be
 - **A value that changes by design.** For example, our own package versions, the current date, or a host path such as a temp directory, which macOS reaches through the `/var` → `/private/var` symlink. Derive an expected value from the test's own input instead.
 - **Another tool's output.** For example, the wording, banners, limits or version-specific behavior of Vale, markdownlint-cli2, npm, git or a library such as zod. Check our own lines about the tool's result instead, such as our hint or our `peer exited non-zero` line.
 - **That a script runs.** Running a script or command only to see that it exits 0 or prints a line doesn't test its logic. Move the logic into a function, the way `scripts/lib/` does, and test the function on fixed inputs.
+- **How long a run takes.** A wall-clock limit such as 50 ms passes or fails with the machine's speed. Check the growth rate in a [benchmark](#growth-benchmarks) instead.
 - **The shape of the code.** For example, that a module does or doesn't export a name, that a constant equals a literal, or how many times an internal function was called.
 
 When a test like this fails, delete it, or rewrite it to check behavior. Don't widen it to accept the new value.
+
+### Growth benchmarks
+
+`packages/merlon-docs-core/bench/` holds growth benchmarks: checks that a reader's running time grows in proportion to its input, so a crafted line can't make it take the square of the line's length. CodeQL's `js/polynomial-redos` alerts describe that kind of input, and [Safe Markdown parsing](#safe-markdown-parsing) explains the readers they guard.
+
+Each benchmark calls `expectLinearGrowth` from `bench/helpers/growth.ts` with a function that builds the input for a size `n` and returns the call to time. The helper times the call at `n / 4` and at `n`, taking the fastest of five runs at each size, and fails when the time grows 10× or more. A linear reader grows about 4×, and a quadratic one about 16×. Times under 1 ms count as 1 ms, so noise can't fail a fast reader. Pick `n` so that a quadratic reader takes over a second at `n`. The ratio decides the result, not the machine's speed.
+
+The benchmarks are slower than the unit tests, so `pnpm test`, the git hooks and the land gate leave them out. CI's Benchmarks job runs them on every ready pull request. To run them locally:
+
+```bash
+pnpm bench
+```
+
+`pnpm bench:dogfood` and `pnpm bench:context-size` are a different kind of benchmark: measurements of this repository's own docs that a developer runs by hand, as [Benchmarks](#benchmarks) describes.
 
 ### Test code coverage
 
@@ -400,14 +415,14 @@ Link validation finds broken-link markers with `findTemplateMatches`, a scanner 
 
 The manifest walk and the `inlineInserts` hook read a whole manifest or shard body with `scanMarkdownLinks` in `compile/link-scan.ts`, the scanner that [Link idioms](#link-idioms) describes. The walk also reads `](#slug)` links with `slugLinkTargets` in that file. It returns what the regex `\]\(#([^)]+)\)` matches, a target that can span lines, in time that grows linearly with the text.
 
-`codeEvidence` reads line ranges such as `L6-L8` or `lines 12–15` with `lineRangeFromText`, an imperative scanner in `compile/hooks/line-range.ts`. It takes its words from the locale pack. The hook trims the backticks around a link label with a loop, and `shardLintPaths` uses one too, for the slashes at the end of a `shardsGlobs` entry that starts with `../`. Public package APIs keep their names, and call sites delegate to the helpers. Duration-budget tests in `packages/merlon-docs-core/test/redos-budget.test.ts` run the helpers and scanners on pump inputs, so a regex that brings the class back fails CI.
+`codeEvidence` reads line ranges such as `L6-L8` or `lines 12–15` with `lineRangeFromText`, an imperative scanner in `compile/hooks/line-range.ts`. It takes its words from the locale pack. The hook trims the backticks around a link label with a loop, and `shardLintPaths` uses one too, for the slashes at the end of a `shardsGlobs` entry that starts with `../`. Public package APIs keep their names, and call sites delegate to the helpers. Growth benchmarks in `packages/merlon-docs-core/bench/redos-growth.test.ts` run the helpers and scanners on pump inputs of two sizes, so a regex that brings the class back fails CI's Benchmarks job. [Growth benchmarks](#growth-benchmarks) explains how they measure.
 
 ### Regex sites that remain
 
 A regex in `packages/merlon-docs-core/src/` falls under this rule:
 
 - **Keep** a pattern that is clearly linear.
-- **Rewrite** a pattern next to the CodeQL class, such as `\s*` or overlapping optional groups next to digits, as a scanner with a duration-budget test.
+- **Rewrite** a pattern next to the CodeQL class, such as `\s*` or overlapping optional groups next to digits, as a scanner with a growth benchmark.
 - Leave prose and language opinion out of core, because it belongs in Vale.
 
 #### Kept (linear)
@@ -445,7 +460,7 @@ The scan ends a target at its line, so an unfinished link such as `[x](see` does
 
 [No placeholder links](docs/features/link-validation.md#no-placeholder-links) states the rule that link validation leaves an image's src unchecked. Neither built-in list behind `lint.codeExtensions` and `lint.dataExtensions` has an image extension, so a check of srcs would pass one with an image extension or an https: URL without reading the disk, and it would read a src such as `./x.md` as a page.
 
-The scan stops only at a backslash, a `!` or a bracket, and a regex of one character class finds the next one, so it reads each index of its input a fixed number of times. Images nest, so on a line of nested images the alts add up to the square of the line's length. So `codeEvidence` reads a label without the links and images in it, both for a line range or a symbol and for the text that tells the links it rebased apart. Broken-link marking scans the label of each link for the images in it, and links don't nest, so it reads each index once. It then splices each marker into the body on its own, so marking takes time that grows with the number of marked links times the length of the body. Duration-budget tests run each reader on a line that repeats an unfinished link, and compile and `codeEvidence` on a line of nested images.
+The scan stops only at a backslash, a `!` or a bracket, and a regex of one character class finds the next one, so it reads each index of its input a fixed number of times. Images nest, so on a line of nested images the alts add up to the square of the line's length. So `codeEvidence` reads a label without the links and images in it, both for a line range or a symbol and for the text that tells the links it rebased apart. Broken-link marking scans the label of each link for the images in it, and links don't nest, so it reads each index once. It then splices each marker into the body on its own, so marking takes time that grows with the number of marked links times the length of the body. Growth benchmarks run each reader on a line that repeats an unfinished link, and compile and `codeEvidence` on a line of nested images.
 
 [ADR 0005](docs/features/adr/0005-keep-ts-scanners-over-rg-peggy-rust.md) keeps hand-written TypeScript scanners for the core micro-parsers, and these readers follow it. None of them is a regex now. CommonMark's bracket rule needs a stack of the brackets still open, and `scanMarkdownLinks` keeps one in a hand-written loop, so it doesn't meet the ADR's trigger for a grammar.
 
@@ -464,7 +479,7 @@ Link lint, broken-link marking, the link passes and `codeEvidence` mask code spa
 
 ## Benchmarks
 
-`pnpm bench:dogfood` times compile and check on this repository's own docs against the [Performance goals](docs/features/system/performance.md). `pnpm bench:context-size` measures how much context a whole compiled guide and one shard of those docs take. CI doesn't run either script.
+`pnpm bench:dogfood` times compile and check on this repository's own docs against the [Performance goals](docs/features/system/performance.md). `pnpm bench:context-size` measures how much context a whole compiled guide and one shard of those docs take. CI doesn't run either script. The growth benchmarks that CI runs on pull requests are separate: [Growth benchmarks](#growth-benchmarks) describes them.
 
 ### Before you run
 
