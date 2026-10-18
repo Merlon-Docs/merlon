@@ -264,8 +264,7 @@ if (bumped.length === 0) {
 
 console.log('Bumped:');
 for (const b of bumped) {
-  const kind = b.internal ? ' (internal skill, not released)' : b.private ? ' (skill carrier)' : '';
-  console.log(`  ${releaseTag(b.name, b.version)}${kind}`);
+  console.log(`  ${releaseTag(b.name, b.version)}${b.private ? ' (skill carrier)' : ''}`);
 }
 
 configureGitIdentityAndRemote(ghToken);
@@ -293,18 +292,11 @@ run('git push origin HEAD:main');
 run('pnpm audit --audit-level=high');
 run('pnpm exec changeset publish');
 
-// changeset publish tags every bumped package. An internal skill isn't released, so drop its tag.
-const internalBumped = bumped.filter((pkg) => pkg.internal);
-for (const pkg of internalBumped) {
-  const tag = releaseTag(pkg.name, pkg.version);
-  if (capture(`git tag -l "${tag}"`)) run(`git tag -d "${tag}"`);
-}
-
 // Push tags before GitHub Releases so create can resolve them when present.
 run('git push origin --tags');
 
 // Ensure Releases (and any missing tags) at this release commit.
-ensureReleaseArtifacts(bumped.filter((pkg) => !pkg.internal));
+ensureReleaseArtifacts(bumped);
 
 run('git push origin --tags');
 

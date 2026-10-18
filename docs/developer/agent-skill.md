@@ -55,8 +55,6 @@ The [Agent Skill acceptance criteria](../features/agent-skill.md#agent-skill-acc
 
 `skills/merlon-docs/` is the only skill in this repository, and the one released to consumers. [Get started](../repo-readme/get-started.md) shows how they install it.
 
-A skill added here that isn't ready to release sets `metadata.internal: true` in its `SKILL.md` until it's released on purpose, and stays out of [`skills.sh.json`](../../skills.sh.json) and out of consumer install docs. Its carrier package still gets version bumps, but the [release script](../../scripts/release-main.mjs) gives an internal skill no git tag and no GitHub Release. The `skills` CLI leaves internal skills out of its default discovery, so maintainers install them locally with `INSTALL_INTERNAL_SKILLS=1`. Releasing a skill removes `metadata.internal` and adds the skill's `name:` to the **Documentation system** group in `skills.sh.json`, in the same change. These rules are advisory, because `pnpm skill:validate` doesn't read `skills.sh.json`.
-
 The root [README](../../README.md) holds the skill's landing identity on skills.sh: the [install-count badge](https://www.skills.sh/docs#badge) (`https://skills.sh/b/Merlon-Docs/merlon`) and the `npx skills add` install command. Install telemetry refreshes the badge and the [repo page](https://skills.sh/Merlon-Docs/merlon), and an install with `DISABLE_TELEMETRY=1`, such as `pnpm skill:dev`, doesn't count. [`skills.sh.json`](#skillsshjson-repo-page-layout) places it on that page. Skill versions and release notes follow [Versioning and releases](./versioning-and-releases.md).
 
 ## `skills.sh.json` (repo page layout)
@@ -68,11 +66,11 @@ for humans browsing the catalog. Upstream reference:
 
 ### What it is (and is not)
 
-| Does                                                                          | Does **not**                                         |
-| ----------------------------------------------------------------------------- | ---------------------------------------------------- |
-| Curate section titles, descriptions, and skill order on the skills.sh page    | Change how `npx skills add` installs skills          |
-| Decide which skills appear in named groups vs **Other skills** (`notGrouped`) | Replace `metadata.internal`, CI gates, or live evals |
-| Match skill names/slugs from `skills/*/SKILL.md` `name:`                      | Act as a publish/submit registry                     |
+| Does                                                                          | Does **not**                                |
+| ----------------------------------------------------------------------------- | ------------------------------------------- |
+| Curate section titles, descriptions, and skill order on the skills.sh page    | Change how `npx skills add` installs skills |
+| Decide which skills appear in named groups vs **Other skills** (`notGrouped`) | Replace CI gates or live evals              |
+| Match skill names/slugs from `skills/*/SKILL.md` `name:`                      | Act as a publish/submit registry            |
 
 Invalid or missing JSON falls back to the default installs-sorted list. Skills.sh
 caches its pages, which can delay an edit.

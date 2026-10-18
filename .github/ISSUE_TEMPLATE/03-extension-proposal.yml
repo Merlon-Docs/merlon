@@ -30,8 +30,8 @@ body:
     id: proposed-id
     attributes:
       label: Proposed id / prefix
-      description: e.g. merlon-docs-arch-legal-ops, merlon-docs-format-mkdocs
-      placeholder: merlon-docs-arch-…
+      description: e.g. merlon-docs-format-mkdocs
+      placeholder: merlon-docs-…
     validations:
       required: true
 
