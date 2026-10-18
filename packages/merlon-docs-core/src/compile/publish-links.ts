@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
+import { shardBody } from './shard-body.js';
 import { basename, dirname, relative, resolve, isAbsolute } from 'node:path';
 import { defaultSearchRoots, resolveRelativeFile } from './hooks/path-resolve.js';
 import { maskInlineCode } from '../links/extract.js';
@@ -16,7 +17,7 @@ export function slugForSectionFile(filePath: string, cache?: ShardCache): string
     const cached = cache.get(absPath);
     if (cached) return cached.slug;
   }
-  const raw = readFileSync(filePath, 'utf-8').trim();
+  const raw = shardBody(readFileSync(filePath, 'utf-8')).text;
   const processed = sectionBodyForSlug(name, raw);
   return slugForDemotedSection(name, processed);
 }

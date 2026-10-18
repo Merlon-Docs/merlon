@@ -2,7 +2,7 @@
 
 Authored docs use [GFM](../../glossary/gfm.md) ([spec](https://github.github.com/gfm/)). No Pandoc, LaTeX, or wikilinks as the authoring contract.
 
-A shard doesn't need anything beyond GFM. Merlon Docs doesn't require front matter or a section template, and a guide's structure comes from its manifest and ordinary headings. [ADR 0003](../adr/0003-do-not-adopt-okf.md) records why a stricter knowledge format was declined.
+A shard doesn't need anything beyond GFM. Merlon Docs doesn't require front matter or a section template, and a guide's structure comes from its manifest and ordinary headings. Front matter isn't part of GFM; when a shard has some, [compile discards it](../compile-pipeline/front-matter.md). [ADR 0003](../adr/0003-do-not-adopt-okf.md) records why a stricter knowledge format was declined.
 
 Merlon Docs’ compile, refs and link checks recognize a **subset** of GFM headings. Prefer ATX in authored shards (peer markdownlint `MD003: atx` matches that).
 

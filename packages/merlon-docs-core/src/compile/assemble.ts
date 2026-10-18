@@ -1,4 +1,5 @@
 import { readFileSync, existsSync } from 'node:fs';
+import { shardBody } from './shard-body.js';
 import { join, resolve, basename, dirname, relative } from 'node:path';
 import { demoteHeadings, stripAboutThisGuideHeading, guideLeadHeading } from './headings.js';
 import { keepsAnchorMarkers, stripExplicitAnchorMarkers } from './anchors.js';
@@ -202,7 +203,10 @@ function assembleGuideUnmarked(guideDir: string, options: CompileAssembleOptions
     if (snapshot) {
       provenance.push(...snapshot.provenance);
     }
-    let raw = (snapshot?.raw ?? readFileSync(filePath, 'utf-8')).trim();
+    const { text, firstLine } = snapshot
+      ? { text: snapshot.raw, firstLine: snapshot.firstLine }
+      : shardBody(readFileSync(filePath, 'utf-8'));
+    let raw = text;
 
     if (i === 0 && useTitle) {
       const firstHeading = extractFirstHeading(raw);
@@ -268,7 +272,9 @@ function assembleGuideUnmarked(guideDir: string, options: CompileAssembleOptions
 
     if (options.sourceTags !== false && options.outputFile) {
       const relPath = relative(dirname(options.outputFile), filePath);
-      body = `<!-- merlon-shard: start ${relPath} -->\n\n${body}\n\n<!-- merlon-shard: end ${relPath} -->`;
+      // `#L<n>` names the shard line the body starts on when compile dropped lines before it.
+      const start = firstLine > 1 ? `${relPath}#L${firstLine}` : relPath;
+      body = `<!-- merlon-shard: start ${start} -->\n\n${body}\n\n<!-- merlon-shard: end ${relPath} -->`;
     }
 
     parts.push(body + '\n\n');
