@@ -4,6 +4,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
+import { DEFAULT_CONFIG_VERSION } from '@merlon-docs/merlon-docs-core';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CLI = join(__dirname, '../dist/cli.js');
@@ -22,7 +23,12 @@ function writeReviewFixture(extra: Record<string, unknown> = {}): string {
   writeFileSync(join(guide, 'drafts', 'c.md'), '# Draft\n\nDraft body.\n');
   writeFileSync(
     join(project, 'docs', 'merlon.config.json'),
-    JSON.stringify({ compileOrder: ['g'], scan: { gitignore: false }, ...extra }),
+    JSON.stringify({
+      configVersion: DEFAULT_CONFIG_VERSION,
+      compileOrder: ['g'],
+      scan: { gitignore: false },
+      ...extra,
+    }),
   );
   return project;
 }

@@ -1,4 +1,5 @@
 {
+  "configVersion": "1.0.0-draft.0",
   "docsRoot": "docs",
   "compileOrder": ["features", "client", "developer", "glossary"]
 }

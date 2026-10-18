@@ -92,6 +92,7 @@ A minimal setup with several outputs. The index and the rewrite need only `compi
 
 ```json
 {
+  "configVersion": "1.0.0-draft.0",
   "outputDir": "_build/compiled",
   "compileOrder": ["glossary", "architecture-review", "technical-guide"],
   "guides": [

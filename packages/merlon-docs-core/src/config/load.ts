@@ -1,8 +1,8 @@
 import { readFileSync, existsSync, statSync } from 'node:fs';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 import {
-  DEFAULT_STANDARD_VERSION,
-  MerlonConfigSchema,
+  DEFAULT_CONFIG_VERSION,
+  MerlonConfigFileSchema,
   type MerlonConfig,
   type GuideConfig,
 } from './schema.js';
@@ -11,27 +11,30 @@ import { resolveUnderOutputDir, defaultGuideOutputFile } from './paths.js';
 export { defaultGuideOutputFile, resolveUnderOutputDir } from './paths.js';
 
 /**
- * Validates a parsed config file with `MerlonConfigSchema` and migrates the former
- * `protocolVersion` key: when `standardVersion` is absent, it sets `standardVersion`
- * to `DEFAULT_STANDARD_VERSION`, and `protocolVersion` then mirrors
- * `standardVersion`. Different values under the two keys are an error.
+ * Validates a parsed `merlon.config.json` with `MerlonConfigFileSchema`. A config declares the
+ * config format version it follows in `configVersion`. One with only a former name of that key,
+ * `standardVersion` or `protocolVersion`, migrates to `DEFAULT_CONFIG_VERSION`; one with none of
+ * the three is an error. The former keys mirror `configVersion` on the result until 2.0.0.
  */
 export function parseConfig(raw: unknown): MerlonConfig {
   let input = raw;
   if (raw !== null && typeof raw === 'object' && !Array.isArray(raw)) {
     const record = raw as Record<string, unknown>;
-    if (record.protocolVersion !== undefined) {
-      if (record.standardVersion === undefined) {
-        input = { ...record, standardVersion: DEFAULT_STANDARD_VERSION };
-      } else if (record.standardVersion !== record.protocolVersion) {
+    if (record.configVersion === undefined) {
+      if (record.standardVersion === undefined && record.protocolVersion === undefined) {
         throw new Error(
-          `Config sets standardVersion (${String(record.standardVersion)}) and its former name protocolVersion (${String(record.protocolVersion)}) to different values. Keep standardVersion only.`,
+          `Config doesn't declare configVersion, the config format version it follows. Add "configVersion": "${DEFAULT_CONFIG_VERSION}".`,
         );
       }
+      input = { ...record, configVersion: DEFAULT_CONFIG_VERSION };
     }
   }
-  const config = MerlonConfigSchema.parse(input);
-  return { ...config, protocolVersion: config.standardVersion };
+  const config = MerlonConfigFileSchema.parse(input);
+  return {
+    ...config,
+    standardVersion: config.configVersion,
+    protocolVersion: config.configVersion,
+  };
 }
 
 export function loadConfig(configPath: string, configBase: string): MerlonConfig {

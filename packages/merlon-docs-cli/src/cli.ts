@@ -75,7 +75,7 @@ const FORMER_DEFAULT_CONFIG = 'mdcp.config.json';
 /**
  * The config path for a run: `--config` when given, else `merlon.config.json`. When only
  * the former `mdcp.config.json` exists, write its contents to `merlon.config.json` with
- * `protocolVersion` renamed to `standardVersion`, delete the former file and print an
+ * its version key renamed to `configVersion`, delete the former file and print an
  * upgrade notice to stderr. If the new file can't be written, read the former one.
  */
 function configPath(opts: GlobalOpts): string {
@@ -95,7 +95,7 @@ function configPath(opts: GlobalOpts): string {
     return FORMER_DEFAULT_CONFIG;
   }
   unlinkSync(former);
-  const keyNote = migrated === text ? '' : ', and its protocolVersion key is now standardVersion';
+  const keyNote = migrated === text ? '' : ', and its version key is now configVersion';
   console.error(
     `Upgraded ${FORMER_DEFAULT_CONFIG} to ${DEFAULT_CONFIG}${keyNote}. Commit the new file in place of the old one.`,
   );
