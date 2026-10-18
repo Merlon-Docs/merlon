@@ -952,3 +952,12 @@
     font-size: 1.0625rem;
   }
 }
+
+/*
+ * Starlight's search button reveals a "Ctrl K" (or "⌘ K") hint inside the button, which its
+ * aria-label "Search" doesn't contain, so axe's label-content-name-mismatch fails on every page.
+ * The shortcut still works, and aria-keyshortcuts announces it, so hide only the visual hint.
+ */
+button[data-open-modal] > kbd {
+  display: none !important;
+}
