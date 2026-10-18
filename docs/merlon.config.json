@@ -127,7 +127,7 @@
         ".changeset/pre",
         "packages/merlon-docs-site/.generated"
       ],
-      "vocabulary": ["docs/client", "docs/extensions"]
+      "vocabulary": ["docs/client", "docs/extensions", ".changeset/pre.json"]
     }
   },
   "vale": {
