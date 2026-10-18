@@ -9,7 +9,6 @@ import { join } from 'node:path';
 import { realignTables } from '../src/compile/align-tables.js';
 import { assembleGuide, compileGuideResults } from '../src/compile/assemble.js';
 import { createLocalePack } from '../src/locale/index.js';
-import { timeMs } from './helpers/redos-pumps.js';
 import { withTmpDir } from './helpers/tmp-dir.js';
 
 const lines = (...rows: string[]) => rows.join('\n');
@@ -626,14 +625,6 @@ describe('realignTables', () => {
     const nested = (depth: number, table: string) => lines(prefix('> '.repeat(depth), table), '');
     expect(realignTables(nested(10, REWRITTEN_TABLE))).toBe(nested(10, REALIGNED_TABLE));
     expect(realignTables(nested(11, REWRITTEN_TABLE))).toBe(nested(11, REWRITTEN_TABLE));
-  });
-
-  it('stays under budget on tables in deeply nested blockquotes', () => {
-    // Finding the fences of each quote around a table takes time that grows with the square of
-    // its depth, so compile reads tables in ten blockquotes at most.
-    const tables = Array.from({ length: 100 }, () => REWRITTEN_TABLE).join('\n\n');
-    const deep = prefix('> '.repeat(300), tables);
-    expect(timeMs(() => realignTables(deep))).toBeLessThan(50);
   });
 });
 

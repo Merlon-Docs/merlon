@@ -11,6 +11,7 @@
   "scripts": {
     "build": "pnpm -r run build",
     "test": "pnpm -r run test && node --test scripts/*.test.mjs scripts/**/*.test.mjs",
+    "bench": "pnpm --filter @merlon-docs/merlon-docs-core run bench",
     "test:coverage": "pnpm --filter @merlon-docs/merlon-docs-core run test:coverage && pnpm --filter @merlon-docs/merlon-docs-cli run test:coverage",
     "typecheck": "pnpm -r run typecheck",
     "lint": "eslint .",

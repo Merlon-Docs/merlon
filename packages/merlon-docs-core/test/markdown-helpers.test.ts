@@ -228,14 +228,6 @@ describe('stripPandocAnchors', () => {
       '## Review ',
     );
   });
-
-  it('is linear on incomplete pumps', () => {
-    const input = '{#'.repeat(20_000);
-    const start = performance.now();
-    stripPandocAnchors(input);
-    // Generous under coverage instrumentation; redos-budget.test.ts keeps a tighter public-API budget.
-    expect(performance.now() - start).toBeLessThan(200);
-  });
 });
 
 describe('headingTitlePlain', () => {
