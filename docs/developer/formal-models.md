@@ -43,7 +43,7 @@ The sync in `.github/workflows/sync-develop.yml` pushes a clean merge to the `la
 
 When `develop` already holds `main`'s tree, as a squashed release leaves it, the sync resets `develop` to `main` instead of merging. The reset needs no gate and no guard of its own: `develop` shows the same tree before and after, and that tree was tested when `develop` got it. The sync pushes the reset with a lease on the `develop` commit it compared, so a landing that moved `develop` in between makes the push fail rather than disappear.
 
-Only the land workflow pushes `develop`, with that `GITHUB_TOKEN`. So both branch rules for `develop` have to exempt the identity it pushes as. Otherwise they block landings along with everyone else. The sync force-pushes `land/sync-main` as the same identity, and force-pushes `develop` for the reset, so a rule that blocks force-push has to leave `land/sync-main` out and let that identity bypass it on `develop`, as the [`develop` ruleset](./repository-settings.md#settings) does.
+Only the land workflow pushes `develop`, with that `GITHUB_TOKEN`. So both branch rules for `develop` have to exempt the identity it pushes as. Otherwise they block landings along with everyone else. The sync force-pushes `land/sync-main` as the same identity, and force-pushes `develop` for the reset, so a rule that blocks force-push has to leave `land/sync-main` out and let that identity bypass it on `develop`. GitHub can't exempt the built-in GitHub Actions app from a ruleset, so the [`develop` ruleset](./repository-settings.md#settings) blocks only deletion, and the model's assumption that nobody else force-pushes `develop` is advisory.
 
 ### `main` only moves to a tested tree
 

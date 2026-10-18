@@ -1,5 +1,6 @@
-# develop can't be deleted or force-pushed. Repository admins can still repair
-# it, and GitHub Actions can, for sync-develop.yml's reset of develop to main.
+# develop can't be deleted; repository admins can still repair it. The ruleset doesn't block
+# force-pushes: sync-develop.yml resets develop to main with GITHUB_TOKEN, and GitHub only lets a
+# ruleset exempt apps the organization installed, which the built-in GitHub Actions app isn't.
 resource "github_repository_ruleset" "develop" {
   name        = "develop"
   repository  = github_repository.merlon.name
@@ -14,19 +15,12 @@ resource "github_repository_ruleset" "develop" {
   }
 
   rules {
-    deletion         = true
-    non_fast_forward = true
+    deletion = true
   }
 
   bypass_actors {
     actor_id    = 5
     actor_type  = "RepositoryRole"
-    bypass_mode = "always"
-  }
-
-  bypass_actors {
-    actor_id    = 15368
-    actor_type  = "Integration"
     bypass_mode = "always"
   }
 }
