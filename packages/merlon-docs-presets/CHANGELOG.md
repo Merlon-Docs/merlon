@@ -1,5 +1,64 @@
 # @merlon-docs/merlon-docs-presets
 
+## 1.0.0
+
+### Major Changes
+
+- 4b846c4: This is the 1.0 draft of Merlon Docs. The CLI, the core library, the presets and the Agent Skills publish as `1.0.0-draft.N` prereleases under the npm `draft` tag. Install the newest draft with `npm install @merlon-docs/merlon-docs-cli@draft`. The interfaces can still change between drafts. 1.0.0 is the first release with a stability guarantee, and from 1.0.0 on a breaking change needs a major version.
+
+### Minor Changes
+
+- 9bc05cd: `resolveGuideDir` and `guideScanDirs` return absolute paths when `docsRoot` is relative. With a relative `--docs-root` such as `docs`, a guide with no `guides[].path` used to reach markdownlint as `docs/<guide>` when `lint.markdownlint.shardsGlobs` is unset. markdownlint-cli2 runs from the docs root, where `docs/<guide>` doesn't exist, so `merlon lint` and `merlon check` linted none of those guides' shards and passed. Those shards are linted now, so expect new markdownlint findings from them.
+
+  Without `shardsGlobs`, `shardLintPaths` returns a glob for the `.md` and `.markdown` files in each guide directory, such as `<guide>/**/*.{md,markdown}`. It used to return the bare directory, which markdownlint-cli2 expands to every file in it, so an image or text file beside the shards was linted as Markdown. API callers that read the result as a list of directories should call `guideScanDirs` instead.
+
+  `shardLintPaths` returns paths for markdownlint-cli2 running with the docs root as its cwd, as `merlon lint` and `merlon check` run it. API callers must run markdownlint-cli2 from the docs root with them. From any other cwd, markdownlint-cli2 resolves the relative paths against that directory, so it misses the guide shards and lints the wrong files or none. A guide under the docs root gets a glob relative to the docs root, which keeps the checkout path out of it. An absolute `--docs-root` used to put the checkout path into each guide directory, and each `shardsGlobs` entry was resolved to an absolute path, so under a directory whose name has glob characters, such as `repo (copy)` or `proj {a,b}`, the shard pass linted 0 files and passed.
+
+  A guide outside the docs root, such as one at `guides[].path: "../pkg/guide"`, gets an absolute glob, so the shard preset's `!**/index.md` still reaches it next to in-root guides, and a symlinked docs root still finds it. Glob characters and quotes in each path that goes into a glob are escaped.
+
+  `shardsGlobs` entries go to markdownlint-cli2 as written, and it resolves them against its cwd, the docs root. A negated entry such as `!legacy/**` excludes files now, where it used to become `<docsRoot>/!legacy/**` and exclude nothing. An entry that starts with `../` gets the escaped absolute directory those segments name in their place, followed by `/**` for a directory. The shard preset's exclusions then apply to it too. A negated `../` entry also gets `**` in front of that path, which lets it exclude files. A `.` entry becomes `**`, so markdownlint-cli2 still lints every file under the docs root.
+
+  The same relative paths kept `merlon check` from reporting an orphan shard at the top of a guide when the manifest linked a nested shard with the same file name, such as `sub/a.md` next to an unlisted `a.md`. That orphan is reported now, and `checkOrphansForGuides` resolves a relative `dir` against the process cwd. A shard that a guide reaches in a sibling directory whose name starts with the guide's name, such as `guide-shared/x.md` from `guide`, no longer counts as listed in a `guide-shared` guide, so an orphan there is reported as it is for a sibling with any other name. The shard counts under its file name in `guide` instead, as a shard in a sibling with any other name does, so an unlisted `x.md` at the top of `guide` passes.
+
+  The compiled markdownlint preset lists `_build/guides.md` as well as `guides.md`, so it lints a monolith named `guides.md` under the default `outputDir`. It used to list only `guides.md`, which matches only with `outputDir: "."`, so under the default layout the compiled pass linted 0 files and passed. Expect new findings from the compiled pass under that layout, from the rules both presets leave on, such as `MD022`, and from `MD052` and `MD053`, which check reference links and their definitions. A `guides.md` left at the docs root by an earlier `outputDir: "."` layout is linted too, so delete it. With no monolith, or a monolith with another name or path, copy the preset and point its `globs` at your compiled outputs.
+
+  The compiled preset now keeps every rule setting of the shard preset, so a rule the shard pass turns off, such as `MD024` or `MD033`, no longer fails the compiled pass. With `outputDir: "."`, the compiled pass reports fewer findings than before, except from `MD003`, which now requires ATX headings as the shard preset does, so a monolith with setext or closed ATX headings fails it.
+
+  The shard preset excludes `_build/**` as well as `guides.md`. A guide at `guides[].path: "."` gets `**/*.{md,markdown}`, and a `.` entry in `shardsGlobs` becomes `**`, so the shard pass also linted the compiled outputs under the default `outputDir`. An absolute `--docs-root` did that before. A relative one linted 0 files, so it shows up there only now. Any other compiled output, such as one under another `outputDir`, needs its own exclusion in a copy of the preset.
+
+  The CLI README's in-scope guide fileset section says how both markdownlint passes resolve their paths.
+
+- 4b846c4: MDCP (MarkDown Context Protocol) is now Merlon Docs. The packages publish as `@merlon-docs/merlon-docs-cli`, `@merlon-docs/merlon-docs-core` and `@merlon-docs/merlon-docs-presets`, and the CLI command is `merlon`. The Agent Skill installs as `merlon-docs` with `npx skills add Merlon-Docs/merlon --skill merlon-docs`, and the archetypes are `merlon-docs-arch-*`.
+
+  The config file is `merlon.config.json`. Until 2.0.0, a CLI run that finds `mdcp.config.json` and no `merlon.config.json` upgrades the project itself. It writes the config to `merlon.config.json` with `protocolVersion` renamed to `standardVersion` and set to `1.0.0-draft.0`, deletes `mdcp.config.json` and prints a notice. The illustrative-paths marker is `<!-- merlon-paths: illustrative -->`, and the former `mdcp-paths` spelling still works until 2.0.0.
+
+  The Vale style is `MerlonDocs`, so a rule reads `MerlonDocs.DatedClaim`. Compiled outputs carry `<!-- merlon-shard: … -->` markers. In the core API the config types are `MerlonConfig`, `MerlonConfigInput` and `MerlonConfigSchema`, and the `Mdcp*` names stay as deprecated aliases until 2.0.0.
+
+  To migrate a project, install the new packages, run any `merlon` command once to upgrade the config file, and change `MDCP` to `MerlonDocs` in `.vale.ini`, in `<!-- vale MDCP.… -->` comments and in the `StylesPath` link to the presets.
+
+- 4b846c4: Add the `MerlonDocs.DatedClaim` Vale rule
+
+  The `MerlonDocs` style now flags a claim pinned to a date: `as of` or `until` followed by an ISO date such as `2026-07-27`, in body text, headings, tables and lists. An ISO date-time such as `2026-07-27T12:00:00Z` counts too. A durable doc should say what is true now. The history behind a rule that still holds belongs in an ADR that the doc links, and a temporary note belongs in the tracker. Text that only describes removed behavior is deleted, and the release notes give its notice. An ADR keeps the rule on and writes each date on its own, without `as of` or `until`. Code and inline link labels are skipped.
+
+  The rule is error level, so `merlon check --require-vale` fails on a dated claim. It flags every dated claim whatever its age, because a Vale rule can't compare a date with today. To report dated claims without failing the check, set the level in `.vale.ini`:
+
+  ```ini
+  MerlonDocs.DatedClaim = warning
+  ```
+
+  A plain `merlon prose` shows the warning. To see it in `merlon check` too, set `vale.strictMinAlertLevel` to `warning` in `merlon.config.json`.
+
+  Set it to `NO` in a path section to exempt files that are dated by design, such as research records. Put that section last, after every section that matches the same files. Merlon Docs passes Vale absolute paths, so start the section with `**/`, as in `[**/research/*.md]`. To exempt one passage, wrap it in `<!-- vale MerlonDocs.DatedClaim = NO -->` and `<!-- vale MerlonDocs.DatedClaim = YES -->`.
+
+  The `TokenIgnores` pattern in the package config now ends each match at the link's closing parenthesis, and it reads a backslash-escaped bracket in a label as text. The old pattern could start at a task-list checkbox and stop at the next link later in the file, which hid the text between them from every `Merlon Docs` rule. If your `.vale.ini` repeats the old pattern, copy the new one from `vale/package/.vale.ini`.
+
+### Patch Changes
+
+- 4b846c4: Drop the npm keyword `mdcp` from the CLI and presets packages. The old name stays only on the compatibility aliases that a project still needs: `mdcp.config.json` upgrades to `merlon.config.json` until 2.0.0, `protocolVersion` still migrates to `standardVersion`, the `MdcpConfig` names stay as deprecated exports, and `<!-- mdcp-paths: illustrative -->` is still read.
+- 4b846c4: The config key for the version of the Merlon Docs standard is now `standardVersion`, defaulting to `1.0.0-draft.0` with the 1.0 draft line (replacing the former `0.5.0.0` label and `protocolVersion` name). A config that still sets `protocolVersion` keeps working until 2.0.0: when `standardVersion` is absent, `loadConfig` and the new `parseConfig` migrate it to `1.0.0-draft.0` on `standardVersion`, and they fail when the two keys hold different values. A parsed config still has `protocolVersion`, set to the same value. The JSON schema marks `protocolVersion` as deprecated.
+
+  The copyright line in each license now reads Merlon Docs. Code comments, the JSON schema and the docs now call the specification "the standard". The presets README now refers to the `MerlonDocs` Vale style, which the rename had missed.
+
 ## 1.0.0-draft.0
 
 ### Major Changes
