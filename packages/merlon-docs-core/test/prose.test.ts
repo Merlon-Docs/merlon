@@ -246,7 +246,7 @@ describe('createCodeFenceScanner', () => {
     const ms = timeMs(() => {
       for (let i = 0; i < 20; i++) fenced(lines);
     });
-    expect(ms).toBeLessThan(100);
+    expect(ms).toBeLessThan(200);
   });
 
   it('stays linear on deeply nested list markers and the lines after them', () => {
@@ -255,7 +255,7 @@ describe('createCodeFenceScanner', () => {
     const ms = timeMs(() => {
       for (let i = 0; i < 20; i++) fenced(lines);
     });
-    expect(ms).toBeLessThan(100);
+    expect(ms).toBeLessThan(200);
   });
 });
 

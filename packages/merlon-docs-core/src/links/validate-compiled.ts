@@ -6,9 +6,43 @@ import { extractLinks } from './extract.js';
 import { validateCompiledLinkTarget } from './validate.js';
 import type { LinkIssue } from './types.js';
 
-const SHARD_START_RE = /^<!--\s*merlon-shard:\s*start\s+(.+?)\s*-->$/;
-const SHARD_END_RE = /^<!--\s*merlon-shard:\s*end\s+(.+?)\s*-->$/;
+const SHARD_COMMENT_PREFIX = '<!--';
+const SHARD_COMMENT_SUFFIX = '-->';
+const SHARD_TAG_KEY = 'merlon-shard:';
 const BROKEN_MARKER_ORIG_RE = /\(`([^`\n]+)`\)\s*→\s*`([^`\n]+)`/;
+
+/**
+ * Linear-time parser for `<!-- merlon-shard: start <path> -->` and `<!-- merlon-shard: end <path> -->`
+ * without regex backtracking on repeated whitespace.
+ */
+function parseShardCommentTag(
+  trimmedLine: string,
+): { kind: 'start' | 'end'; relPath: string } | null {
+  if (
+    !trimmedLine.startsWith(SHARD_COMMENT_PREFIX) ||
+    !trimmedLine.endsWith(SHARD_COMMENT_SUFFIX)
+  ) {
+    return null;
+  }
+  const inner = trimmedLine
+    .slice(SHARD_COMMENT_PREFIX.length, trimmedLine.length - SHARD_COMMENT_SUFFIX.length)
+    .trim();
+  if (!inner.startsWith(SHARD_TAG_KEY)) return null;
+  const afterKey = inner.slice(SHARD_TAG_KEY.length).trimStart();
+  if (afterKey.startsWith('start')) {
+    const rest = afterKey.slice('start'.length);
+    if (rest.length === 0 || (rest[0] !== ' ' && rest[0] !== '\t')) return null;
+    const relPath = rest.trim();
+    return relPath ? { kind: 'start', relPath } : null;
+  }
+  if (afterKey.startsWith('end')) {
+    const rest = afterKey.slice('end'.length);
+    if (rest.length === 0 || (rest[0] !== ' ' && rest[0] !== '\t')) return null;
+    const relPath = rest.trim();
+    return relPath ? { kind: 'end', relPath } : null;
+  }
+  return null;
+}
 
 export interface CompiledShardSpan {
   /** 1-based first content line after the `<!-- merlon-shard: start ... -->` tag and its blank line. */
@@ -36,19 +70,17 @@ export function resolveCompiledShardLine(
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     if (inFence(line)) continue;
-    const trimmed = line.trim();
-    const startMatch = SHARD_START_RE.exec(trimmed);
-    if (startMatch) {
-      const rel = startMatch[1].trim();
+    const tag = parseShardCommentTag(line.trim());
+    if (tag?.kind === 'start') {
       // Assemble writes `<!-- merlon-shard: start rel -->\n\n<body>\n\n<!-- merlon-shard: end rel -->`
       const nextIsBlank = (lines[i + 1] ?? '').trim() === '';
       activeShard = {
-        shardFile: resolve(baseDir, rel),
+        shardFile: resolve(baseDir, tag.relPath),
         firstContentLine: i + 1 + (nextIsBlank ? 2 : 1),
       };
       continue;
     }
-    if (activeShard && SHARD_END_RE.test(trimmed)) {
+    if (activeShard && tag?.kind === 'end') {
       const prevIsBlank = (lines[i - 1] ?? '').trim() === '';
       const endLine = i + 1 - (prevIsBlank ? 2 : 1);
       if (endLine >= activeShard.firstContentLine) {

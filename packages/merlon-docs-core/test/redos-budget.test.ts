@@ -280,6 +280,17 @@ describe('ReDoS budget demos (CodeQL js/polynomial-redos)', () => {
     });
     expect(ms).toBeLessThan(BUDGET_MS);
   });
+
+  it('lintCompiledLinks stays under budget on shard comment tags with long internal whitespace runs', () => {
+    const markdown = [
+      `<!-- merlon-shard: start ${manySpaces(SPACE_N)}a` + manySpaces(SPACE_N),
+      `<!-- merlon-shard: end ${manySpaces(SPACE_N)}a` + manySpaces(SPACE_N),
+    ].join('\n');
+    const ms = timeMs(() => {
+      lintCompiledLinks({ markdown, outputFile: '/x/out.md', guideName: 'g' });
+    });
+    expect(ms).toBeLessThan(BUDGET_MS);
+  });
 });
 
 // The link scans of compile read a whole manifest or shard, and a `[^)]` run crosses lines, so
