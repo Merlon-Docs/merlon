@@ -620,7 +620,7 @@ export function syncContent(opts) {
 
   // When the Agent Skill guide (`repo-readme`) is published, also publish `docs/skills.md` and
   // the source files under `skills/**` directly under that guide's route so readers can read
-  // `SKILL.md` and its workflows on the site as Part 1.
+  // `SKILL.md` and its workflows on the site as Parts 1 and 2.
   const skillGuide = guides.find((g) => g.name === 'repo-readme');
   const skillSidebarGroups = [];
   if (skillGuide) {

@@ -15,12 +15,12 @@ export const DEFAULT_BRANCH = 'main';
  * Published guides, in sidebar order. `name` is the directory under docs/;
  * `route` is the URL segment under BASE; `label` is the sidebar group label.
  *
- * Part 1 is the Agent Skill (`repo-readme` + `skills/merlon-docs/**` synced directly as
- * readable pages under `/skill/`); Part 2 is the CLI (`client-cli` under `/guide/`).
+ * Parts 1 and 2 are the Agent Skill and its workflows (`repo-readme` + `skills/merlon-docs/**`
+ * synced directly as readable pages under `/skill/`); Part 3 is the CLI (`client-cli` under `/guide/`).
  */
 export const PUBLISHED_GUIDES = [
-  { name: 'repo-readme', route: 'skill', label: 'Part 1: Agent Skill' },
-  { name: 'client-cli', route: 'guide', label: 'Part 2: CLI (merlon)' },
+  { name: 'repo-readme', route: 'skill', label: 'Parts 1–2: Agent Skill' },
+  { name: 'client-cli', route: 'guide', label: 'Part 3: CLI (merlon)' },
   { name: 'features', route: 'concepts', label: 'Concepts' },
   { name: 'client-core', route: 'api', label: 'Library API' },
   { name: 'glossary', route: 'glossary', label: 'Glossary' },
