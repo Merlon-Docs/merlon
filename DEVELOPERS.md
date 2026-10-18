@@ -1130,7 +1130,7 @@ The first two commands run `pnpm build` and `pnpm docs:compile:repo` first, beca
 Two homepage sections show figures the build measures, so each published page reflects the commit it was built from. After the sync, [`packages/merlon-docs-site/scripts/measure-site.mjs`](packages/merlon-docs-site/scripts/measure-site.mjs) writes two gitignored files to `packages/merlon-docs-site/.generated/`:
 
 - `context-size.csv`: `scripts/bench-context-size.mjs` on the compiled guides, whole guides against single shards in estimated tokens. **How much an agent reads**, on the homepage and the Learn page, renders it.
-- `site-stats.json`: the specification's version from its **Version** line, the packages' versions, and the median time of three `merlon check` runs on `docs/`, with the commit and time measured. **Where Merlon Docs stands** renders it.
+- `site-stats.json`: the specification's version from its **Version** line and the median time of three `merlon check` runs on `docs/`, with the commit and time measured. **Where Merlon Docs stands** renders it, beside shields.io badges that show each npm package's current version when the page is viewed.
 
 A failing `merlon check` fails the build, so a deployed page never shows figures from a tree that doesn't pass. Each section's note gives the build date and links the commit, as [Figures measured at build](docs/features/system/benefit-claims-and-evidence.md#figures-measured-at-build) asks.
 
