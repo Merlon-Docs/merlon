@@ -1,7 +1,7 @@
 resource "github_repository" "merlon" {
   name        = "merlon"
   description = "Merlon Docs: a documentation system for software projects, run by an Agent Skill with human review"
-  homepage_url = "https://www.skills.sh/Merlon-Docs/merlon"
+  homepage_url = "https://merlon-docs.github.io/merlon/"
 
   visibility = "public"
   archived   = false
