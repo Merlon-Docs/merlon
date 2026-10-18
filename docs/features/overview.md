@@ -128,6 +128,7 @@ This repository uses Merlon Docs on its own docs under `docs/`, and its `docs/me
 
 ## Where to go next
 
+- **The Agent Skill and its workflows**: [Agent Skill](./agent-skill.md) and [Skill workflows](./system/skill-workflows.md)
 - **Commands and priority tiers**: the [Feature catalog](./feature-catalog.md) and [Personas and priority tiers](./personas-and-priority-tiers.md)
 - **Who runs which command**: the [Actors and obligations](./system/usage-model.md#actors-and-obligations) table in the usage model
 - **Intentional limits**: the [Design constraints](./design-constraints/index.md), each with a one-line summary
