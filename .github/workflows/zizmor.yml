@@ -1,8 +1,9 @@
 name: 'Zizmor'
 
 on:
-  push:
-    branches: [main]
+  # Every change reaches main through a pull request, which this scans, and
+  # Zizmor uploads nothing to code scanning, so a push to main would repeat the
+  # PR's scan. The release commit changes no workflow.
   pull_request:
     # Drafts are skipped, and marking a PR ready runs this once.
     types: [opened, synchronize, reopened, ready_for_review]

@@ -4,6 +4,9 @@ on:
   push:
     # PR updates cover develop, including the release PR from develop to main.
     # Keeping develop out avoids running CI twice for each release-PR push.
+    # A push to main that a squashed PR made holds the tree that PR's CI already
+    # tested, so the Already tested job skips the rest. The release commit has
+    # no PR, so CI tests it.
     branches: [main]
   pull_request:
     # Any target branch (stacked feature PRs, not only main).
@@ -14,9 +17,12 @@ on:
     # when the PR is marked ready, and later pushes run it again.
     # `edited` fires when a PR's base changes, so a PR moved to another base is
     # tested against that base before it can merge. It also fires on title and
-    # body edits. No job-level `if` skips those on a ready PR: a skipped run
-    # counts as passing for a required check and would replace an earlier
-    # failed run. The concurrency group below cancels the run an edit makes stale.
+    # body edits. A skipped run counts as passing for a required check, so an
+    # edit that leaves the base alone skips the jobs only when the PR's latest
+    # finished CI run on that head passed (the Already tested job). After a
+    # failed or cancelled run, an edit runs everything again, so a skip never
+    # replaces a failure. The concurrency group below cancels the run an edit
+    # makes stale.
     types: [opened, synchronize, reopened, edited, ready_for_review]
 
 concurrency:
@@ -31,10 +37,67 @@ env:
 permissions: {}
 
 jobs:
+  tested:
+    name: Already tested
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+    outputs:
+      skip: ${{ steps.match.outputs.skip }}
+    steps:
+      # Harden-Runner: audit mode only — logs egress; block mode is follow-up (#179).
+      - uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        with:
+          egress-policy: audit
+
+      # skip=true only when the newest other CI run on the tested head finished
+      # and passed: the squashed PR's head for a push to main, or this PR's head
+      # for an edit that leaves the base alone. A newer run that is still going,
+      # was cancelled or failed (say, after a base change) means a full run, and
+      # so does any API failure.
+      - id: match
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          EVENT: ${{ github.event_name }}
+          ACTION: ${{ github.event.action }}
+          SHA: ${{ github.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_CHANGED: ${{ github.event.changes.base && 'true' || 'false' }}
+        run: |
+          tested=""
+          if [ "$EVENT" = push ]; then
+            head=$(gh api "repos/$REPO/commits/$SHA/pulls" \
+              --jq '[.[] | select(.merged_at != null and .base.ref == "main")][0].head.sha // ""') || head=""
+            if [ -n "$head" ]; then
+              tree=$(gh api "repos/$REPO/git/commits/$SHA" --jq .tree.sha) || tree=""
+              head_tree=$(gh api "repos/$REPO/git/commits/$head" --jq .tree.sha) || head_tree=""
+              if [ -n "$tree" ] && [ "$tree" = "$head_tree" ]; then tested=$head; fi
+            fi
+          elif [ "$ACTION" = edited ] && [ "$BASE_CHANGED" != true ]; then
+            tested=$HEAD_SHA
+          fi
+          last=""
+          if [ -n "$tested" ]; then
+            last=$(gh api "repos/$REPO/actions/workflows/ci.yml/runs?head_sha=$tested&event=pull_request&per_page=50" \
+              --jq "[.workflow_runs[] | select(.id != $RUN_ID)] | sort_by(.created_at) | last | \"\\(.status)/\\(.conclusion)\"") || last=""
+          fi
+          if [ "$last" = completed/success ]; then
+            echo "CI already passed on this tree (head $tested), so this run skips its jobs."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
   check:
     name: Check
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    needs: tested
+    if: ${{ !cancelled() && needs.tested.outputs.skip != 'true' && (github.event_name != 'pull_request' || !github.event.pull_request.draft) }}
     permissions:
       contents: read
     steps:
@@ -98,7 +161,8 @@ jobs:
   coverage:
     name: Coverage
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    needs: tested
+    if: ${{ !cancelled() && needs.tested.outputs.skip != 'true' && (github.event_name != 'pull_request' || !github.event.pull_request.draft) }}
     permissions:
       contents: read
     steps:
@@ -162,7 +226,8 @@ jobs:
     runs-on: ubuntu-latest
     # Growth-rate benchmarks run on ready pull requests only. They are slower than the unit
     # tests, so `pnpm test`, the git hooks and the land gate leave them out.
-    if: github.event_name == 'pull_request' && !github.event.pull_request.draft
+    needs: tested
+    if: ${{ !cancelled() && needs.tested.outputs.skip != 'true' && github.event_name == 'pull_request' && !github.event.pull_request.draft }}
     permissions:
       contents: read
     steps:
@@ -188,7 +253,8 @@ jobs:
   changeset:
     name: Changeset
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && !github.event.pull_request.draft
+    needs: tested
+    if: ${{ !cancelled() && needs.tested.outputs.skip != 'true' && github.event_name == 'pull_request' && !github.event.pull_request.draft }}
     permissions:
       contents: read
     steps:
@@ -222,7 +288,8 @@ jobs:
   formal:
     name: Formal models
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    needs: tested
+    if: ${{ !cancelled() && needs.tested.outputs.skip != 'true' && (github.event_name != 'pull_request' || !github.event.pull_request.draft) }}
     permissions:
       contents: read
     steps:
