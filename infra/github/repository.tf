@@ -12,15 +12,13 @@ resource "github_repository" "merlon" {
   has_discussions = true
 
   allow_squash_merge   = true
-  allow_merge_commit   = true
-  allow_rebase_merge   = true
+  allow_merge_commit   = false
+  allow_rebase_merge   = false
   allow_auto_merge     = true
   delete_branch_on_merge = false
 
   squash_merge_commit_title   = "COMMIT_OR_PR_TITLE"
   squash_merge_commit_message = "COMMIT_MESSAGES"
-  merge_commit_title          = "MERGE_MESSAGE"
-  merge_commit_message        = "PR_TITLE"
 
   topics = ["ai", "ai-tools", "skills-sh"]
 
