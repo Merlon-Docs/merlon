@@ -92,7 +92,7 @@ Each term is its own shard under `docs/glossary/`. [Shared glossary](./packages/
 
 - Node.js **>= 18.0.0** (see `engines` in root [`package.json`](package.json); [`.nvmrc`](.nvmrc) pins major version `18` for `nvm use`)
 - [pnpm](https://pnpm.io/) 11.x (see `packageManager` in root [`package.json`](package.json))
-- [Vale](https://vale.sh/docs/vale-cli/installation/) on `PATH` for prose lint (`pnpm docs:check` uses `--require-vale`). macOS: `brew install vale`; Linux: `snap install vale` or a [GitHub release](https://github.com/vale-cli/vale/releases) tarball. Any Vale 3.x works locally, and tests that touch Vale accept the behavior of every 3.x release they have been run against. CI pins **3.15.1**. The workflows that install Vale ([`ci.yml`](.github/workflows/ci.yml) and [`land-develop.yml`](.github/workflows/land-develop.yml)) and the Claude Code session-start hook (`.claude/hooks/session-start.sh`) each set `VALE_VERSION` to it. No check compares those copies with this line. A Vale bump edits all four.
+- [Vale](https://vale.sh/docs/vale-cli/installation/) on `PATH` for prose lint (`pnpm docs:check` uses `--require-vale`). macOS: `brew install vale`; Linux: `snap install vale` or a [GitHub release](https://github.com/vale-cli/vale/releases) tarball. Any Vale 3.x works locally. CI pins **3.15.1**. The workflows that install Vale ([`ci.yml`](.github/workflows/ci.yml) and [`land-develop.yml`](.github/workflows/land-develop.yml)) and the Claude Code session-start hook (`.claude/hooks/session-start.sh`) each set `VALE_VERSION` to it. No check compares those copies with this line. A Vale bump edits all four.
 - Java 17 or later on `PATH` for `pnpm formal:check`, which runs the [formal models](#formal-models).
 
 ### First-time bootstrap
@@ -298,7 +298,7 @@ pnpm --filter @merlon-docs/merlon-docs-core run typecheck
 
 Tests live under `packages/merlon-docs-core/test/`. Integration tests invoke the built CLI against `examples/sample-guides/`.
 
-`merlon.config.schema.json` is the editor schema for `merlon.config.json`, maintained by hand. `test/config-json-schema.test.ts` compares it with the zod schema in `src/config/schema.ts` and fails when they disagree on any key, required key, type, enum or bound, or on a default the JSON declares. A commit that changes a config key has to update both files to pass it.
+`merlon.config.schema.json` is the editor schema for `merlon.config.json`, maintained by hand. A commit that changes a config key in the zod schema in `src/config/schema.ts` updates `merlon.config.schema.json` to match. No test compares the two files.
 
 ### merlon-docs-cli
 
@@ -326,6 +326,20 @@ Each spec shard below is written first, and the tests in its row follow the shar
 | [Path resolution in prose](docs/features/path-resolution.md)                                | `packages/merlon-docs-core/test/path-probe.test.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | [Built-in link validation](docs/features/link-validation.md)                                | `packages/merlon-docs-core/test/links.test.ts`, `packages/merlon-docs-core/test/cross-guide-links.test.ts`, `packages/merlon-docs-core/test/guide-output-path.test.ts`, `packages/merlon-docs-core/test/source-path-links.test.ts` and `packages/merlon-docs-cli/test/cli.smoke.test.ts`                                                                                                                                                                                                                        |
 
+### What a test checks
+
+A test runs our code on input the test controls and checks what our code does with it: a return value, a written file, an exit code, or a line in one of our own documented output formats. Before writing a test, name the behavior of Merlon Docs it protects. When the only answer is that some text is still that text, don't write it.
+
+Don't write tests that check these things, because none of them is our code's behavior:
+
+- **The text of a committed file.** For example, a workflow, git hook, `.vale.ini`, preset, README, docs page, JSON schema file or locale file contains some string or value. Reviewers and `merlon check` cover files.
+- **A value that changes by design.** For example, our own package versions, the current date, or a host path such as a temp directory, which macOS reaches through the `/var` → `/private/var` symlink. Derive an expected value from the test's own input instead.
+- **Another tool's output.** For example, the wording, banners, limits or version-specific behavior of Vale, markdownlint-cli2, npm, git or a library such as zod. Check our own lines about the tool's result instead, such as our hint or our `peer exited non-zero` line.
+- **That a script runs.** Running a script or command only to see that it exits 0 or prints a line doesn't test its logic. Move the logic into a function, the way `scripts/lib/` does, and test the function on fixed inputs.
+- **The shape of the code.** For example, that a module does or doesn't export a name, that a constant equals a literal, or how many times an internal function was called.
+
+When a test like this fails, delete it, or rewrite it to check behavior. Don't widen it to accept the new value.
+
 ### Test code coverage
 
 Vitest coverage for `@merlon-docs/merlon-docs-core` and `@merlon-docs/merlon-docs-cli` (not root `scripts/` tests). This is **test** coverage of TypeScript sources — distinct from the [documentation coverage scan](docs/features/coverage-scan.md). Note that CLI package totals are understated because smoke tests drive the built binary out-of-process (V8 coverage does not follow that subprocess).
@@ -342,7 +356,7 @@ JSONC markdownlint configs plus the shippable `MerlonDocs` Vale style (`vale/Mer
 
 ### Repository script tests
 
-Most `*.test.mjs` files under `scripts/` test the script beside them, and `pnpm test` runs them all after the package tests, as [Daily commands](#daily-commands) lists. `scripts/vale-merlon-docs-style.test.mjs` has no script beside it: it runs the `MerlonDocs` Vale style of `merlon-docs-presets` on fixtures. The site's script tests run with the package tests, and [Build and preview](#build-and-preview) gives the command that runs them alone.
+Most `*.test.mjs` files under `scripts/` test the script beside them, and `pnpm test` runs them all after the package tests, as [Daily commands](#daily-commands) lists. The site's script tests run with the package tests, and [Build and preview](#build-and-preview) gives the command that runs them alone.
 
 A test that runs git in a throwaway repository removes every `GIT_*` variable from `process.env` first, as `scripts/lib/consumed-changesets.test.mjs` does. A git hook exports `GIT_INDEX_FILE`, and other git-driven runs can export more `GIT_*` variables; while one is set, git in the throwaway repository reads the checkout that runs the tests.
 

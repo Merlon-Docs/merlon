@@ -181,7 +181,6 @@ describe('reviewDocs', () => {
     });
 
     it('uses the 2500-word default', () => {
-      expect(DEFAULT_REVIEW_THRESHOLDS.maxShardWords).toBe(2500);
       const docs = writeDocs({
         'g/index.md': '# G\n\n- [Big](./big.md)\n',
         'g/big.md': `# Big\n\n${words(2499)}\n`,

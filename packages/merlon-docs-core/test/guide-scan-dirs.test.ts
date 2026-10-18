@@ -22,21 +22,6 @@ describe('guideScanDirs', () => {
     const cwd = '/docs';
     expect(guideScanDirs(config, cwd)).toEqual([resolve(cwd, 'features'), resolve(cwd, 'dev')]);
   });
-
-  it('does not expose a removed prose-lint scan helper from core config loading', async () => {
-    const load = await import('../src/config/load.js');
-    expect('xrefScanDirs' in load).toBe(false);
-  });
-
-  it('strips removed lint.xrefs config from parsed config', () => {
-    const config = MerlonConfigSchema.parse({
-      outputDir: '_build',
-      compileOrder: ['a', 'b'],
-      guides: [{ name: 'b', path: 'custom/b' }],
-      lint: { xrefs: { enabled: false } },
-    });
-    expect('xrefs' in (config.lint ?? {})).toBe(false);
-  });
 });
 
 describe('shardLintPaths', () => {

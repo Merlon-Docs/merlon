@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { after, describe, it } from 'node:test';
@@ -40,18 +40,5 @@ describe('check-links', () => {
       broken.map((b) => b.href),
       ['/b/missing/', '/b/#nope'],
     );
-  });
-
-  it('landing page index.mdx includes foundational AI skills comparison, Part 1 / Part 2 structure, and no em-dashes', () => {
-    const indexMdx = join(import.meta.dirname, '../src/content/docs/index.mdx');
-    const content = readFileSync(indexMdx, 'utf8');
-    assert.ok(content.includes('Foundational AI skills'));
-    assert.ok(content.includes('LLM Wiki'));
-    assert.ok(content.includes('aDNA'));
-    assert.ok(content.includes('Wired into AGENTS.md'));
-    assert.ok(content.includes('./skill/merlon-docs/'));
-    assert.ok(content.includes('Part 1'));
-    assert.ok(content.includes('Part 2'));
-    assert.ok(!content.includes('—'), 'index.mdx must not contain em-dashes');
   });
 });

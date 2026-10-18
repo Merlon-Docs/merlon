@@ -13,6 +13,7 @@ import { execSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { bumpBuild } from './lib/build-version.mjs';
 import { setSkillMdVersion, skillPackageName } from './lib/skill-packages.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -22,16 +23,6 @@ function argValue(flag) {
   const idx = process.argv.indexOf(flag);
   if (idx === -1) return '';
   return process.argv[idx + 1] ?? '';
-}
-
-function bumpBuild(version) {
-  const match = version.match(/^(.*?)(?:-build\.(\d+))?$/);
-  if (!match || !match[1]) {
-    throw new Error(`Unsupported version for build bump: ${version}`);
-  }
-  const base = match[1];
-  const n = match[2] ? Number(match[2]) + 1 : 1;
-  return `${base}-build.${n}`;
 }
 
 function updatePackageJson(relPath, nextVersion) {
