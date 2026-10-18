@@ -1,30 +1,30 @@
 {
   "version": 1,
   "skills": {
-    "mdcp": {
-      "source": ".",
+    "merlon-docs": {
+      "source": "/workspace",
       "sourceType": "local",
-      "computedHash": "07783c62845fcdbfa64e29da63f4e0c7afb11f3b35327f3ef33de66d4a10d953"
+      "computedHash": "6b06e25dc48761ae41fbb1016da9866e276cacc36c57e314acafa85bff55c33e"
     },
-    "mdcp-arch-gtm": {
+    "merlon-docs-arch-gtm": {
       "source": ".",
       "sourceType": "local",
-      "computedHash": "126933ebec9d48d2ba44efb49f1673c05fe3c9961603c5d9731652b6622f8fc9"
+      "computedHash": "cc9d4101cef1fc477ef4bdbee77b3b98bce9f8bef0cab1f853facea4a87ddd16"
     },
-    "mdcp-arch-oss-library": {
+    "merlon-docs-arch-oss-library": {
       "source": ".",
       "sourceType": "local",
-      "computedHash": "cc510268e44403b6b596cf7625718723204d2eff5255bdb6266380cf1dd161c1"
+      "computedHash": "84f378fc84ed2d112e7eed6073de5f7fbb382f23a869cd1e68d4e725af6a4924"
     },
-    "mdcp-arch-product-docs-site": {
+    "merlon-docs-arch-product-docs-site": {
       "source": ".",
       "sourceType": "local",
-      "computedHash": "7cd2b4f84600c9a4f9470325f5492af38ad4b990ba4912df88384aa8a9f062b5"
+      "computedHash": "a6fdfeab39226e3a134022b8e67c9c764c9ac382c9e380725628e6876824e6f3"
     },
-    "mdcp-arch-research": {
+    "merlon-docs-arch-research": {
       "source": ".",
       "sourceType": "local",
-      "computedHash": "f83812afc9f3ede84dc6f18a13642b544bc97e418a2b91554e5bd293a2edd7bf"
+      "computedHash": "4e5f7f0c24b98489546d02e48e8bdd15da3bee1b23186dca35693be934f40a01"
     },
     "skill-creator": {
       "source": "anthropics/skills",

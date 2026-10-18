@@ -17,11 +17,11 @@ Remove `mdcp refs lookup` and the `lookupHeadings` export. Prefer:
 - Host search and one-shard reads for doc discovery
 - `mdcp check` (and optional `mdcp refs-list`) for cross-link / slug integrity against the [refs registry](../../glossary/refs-registry.md)
 
-Consumer notice of the breaking API removal lives in the package [CHANGELOG](../../../packages/mdcp-cli/CHANGELOG.md) (0.5.0), not in feature-catalog shards.
+Consumer notice of the breaking API removal lives in the package [CHANGELOG](../../../packages/merlon-docs-cli/CHANGELOG.md) (0.5.0), not in feature-catalog shards.
 
 ## Consequences
 
 - [Feature catalog](../feature-catalog.md) describes the refs registry for validation only; it does not document a lookup verb.
 - Invoking `mdcp refs lookup` fails (contract tests lock the removal).
-- Product claims must not market a MDCP lookup / retrieval verb — see [Benefit claims and evidence](../protocol/benefit-claims-and-evidence.md).
+- Product claims must not market a MDCP lookup / retrieval verb — see [Benefit claims and evidence](../system/benefit-claims-and-evidence.md).
 - Optional later retrieval surfaces (for example MCP index) stay separate roadmap items, not a reintroduction of `refs lookup` under the same name.

@@ -5,9 +5,9 @@
  * changesets. Maintainer / workflow_dispatch only.
  *
  * Usage:
- *   node scripts/release-build.mjs --packages mdcp-cli,mdcp-core
- *   node scripts/release-build.mjs --skills mdcp,mdcp-arch-gtm
- *   node scripts/release-build.mjs --packages mdcp-cli --dry-run
+ *   node scripts/release-build.mjs --packages merlon-docs-cli,merlon-docs-core
+ *   node scripts/release-build.mjs --skills merlon-docs,merlon-docs-arch-gtm
+ *   node scripts/release-build.mjs --packages merlon-docs-cli --dry-run
  */
 import { execSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -25,8 +25,8 @@ function argValue(flag) {
 }
 
 function bumpBuild(version) {
-  const match = version.match(/^(\d+\.\d+\.\d+)(?:-build\.(\d+))?$/);
-  if (!match) {
+  const match = version.match(/^(.*?)(?:-build\.(\d+))?$/);
+  if (!match || !match[1]) {
     throw new Error(`Unsupported version for build bump: ${version}`);
   }
   const base = match[1];

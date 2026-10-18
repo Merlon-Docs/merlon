@@ -3,7 +3,7 @@ data "github_user" "maintainer" {
 }
 
 resource "github_repository_environment" "release" {
-  repository  = github_repository.mdcp.name
+  repository  = github_repository.merlon.name
   environment = "release"
 
   can_admins_bypass   = true

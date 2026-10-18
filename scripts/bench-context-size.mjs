@@ -14,10 +14,11 @@
  *                               (characters ÷ 4, no tokenizer at all)
  *   --tokenizer-module <path>   your own counter: an ES module whose default export,
  *                               or named export countTokens, maps text to a number
- *   MDCP_TOKENIZER, MDCP_TOKENIZER_MODULE   the same, from the environment
+ *   MERLON_TOKENIZER, MERLON_TOKENIZER_MODULE   the same, from the environment
  *
- * Other flags: --out <csv> (default docs/features/protocol/context-size-dogfood.csv),
- * --no-write (print only).
+ * Other flags: --out <csv> (default docs/features/system/research/context-size-dogfood-<date>.csv,
+ * a new file for each day's run), --no-write (print only). A run worth keeping gets its own
+ * research record beside the CSV; earlier CSVs stay as measured.
  */
 import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { basename, join, dirname, relative, resolve, sep } from 'node:path';
@@ -27,7 +28,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, '..');
 const DOCS_ROOT = join(REPO_ROOT, 'docs');
 const MONOLITH = join(DOCS_ROOT, '_build/guides.md');
-const DEFAULT_CSV = join(DOCS_ROOT, 'features/protocol/context-size-dogfood.csv');
+const RESEARCH_DIR = join(DOCS_ROOT, 'features/system/research');
 
 /** Encodings shipped by gpt-tokenizer; each module exports countTokens(text). */
 export const ENCODINGS = [
@@ -40,7 +41,7 @@ export const ENCODINGS = [
   'gpt2',
 ];
 
-/** Shard directories measured as "one shard", one per guide in docs/mdcp.config.json. */
+/** Shard directories measured as "one shard", one per guide in docs/merlon.config.json. */
 const SHARD_DIRS = [
   'features',
   'developer',
@@ -54,21 +55,22 @@ const SHARD_DIRS = [
 const GUIDES = [
   ['monolith', 'docs/_build/guides.md'],
   ['developer', 'DEVELOPERS.md'],
-  ['client_cli', 'packages/mdcp-cli/README.md'],
-  ['client_core', 'packages/mdcp-core/README.md'],
+  ['client_cli', 'packages/merlon-docs-cli/README.md'],
+  ['client_core', 'packages/merlon-docs-core/README.md'],
   ['repo_readme', 'README.md'],
 ];
 
-export function parseArgs(argv, env = {}) {
+export function parseArgs(argv, env = {}, recordedAt = new Date().toISOString().slice(0, 10)) {
   const opts = {
-    tokenizer: env.MDCP_TOKENIZER || 'o200k_base',
-    tokenizerModule: env.MDCP_TOKENIZER_MODULE || null,
-    out: DEFAULT_CSV,
+    tokenizer: env.MERLON_TOKENIZER || 'o200k_base',
+    tokenizerModule: env.MERLON_TOKENIZER_MODULE || null,
+    out: join(RESEARCH_DIR, `context-size-dogfood-${recordedAt}.csv`),
     write: true,
   };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
-    if (arg === '--tokenizer') opts.tokenizer = argv[++i];
+    if (arg === '--') continue;
+    else if (arg === '--tokenizer') opts.tokenizer = argv[++i];
     else if (arg === '--tokenizer-module') opts.tokenizerModule = argv[++i];
     else if (arg === '--out') opts.out = resolve(argv[++i]);
     else if (arg === '--no-write') opts.write = false;
@@ -130,9 +132,9 @@ export function summarize(values) {
 const pct = (part, whole) => (whole > 0 ? Math.round((part / whole) * 1000) / 10 : 0);
 
 async function main() {
-  const opts = parseArgs(process.argv.slice(2), process.env);
-  const tokenizer = await loadTokenizer(opts);
   const recordedAt = new Date().toISOString().slice(0, 10);
+  const opts = parseArgs(process.argv.slice(2), process.env, recordedAt);
+  const tokenizer = await loadTokenizer(opts);
   const rows = [['metric', 'value', 'unit', 'notes', 'recorded_at']];
   const add = (metric, value, unit, notes) =>
     rows.push([metric, String(value), unit, notes, recordedAt]);
@@ -162,7 +164,8 @@ async function main() {
     add(`shard_${stat}_tokens`, tokens[stat], 'tokens', scope);
   }
 
-  // Features-only figures, kept for the Tier B wording in benefit-claims-and-evidence.md.
+  // Features-only figures: the median features shard against the monolith, the ratio that the
+  // context-size research record reports for the Tier B wording in benefit-claims-and-evidence.md.
   const monolithChars = guides.monolith?.chars ?? measure(MONOLITH).chars;
   const featureShards = listShards(join(DOCS_ROOT, 'features')).map(measure);
   const featureChars = summarize(featureShards.map((s) => s.chars));

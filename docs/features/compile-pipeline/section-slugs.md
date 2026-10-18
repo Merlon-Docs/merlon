@@ -1,0 +1,15 @@
+# Section slugs
+
+A link to a shard points at the heading that opens the shard's section, so its `#slug` is the anchor that heading gets in the compiled guide. One slugger numbers the heading lines in stitch order, as the refs registry does. A heading line is an ATX heading at column 0, as [stripAnchors heading lines](../../client-core/compile-hooks/strip-anchors.md#stripanchors-heading-lines) defines it. The slugger starts with the heading assembly writes first, `compile.title` or else the manifest's H1, and then reads each section's heading lines, sub-headings included. A heading whose slug an earlier heading already took gets a numeric suffix, starting at `-1`. So a section that follows a sub-heading with the same title gets `#title-1`, and so does a section that repeats the guide's H1.
+
+A line inside a fenced code block isn't a heading, so a `# comment` in a shell example doesn't take a number. The [fence scan](./fence-scan.md) finds those lines, and its [limits](./fence-scan.md#fence-scan-limits) apply.
+
+A `FIND-*.md` shard keeps its finding id, and a first heading with a `{#id}` marker keeps that id. Both headings still take their number, so later headings count them. Assembly drops the first section's heading when it repeats `compile.title`. Links to that section then point at the title, unless the section declares an id. A link keeps a `{#id}` from the dropped heading, though no heading in the output has that anchor.
+
+The slugger reads each title without its markers, since compile strips them from heading lines by default. When `compile.stripAnchors` is `false` and the `stripAnchors` hook doesn't run, the compiled headings keep their markers, and the slugger numbers each heading line by the title it renders, marker included. So `Setup {#custom}` takes `setup-custom`, and a later `Setup` section keeps `#setup`. The refs registry still reads titles without markers. Its slugs for those headings can differ from the rendered anchors.
+
+The [monolith](../../glossary/monolith.md) runs one slugger through every guide it stitches, in `compileOrder`. Each guide starts with its lead heading and continues the numbering of the guides before it. So a section can take `#setup-1` in the monolith and `#setup` in its guide's compiled guide, when an earlier guide in the monolith also has a Setup heading. Each [assembly](./publish-relative-links.md#when-it-runs) of a guide links its sections with the slugs of the document it writes.
+
+Headings that a compile hook adds after numbering, such as [inlineInserts](../../client-core/compile-hooks/inline-inserts.md) captions, take no number. A caption whose slug matches a later section heading's slug moves that heading to `-1`, and links to the section miss it. A renderer that adds heading anchors also gives one to setext headings and to ATX headings indented one to three spaces or nested in a list item or blockquote, which Merlon Docs doesn't read as headings. Such a heading earlier in the guide with a section's title has the same effect.
+
+[Cross-guide section slugs](./cross-guide-links.md#cross-guide-section-slugs) says which numbering a link to a shard of another guide takes.

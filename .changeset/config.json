@@ -7,7 +7,7 @@
   "access": "public",
   "baseBranch": "develop",
   "updateInternalDependencies": "patch",
-  "ignore": ["@bwilliamson/mdcp-site"],
+  "ignore": ["@merlon-docs/merlon-docs-site"],
   "privatePackages": {
     "version": true,
     "tag": true

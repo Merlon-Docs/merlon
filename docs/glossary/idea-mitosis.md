@@ -4,4 +4,4 @@
 
 Do not split only because a file is long. Prefer one primary concern per shard.
 
-See [Shard single responsibility and idea mitosis](../features/protocol/shard-srp-and-mitosis.md).
+See [Shard single responsibility and idea mitosis](../features/system/shard-srp-and-mitosis.md).

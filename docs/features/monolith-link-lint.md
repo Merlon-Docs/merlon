@@ -1,12 +1,12 @@
 # Monolith link lint
 
-How link lint checks the [monolith](../glossary/monolith.md), which holds a copy of every guide without `compile.outputFile`. [Link validation](./link-validation.md) covers the checks that every compiled output gets. Tests in `packages/mdcp-core/test/links.test.ts` and `packages/mdcp-cli/test/cli.smoke.test.ts` map to the sections below.
+How link lint checks the [monolith](../glossary/monolith.md), which holds a copy of every guide without `compile.outputFile`. [Link validation](./link-validation.md) covers the checks that every compiled output gets. The [Spec-to-test map](../developer/packages-and-tests.md#spec-to-test-map) names the tests behind this spec.
 
 ## Links in a guide's copy
 
 Link lint checks the monolith as a document of its own. A link in a guide's copy there is checked against the headings of the whole monolith and the section slugs of every copy, the set compile marked each copy against. A section slug is the slug a copy gives a shard's section, such as a `FIND-*` finding id or a declared `{#id}`. Each copy takes that one set. So what passes doesn't depend on a shard's owner or on the order of `compileOrder`.
 
-A link from another output to the monolith passes only on a heading of the monolith. A finding id or a declared `{#id}` isn't one, because the heading takes its anchor from its text. So when guide b's copy stitches `FIND-002.md`, a `#find-002` link in guide a's copy passes, and `guides.md#find-002` from a publish output is a dead anchor.
+A link from another output to the monolith passes only on a heading of the monolith, as [Validation phases](./link-validation.md#validation-phases) says for a link to any other output of the run. When guide b's copy stitches `FIND-002.md`, `#find-002` is a section slug and not a heading. So a `#find-002` link in guide a's copy passes, and `guides.md#find-002` from a publish output is a dead anchor.
 
 A monolith issue is left out when that guide's compiled guide reports the same link, with a matching kind and label and a target that matches as written or as the resolved file. Resolved files count because each file rebases paths relative to itself. Link issues match one for one, so each compiled guide issue leaves out at most one monolith issue. Both files keep the lines of the guide's text, so a monolith issue is matched first to an issue at the same line of that text. An issue left then takes a match on another line, which finds a link whose line a hook moved. That match skips a compiled guide issue when a monolith issue with its label is at its own line, because the issue belongs to the link on that line. Each copy after the first ends with one more blank line in the monolith, and link lint counts it when it finds the line a copy starts on. Link lint reports a monolith issue that stays under the guide whose copy holds its line. The issue sets `inMonolith`, so its diagnostic names that guide's copy, `(guide "a" in the monolith)`, and not its compiled guide.
 
@@ -35,11 +35,11 @@ A BROKEN LINK marker in a guide's copy is reported when that guide's compiled gu
 - A BROKEN LINK marker that appears in both a compiled guide and the monolith is reported once, for the compiled guide, even when the rest of its line differs between the two files
 - Link lint matches a marker in the monolith only against the compiled guide of the guide whose copy holds it
 - Of two markers with the same text in a guide's copy, link lint reports the one at the line where the compiled guide has no marker
-- A copy accepts the same section slugs whichever guide is the shard's owner, a publish-only guide included, and whatever the order of `compileOrder`, with `compile.links.markBroken` `true` or `false`
+- A copy accepts the same section slugs whichever guide is the shard's owner, a guide with a publish output included, and whatever the order of `compileOrder`, with `compile.links.markBroken` `true` or `false`
 - Link lint finds the guide's copy that holds a line of the monolith for the third guide there and every guide after it
 - Of two links with the same label in a guide's copy, link lint reports the monolith marker of the link that only the monolith marks
 
 ## Monolith link lint related
 
 - [Link validation](./link-validation.md)
-- [Cross-guide link rewriting](../client-core/compile-hooks/cross-guide-links.md)
+- [Cross-guide link rewriting](./compile-pipeline/cross-guide-links.md)

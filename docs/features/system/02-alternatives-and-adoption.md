@@ -1,0 +1,67 @@
+# Alternatives and adoption
+
+Read [Scope and positioning](./01-scope-and-positioning.md) and [Vision and roadmap](./00-vision-and-roadmap.md).
+
+## Alternatives comparison
+
+| Incumbent                            | What it does well                                   | What Merlon Docs adds                                                  |
+| ------------------------------------ | --------------------------------------------------- | ---------------------------------------------------------------------- |
+| LLM Wiki–style skills                | Compounding wiki ingest/query/lint                  | Repo-native shards + compile + CI structural gate for shipped software |
+| aDNA-style vaults                    | Whole-project what/who/how + per-folder `AGENTS.md` | Documentation-system skill focused on validated shards beside code     |
+| Single-file README / full `llms.txt` | Zero tooling                                        | Sharding, validation gate, Agent Skill                                 |
+| Context7 / large crawled corpora     | Fuzzy retrieval at scale                            | Author-controlled, deterministic, PR-reviewable shards                 |
+| Custom bash/Python glue              | Flexible                                            | Owned `check` gate, link rewrite, publish paths                        |
+| Docusaurus / MkDocs / VitePress      | Public doc sites                                    | Agent-first shards + CI structural gate                                |
+| Cursor rules / `AGENTS.md`           | Host-native friction                                | Validated product context separate from host config                    |
+| Custom IDE extension                 | Editor UI / bundled CLI                             | Portable Agent Skill + unchanged CLI                                   |
+| MCP filesystem                       | Live file reads                                     | Upstream authoring discipline and validated artifacts                  |
+| Excalidraw / Figma / whiteboard MCP  | Native canvas editing                               | Text shards + compile; link exported figures into guides               |
+
+## Text and canvas together
+
+Merlon Docs owns **Markdown shards** in git — specs, ADRs, runbooks, glossary — not the live canvas file format. For **Excalidraw**, **Figma**, or similar, enable an **MCP** (or your host's integration) so agents can edit those artifacts while Merlon Docs keeps the **textual** layer reviewable.
+
+- **Shards → canvas:** Agents read shards for labels, boundaries, and acceptance criteria, then fill or update a diagram through the canvas MCP.
+- **Canvas → guides:** Export images (or checked-in `.excalidraw` / assets) under insert libraries such as `figures/` or `diagrams/`; [inline inserts](../client-core/compile-hooks/inline-inserts.md) embed them in compiled output and `merlon check` keeps links valid.
+
+Positioning detail: [Scope and positioning — Text-first content and canvas tools](./01-scope-and-positioning.md#text-first-content-and-canvas-tools).
+
+## Pandoc and advanced publish stacks
+
+Merlon Docs shards are [GFM-only](../design-constraints/gfm-scope.md). Adopters with Pandoc, LaTeX, or wikilinks are not excluded:
+
+- Compile to GFM compiled guides (plus the optional monolith) and feed downstream publish pipelines.
+- Run parallel guides for agent-only vs site-only content when scopes differ.
+
+Merlon Docs covers authoring and how agents query shards. Pandoc and static site generators publish downstream from the compiled output.
+
+## Bootstrap-first adoption
+
+Suited to the **Learner** and **Author** [adoption archetypes](../personas-and-priority-tiers.md#adoption-archetypes). Public copy must follow [Benefit claims and evidence](./benefit-claims-and-evidence.md).
+
+1. Install the parent Agent Skill with [its install command](../agent-skill.md#install-surfaces) before or alongside CLI setup.
+2. Use your existing agent (with `/merlon-docs`) to shard an existing source document and plan glossary entries.
+3. Wire Merlon Docs, compile, and validate (`merlon compile` / `merlon check`).
+
+## When to adopt Merlon Docs
+
+**Choose Merlon Docs when:**
+
+- Documentation has outgrown a single file (merge conflicts, broken anchors)
+- LLM pair-coding needs scoped, validated context
+- Same shards publish to multiple outputs (monolith + README + `DEVELOPERS.md`)
+- CI must fail on structural doc drift
+
+**Do not choose Merlon Docs when:**
+
+- README-only repo with no growth pain
+- Docs live entirely outside git
+- You only need a public website with no agent/CI validation requirement
+
+## Learning investment
+
+| Investment                                                                      | Payback                                                      |
+| ------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| [Getting-started workflow](./workflows/getting-started.md) + one config session | Replaces bespoke compile scripts                             |
+| Shard + manifest workflow                                                       | When each change touches one shard, a PR touches fewer files |
+| `merlon compile` and `merlon check`                                             | Same gate for human, agent, and CI                           |

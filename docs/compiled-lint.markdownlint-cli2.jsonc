@@ -2,8 +2,8 @@
   "globs": [
     "_build/guides.md",
     "../DEVELOPERS.md",
-    "../packages/mdcp-cli/README.md",
-    "../packages/mdcp-core/README.md",
+    "../packages/merlon-docs-cli/README.md",
+    "../packages/merlon-docs-core/README.md",
     "../README.md",
   ],
   "config": {

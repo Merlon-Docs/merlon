@@ -7,11 +7,11 @@ body:
   - type: markdown
     attributes:
       value: |
-        Propose an extension that stays out of protocol core — see [Extensions and archetypes](https://github.com/betsalel-williamson/mdcp/blob/main/docs/features/protocol/extensions-and-archetypes.md).
+        Propose an extension that stays out of the system core — see [Extensions and archetypes](https://github.com/Merlon-Docs/merlon/blob/main/docs/features/system/extensions-and-archetypes.md).
 
         Local-only packs under `docs/extensions/` need no upstream issue. Use this form when you want shared guidance or an upstream complementary skill.
 
-        Maintainers apply a matching `priority:*` label from your selection below (and usually `protocol`), then finish [new issue intake](https://github.com/betsalel-williamson/mdcp/blob/main/docs/developer/agent-work-item-tracking.md#new-issue-intake-required).
+        Maintainers apply a matching `priority:*` label from your selection below (and usually `standard`), then finish [new issue intake](https://github.com/Merlon-Docs/merlon/blob/main/docs/developer/issue-intake-and-labels.md#new-issue-intake-required).
 
   - type: dropdown
     id: extension-kind
@@ -30,8 +30,8 @@ body:
     id: proposed-id
     attributes:
       label: Proposed id / prefix
-      description: e.g. mdcp-arch-legal-ops, mdcp-format-mkdocs
-      placeholder: mdcp-arch-…
+      description: e.g. merlon-docs-arch-legal-ops, merlon-docs-format-mkdocs
+      placeholder: merlon-docs-arch-…
     validations:
       required: true
 
@@ -79,7 +79,7 @@ body:
       label: Check compatibility
       description: Optional extensions must not break core validation when disabled.
       options:
-        - label: Does not break `mdcp check` when the extension is disabled
+        - label: Does not break `merlon check` when the extension is disabled
           required: true
         - label: Composes on top of conforming layouts (does not fork the parent skill for one-off advice)
           required: true
@@ -96,11 +96,11 @@ body:
       required: true
 
   - type: input
-    id: protocol-version
+    id: standard-version
     attributes:
-      label: Target protocolVersion
-      description: Four-part protocol version this extension claims to support
-      placeholder: '0.5.0.0'
+      label: Target standardVersion
+      description: Four-part spec version (`standardVersion`, formerly `protocolVersion`) this extension claims to support
+      placeholder: '1.0.0-draft.0'
     validations:
       required: true
 
@@ -108,15 +108,15 @@ body:
     id: parent-skill-version
     attributes:
       label: Parent skill version tested (optional)
-      description: From skills/mdcp SKILL.md metadata.version
+      description: From skills/merlon-docs SKILL.md metadata.version
       placeholder: '0.7.2'
     validations:
       required: false
 
   - type: input
-    id: mdcp-version
+    id: merlon-version
     attributes:
-      label: mdcp-cli version (optional)
+      label: merlon-docs-cli version (optional)
       placeholder: '0.7.1'
     validations:
       required: false

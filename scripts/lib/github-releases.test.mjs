@@ -9,26 +9,47 @@ import {
 
 describe('github-releases', () => {
   it('builds name@version tags', () => {
-    assert.equal(releaseTag('@bwilliamson/skill-mdcp', '0.7.2'), '@bwilliamson/skill-mdcp@0.7.2');
+    assert.equal(
+      releaseTag('@merlon-docs/skill-merlon-docs', '0.7.2'),
+      '@merlon-docs/skill-merlon-docs@0.7.2',
+    );
   });
 
   it('parses git ls-remote --tags output', () => {
     const tags = parseGitLsRemoteTags(`
-abc\trefs/tags/@bwilliamson/mdcp-cli@0.7.1
-def\trefs/tags/@bwilliamson/mdcp-cli@0.7.1^{}
+abc\trefs/tags/@merlon-docs/merlon-docs-cli@0.7.1
+def\trefs/tags/@merlon-docs/merlon-docs-cli@0.7.1^{}
 ghi refs/tags/v0.7.0
 `);
-    assert.deepEqual([...tags].sort(), ['@bwilliamson/mdcp-cli@0.7.1', 'v0.7.0']);
+    assert.deepEqual([...tags].sort(), ['@merlon-docs/merlon-docs-cli@0.7.1', 'v0.7.0']);
   });
 
   it('lists packages missing a GitHub Release and/or git tag', () => {
     const packages = [
-      { name: '@bwilliamson/mdcp-cli', version: '0.7.1', dir: 'mdcp-cli', private: false },
-      { name: '@bwilliamson/skill-mdcp', version: '0.7.2', dir: 'skill-mdcp', private: true },
-      { name: '@bwilliamson/mdcp-presets', version: '0.7.0', dir: 'mdcp-presets', private: false },
+      {
+        name: '@merlon-docs/merlon-docs-cli',
+        version: '0.7.1',
+        dir: 'merlon-docs-cli',
+        private: false,
+      },
+      {
+        name: '@merlon-docs/skill-merlon-docs',
+        version: '0.7.2',
+        dir: 'skill-merlon-docs',
+        private: true,
+      },
+      {
+        name: '@merlon-docs/merlon-docs-presets',
+        version: '0.7.0',
+        dir: 'merlon-docs-presets',
+        private: false,
+      },
     ];
-    const releases = new Set(['@bwilliamson/mdcp-cli@0.7.1']);
-    const gitTags = new Set(['@bwilliamson/mdcp-cli@0.7.1', '@bwilliamson/mdcp-presets@0.7.0']);
+    const releases = new Set(['@merlon-docs/merlon-docs-cli@0.7.1']);
+    const gitTags = new Set([
+      '@merlon-docs/merlon-docs-cli@0.7.1',
+      '@merlon-docs/merlon-docs-presets@0.7.0',
+    ]);
     const needing = packagesNeedingReleaseHeal(packages, releases, gitTags);
     assert.deepEqual(
       needing.map((row) => ({
@@ -38,12 +59,12 @@ ghi refs/tags/v0.7.0
       })),
       [
         {
-          tag: '@bwilliamson/mdcp-presets@0.7.0',
+          tag: '@merlon-docs/merlon-docs-presets@0.7.0',
           missingRelease: true,
           missingTag: false,
         },
         {
-          tag: '@bwilliamson/skill-mdcp@0.7.2',
+          tag: '@merlon-docs/skill-merlon-docs@0.7.2',
           missingRelease: true,
           missingTag: true,
         },
@@ -53,9 +74,14 @@ ghi refs/tags/v0.7.0
 
   it('packagesMissingGithubReleases stays release-only', () => {
     const packages = [
-      { name: '@bwilliamson/mdcp-cli', version: '0.7.1', dir: 'mdcp-cli', private: false },
+      {
+        name: '@merlon-docs/merlon-docs-cli',
+        version: '0.7.1',
+        dir: 'merlon-docs-cli',
+        private: false,
+      },
     ];
-    const existing = new Set(['@bwilliamson/mdcp-cli@0.7.1']);
+    const existing = new Set(['@merlon-docs/merlon-docs-cli@0.7.1']);
     assert.deepEqual(packagesMissingGithubReleases(packages, existing), []);
   });
 });

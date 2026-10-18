@@ -1,4 +1,4 @@
-# API — Refs and validation
+# Refs and validation API
 
 ## Refs (cross-links)
 
@@ -20,7 +20,7 @@ The registry's top-level `headings` and `slugs` come from `compiledText` alone, 
 Resolves the on-disk path for the refs registry. Implemented via the same `outputDir`-relative helper as `resolveOutputPath`. Pass the docs root (the CLI `--docs-root` value).
 
 - `outputDir` is relative to `docsRoot`.
-- `registryFile` is relative to `outputDir` (default `.caches/refs.json`).
+- `registryFile` resolves by the rule in [Path layout](../client-cli/config-essentials.md#path-layout) (default `.caches/refs.json`).
 
 ```typescript
 resolveRefsPath('/docs', '_build', '.caches/refs.json');
@@ -30,11 +30,9 @@ resolveRefsPath('/docs', '.', 'refs.json');
 // → /docs/refs.json
 ```
 
-Prefer outputDir-relative values in config (for example `".caches/refs.json"` when `outputDir` is `"_build"`). See [Config essentials — path layout](../client-cli/config-essentials.md#path-layout).
-
 ### Heading slugs (github-slugger)
 
-`githubSlugify`, `headingTextToPlain`, and `buildSlugRegistry` derive `#fragment` targets from compiled headings using [`github-slugger`](https://www.npmjs.com/package/github-slugger), which matches GitHub's [html-pipeline `TableOfContentsFilter`](https://github.com/gjtorikian/html-pipeline/blob/main/lib/html/pipeline/toc_filter.rb). GFM does not define auto-generated heading IDs; treat github-slugger parity as the contract.
+`githubSlugify`, `headingTextToPlain`, and `buildSlugRegistry` derive `#fragment` targets from compiled headings using [`github-slugger`](https://www.npmjs.com/package/github-slugger), which matches the anchors GitHub renders for headings. GFM does not define auto-generated heading IDs. Treat github-slugger parity as the contract.
 
 | Export               | Purpose                                              |
 | -------------------- | ---------------------------------------------------- |
@@ -42,10 +40,10 @@ Prefer outputDir-relative values in config (for example `".caches/refs.json"` wh
 | `githubSlugify`      | Single-heading slug via github-slugger               |
 | `buildSlugRegistry`  | Document-wide slugs; duplicates get numeric suffixes |
 
-`buildSlugRegistry` reads only headings outside fenced code blocks, with the fence scan that [stripAnchors](./compile-hooks/strip-anchors.md#stripanchors-code) describes. A `# comment` in a shell example doesn't get a slug, and it doesn't change the guide that later headings belong to. Compile numbers [section slugs](./compile-hooks/cross-guide-links.md#cross-guide-section-slugs) through the same reader, so a rewritten section link and the registry agree, apart from the limits that section lists. Heading demotion, in compile and in `demoteHeadings`, leaves each line that the same fence scan reads as code as written. It starts a new scan on each text it demotes, such as one shard, while `buildSlugRegistry` reads its whole text with one scan, so a shard that ends inside an open fence can make the two disagree about the shard after it.
+`buildSlugRegistry` reads only headings outside fenced code blocks, which it finds with the [fence scan](../features/compile-pipeline/fence-scan.md). A `# comment` in a shell example doesn't get a slug, and it doesn't change the guide that later headings belong to. Compile numbers [section slugs](../features/compile-pipeline/section-slugs.md) through the same reader, so a rewritten section link and the registry agree, apart from the limits that page lists. Heading demotion, in compile and in `demoteHeadings`, leaves each line that the same scan reads as code as written. [Fence scan limits](../features/compile-pipeline/fence-scan.md#fence-scan-limits) says when demotion and `buildSlugRegistry` can disagree about a shard.
 
 ```typescript
-import { githubSlugify, headingTextToPlain } from '@bwilliamson/mdcp-core';
+import { githubSlugify, headingTextToPlain } from '@merlon-docs/merlon-docs-core';
 
 headingTextToPlain('**Authored GFM** `{#gfm}`');
 // → 'Authored GFM'
@@ -59,18 +57,13 @@ githubSlugify('`--config` vs `--docs-root`');
 
 CLI authoring rules: [Cross-links and refs — heading slugs](../client-cli/cross-links-and-refs.md#heading-slugs-github-rules).
 
-## Compile order
-
-| Export                          | Purpose                                        |
-| ------------------------------- | ---------------------------------------------- |
-| `sectionFiles`, `assembleGuide` | Resolve compile order from manifest link order |
-
 ## Validation
 
-| Export                  | Purpose                                                                                   |
-| ----------------------- | ----------------------------------------------------------------------------------------- |
-| `checkOrphansForGuides` | Detect unlinked or missing shard files; a relative `dir` resolves against the process cwd |
-| `lintLinks`             | Internal markdown link validation                                                         |
-| `reviewDocs`            | Sprawl signals behind `mdcp review` (`formatReviewReport` renders the text report)        |
-| `computeCoverage`       | Markdown files no guide captures, behind the `check` coverage report                      |
-| `probeDocumentPaths`    | Backtick-path resolution behind `lint.paths` (`ILLUSTRATIVE_MARKER` opts out)             |
+| Export                                                                                                                                                   | Purpose                                                                                                                               |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `checkOrphansForGuides`                                                                                                                                  | Detect unlinked or missing shard files; a relative `dir` resolves against the process cwd                                             |
+| `lintLinks`                                                                                                                                              | Internal markdown link validation                                                                                                     |
+| `reviewDocs`                                                                                                                                             | Sprawl signals behind `merlon review` (`formatReviewReport` renders the text report)                                                  |
+| `computeCoverage`                                                                                                                                        | Markdown files no guide captures, behind the `check` coverage report                                                                  |
+| `probeDocumentPaths`                                                                                                                                     | Backtick-path resolution behind `lint.paths` (`ILLUSTRATIVE_MARKER` opts out)                                                         |
+| `DEFAULT_CODE_EXTENSIONS`, `DEFAULT_DATA_EXTENSIONS`, `codeExtensionSet`, `dataExtensionSet`, `fileExtensionSet`, `hasCodeExtension`, `hasFileExtension` | The code and data extensions that link validation and `codeEvidence` read, with `lint.codeExtensions` and `lint.dataExtensions` added |

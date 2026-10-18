@@ -7,22 +7,22 @@ import { fileURLToPath } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 describe('validate-presets', () => {
-  it('validates the MDCP Vale style and Packages layout', () => {
+  it('validates the MerlonDocs Vale style and Packages layout', () => {
     const result = spawnSync(process.execPath, ['scripts/validate-presets.mjs'], {
       cwd: root,
       encoding: 'utf8',
     });
 
     assert.equal(result.status, 0, result.stderr);
-    assert.match(result.stdout, /OK vale\/MDCP\/BareChapterRef\.yml/);
-    assert.match(result.stdout, /OK vale\/MDCP\/UnlinkedSeeChapter\.yml/);
-    assert.match(result.stdout, /OK vale\/MDCP\/BareSectionRef\.yml/);
-    assert.match(result.stdout, /OK vale\/MDCP\/UnlinkedSeeSection\.yml/);
-    assert.match(result.stdout, /OK vale\/MDCP\/DatedClaim\.yml/);
+    assert.match(result.stdout, /OK vale\/MerlonDocs\/BareChapterRef\.yml/);
+    assert.match(result.stdout, /OK vale\/MerlonDocs\/UnlinkedSeeChapter\.yml/);
+    assert.match(result.stdout, /OK vale\/MerlonDocs\/BareSectionRef\.yml/);
+    assert.match(result.stdout, /OK vale\/MerlonDocs\/UnlinkedSeeSection\.yml/);
+    assert.match(result.stdout, /OK vale\/MerlonDocs\/DatedClaim\.yml/);
     assert.match(result.stdout, /OK vale\/package\/\.vale\.ini/);
-    assert.match(result.stdout, /OK vale\/package\/styles\/MDCP\/BareSectionRef\.yml/);
-    assert.match(result.stdout, /OK vale\/package\/styles\/MDCP\/UnlinkedSeeSection\.yml/);
-    assert.match(result.stdout, /OK vale\/package\/styles\/MDCP\/DatedClaim\.yml/);
+    assert.match(result.stdout, /OK vale\/package\/styles\/MerlonDocs\/BareSectionRef\.yml/);
+    assert.match(result.stdout, /OK vale\/package\/styles\/MerlonDocs\/UnlinkedSeeSection\.yml/);
+    assert.match(result.stdout, /OK vale\/package\/styles\/MerlonDocs\/DatedClaim\.yml/);
   });
 
   it('checks that the compiled preset keeps the shard rules and turns MD052 and MD053 on', () => {

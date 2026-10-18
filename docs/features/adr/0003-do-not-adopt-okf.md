@@ -1,4 +1,7 @@
-# ADR 0003 - Do not adopt OKF
+# ADR 0003: Do not adopt OKF
+
+- **Status:** Accepted
+- **Date:** 2026-07-15
 
 ## Context
 

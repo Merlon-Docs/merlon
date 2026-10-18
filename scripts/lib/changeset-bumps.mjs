@@ -34,15 +34,3 @@ export function parseChangesetBumps(changesetDir) {
   }
   return results;
 }
-
-export function findMajorBumps(changesetDir) {
-  const majors = [];
-  for (const { file, bumps } of parseChangesetBumps(changesetDir)) {
-    for (const [pkg, bump] of Object.entries(bumps)) {
-      if (bump === 'major') {
-        majors.push({ file, package: pkg });
-      }
-    }
-  }
-  return majors;
-}

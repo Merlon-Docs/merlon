@@ -1,4 +1,0 @@
-{
-  "name": "MDCP-PandocId",
-  "description": "mdcp dogfood-only: warn on Pandoc IDs ({#\u2026}) after headings. Prefer GFM auto-slugs; mdcp-core does not require explicit ids."
-}

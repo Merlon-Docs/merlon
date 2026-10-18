@@ -1,6 +1,6 @@
-# Locale pack
+# locale pack
 
-A **locale pack** is MDCP’s compile-time bundle of natural-language data that is **not** GFM protocol shape. It covers:
+A **locale pack** is Merlon Docs’ compile-time bundle of natural-language data that is **not** part of the GFM format. It covers:
 
 - **Generated wording**: text such as US-English insert captions (`Table 1. …`) and `BROKEN LINK` marker copy
 - **Locale-specific patterns**: optional heading-key patterns for semantic refs

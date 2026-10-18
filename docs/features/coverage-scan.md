@@ -1,51 +1,36 @@
 # Documentation coverage scan
 
-Specification for the repository-wide markdown coverage scan and the [standalone guide](../glossary/standalone-guide.md) concept. The scan reports every markdown file that no guide accounts for, so authors either fold the file into a compiled guide or register it as standalone.
+Specification for the repository-wide markdown coverage scan. The scan reports every markdown file that nothing in the config accounts for, and authors then either add the file to a compiled guide or register it as a [standalone guide](../glossary/standalone-guide.md).
 
 ## Two document concepts
 
-MDCP tracks two kinds of authored markdown:
+Merlon Docs tracks two kinds of authored markdown:
 
 | Concept          | Compiled | Source of truth          | Declared in                     |
 | ---------------- | -------- | ------------------------ | ------------------------------- |
 | Guide            | Yes      | Shards under a directory | `guides[]` (via `compileOrder`) |
 | Standalone guide | No       | The file itself          | `standaloneGuides[]`            |
 
-A guide compiles a list of shards into one output. A [standalone guide](../glossary/standalone-guide.md) is a single markdown file that is already whole — for example a hand-authored package `README.md` or a top-level `SECURITY.md`. The scan treats both as accounted for.
+A guide compiles a list of shards into one output, and a [standalone guide](../glossary/standalone-guide.md) is one file that is already whole, such as a hand-authored package `README.md`. The scan treats both as accounted for. [Standalone guides](./standalone-guides.md) specifies how compile and each check treat a registered file.
 
 ## Coverage and the captured set
 
-[Coverage](../glossary/coverage.md) is the set of markdown files MDCP can account for. A file is **captured** when it is one of:
+[Coverage](../glossary/coverage.md) is the set of markdown files Merlon Docs can account for. A file is **captured** when it is one of:
 
 - a markdown file inside a guide directory (a guide listed in `compileOrder`),
 - a markdown file inside a guide's `compile.scopeRoot` (shared trees such as a glossary),
 - a guide output target: a [compiled guide](../glossary/compiled-guide.md) or the [monolith](../glossary/monolith.md), or
 - a `standaloneGuides[]` entry.
 
-Manifest membership inside a guide directory is the [orphan check](./feature-catalog.md#orphan-check)'s job. So the coverage scan treats a whole guide directory as accounted for and reports none of its shards.
+Manifest membership inside a guide directory is the [orphan check](./manifest-compile-order.md#orphan-check-scope)'s job. So the coverage scan treats a whole guide directory as accounted for and reports none of its shards.
 
 The scan walks the scan root for `*.md`, removes ignored vendor paths, then subtracts the captured set. Whatever remains is **uncaptured** and reported.
 
 ### Compiled guides are captured, not standalone
 
-A compiled guide's output file is captured automatically as an output target, so generated files such as `README.md`, `DEVELOPERS.md`, and the package READMEs never appear as uncaptured. **Do not list a compiled guide output in `standaloneGuides[]`** — it is already accounted for, and `standaloneGuides[]` is only for files that no compile step produces.
+A compiled guide's output file is captured automatically as an output target, and generated files such as `README.md`, `DEVELOPERS.md` and the package READMEs don't appear as uncaptured. **Do not list a compiled guide output in `standaloneGuides[]`.** It is already accounted for, and `standaloneGuides[]` is only for files that no compile step produces. This rule is advisory, applied by whoever edits the config, and the `standaloneGuides[]` entries in the config diff are its evidence. A duplicate entry is captured like any other, and `merlon check` passes with it.
 
 The two sets are distinct: a file compiled from shards belongs to the guide output set, while `standaloneGuides[]` holds hand-authored single files. A compiled guide is never a standalone guide.
-
-## Standalone guide behavior
-
-A standalone guide is register-only:
-
-- Compile doesn't write output for it. A guide still stitches it like any shard when the guide's manifest or `compile.scopeRoot` walk reaches it.
-- Its headings stay out of the [refs registry](../glossary/refs-registry.md) unless a guide stitches it into a compiled output.
-- Its outbound links are validated: `.md` and source-file targets must resolve on disk, and same-file `#fragment` anchors must match a heading. See [built-in link validation](./link-validation.md#standalone-guide-validation).
-- `mdcp prose` and `mdcp check` run Vale over it, along with the guide directories or the `vale.scanGlobs` paths. A `.vale.ini` section opts one file out, as [Opt a standalone guide out of Vale](../client-cli/optional-linters.md#opt-a-standalone-guide-out-of-vale) shows.
-- The markdownlint passes in `mdcp lint` and `mdcp check` lint it only when a shard lint path reaches it or the compiled config's globs list it. The shard lint paths are the Markdown files in the guide directories, or `lint.markdownlint.shardsGlobs` in their place.
-- `mdcp fix` runs `prettier --write .` from `--docs-root`, so it formats a standalone guide only when the file is under the docs root.
-
-`standaloneGuides[]` accepts file paths or globs (for example `packages/*/README.md`), resolved from the scan root. It doubles as the canonical inventory of intentionally isolated shards.
-
-A `standaloneGuides[]` glob can match any file under the scan root, even a path that [the scan skips](#what-the-scan-skips): `**/README.md` also matches the READMEs under `node_modules`. Link validation and Vale read every match, as does the [path probe](./path-resolution.md) when `lint.paths` is on. Keep the globs narrow.
 
 ## What the scan skips
 
@@ -55,30 +40,32 @@ The scan honors the repository `.gitignore` by default, so paths already exclude
 
 ## Check surface
 
-`mdcp check` runs the coverage scan and prints each uncaptured path (`uncaptured: …`) plus any `standaloneGuides[]` entries that match no file (`missing-standalone: …`). When gaps exist, it also prints a one-line `coverage:` summary.
+`merlon check` runs the coverage scan and prints each uncaptured path (`uncaptured: …`) plus any `standaloneGuides[]` entries that match no file (`missing-standalone: …`). When gaps exist, it also prints a one-line `coverage:` summary.
 
-By default the report is non-fatal. Set `scan.strict: true` so `mdcp check` exits `1` on uncaptured files or missing standalone entries — use that in dogfood CI once the inventory is registered.
+The scan doesn't follow symbolic links, so a `standaloneGuides[]` entry whose path is a symlink is reported as `missing-standalone`. Register the file the link points to instead.
+
+By default the report is non-fatal. Set `scan.strict: true` so `merlon check` exits `1` on uncaptured files or missing standalone entries. Turn it on in CI once every file is registered.
 
 Machine-readable inventory (captured / uncaptured / standalone / missing) is available from core via `computeCoverage`.
 
-| Condition                        | `mdcp check` exit contribution |
-| -------------------------------- | ------------------------------ |
-| No gaps                          | none                           |
-| Gaps, `scan.strict` false/absent | none (warning lines only)      |
-| Gaps, `scan.strict: true`        | fails check                    |
+| Condition                        | `merlon check` exit contribution |
+| -------------------------------- | -------------------------------- |
+| No gaps                          | none                             |
+| Gaps, `scan.strict` false/absent | none (warning lines only)        |
+| Gaps, `scan.strict: true`        | fails check                      |
 
 ## Relationship to the orphan check
 
-The coverage scan does not replace the [orphan check](./feature-catalog.md#orphan-check). They cover different mistakes:
+The coverage scan does not replace the [orphan check](./manifest-compile-order.md#orphan-check-scope). They cover different mistakes:
 
 | Check         | Scope                                                                                                  | Severity                                   |
 | ------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------ |
-| Orphan check  | A top-level shard in a guide directory missing from its manifest, or a manifest link to a missing file | Error (fails `mdcp check`)                 |
+| Orphan check  | A top-level shard in a guide directory missing from its manifest, or a manifest link to a missing file | Error (fails `merlon check`)               |
 | Coverage scan | Any markdown file under the repo that no guide accounts for                                            | Warning, or error when `scan.strict: true` |
 
 The orphan check stays a hard error because a shard in a guide directory is clearly meant to compile. The coverage scan is a warning because an uncaptured file may be intentional until registered as standalone.
 
-The orphan check reads only the top level of each guide directory in `compileOrder`. The coverage scan treats each guide directory and each `compile.scopeRoot` tree as captured. A shard in a guide subdirectory or under a scope root that nothing links, such as a term in the shared glossary, passes both checks and never compiles.
+[Orphan check scope](./manifest-compile-order.md#orphan-check-scope) says which files the orphan check reads. The coverage scan treats each guide directory and each `compile.scopeRoot` tree as captured. A shard in a guide subdirectory or under a scope root that nothing links, such as a term in the shared glossary, passes both checks and never compiles.
 
 ## Config
 
@@ -94,13 +81,13 @@ The orphan check reads only the top level of each guide directory in `compileOrd
 }
 ```
 
-| Knob               | Default                                    | Role                                                              |
-| ------------------ | ------------------------------------------ | ----------------------------------------------------------------- |
-| `standaloneGuides` | `[]`                                       | Files or globs registered as standalone (captured)                |
-| `scan.gitignore`   | `true`                                     | Honor repo-root `.gitignore` inside git; scan-root only otherwise |
-| `scan.ignore`      | built-in `.git`, `node_modules`, `.agents` | Extra directories or globs to skip                                |
-| `scan.root`        | invocation directory                       | Root the scan walks for markdown files                            |
-| `scan.strict`      | `false`                                    | Fail `mdcp check` on coverage gaps                                |
+| Knob               | Default              | Role                                                              |
+| ------------------ | -------------------- | ----------------------------------------------------------------- |
+| `standaloneGuides` | `[]`                 | Files or globs registered as standalone (captured)                |
+| `scan.gitignore`   | `true`               | Honor repo-root `.gitignore` inside git; scan-root only otherwise |
+| `scan.ignore`      | `[]`                 | Extra directories or globs to skip, added to the built-in skips   |
+| `scan.root`        | invocation directory | Root the scan walks for markdown files                            |
+| `scan.strict`      | `false`              | Fail `merlon check` on coverage gaps                              |
 
 ## Coverage scan acceptance criteria
 
@@ -112,8 +99,8 @@ The orphan check reads only the top level of each guide directory in `compileOrd
 - The scan honors `.gitignore` by default (repo-root `.gitignore` when inside a git working tree; `scan.root` `.gitignore` only when not); `scan.gitignore: false` disables it.
 - Built-in defaults (`.git`, `node_modules`, `.agents`) are always skipped; `scan.ignore` extends them.
 - A `standaloneGuides[]` entry matching no file is reported as missing.
-- `mdcp check` prints uncaptured and missing-standalone paths; with `scan.strict: true` those gaps fail the gate.
-- The existing orphan check behavior is unchanged.
+- `merlon check` prints uncaptured and missing-standalone paths; with `scan.strict: true` those gaps fail the gate.
+- The coverage scan doesn't change what the orphan check reports.
 
 ## Coverage scan related
 

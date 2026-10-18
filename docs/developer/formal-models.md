@@ -19,9 +19,11 @@ The trace lists the states in order. In each state, `Step.kind` names the event 
 
 ## Landing and release
 
-`formal/alloy/landing.als` models the events that move `develop` or `main`. A landing and the sync from `main` move `develop`, the release commit moves `main`, and a PR merge or a maintainer's direct push can move either branch. It also models CI on pull requests, including a PR whose base branch changes after it opens.
+`formal/alloy/landing.als` models the events that move `develop` or `main`. A landing and the sync from `main` move `develop`, the release commit moves `main`, and a PR merge or a maintainer's direct push can move either branch. It also models CI on pull requests, including a PR whose base branch changes after it opens and a PR that opens as a draft.
 
-The model checks three properties. Each one is true only while all of its guards are in place, and for each guard a check finds a run that breaks the property without it. A guard is either a branch rule, which is a repository setting that no workflow can enforce, or a choice in a workflow under `.github/workflows/`.
+The model checks three properties. Each one is true only while all of its guards are in place, and for each guard a check finds a run that breaks the property without it. A guard is either a branch rule, which is a [repository setting](./repository-settings.md) that no workflow can enforce, or a choice in a workflow under `.github/workflows/`.
+
+No test pins a workflow guard. The only check that one is still in place is the [code-owner review](./repository-settings.md#code-owner-review) of `.github/` on a PR into `main`, and [Scenarios and bounds](#scenarios-and-bounds) says what the model assumes of it. So each statement below that a workflow guard is in place is advisory, as [Enforceable rules](../features/design-constraints/enforceable-rules.md) asks, and a code owner's approval of a release PR that changes `.github/` is its evidence.
 
 ### `develop` only moves to a tested tree
 
@@ -30,9 +32,12 @@ The model checks three properties. Each one is true only while all of its guards
 | People cannot push `develop` directly         | Branch rule | A maintainer's push puts untested work on `develop`                                             |
 | A PR into `develop` must be up to date        | Branch rule | A Dependabot PR merged after `develop` moved puts a merge no CI run tested on `develop`         |
 | CI runs again when a PR's base changes        | Workflow    | A PR tested against `main` and then moved to `develop` merges on that old run                   |
+| CI runs when a draft PR is marked ready       | Workflow    | A PR opened as a draft merges on the skipped run that counts as passing, untested               |
 | The sync from `main` runs through a land gate | Workflow    | The sync puts the release commit, or its merge with newer `develop` work, on `develop` untested |
 
-Both workflow guards are in place. GitHub's up-to-date rule asks only that a PR's head contain the base branch's latest commit. It does not ask which base CI last ran against. GitHub proposes `main` as the base of a new PR, and the Release source check asks its author to move it to `develop`. Without a new run, the PR could then merge on its run against `main`. CI in `.github/workflows/ci.yml` also runs on the `edited` event that a base change sends. Moving the PR starts a run against `develop`. No job in it has an `if` that skips an edit, because a skipped run counts as passing and would replace an earlier failure. A title edit reruns CI too.
+All three workflow guards are in place. GitHub's up-to-date rule asks only that a PR's head contain the base branch's latest commit. It does not ask which base CI last ran against. GitHub proposes `main` as the base of a new PR, and the Release source check asks its author to move it to `develop`. Without a new run, the PR could then merge on its run against `main`. CI in `.github/workflows/ci.yml` also runs on the `edited` event that a base change sends. Moving the PR starts a run against `develop`. No job in it has an `if` that skips an edit to a ready PR, because a skipped run counts as passing and would replace an earlier failure. A title edit reruns CI too.
+
+Every job in CI skips a draft PR, as [Pull requests](./versioning-and-releases.md#pull-requests) describes. That skipped run counts as passing too, and GitHub merges no draft, so the run that counts is the one that starts when the PR is marked ready. CI in `.github/workflows/ci.yml` runs on the `ready_for_review` event for that reason. Without it, a draft PR marked ready would merge on its skipped run.
 
 The sync in `.github/workflows/sync-develop.yml` pushes a clean merge to the `land/sync-main` branch and dispatches the land workflow on it. A push made with the workflow's own `GITHUB_TOKEN` doesn't start a workflow, but a dispatch does. The land gate then tests the merge like any other landing, and `develop` moves only when the gate passes. Without that gate, an untested merge that broke `develop` would fail every later landing until someone fixed `develop`.
 
@@ -45,9 +50,10 @@ Only the land workflow pushes `develop`, with that `GITHUB_TOKEN`. So both branc
 | People cannot push `main` directly             | Branch rule | A maintainer's push puts untested work on `main`                               |
 | A PR into `main` must be up to date            | Branch rule | A release PR merged after `main` moved puts a merge no CI run tested on `main` |
 | CI runs again when a PR's base changes         | Workflow    | A PR tested against `develop` and then moved to `main` merges on that old run  |
+| CI runs when a draft PR is marked ready        | Workflow    | A hotfix PR opened as a draft merges on its skipped run, untested              |
 | The release job runs the gate before it pushes | Workflow    | The version commit reaches `main` with less than a landing's gate behind it    |
 
-The CI guard is in place, as for `develop`, and the release job's gate is not. Before the release job in `.github/workflows/release.yml` pushes the version commit, it builds and validates the skills, and the pre-commit hook checks the packages it bumped, which is less than the gate a landing runs. The job also pushes with a maintainer's personal access token. A rule that blocks direct pushes to `main` would block the release as well. Exempting the maintainer whose token the job uses would let that maintainer push by hand too. Closing that path needs an identity for the release job that the rule can exempt on its own.
+The two CI guards are in place, as for `develop`, and the release job's gate is not. Before the release job in `.github/workflows/release.yml` pushes the version commit, it builds and validates the skills and runs the typecheck and the unit tests, which is less than the gate a landing runs. The job also pushes with a maintainer's personal access token. A rule that blocks direct pushes to `main` would block the release as well. Exempting the maintainer whose token the job uses would let that maintainer push by hand too. Closing that path needs an identity for the release job that the rule can exempt on its own.
 
 ### `main` only merges `develop` or `hotfix/*`
 
@@ -61,7 +67,7 @@ The third guard is in place. `.github/workflows/release-source.yml` runs on the 
 
 ### Scenarios and bounds
 
-With every guard on, the model also runs scenarios that show the checks above are not vacuous. A landing is followed by a release PR. The release commit syncs back to `develop`. A Dependabot PR merges into `develop` after a landing moves it, and a hotfix merged into `main` reaches `develop`.
+With every guard on, the model also runs scenarios that show the checks above are not vacuous. A landing is followed by a release PR. The release commit syncs back to `develop`. A Dependabot PR merges into `develop` after a landing moves it, and a hotfix merged into `main` reaches `develop`. A PR that opens as a draft merges into `develop` after it is marked ready.
 
 Every check covers traces of up to seven steps over six commits and one pull request. A passing check means no counterexample exists within that bound, which is large enough for each counterexample above to appear. The model assumes merges are clean and that force-push to `develop` and `main` is blocked. A pushed branch may move to any commit, as the sync's force-push of `land/sync-main` does. It also assumes a code owner approves whenever a rule requires it, and that no branch changes the workflow that checks it. A pushed branch runs its own copy of the land workflow, and a PR runs its own copy of CI and Release source. On a PR into `main`, code owner review of `.github/` is what catches such a change. A landing's copy of the land workflow runs before anyone reviews it.
 

@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const presetsDir = join(__dirname, '../packages/mdcp-presets');
+const presetsDir = join(__dirname, '../packages/merlon-docs-presets');
 
 const files = [
   'markdownlint-shards.markdownlint-cli2.jsonc',
@@ -12,20 +12,20 @@ const files = [
 ];
 
 const valeFiles = [
-  'vale/MDCP/meta.json',
-  'vale/MDCP/BareChapterRef.yml',
-  'vale/MDCP/UnlinkedSeeChapter.yml',
-  'vale/MDCP/BareSectionRef.yml',
-  'vale/MDCP/UnlinkedSeeSection.yml',
-  'vale/MDCP/DatedClaim.yml',
-  'vale/mdcp.vale.ini',
+  'vale/MerlonDocs/meta.json',
+  'vale/MerlonDocs/BareChapterRef.yml',
+  'vale/MerlonDocs/UnlinkedSeeChapter.yml',
+  'vale/MerlonDocs/BareSectionRef.yml',
+  'vale/MerlonDocs/UnlinkedSeeSection.yml',
+  'vale/MerlonDocs/DatedClaim.yml',
+  'vale/merlon.vale.ini',
   'vale/package/.vale.ini',
-  'vale/package/styles/MDCP/meta.json',
-  'vale/package/styles/MDCP/BareChapterRef.yml',
-  'vale/package/styles/MDCP/UnlinkedSeeChapter.yml',
-  'vale/package/styles/MDCP/BareSectionRef.yml',
-  'vale/package/styles/MDCP/UnlinkedSeeSection.yml',
-  'vale/package/styles/MDCP/DatedClaim.yml',
+  'vale/package/styles/MerlonDocs/meta.json',
+  'vale/package/styles/MerlonDocs/BareChapterRef.yml',
+  'vale/package/styles/MerlonDocs/UnlinkedSeeChapter.yml',
+  'vale/package/styles/MerlonDocs/BareSectionRef.yml',
+  'vale/package/styles/MerlonDocs/UnlinkedSeeSection.yml',
+  'vale/package/styles/MerlonDocs/DatedClaim.yml',
 ];
 
 function stripJsoncComments(text) {
@@ -74,8 +74,8 @@ for (const file of valeFiles) {
   }
 }
 
-for (const file of valeFiles.filter((file) => file.startsWith('vale/MDCP/'))) {
-  const packagedFile = file.replace('vale/MDCP/', 'vale/package/styles/MDCP/');
+for (const file of valeFiles.filter((file) => file.startsWith('vale/MerlonDocs/'))) {
+  const packagedFile = file.replace('vale/MerlonDocs/', 'vale/package/styles/MerlonDocs/');
   const source = readFileSync(join(presetsDir, file), 'utf-8');
   const packaged = readFileSync(join(presetsDir, packagedFile), 'utf-8');
   if (source !== packaged) {

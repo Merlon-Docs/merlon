@@ -7,9 +7,9 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for the report. Include steps to reproduce and the `mdcp-cli` version if you can.
+        Thanks for the report. Include steps to reproduce and the `merlon-docs-cli` version if you can.
 
-        Maintainers apply a matching `priority:*` label from your selection below, then finish [new issue intake](https://github.com/betsalel-williamson/mdcp/blob/main/docs/developer/agent-work-item-tracking.md#new-issue-intake-required) (board, Track, Status) — see [Agent work-item tracking](https://github.com/betsalel-williamson/mdcp/blob/main/docs/developer/agent-work-item-tracking.md#issue-priority-value-add).
+        Maintainers apply a matching `priority:*` label from your selection below, then finish [new issue intake](https://github.com/Merlon-Docs/merlon/blob/main/docs/developer/issue-intake-and-labels.md#new-issue-intake-required) (board, Track, Status) — see [Issue intake and labels](https://github.com/Merlon-Docs/merlon/blob/main/docs/developer/issue-intake-and-labels.md#issue-priority-value-add).
 
   - type: dropdown
     id: priority
@@ -26,9 +26,9 @@ body:
       required: true
 
   - type: input
-    id: mdcp-version
+    id: merlon-version
     attributes:
-      label: mdcp-cli version
+      label: merlon-docs-cli version
       placeholder: '0.5.0'
     validations:
       required: true
@@ -38,7 +38,7 @@ body:
     attributes:
       label: Steps to reproduce
       placeholder: |
-        1. Run `mdcp check` in ...
+        1. Run `merlon check` in ...
         2. See error ...
     validations:
       required: true

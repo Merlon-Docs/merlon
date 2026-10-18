@@ -11,13 +11,13 @@ describe('release-build', () => {
   it('dry-run prints build.N bump without writing', () => {
     const result = spawnSync(
       process.execPath,
-      ['scripts/release-build.mjs', '--packages', 'mdcp-cli', '--dry-run'],
+      ['scripts/release-build.mjs', '--packages', 'merlon-docs-cli', '--dry-run'],
       { cwd: root, encoding: 'utf8' },
     );
     assert.equal(result.status, 0, result.stderr);
-    assert.match(result.stdout, /mdcp-cli: 0\.\d+\.\d+ → 0\.\d+\.\d+-build\.1/);
+    assert.match(result.stdout, /merlon-docs-cli: 1\.0\.0-draft\.0 → 1\.0\.0-draft\.0-build\.1/);
     const version = JSON.parse(
-      readFileSync(join(root, 'packages/mdcp-cli/package.json'), 'utf8'),
+      readFileSync(join(root, 'packages/merlon-docs-cli/package.json'), 'utf8'),
     ).version;
     assert.doesNotMatch(version, /-build\./);
   });

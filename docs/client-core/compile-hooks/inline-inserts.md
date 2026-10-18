@@ -1,8 +1,6 @@
 # inlineInserts
 
-<!-- mdcp-paths: illustrative -->
-
-Specification for the `inlineInserts` compile hook. Tests in `packages/mdcp-core/test/inline-inserts.test.ts` map to the sections below (docs first, then TDD).
+Specification for the `inlineInserts` compile hook. The [Spec-to-test map](../../developer/packages-and-tests.md#spec-to-test-map) names the tests behind this spec.
 
 ## inlineInserts purpose
 
@@ -27,7 +25,7 @@ docs/
     insert-catalog.md    # links to ../diagrams/…, ../tables/…, ../figures/…, ../media/…
 ```
 
-Link targets are always `.md` insert shards. Put binary assets alongside the shard (or under the same library) and reference them from the shard body — for example `![Overview](./component-map.png)` or an HTML `<video>` / `<audio>` block when your renderer supports it.
+Link targets are always `.md` insert shards. Put binary assets alongside the shard (or under the same library) and reference them from the shard body with `![Overview](./component-map.png)` or an HTML `<video>` / `<audio>` block when your renderer supports it.
 
 Shards link with normal markdown — no `<!-- directives -->`.
 
@@ -35,19 +33,19 @@ Shards link with normal markdown — no `<!-- directives -->`.
 
 A link is an insert reference when **all** of the following hold:
 
-- Standard markdown link syntax: `[label](path)`.
+- Inline link syntax, `[label](path)`, with the label and target read as the [link passes](../../features/compile-pipeline/link-passes.md) read them. An image, `![alt](path)`, isn't an insert reference.
 - Target starts with an insert library directory and a `/`, after an optional `./` or run of `../`. The directories are `diagram`, `diagrams`, `table`, `tables`, `figure`, `figures`, `media`, `insert` and `inserts`, in any case. No `http://` or `https://` URL starts that way.
 - The path after the directory doesn't start with `#` or whitespace. It ends in `.md` in any case, with at least one character before the `.md`.
 - An optional `#fragment` after the `.md` can't be empty, and file lookup ignores it.
 
-The hook reads the whole shard body, fenced code and code spans included. So it inlines an insert, or writes a back-link, for an insert link in a code example too, where the [link passes](./index.md#link-passes) leave a link as written.
+The hook reads the whole shard body, fenced code and code spans included. So it inlines an insert, or writes a back-link, for an insert link in a code example too, where the [link passes](../../features/compile-pipeline/link-passes.md) leave a link as written.
 
 ## inlineInserts exclusions
 
 The hook **does not** transform:
 
-- Regular shard links (for example `./intro.md`, `../glossary/term.md`)
-- Direct links to binary assets (for example `../figures/architecture.png`, `../figures/demo.mp4`) — use a captioned `.md` insert shard that embeds the media instead
+- Regular shard links, such as `./intro.md` or `../glossary/term.md` <!-- merlon-paths: illustrative -->
+- Direct links to binary assets such as `../figures/architecture.png` or `../figures/demo.mp4`; see [layout](#inlineinserts-layout)
 - External URLs, even when the path contains `diagrams/`
 - Links to missing insert files (left unchanged)
 - Body text when `inlineInserts` is disabled via `compile.hooks: { "inlineInserts": false }` or an explicit hook override that omits it
@@ -67,9 +65,13 @@ The first reference to an insert file (document order across all shards in the g
 - **caption** — link label, or a humanized basename when the label is empty
 - **Anchor slug** — GitHub-style slug of the full heading (for example `Table 1. Status codes` → `#table-1-status-codes`)
 
-Output uses GFM headings and back-links for captions. The hook inlines each shard body as written. The assembly passes after the hooks then treat that body as part of the shard, from link rewriting to [table re-alignment](./tables-after-link-rewriting.md). A body can contain markdown tables and `![images](…)`, and HTML `<video>` / `<audio>` when your renderer supports them.
+The label of a linked image, `[![I](./i.png)](../diagrams/d.md)`, contains the image. The heading then reads `#### Diagram 1. ![I](./i.png)`, and a back-link to it uses the slug of that text, `#diagram-1-iipng`.
+
+Output uses GFM headings and back-links for captions. The hook inlines each shard body as written. The assembly passes after the hooks then treat that body as part of the shard, from link rewriting to [table re-alignment](../../features/compile-pipeline/tables-after-link-rewriting.md). A body can contain markdown tables and `![images](…)`.
 
 The heading and body replace the link, so a first reference in a table cell breaks the table, as the [compile example](#inlineinserts-compile-example) shows. Give the first reference a paragraph of its own, ahead of any table cell that links to the insert.
+
+In the compiled markdownlint pass of [`merlon check`](../../features/check-gate.md#check-gate-stages), the broken row fails MD056 (table-column-count). That pass lints only the outputs that the globs in its `lint.markdownlint.compiledConfig` file match, and a table broken in any other output passes the check.
 
 ## inlineInserts numbered captions
 
@@ -93,13 +95,13 @@ Rules:
 
 Within one guide:
 
-- First link to `../diagrams/flow.md` → inline under numbered heading
+- First link to `../diagrams/flow.md` → inline under numbered heading <!-- merlon-paths: illustrative -->
 - Later links to the same resolved file (any path spelling, with or without `#fragment`) → `` `[label](#diagram-1-…)` ``
-- Same basename in different libraries (`diagrams/overview.md` vs `tables/overview.md`) → separate headings and anchors
+- Same basename in different libraries (`diagrams/overview.md` vs `tables/overview.md`) → separate headings and anchors <!-- merlon-paths: illustrative -->
 
 ## inlineInserts path resolution
 
-The hook finds each insert shard in the order [Path lookup order](./index.md#path-lookup-order) gives for `inlineInserts`.
+The hook finds each insert shard in the order [Path lookup order](../../features/compile-pipeline/path-lookup-order.md) gives for `inlineInserts`.
 
 ## inlineInserts config
 
@@ -116,7 +118,7 @@ Runs by default. Optional search roots, each the parent of an insert library dir
 }
 ```
 
-A link to `diagrams/flow.md` that no earlier root in the [lookup order](./index.md#path-lookup-order) resolves then finds `shared/diagrams/flow.md`.
+A link to `diagrams/flow.md` that no earlier root in the [lookup order](../../features/compile-pipeline/path-lookup-order.md) resolves then finds `shared/diagrams/flow.md`. <!-- merlon-paths: illustrative -->
 
 Opt out: `"hooks": { "inlineInserts": false }`. See [Default compile hooks](../../features/default-compile-hooks.md).
 
@@ -152,7 +154,7 @@ See [Request flow](#diagram-1-request-flow) again in prose.
 
 Example fixture: [`examples/sample-guides/inserts-demo/`](../../../examples/sample-guides/inserts-demo/). Its catalog gives each insert's first reference a paragraph of its own, and its table links to each insert again. Compile turns those table links into back-links and re-aligns the table. See [GitHub media reference](../../../examples/sample-guides/inserts-demo/github-media-help.md) for a format matrix (PNG, JPEG, GIF, SVG, MP4, MP3/WAV, Mermaid, tables, lists) and minimal generated sample assets under `figures/` and `media/`.
 
-**Figure with embedded image** — shard `figures/component-map.md`:
+**Figure with embedded image** (shard `figures/component-map.md`): <!-- merlon-paths: illustrative -->
 
 ```markdown
 ![Component map overview](./component-map.png)
@@ -160,7 +162,7 @@ Example fixture: [`examples/sample-guides/inserts-demo/`](../../../examples/samp
 
 Catalog link `` `[Component map](../figures/component-map.md)` `` compiles to a numbered `#### Figure 1. …` heading followed by that image markdown.
 
-**Media with embedded video** — shard `media/walkthrough.md`:
+**Media with embedded video** (shard `media/walkthrough.md`): <!-- merlon-paths: illustrative -->
 
 ```markdown
 <video src="./walkthrough.mp4" controls></video>

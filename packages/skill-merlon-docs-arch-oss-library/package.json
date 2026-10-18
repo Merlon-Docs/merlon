@@ -1,0 +1,6 @@
+{
+  "name": "@merlon-docs/skill-merlon-docs-arch-oss-library",
+  "version": "1.0.0-draft.0",
+  "private": true,
+  "description": "Version carrier for skills/merlon-docs-arch-oss-library (private; CHANGELOG + GitHub Releases; syncs version to SKILL.md). Not published to npm."
+}

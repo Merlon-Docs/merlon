@@ -1,0 +1,4 @@
+{
+  "name": "MerlonDocs",
+  "description": "Merlon Docs en-US prose cues: numbered heading mentions (Chapter/Section/Ch./Sec.) without a GFM markdown link, and claims pinned to a date with 'as of' or 'until' before an ISO date. Prefer links to target shards; Merlon Docs validates link targets separately."
+}

@@ -1,16 +1,16 @@
 # Compile output backup
 
-Specification for opt-in backup of existing compile targets before overwrite. Tests in `packages/mdcp-core/test/compile-backup.test.ts` and `packages/mdcp-cli/test/cli.smoke.test.ts` map to the sections below (docs first, then TDD).
+Specification for opt-in backup of existing compile targets before overwrite. The [Spec-to-test map](../developer/packages-and-tests.md#spec-to-test-map) names the tests behind this spec.
 
 ## Purpose
 
 Compile output paths can target existing files — monolith `outputFile` and per-guide `compile.outputFile`. In a git-tracked repo, overwrite is the expected workflow: `git diff` is the safety net.
 
-For operators working **outside version control**, or who want a recoverable copy before a risky publish-path overwrite (for example `README.md`), opt-in backup moves the prior file into the gitignored cache tree under `outputDir`.
+For operators working **outside version control**, or who want a recoverable copy before a risky overwrite of a publish path such as `README.md`, opt-in backup moves the prior file into the backup root, which by default is `backups/` in the gitignored cache tree under `outputDir`. The backup of a publish output outside the docs root can land outside the backup root, as [Backup path layout](#backup-path-layout) shows.
 
 ## Overwrite default
 
-`mdcp compile` **overwrites** existing output files with no backup. No existence check, no sibling `.bak` files next to tracked publish targets.
+`merlon compile` **overwrites** existing output files with no backup. No existence check, no sibling `.bak` files next to tracked publish targets.
 
 ## Opt-in backup
 
@@ -29,23 +29,27 @@ When the target does not exist, write directly — no backup directory created.
 
 ### Backup path layout
 
-| Piece           | Default                          | Resolved from                                             |
-| --------------- | -------------------------------- | --------------------------------------------------------- |
-| Backup root     | `.caches/backups`                | `outputDir` (same convention as `refs.registryFile`)      |
-| Backup file key | docsRoot-relative path to target | e.g. `_build/guides.md`, `../packages/mdcp-cli/README.md` |
-| Extension       | `''`                             | `backup.ext` or `--backup-ext`                            |
+| Piece           | Default                          | Resolved from                                                               |
+| --------------- | -------------------------------- | --------------------------------------------------------------------------- |
+| Backup root     | `.caches/backups`                | `outputDir` ([Path layout](../client-cli/config-essentials.md#path-layout)) |
+| Backup file key | docsRoot-relative path to target | e.g. `_build/guides.md`, `../packages/merlon-docs-cli/README.md`            |
+| Extension       | `''`                             | `backup.ext` or `--backup-ext`                                              |
+
+With `--docs-root docs`, the default `outputDir` and two compile targets, `_build/guides.md` and the publish output `../packages/merlon-docs-cli/README.md`:
 
 ```text
-docs/_build/                     ← outputDir
-  guides.md                      ← compile target
+docs/_build/                       ← outputDir
+  guides.md                        ← compile target
   .caches/
-    refs.json                    ← refs registry (always)
-    backups/                     ← opt-in backups only
-      guides.md                  ← prior content when --backup used
-      ../packages/mdcp-cli/README.md
+    refs.json                      ← refs registry (always)
+    backups/                       ← backup root
+      _build/guides.md             ← prior guides.md (key _build/guides.md)
+    packages/merlon-docs-cli/README.md    ← prior publish output (key ../packages/merlon-docs-cli/README.md)
 ```
 
-Delete `_build/` to clean generated output and all backups. Root `.gitignore` includes `.caches/` for legacy layouts where `outputDir` is `.`.
+The backup of a publish output outside the docs root climbs out of the backup root, one directory for each `../` at the start of its key. With the default `backup.dir`, a key with one `../` puts the backup under `.caches/`, beside `backups/`. With a one-level `backup.dir` such as `archive`, that backup lands under `outputDir`, at `docs/_build/packages/merlon-docs-cli/README.md`, and a key with two `../` segments puts it outside `outputDir`, in the docs root.
+
+Delete `_build/` to clean generated output and the backups under it. When `outputDir` is `.`, list `.caches/` in `.gitignore`, because the cache tree then sits in the docs root itself.
 
 ## Config
 
@@ -77,20 +81,19 @@ Global options (all commands that write compile output):
 | `--backup-dir <path>` | Backup directory relative to `outputDir` (default `.caches/backups`) |
 | `--backup-ext <ext>`  | Suffix on backup filename (default none)                             |
 
-Commands affected: `compile`, `refs gen`, `lint`, `links`, `check`.
+Commands affected: `compile`, `refs-gen`, `lint`, `links`, `check`.
 
 ## Backup acceptance criteria
 
 - Default overwrite — new file written; no backup directory created
 - Default overwrite — existing file replaced; no backup created
 - Opt-in backup — existing file moved to cache mirror path; new content at target
-- Backup path uses docsRoot-relative key (publish paths outside `_build` land in cache, not beside tracked files)
+- Backup path uses the docsRoot-relative key: the backup of a publish output under the docs root goes into the backup tree, not beside the tracked file
 - Custom `backup.dir` and `backup.ext` respected
 - Config `backup` object parses with defaults (`enabled: false`, `dir: '.caches/backups'`, `ext: ''`)
-- CLI `mdcp compile --backup` creates cache backup on re-compile
+- CLI `merlon compile --backup` creates cache backup on re-compile
 
 ## Related
 
 - [Config essentials — path layout](../client-cli/config-essentials.md#path-layout)
-- [API — Compile](../client-core/api-compile.md)
-- GitHub issue [#20](https://github.com/betsalel-williamson/mdcp/issues/20)
+- [Compile API](../client-core/api-compile.md)

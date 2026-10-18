@@ -4,8 +4,8 @@
   "groupings": [
     {
       "title": "Documentation system",
-      "description": "MDCP: one skill that picks its workflow for bootstrap, docs-only, design, feature, UX, and doc review.",
-      "skills": ["mdcp"]
+      "description": "Documentation guardrails for software repos (not a personal wiki): sharded docs in git, compile for reviewable guides, merlon check in CI for links and structure. Install the skill and reference it in AGENTS.md so agents update shards with the code; humans review accuracy.",
+      "skills": ["merlon-docs"]
     }
   ]
 }

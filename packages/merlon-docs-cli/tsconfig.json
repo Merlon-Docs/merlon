@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "paths": {
+      "@merlon-docs/merlon-docs-core": ["../merlon-docs-core/src/index.ts"],
+      "@merlon-docs/merlon-docs-core/*": ["../merlon-docs-core/src/*"]
+    }
+  },
+  "include": ["src/**/*"]
+}

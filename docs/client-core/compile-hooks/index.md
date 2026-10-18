@@ -1,6 +1,6 @@
 # Compile hooks
 
-Per-shard transforms run during `assembleGuide` **before** sections are stitched. Hooks receive each shard body after heading demotion and preamble stripping. Assembly then runs the [link passes](#link-passes) on the shard and strips anchors after stitching. Its last step [re-aligns tables](./tables-after-link-rewriting.md), as the diagram below shows.
+Per-shard transforms run during `assembleGuide` **before** sections are stitched. Hooks receive each shard body after heading demotion and preamble stripping. The diagram below shows the steps around the hooks.
 
 Hooks assemble [authored GFM](../../glossary/authored-gfm.md). They don't do variable substitution or template logic. See [Preprocessor / templating (out of scope)](../../features/design-constraints/preprocessor-templating.md#preprocessor--templating-out-of-scope).
 
@@ -22,128 +22,55 @@ assembleGuide (per guide, once for each document it is written to)
   └─ markBrokenLinks → realignTables (the last step)
 ```
 
-**Guide link index**: built once per `compileGuideResults` from every guide in `compileOrder` (manifest sections plus [linked shards](../../features/manifest-compile-order.md#linked-shards-and-the-file-name-fallback)). Used by the automatic cross-guide pass. Optional `compile.crossGuideLinks.ignoreGuides` on the compiling guide keeps shard paths in its links to listed guides, except in the cases that [its config section](./cross-guide-links.md#compilecrossguidelinksignoreguides) points to.
+**Guide link index**: `compileGuideResults` builds it once from every guide in `compileOrder`, and the cross-guide pass reads it. [Guide link index](../../features/compile-pipeline/cross-guide-links.md#guide-link-index) says which shards have an entry.
 
-**Per-assembly hook state**: mutable `hookState` on `CompileHookContext` (such as `inlineInserts` counters and first-anchor map) shared across shard invocations within one assembly. A guide in the [monolith](../../glossary/monolith.md) is assembled twice, once for its compiled guide and once for the monolith. So every hook it runs, a registered custom hook included, sees each shard twice, with fresh `hookState` each time. A hook with side effects beyond its return value repeats them.
+**Per-assembly hook state**: mutable `hookState` on `CompileHookContext` (such as `inlineInserts` counters and first-anchor map) shared across shard invocations within one assembly. Each assembly starts with fresh `hookState`, and a guide in the monolith has one assembly for each document, as [When it runs](../../features/compile-pipeline/publish-relative-links.md#when-it-runs) says. So every hook it runs, a registered custom hook included, sees each of its shards twice, and a hook with side effects beyond its return value repeats them.
 
-### Link passes
-
-Assembly rewrites links to files in the passes below. They run on each shard in table order, and the intra-guide pass runs once more on the stitched body. They aren't compile hooks, so `compile.hooks` doesn't turn them off. Every later pass leaves alone a link that `codeEvidence` rebased or that the cross-guide or publish-relative pass rewrote, and that includes the run on the stitched body. Assembly marks each of those targets, and it removes the marks after that run. So a cross-guide target such as `glossary.md#term` stays as the cross-guide pass wrote it, even when the guide stitches a shard named `glossary.md`.
-
-Assembly marks the paths `codeEvidence` rebased once every hook has run, so no hook sees a mark. It finds each of those links by the text the hook wrote and by its place among the links with that text. So a link the shard wrote with the same text, which the hook left as written, doesn't get a mark. When a hook listed after `codeEvidence` changes that text, or adds or removes a link with that text above it, the publish-relative pass can rebase the hook's path again, and leave another link with that text as it is.
-
-The passes leave a link in fenced code or in a code span as written, and so do `codeEvidence` and broken-link marking. They pair code spans within each line, so a code span that wraps onto the next line doesn't hide a link. They find fenced code with the fence scan that [stripAnchors code](./strip-anchors.md#stripanchors-code) describes, which reads fences of backticks or tildes and follows list items. They also run that scan on the text of each blockquote, so a fence in a quote counts up to ten blockquotes deep. The per-shard passes and `codeEvidence` start a new scan on each shard. Broken-link marking and compiled link lint read the whole guide with one scan, as the intra-guide run on the stitched body does. So a shard that ends inside an open fence can make them disagree about the shard after it.
-
-| Pass             | When                                       | Matches                                                                                                     | Output                                         |
-| ---------------- | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| Cross-guide      | Per shard, after the hooks                 | `./` and `../` paths to a shard in the guide link index                                                     | `#slug`, or another output's path plus `#slug` |
-| Intra-guide      | Per shard, then again on the stitched body | Bare and `./` paths to a shard the guide stitches, and after stitch the `../` paths no earlier pass rewrote | `#slug`                                        |
-| Publish-relative | Per shard, after intra-guide               | `../` paths to a file or directory that exists, or to an output of the run                                  | The path relative to the guide's link base     |
-
-A link with a `#fragment` keeps it in place of the slug. [Cross-guide resolution](./cross-guide-links.md#cross-guide-resolution) says when a cross-guide link stays in the document and which output it names otherwise. [Publish-relative matching](./publish-relative-links.md#publish-relative-matching) says which `../` targets the publish-relative pass skips, and [`ignoreGuides` interaction](./publish-relative-links.md#ignoreguides-interaction) covers a cross-guide link that keeps its shard path. The publish-relative shard also defines the [link base](./publish-relative-links.md#when-it-runs).
-
-### Path lookup order
-
-A pass that follows a link to a file first drops any leading `./` and the `#fragment`. It then tries the directories below in order and uses the first one where the path exists. A path found in none of them stays as written. `codeEvidence` can still change the `#fragment` of such a link, as [codeEvidence path resolution](./code-evidence.md#codeevidence-path-resolution) says.
-
-| Pass                      | Lookup order                                                                                                                                 |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `codeEvidence`            | Shard directory, working directory, parent of the working directory, `compile.scopeRoot`                                                     |
-| `inlineInserts`           | Shard directory, working directory, parent of the working directory, `compile.scopeRoot`, each `hooksConfig.inlineInserts.searchRoots` entry |
-| Cross-guide rewrite       | Shard directory, working directory, parent of the working directory, `compile.scopeRoot`, guide directory                                    |
-| Intra-guide, per shard    | Shard directory, guide directory, then the first stitched shard with that file name                                                          |
-| Intra-guide, after stitch | Guide directory, then the first stitched shard with that file name                                                                           |
-| Publish-relative rewrite  | Shard directory, `compile.scopeRoot`, guide directory                                                                                        |
-
-The shard directory contains the shard being compiled, and the guide directory contains the guide's manifest. `compile.scopeRoot` is resolved from the docs root and skipped when unset. The working directory is `process.cwd()`, where the command runs, and `searchRoots` entries are resolved from it, so the same shard can resolve differently from the repository root and from `docs/`. The intra-guide pass looks paths up among the shards the guide stitches rather than on disk. Its per-shard run skips paths that start with `../`, and the file-name match applies only to a link that is a file name alone, such as `name.md` or `./name.md`.
-
-The publish-relative rewrite also finds a path to an output of the run before compile writes the output. A first compile then rebases a link to an output as later compiles do. The outputs of the run are the ones that [link validation](../../features/link-validation.md#validation-phases) checks in memory: each guide's compiled guide, and the monolith when a guide is stitched into it. When every guide sets `compile.outputFile`, the run never writes the configured monolith. The rewrite then treats a path to the monolith as missing, even when an earlier run left the file on disk, as link validation does.
-
-After lookup, `codeEvidence` and the publish-relative rewrite emit the path relative to the guide's [link base](./publish-relative-links.md#when-it-runs), and `inlineInserts` inlines the file. The cross-guide and intra-guide rewrites emit a heading target: `#slug`, after the other output's path when the target is in another file.
-
-### guideDir misaligned with shard tree
-
-Some guides set `path` to a compiled subdirectory while the shards are elsewhere in the same tree, often one level up from the guide directory:
-
-```text
-guide/
-  compiled/shards.md   ← manifest (guideDir)
-  section-a.md
-  topic/section-b.md
-  assets/diagram.md
-```
-
-The config uses `"path": "guide/compiled"` with `"compile": { "manifest": "shards.md", … }`. The manifest lists each shard with a path that starts with `../`, because a bare path can't step up out of a directory. A bare link between the shards, such as `[Section B](topic/section-b.md)` in section A, still resolves, because the per-shard intra-guide pass tries the shard directory before the guide directory.
+The Features Guide's [Compile pipeline](../../features/compile-pipeline/index.md) specifies the assembly steps that aren't hooks, and the rules they share with the hooks. Its [Path lookup order](../../features/compile-pipeline/path-lookup-order.md) gives the directories each hook and pass tries when it follows a link to a file.
 
 ## Extension pattern
 
-Register custom hooks in consumer or library code:
+A custom hook runs only in a process that registers it with `registerCompileHook` before it calls `compileGuideResults` or `compileGuides`. Importing the core registers the built-in hooks and `identity`, which returns the body unchanged. The Merlon Docs CLI doesn't load a custom hook, so `merlon compile` and `merlon check` compile without one. Register yours in your own build script:
 
 ```typescript
-import { registerCompileHook } from '@bwilliamson/mdcp-core';
+import { registerCompileHook } from '@merlon-docs/merlon-docs-core';
 
 registerCompileHook('myHook', (ctx) => {
   return ctx.body.replace(/TODO/g, 'DONE');
 });
 ```
 
-Custom hooks are **not** in the default pipeline — list them explicitly in `compile.hooks` when needed.
+Then list it in the array form of `compile.hooks` next to the built-in hooks the guide keeps, such as `["stripAnchors", "codeEvidence", "inlineInserts", "myHook"]`. [Explicit override](../../features/default-compile-hooks.md#explicit-override) says the array replaces the default pipeline, so it has to list them.
 
-Hook implementations should be **pure on `ctx.body`** except when intentionally using shared `hookState`. Leave unmatched links unchanged. Prefer docs-first specs with tests mapped to spec sections (see each hook shard below).
+Compile skips any name in `compile.hooks` that has no registered hook, and it doesn't warn. A misspelled name, such as `codeEvidense`, compiles as if the list left it out, and no check reports it. Registering a hook under a name already in use replaces that hook, a built-in one included.
+
+A hook gets a `CompileHookContext` and returns the new body. Assembly always sets `hookState`, and passes `{}` as `config` when the caller doesn't give one. `compileGuideResults` sets every other field, and `scopeRoot` only when the guide sets `compile.scopeRoot`. A direct `assembleGuide` call sets `outputFile`, `outputBasename`, `scopeRoot` and `linkIndex` only when its options give them.
+
+| Field            | Value                                                                                                                          |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `body`           | The shard body, after heading demotion, preamble stripping and the hooks listed before this one                                |
+| `guideName`      | The configured name of the guide being compiled                                                                                |
+| `filename`       | The shard's file name                                                                                                          |
+| `sourceFile`     | The shard's absolute path                                                                                                      |
+| `config`         | The config the caller passed as `CompileOptions.config` (an `MerlonConfigInput`), or `{}`                                      |
+| `outputFile`     | Optional. The absolute path of the guide's [link base](../../features/compile-pipeline/publish-relative-links.md#when-it-runs) |
+| `outputBasename` | Optional. The file name of `outputFile`                                                                                        |
+| `scopeRoot`      | Optional. The absolute `compile.scopeRoot`, unset when the guide doesn't set it                                                |
+| `hookState`      | State that the hook calls of one assembly share, from one shard to the next. Always set, though the type marks it optional     |
+| `linkIndex`      | Optional. The [guide link index](../../features/compile-pipeline/cross-guide-links.md#guide-link-index)                        |
+
+Hook implementations should be **pure on `ctx.body`** except when intentionally using shared `hookState`. Leave unmatched links unchanged.
 
 ## Configuration
 
-Built-in hooks run **by default**. Omit `compile.hooks` for the common case. Optional per-hook config lives under `guides[].compile.hooksConfig`.
-
-```json
-{
-  "name": "glossary",
-  "compile": {
-    "scopeRoot": ".",
-    "outputFile": "glossary.md",
-    "hooksConfig": {
-      "inlineInserts": { "searchRoots": ["shared"] }
-    }
-  }
-}
-```
-
-Optional assembly-time cross-guide exceptions: `compile.crossGuideLinks.ignoreGuides` on the compiling guide — see [Cross-guide link rewriting](./cross-guide-links.md).
-
-### Opt out per hook
-
-Disable specific defaults with an object on `compile.hooks` (`false` removes a hook):
-
-```json
-{
-  "compile": {
-    "hooks": { "inlineInserts": false }
-  }
-}
-```
-
-### Explicit override
-
-Replace the entire default pipeline with a string array (backward compatible):
-
-```json
-{
-  "compile": {
-    "hooks": ["stripAnchors", "codeEvidence"]
-  }
-}
-```
-
-Default hook order and behavior: [Default compile hooks](../../features/default-compile-hooks.md). Config API: [API — Config](../api-config.md).
+Built-in hooks run by default, so omit `compile.hooks` for the common case. [Default compile hooks](../../features/default-compile-hooks.md#configuration) gives the forms `compile.hooks` takes to turn a hook off or replace the list. Per-hook settings go under `guides[].compile.hooksConfig`, as [inlineInserts config](./inline-inserts.md#inlineinserts-config) shows, and the [config API](../api-config.md#compilehooks) covers `resolveCompileHooks`. [stripAnchors purpose](./strip-anchors.md#stripanchors-purpose) says what `compile.stripAnchors` does.
 
 For manifest compile order and `compile.sectionsHeading`, see [Manifest compile order](../../features/manifest-compile-order.md).
 
 ## Built-in hooks
 
-- **`stripAnchors`**: per shard (also default post-stitch). [stripAnchors](./strip-anchors.md): removes `{#id}` markers outside code, and every marker on a heading line.
+- **`stripAnchors`**: per shard. [stripAnchors](./strip-anchors.md): removes `{#id}` markers outside code, and every marker on a heading line.
 - **`codeEvidence`**: per shard. [codeEvidence](./code-evidence.md): repo source links → `#L` fragments.
 - **`inlineInserts`**: per shard. [inlineInserts](./inline-inserts.md): inline captioned insert libraries.
 
-Assembly also runs the [link passes](#link-passes), which aren't hooks. Its last step, after broken-link marking, is [table re-alignment](./tables-after-link-rewriting.md), which prints an aligned table again once its links change width.
-
-`stripAnchors` is also controlled by `compile.stripAnchors` (default `true`) after assembly.
+Assembly also runs the [link passes](../../features/compile-pipeline/link-passes.md), which aren't hooks. Its last step, after broken-link marking, is [table re-alignment](../../features/compile-pipeline/tables-after-link-rewriting.md), which prints an aligned table again once its links change width.
