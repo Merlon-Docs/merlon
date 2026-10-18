@@ -1,5 +1,11 @@
 # @merlon-docs/merlon-docs-cli
 
+## 1.0.0-draft.1
+
+### Patch Changes
+
+- 6960918: Spell the coverage scan root like `--docs-root` when both name the same directory, so `merlon check` no longer reports compiled outputs and shards as uncaptured, or prints standalone-guide paths under a different prefix, when the docs root sits behind a symlink such as macOS's `/var` → `/private/var`.
+
 ## 1.0.0-draft.0
 
 ### Major Changes
