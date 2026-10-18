@@ -31,8 +31,8 @@ const VALE_WALK_SKIPS = new Set(['node_modules', '.git']);
  * scanned directory reaches only through such a link gets its own argument as well, and
  * Vale lints it under both names.
  *
- * An empty `standaloneGuides` entry is skipped, because fast-glob throws on an empty
- * pattern.
+ * An empty `standaloneGuides` entry is skipped, because an empty glob pattern names no
+ * file.
  */
 export function valeScanPaths(config: MerlonConfig, docsRoot: string, scanRoot: string): string[] {
   const root = resolve(docsRoot);

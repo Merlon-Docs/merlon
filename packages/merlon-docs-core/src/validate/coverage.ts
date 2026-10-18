@@ -1,5 +1,5 @@
 import { dirname, relative, resolve, sep } from 'node:path';
-import fg from 'fast-glob';
+import { escapePath, globSync } from 'tinyglobby';
 import ignoreFactory from 'ignore';
 import { readFileSync, existsSync } from 'node:fs';
 
@@ -38,7 +38,7 @@ function toPosix(p: string): string {
 
 /**
  * Drop absolute paths matched by `scan.ignore` globs (plus the built-in ignores), using the
- * same fast-glob matching as {@link computeCoverage}. Globs are relative to `root`; paths
+ * same tinyglobby matching as {@link computeCoverage}. Globs are relative to `root`; paths
  * outside `root` are kept because no scan glob can name them.
  */
 export function filterScanIgnored(root: string, absPaths: string[], ignore: string[]): string[] {
@@ -51,14 +51,15 @@ export function filterScanIgnored(root: string, absPaths: string[], ignore: stri
     else inside.push(rel);
   }
   if (inside.length > 0) {
-    // Static (escaped) patterns: fast-glob checks each file and applies `ignore` exactly as the scan does.
-    const visible = fg.sync(
-      inside.map((rel) => fg.escapePath(rel)),
+    // Static (escaped) patterns: tinyglobby checks each file and applies `ignore` exactly as the scan does.
+    const visible = globSync(
+      inside.map((rel) => escapePath(rel)),
       {
         cwd: base,
         dot: true,
         onlyFiles: true,
         followSymbolicLinks: false,
+        expandDirectories: false,
         ignore: [...BUILT_IN_IGNORE, ...ignore],
       },
     );
@@ -137,11 +138,12 @@ export function resolveStandaloneGuides(
   const matched = new Set<string>();
   const missing: string[] = [];
   for (const entry of entries) {
-    const matches = fg.sync(entry, {
+    const matches = globSync(entry, {
       cwd: resolve(root),
       dot: true,
       onlyFiles: true,
       followSymbolicLinks: false,
+      expandDirectories: false,
     });
     if (matches.length === 0) {
       missing.push(entry);
@@ -164,11 +166,12 @@ export function resolveStandaloneGuides(
 export function computeCoverage(opts: CoverageOptions): CoverageResult {
   const root = resolve(opts.root);
 
-  const scannedRel = fg.sync('**/*.md', {
+  const scannedRel = globSync('**/*.md', {
     cwd: root,
     dot: true,
     onlyFiles: true,
     followSymbolicLinks: false,
+    expandDirectories: false,
     ignore: [...BUILT_IN_IGNORE, ...opts.ignore],
   });
 

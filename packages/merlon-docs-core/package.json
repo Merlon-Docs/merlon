@@ -52,10 +52,10 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "fast-glob": "^3.3.3",
     "github-slugger": "^2.0.0",
     "ignore": "^7.0.12",
     "semver": "^7.8.5",
+    "tinyglobby": "^0.2.17",
     "zod": "^4.6.5"
   },
   "devDependencies": {

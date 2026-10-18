@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
-import fg from 'fast-glob';
+import { globSync } from 'tinyglobby';
 import type { MerlonConfig } from '../config/schema.js';
 import { getGuideConfig, guideScanDirs } from '../config/load.js';
 import { type ExtensionConfig, fileExtensionSet } from '../compile/hooks/path-resolve.js';
@@ -255,7 +255,15 @@ export function pathProbeInputs(
 ): PathProbeOptions {
   const files: string[] = [];
   for (const dir of guideScanDirs(config, docsRoot)) {
-    files.push(...fg.sync('**/*.md', { cwd: dir, absolute: true, onlyFiles: true, dot: true }));
+    files.push(
+      ...globSync('**/*.md', {
+        cwd: dir,
+        absolute: true,
+        onlyFiles: true,
+        dot: true,
+        expandDirectories: false,
+      }),
+    );
   }
   const { matched } = resolveStandaloneGuides(scanRoot, config.standaloneGuides);
   files.push(...matched.map((rel) => resolve(scanRoot, rel)));

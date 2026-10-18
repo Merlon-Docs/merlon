@@ -96,9 +96,6 @@ importers:
 
   packages/merlon-docs-core:
     dependencies:
-      fast-glob:
-        specifier: ^3.3.3
-        version: 3.3.3
       github-slugger:
         specifier: ^2.0.0
         version: 2.0.0
@@ -108,6 +105,9 @@ importers:
       semver:
         specifier: ^7.8.5
         version: 7.8.5
+      tinyglobby:
+        specifier: ^0.2.17
+        version: 0.2.17
       zod:
         specifier: ^4.6.5
         version: 4.6.5
