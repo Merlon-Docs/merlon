@@ -620,7 +620,7 @@ export function syncContent(opts) {
 
   // When the Agent Skill guide (`repo-readme`) is published, also publish `docs/skills.md` and
   // the source files under `skills/**` directly under that guide's route so readers can read
-  // `SKILL.md`, its workflows, and the archetype skills on the site as Part 1.
+  // `SKILL.md` and its workflows on the site as Part 1.
   const skillGuide = guides.find((g) => g.name === 'repo-readme');
   const skillSidebarGroups = [];
   if (skillGuide) {
@@ -697,21 +697,6 @@ export function syncContent(opts) {
       if (p) refItems.push({ label, slug: p.route });
     }
 
-    const archSkills = [
-      ['merlon-docs-arch-oss-library', 'OSS library archetype'],
-      ['merlon-docs-arch-product-docs-site', 'Product docs site archetype'],
-      ['merlon-docs-arch-gtm', 'Go-to-market archetype'],
-      ['merlon-docs-arch-research', 'Research project archetype'],
-    ];
-    const archItems = [];
-    for (const [dirName, label] of archSkills) {
-      const p = registerExtraPage(
-        join(repoRoot, 'skills', dirName, 'SKILL.md'),
-        `archetypes/${dirName}`,
-      );
-      if (p) archItems.push({ label, slug: p.route });
-    }
-
     const readTheSkillItems = [];
     if (skillsCatalogPage) {
       readTheSkillItems.push({ label: 'Skills & workflows index', slug: skillsCatalogPage.route });
@@ -724,9 +709,6 @@ export function syncContent(opts) {
     }
     if (refItems.length) {
       readTheSkillItems.push({ label: 'Skill references', collapsed: true, items: refItems });
-    }
-    if (archItems.length) {
-      readTheSkillItems.push({ label: 'Archetype skills', collapsed: true, items: archItems });
     }
     if (readTheSkillItems.length) {
       skillSidebarGroups.push({

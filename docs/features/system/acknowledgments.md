@@ -12,7 +12,7 @@ This note records **lineage** for Merlon Docs’ documentation philosophy. It su
 | Cynefin (Dave Snowden and collaborators)                 | Sense-making for **settled vs emergent** ideas — durable shards hold current Clear/Complicated truth; probes stay out of durable guides | Full Cynefin methods, workshops, or domain jargon in every shard |
 | Product development practice (epics, stories, BDD, TDD)  | Discovery and verification belong in process tools; durable shards hold **as-it-works-now** intent                                      | Treating epics/stories as Merlon Docs content types              |
 
-Merlon Docs’ default **Code Repository Archetype** (`features` / `client` / `developer` / `glossary`) is an audience-and-job packaging for software systems. Additional archetypes (including internal complementary skills under `skills/merlon-docs-arch-*`) extend the engine without belonging in the parent skill.
+Merlon Docs’ default **Code Repository Archetype** (`features` / `client` / `developer` / `glossary`) is an audience-and-job packaging for software systems. A project can define other archetypes on the same engine without changing the skill.
 
 ## Related
 

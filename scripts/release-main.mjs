@@ -26,6 +26,7 @@ import {
   packagesNeedingReleaseHeal,
   parseGitLsRemoteTags,
   readWorkspacePackages,
+  releaseLatestFlag,
   releaseNotesForPackage,
   releaseTag,
 } from './lib/github-releases.mjs';
@@ -125,10 +126,9 @@ function createGithubRelease(tag, notes, target) {
       run(`gh release edit "${tag}" --notes-file .tmp-release-notes.md`, { env });
     } catch {
       // --target creates the tag on GitHub when missing; prefer matching the version commit.
-      // A prerelease version such as 1.0.0-draft.0 gets a GitHub prerelease, so it never shows as Latest.
-      const prerelease = tag.slice(tag.lastIndexOf('@') + 1).includes('-') ? ' --prerelease' : '';
+      // releaseLatestFlag keeps the Latest badge on the CLI's newest final release.
       run(
-        `gh release create "${tag}" --title "${tag}" --notes-file .tmp-release-notes.md --target "${target}"${prerelease}`,
+        `gh release create "${tag}" --title "${tag}" --notes-file .tmp-release-notes.md --target "${target}" ${releaseLatestFlag(tag)}`,
         { env },
       );
     }

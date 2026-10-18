@@ -15,14 +15,32 @@ const shardCount = Number(
     ?.split(',')[1] ?? 0,
 );
 const fmt = new Intl.NumberFormat('en-US');
+// shields.io badges for the version npm serves under latest, each linking to its package page.
+const packages = [
+  { name: 'merlon-docs-cli', label: 'CLI' },
+  { name: 'merlon-docs-core', label: 'core' },
+  { name: 'merlon-docs-presets', label: 'presets' },
+];
 const commitUrl = `https://github.com/Merlon-Docs/merlon/commit/${stats.commit}`;
 const builtOn = stats.measuredAt.slice(0, 10);
 ---
 
 <p class="merlon-status-versions">
-  <a href={`${BASE}/concepts/system/merlon-docs-10-spec/`}>Specification</a>{' '}
-  <strong>{stats.specVersion}</strong> · CLI <strong>{stats.packages.cli}</strong> · core{' '}
-  <strong>{stats.packages.core}</strong> · presets <strong>{stats.packages.presets}</strong>
+  <span>
+    <a href={`${BASE}/concepts/system/merlon-docs-10-spec/`}>Specification</a>{' '}
+    <strong>{stats.specVersion}</strong>
+  </span>
+  {
+    packages.map(({ name, label }) => (
+      <a class="merlon-status-badge" href={`https://www.npmjs.com/package/@merlon-docs/${name}`}>
+        <img
+          src={`https://img.shields.io/npm/v/@merlon-docs/${name}?label=${label}`}
+          alt={`Latest @merlon-docs/${name} version on npm`}
+          height="20"
+        />
+      </a>
+    ))
+  }
 </p>
 
 <dl class="merlon-evidence merlon-evidence--three" aria-label="Measured on this build">

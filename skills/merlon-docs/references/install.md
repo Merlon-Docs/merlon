@@ -35,7 +35,6 @@ writing shards. After bootstrap succeeds, it can offer a guided first feature
 (design → feature → UX → doc-only) using a recommended example or one you
 choose.
 
-The archetype skills under `skills/merlon-docs-arch-*` are internal and not released.
 The consumer install is the `merlon-docs` skill alone.
 
 ## CLI still required

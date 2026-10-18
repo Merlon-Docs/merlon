@@ -1,6 +1,6 @@
 # About research records
 
-What belongs in this directory, and the rules a record follows. Parent: [Vision and roadmap](../00-vision-and-roadmap.md). The archetype that generalizes this layout for other projects is the `merlon-docs-arch-research` extension, described in [Extensions and archetypes](../extensions-and-archetypes.md).
+What belongs in this directory, and the rules a record follows. Parent: [Vision and roadmap](../00-vision-and-roadmap.md).
 
 ## Why research is a separate tier
 
@@ -22,8 +22,6 @@ Separating the tiers resolves it. Product shards carry no exemption. Records are
 A record that no longer holds is superseded by a new record rather than edited, and the new one links back. The policy for turning any of this into public copy is [Benefit claims and evidence](../benefit-claims-and-evidence.md), which stays in the product tier because it is a rule rather than an observation.
 
 ## Rules a record follows
-
-This page defines the rules below. The `merlon-docs-arch-research` archetype skill states its own version of them in its `SKILL.md`, because every install of the skill gets that file.
 
 - **State the method.** Every figure names how it was produced, in enough detail to re-run. A record whose numbers cannot be reproduced is an anecdote.
 - **Tag confidence.** Distinguish what a script measured, what was read without a metric, and what was looked for and not found. A recorded gap is a finding.

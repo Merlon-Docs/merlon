@@ -45,8 +45,10 @@ overrides:
   http-cache-semantics@<4.3.0: 4.3.0
 # Unfixable advisories (no patched version published yet). Ignore so
 # `pnpm audit --audit-level=high` exits 0 without --ignore-unfixable.
-# - GHSA-vfj7-8cjw-p6xm: braces <=3.0.3, no patched version
-#   (merlon-docs-core → fast-glob → micromatch, and markdownlint-cli2 → globby).
+# - GHSA-vfj7-8cjw-p6xm: braces <=3.0.3, no patched version. Dev-only since
+#   merlon-docs-core moved from fast-glob to tinyglobby (which has no braces
+#   dependency): markdownlint-cli2 → globby → fast-glob → micromatch → braces,
+#   run by `pnpm lint` on this repo's own Markdown and config, not on outside input.
 #   Added 2026-10-03; recheck 2026-11-03.
 audit:
   ignore:

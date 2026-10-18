@@ -15,8 +15,24 @@ const installs = [
     label: 'AI skill',
     where: 'in your coding agent',
     command: 'npx skills add Merlon-Docs/merlon --skill merlon-docs',
+    // skills.sh's own badge for this repository, linking to its listing there.
+    badge: {
+      href: 'https://skills.sh/Merlon-Docs/merlon',
+      src: 'https://skills.sh/b/Merlon-Docs/merlon',
+      alt: 'Merlon Docs on skills.sh',
+    },
   },
-  { label: 'CLI', where: 'in your repo and CI', command: 'npm install -D @merlon-docs/merlon-docs-cli' },
+  {
+    label: 'CLI',
+    where: 'in your repo and CI',
+    command: 'npm install -D @merlon-docs/merlon-docs-cli',
+    // shields.io's badge for the version npm serves under latest, linking to the package page.
+    badge: {
+      href: 'https://www.npmjs.com/package/@merlon-docs/merlon-docs-cli',
+      src: 'https://img.shields.io/npm/v/@merlon-docs/merlon-docs-cli',
+      alt: 'Latest @merlon-docs/merlon-docs-cli version on npm',
+    },
+  },
 ];
 ---
 
@@ -39,9 +55,14 @@ const installs = [
     }
     <div class="merlon-hero__installs">
       {
-        installs.map(({ label, where, command }) => (
+        installs.map(({ label, where, command, badge }) => (
           <div class="merlon-hero__install">
             <p class="merlon-hero__install-label">
+              {badge && (
+                <a class="merlon-hero__badge" href={badge.href}>
+                  <img src={badge.src} alt={badge.alt} height="20" />
+                </a>
+              )}
               {label} <span>{where}</span>
             </p>
             <code>

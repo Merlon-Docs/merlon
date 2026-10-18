@@ -5,7 +5,7 @@
  *
  *   context-size.csv  scripts/bench-context-size.mjs on the compiled guides: whole guides
  *                     against single shards, in estimated tokens
- *   site-stats.json   the specification's and packages' versions, and how long
+ *   site-stats.json   the specification's version, and how long
  *                     `merlon check` takes on docs/ here, with the commit and time measured
  *
  * Needs the built CLI and compiled guides, which `pnpm site:prepare` makes. A failing
@@ -30,11 +30,6 @@ function run(command, args) {
     throw new Error(`${command} ${args.join(' ')} exited with ${result.status}`);
   }
   return result.stdout;
-}
-
-function version(packageDir) {
-  return JSON.parse(readFileSync(join(repoRoot, 'packages', packageDir, 'package.json'), 'utf8'))
-    .version;
 }
 
 function specVersion() {
@@ -75,11 +70,6 @@ const stats = {
   measuredAt: new Date().toISOString(),
   commit: process.env.GITHUB_SHA || run('git', ['rev-parse', 'HEAD']).trim(),
   specVersion: specVersion(),
-  packages: {
-    core: version('merlon-docs-core'),
-    cli: version('merlon-docs-cli'),
-    presets: version('merlon-docs-presets'),
-  },
   checkSeconds: checkSeconds(),
 };
 writeFileSync(join(outDir, 'site-stats.json'), `${JSON.stringify(stats, null, 2)}\n`);

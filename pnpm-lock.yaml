@@ -96,9 +96,6 @@ importers:
 
   packages/merlon-docs-core:
     dependencies:
-      fast-glob:
-        specifier: ^3.3.3
-        version: 3.3.3
       github-slugger:
         specifier: ^2.0.0
         version: 2.0.0
@@ -108,6 +105,9 @@ importers:
       semver:
         specifier: ^7.8.5
         version: 7.8.5
+      tinyglobby:
+        specifier: ^0.2.17
+        version: 0.2.17
       zod:
         specifier: ^4.6.5
         version: 4.6.5
@@ -158,14 +158,6 @@ importers:
         version: 1.64.0
 
   packages/skill-merlon-docs: {}
-
-  packages/skill-merlon-docs-arch-gtm: {}
-
-  packages/skill-merlon-docs-arch-oss-library: {}
-
-  packages/skill-merlon-docs-arch-product-docs-site: {}
-
-  packages/skill-merlon-docs-arch-research: {}
 
 packages:
 

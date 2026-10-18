@@ -222,8 +222,7 @@ merlon/
 ├── README.md                # Compiled (committed)
 ├── DEVELOPERS.md            # Compiled (committed)
 ├── skills/                  # Agent Skills install surface only (npx skills add)
-│   ├── merlon-docs/         # The Merlon Docs skill + workflows (no package.json / CHANGELOG here)
-│   └── merlon-docs-arch-*/  # Internal archetypes (metadata.internal)
+│   └── merlon-docs/         # The Merlon Docs skill + workflows (no package.json / CHANGELOG here)
 ├── tests/skills/            # Live eval fixtures (optional; not publishable packs)
 ├── skills.sh.json           # skills.sh repo page layout
 ├── .agents/skills/          # Vendor-managed installs + vendored skill-creator, writing-skills
@@ -898,7 +897,7 @@ _Note: GitHub and GitHub Flavored Markdown are trademarks of GitHub, Inc. This p
 
 ## Agent Skill development
 
-Zero-friction Merlon Docs delivery for AI agents uses one portable Agent Skill. Upstream source of truth is [`skills/merlon-docs/SKILL.md`](skills/merlon-docs/SKILL.md). In **this** monorepo, agents load it from `.agents/skills/merlon-docs/`, a [vendor-managed install](#do-not-hand-edit-agentsskills). A consumer's `npx skills add` picks an agent-specific directory instead ([Agent Skill](docs/features/agent-skill.md)). Task workflows (bootstrap, doc-only, design-architecture, feature-level, UX, doc review) live inside that skill under `skills/merlon-docs/references/workflows/`, so consumers install one skill. Archetype skills under `skills/merlon-docs-arch-*` are internal. [Publishing the skill pack](#publishing-the-skill-pack) says which skills are released.
+Zero-friction Merlon Docs delivery for AI agents uses one portable Agent Skill. Upstream source of truth is [`skills/merlon-docs/SKILL.md`](skills/merlon-docs/SKILL.md). In **this** monorepo, agents load it from `.agents/skills/merlon-docs/`, a [vendor-managed install](#do-not-hand-edit-agentsskills). A consumer's `npx skills add` picks an agent-specific directory instead ([Agent Skill](docs/features/agent-skill.md)). Task workflows (bootstrap, doc-only, design-architecture, feature-level, UX, doc review) live inside that skill under `skills/merlon-docs/references/workflows/`, so consumers install one skill.
 
 ### Vendor-managed installs
 
@@ -910,7 +909,7 @@ pnpm skill:update
 
 (`pnpm skill:update` runs `pnpm skill:install`, and either name does the same task.)
 
-That runs `npx skills add .`, which installs the publishable skill, `skills/merlon-docs`, from this checkout under `.agents/skills/` and records it in `skills-lock.json`. The internal archetypes install only with `INSTALL_INTERNAL_SKILLS=1`, as [Publishing the skill pack](#publishing-the-skill-pack) says.
+That runs `npx skills add .`, which installs the publishable skill, `skills/merlon-docs`, from this checkout under `.agents/skills/` and records it in `skills-lock.json`.
 
 [Cloud agent sessions](#cloud-agent-environments) install the skill on their own. The Claude Code session-start hook (`.claude/hooks/session-start.sh`) and the Cursor environment (`.cursor/environment.json`) both run `pnpm skill:dev`, which installs this checkout's `skills/merlon-docs` for Claude Code and Cursor with telemetry off. An agent working here loads the skill from the branch it works on.
 
@@ -926,8 +925,7 @@ from it, and `skills/` is the source of truth.
 | Refresh installs ([Vendor-managed installs](#vendor-managed-installs)) | Commit one-off edits that only exist under `.agents/`                    |
 | Land lasting skill changes in `skills/`                                | Treat `.agents/skills/merlon-docs*` as durable docs or authoring surface |
 
-The vendor-managed installs of the skill and the archetypes (`.agents/skills/merlon-docs/`,
-`.agents/skills/merlon-docs-arch-*`) are gitignored, and so are eval workspaces under
+The vendor-managed install of the skill (`.agents/skills/merlon-docs/`) is gitignored, and so are eval workspaces under
 `.agents/skills/*-workspace/` ([Live skill evals](#live-skill-evals)).
 
 Manual invoke (hosts that support slash skills): `/merlon-docs`.
@@ -936,9 +934,8 @@ When changing skill instructions:
 
 1. Edit `skills/merlon-docs/SKILL.md` and its `references/`. Keep the activation body under 500 lines and put depth in `references/`. The limit is advisory, because `pnpm skill:validate` doesn't count lines. A new kind of task gets a workflow file under `skills/merlon-docs/references/workflows/` and a row in the skill's workflow table, not a new skill.
 2. Do **not** invent new format rules in the skill — CLI and schemas stay in packages.
-3. Put archetype guidance in `skills/merlon-docs-arch-*` instead of growing the parent skill.
-4. Refresh installs ([Vendor-managed installs](#vendor-managed-installs)), then run `pnpm skill:validate` and `pnpm docs:check`.
-5. Add a changeset for the skill ([When to add a changeset](#when-to-add-a-changeset)).
+3. Refresh installs ([Vendor-managed installs](#vendor-managed-installs)), then run `pnpm skill:validate` and `pnpm docs:check`.
+4. Add a changeset for the skill ([When to add a changeset](#when-to-add-a-changeset)).
 
 ### Verification
 
@@ -953,9 +950,7 @@ The [Agent Skill acceptance criteria](docs/features/agent-skill.md#agent-skill-a
 
 ### Publishing the skill pack
 
-`skills/merlon-docs/` is the only skill released to consumers. [Get started](README.md#get-started) shows how they install it.
-
-Archetype skills (`skills/merlon-docs-arch-*`) are not ready to release. Until one is released on purpose, its `SKILL.md` sets `metadata.internal: true`, and the skill stays out of [`skills.sh.json`](skills.sh.json) and out of consumer install docs. The `skills` CLI leaves internal skills out of its default discovery, so maintainers install them locally with `INSTALL_INTERNAL_SKILLS=1`. Releasing a skill removes `metadata.internal` and adds the skill's `name:` to the **Documentation system** group in `skills.sh.json`, in the same change. These rules are advisory, because `pnpm skill:validate` doesn't read `skills.sh.json`.
+`skills/merlon-docs/` is the only skill in this repository, and the one released to consumers. [Get started](README.md#get-started) shows how they install it.
 
 The root [README](README.md) holds the skill's landing identity on skills.sh: the [install-count badge](https://www.skills.sh/docs#badge) (`https://skills.sh/b/Merlon-Docs/merlon`) and the `npx skills add` install command. Install telemetry refreshes the badge and the [repo page](https://skills.sh/Merlon-Docs/merlon), and an install with `DISABLE_TELEMETRY=1`, such as `pnpm skill:dev`, doesn't count. [`skills.sh.json`](#skillsshjson-repo-page-layout) places it on that page. Skill versions and release notes follow [Versioning and releases](#versioning-and-releases).
 
@@ -968,11 +963,11 @@ for humans browsing the catalog. Upstream reference:
 
 #### What it is (and is not)
 
-| Does                                                                          | Does **not**                                         |
-| ----------------------------------------------------------------------------- | ---------------------------------------------------- |
-| Curate section titles, descriptions, and skill order on the skills.sh page    | Change how `npx skills add` installs skills          |
-| Decide which skills appear in named groups vs **Other skills** (`notGrouped`) | Replace `metadata.internal`, CI gates, or live evals |
-| Match skill names/slugs from `skills/*/SKILL.md` `name:`                      | Act as a publish/submit registry                     |
+| Does                                                                          | Does **not**                                |
+| ----------------------------------------------------------------------------- | ------------------------------------------- |
+| Curate section titles, descriptions, and skill order on the skills.sh page    | Change how `npx skills add` installs skills |
+| Decide which skills appear in named groups vs **Other skills** (`notGrouped`) | Replace CI gates or live evals              |
+| Match skill names/slugs from `skills/*/SKILL.md` `name:`                      | Act as a publish/submit registry            |
 
 Invalid or missing JSON falls back to the default installs-sorted list. Skills.sh
 caches its pages, which can delay an edit.
@@ -1130,7 +1125,7 @@ The first two commands run `pnpm build` and `pnpm docs:compile:repo` first, beca
 Two homepage sections show figures the build measures, so each published page reflects the commit it was built from. After the sync, [`packages/merlon-docs-site/scripts/measure-site.mjs`](packages/merlon-docs-site/scripts/measure-site.mjs) writes two gitignored files to `packages/merlon-docs-site/.generated/`:
 
 - `context-size.csv`: `scripts/bench-context-size.mjs` on the compiled guides, whole guides against single shards in estimated tokens. **How much an agent reads**, on the homepage and the Learn page, renders it.
-- `site-stats.json`: the specification's version from its **Version** line, the packages' versions, and the median time of three `merlon check` runs on `docs/`, with the commit and time measured. **Where Merlon Docs stands** renders it.
+- `site-stats.json`: the specification's version from its **Version** line and the median time of three `merlon check` runs on `docs/`, with the commit and time measured. **Where Merlon Docs stands** renders it, beside shields.io badges that show each npm package's current version when the page is viewed.
 
 A failing `merlon check` fails the build, so a deployed page never shows figures from a tree that doesn't pass. Each section's note gives the build date and links the commit, as [Figures measured at build](docs/features/system/benefit-claims-and-evidence.md#figures-measured-at-build) asks.
 
@@ -1162,6 +1157,8 @@ Merlon Docs uses [Semantic Versioning 2.0.0](https://semver.org/) and [Changeset
 | Core        | `@merlon-docs/merlon-docs-core`    | npm + GitHub Release                                               |
 | Presets     | `@merlon-docs/merlon-docs-presets` | npm + GitHub Release                                               |
 | Agent Skill | `@merlon-docs/skill-<id>`          | GitHub Release only (private carrier under `packages/skill-<id>/`) |
+
+The CLI's newest final release is the repository's Latest release on GitHub. The release job creates every other final release with `--latest=false`, so a release that doesn't bump the CLI leaves the badge where it is, and it marks each prerelease as a prerelease.
 
 Independent versioning is configured in [`.changeset/config.json`](.changeset/config.json) (`fixed` is empty). Dependents of a bumped workspace package still get a **patch** internal dependency update (`updateInternalDependencies`).
 
@@ -1204,8 +1201,8 @@ CI doesn't assume that a contributor ran the [git hooks](#git-hooks). The pre-pu
 There is **no calendar cadence** and **no Version Packages PR**. A release is a PR from `develop` to `main`, followed by **one CI job**:
 
 1. Changesets reach `develop` with the landings they describe ([When to add a changeset](#when-to-add-a-changeset)). The release workflow versions and publishes only after a release PR reaches `main`.
-2. When `develop` is tested and ready, confirm that the pending `.changeset/*.md` files list only the packages and skills that should bump, and that each unreleased skill is still internal, as [Publishing the skill pack](#publishing-the-skill-pack) requires. Then open a PR from `develop` to `main` and **squash** it, the only merge method the repository allows. `main` then holds one commit per release, and the sync resets `develop` to it, as step 4 says, so each release PR lists only the commits since the last release. Review it on its Files changed tab, as [Reviewing a change](#reviewing-a-change) says.
-3. The merge runs the [release workflow](.github/workflows/release.yml) (`pnpm release:main`), which needs the `RELEASE_GITHUB_TOKEN` secret described in [Publishing](#publishing). The **Release plan** job posts the pending changesets (and any **missing GitHub Releases**) to the run summary. Read that summary on the latest run to review the bumps and release notes, then approve the **`release` environment** there. The version job **resets to the current `origin/main` tip** (so post-approval work includes all merged changesets), then **sequentially**: applies changesets → syncs skill `metadata.version` → runs `pnpm skill:validate` → builds → runs `pnpm typecheck` and `pnpm test` → commits `chore: release` → **pushes to `main`** → runs the dependency audit `pnpm audit --audit-level=high` → publishes public packages to npm → **pushes tags** → creates GitHub Releases (including skill carriers).
+2. When `develop` is tested and ready, confirm that the pending `.changeset/*.md` files list only the packages and skills that should bump. Then open a PR from `develop` to `main` and **squash** it, the only merge method the repository allows. `main` then holds one commit per release, and the sync resets `develop` to it, as step 4 says, so each release PR lists only the commits since the last release. Review it on its Files changed tab, as [Reviewing a change](#reviewing-a-change) says.
+3. The merge runs the [release workflow](.github/workflows/release.yml) (`pnpm release:main`), which needs the `RELEASE_GITHUB_TOKEN` secret described in [Publishing](#publishing). The **Release plan** job posts the pending changesets (and any **missing GitHub Releases**) to the run summary. Read that summary on the latest run to review the bumps and release notes, then approve the **`release` environment** there. The version job **resets to the current `origin/main` tip** (so post-approval work includes all merged changesets), then **sequentially**: applies changesets → syncs skill `metadata.version` → runs `pnpm skill:validate` → builds → runs `pnpm typecheck` and `pnpm test` → commits `chore: release` → **pushes to `main`** → runs the dependency audit `pnpm audit --audit-level=high` → publishes public packages to npm → **pushes tags** → creates GitHub Releases, the skill's included.
 4. Every push to `main` runs the [sync workflow](.github/workflows/sync-develop.yml). After a squashed release, `develop` usually holds exactly `main`'s files, and the sync resets `develop` to `main`. That drops the old history from `develop`, so the next release PR lists only new commits. It pushes with a lease on the `develop` commit it compared, so a landing in between makes the reset fail instead of disappearing; run **Sync develop** again. When `develop` has commits `main` lacks, the sync merges `main` into it instead, and the rest of this step applies. A clean merge is pushed to the `land/sync-main` branch, and the sync dispatches the land workflow on it. The merge goes to `develop` only after it passes the gate. If the gate fails, `develop` doesn't get `main`'s commits until someone fixes the failure. They can merge `main` into a `land/**` branch other than `land/sync-main` and fix it there, or land the fix on `develop` and run **Sync develop** again. The next sync overwrites `land/sync-main`, so a fix pushed there is lost. A conflict opens a PR from `main` to `develop` instead. Resolve it the same way, by merging `main` into a `land/**` branch other than `land/sync-main`. The PR itself can't take the fix, because its head is the protected `main`. Once `develop` contains `main`, the PR closes as merged.
 5. Check that each bumped item, skill carriers included, has a GitHub Release and that npm shows the new version of each public package. Then confirm that the sync reset `develop` to `main`, or, when it merged instead, that the land workflow's run on `land/sync-main` put the release commit on `develop`. A landing queued after it can cancel it while it waits, and it fails when `develop` moves during the run. In either case, re-run all of its jobs or run **Sync develop** again.
 6. When a workflow change reached `develop` after the previous sync, check that the sync's push to `land/sync-main` went through. The sync pushes with `GITHUB_TOKEN`, which can't be given the `workflows` permission, and its force-push includes every workflow change `develop` gained since that sync. If the push was refused, reset `land/sync-main` to `develop` with your own access and run **Sync develop** again. Its push then includes only what `main` adds.
@@ -1318,7 +1315,7 @@ The sync in `.github/workflows/sync-develop.yml` pushes a clean merge to the `la
 
 When `develop` already holds `main`'s tree, as a squashed release leaves it, the sync resets `develop` to `main` instead of merging. The reset needs no gate and no guard of its own: `develop` shows the same tree before and after, and that tree was tested when `develop` got it. The sync pushes the reset with a lease on the `develop` commit it compared, so a landing that moved `develop` in between makes the push fail rather than disappear.
 
-Only the land workflow pushes `develop`, with that `GITHUB_TOKEN`. So both branch rules for `develop` have to exempt the identity it pushes as. Otherwise they block landings along with everyone else. The sync force-pushes `land/sync-main` as the same identity, and force-pushes `develop` for the reset, so a rule that blocks force-push has to leave `land/sync-main` out and let that identity bypass it on `develop`, as the [`develop` ruleset](#settings) does.
+Only the land workflow pushes `develop`, with that `GITHUB_TOKEN`. So both branch rules for `develop` have to exempt the identity it pushes as. Otherwise they block landings along with everyone else. The sync force-pushes `land/sync-main` as the same identity, and force-pushes `develop` for the reset, so a rule that blocks force-push has to leave `land/sync-main` out and let that identity bypass it on `develop`. GitHub can't exempt the built-in GitHub Actions app from a ruleset, so the [`develop` ruleset](#settings) blocks only deletion, and the model's assumption that nobody else force-pushes `develop` is advisory.
 
 #### `main` only moves to a tested tree
 
@@ -1529,24 +1526,24 @@ Some controls in this repository live in its settings on the hosting platform, a
 
 ### Settings
 
-| Setting                                             | Value                                                                                                                                                                          | Declared or set in                                                                 |
-| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
-| Required checks on `main`                           | `Check` and `Changeset` from CI, and `Scan` from gitleaks, on a branch that is up to date with `main`                                                                          | `infra/github/protection.tf`                                                       |
-| Reviews on `main`                                   | [Code-owner review](#code-owner-review), with stale approvals dismissed and no minimum approval count                                                                          | `infra/github/protection.tf`                                                       |
-| Force-push to `develop`, and its deletion           | Blocked by a ruleset, except for repository admins and GitHub Actions, which the [sync's reset](#landing-and-release) of `develop` to `main` needs                             | `infra/github/rulesets.tf`                                                         |
-| Force-push to `main`, and its deletion              | Blocked                                                                                                                                                                        | `infra/github/protection.tf`                                                       |
-| Secret scanning and push protection                 | On                                                                                                                                                                             | `infra/github/repository.tf`                                                       |
-| Merge methods                                       | Squash only, for the release PR as for every other PR, as [Release schedule](#release-schedule-release-pr-from-develop-to-main) says                                           | `infra/github/repository.tf`                                                       |
-| `release` environment reviewers                     | The repository owner                                                                                                                                                           | `infra/github/environments.tf`                                                     |
-| `release` environment admin bypass                  | On, so a repository admin can deploy without a reviewer's approval                                                                                                             | `infra/github/environments.tf`                                                     |
-| `release` environment deployment branches           | `main` and `v*` tags                                                                                                                                                           | **Settings → Environments → `release`**                                            |
-| `RELEASE_GITHUB_TOKEN`                              | A secret of the `release` environment                                                                                                                                          | [Release token](#release-token)                                                    |
-| `DEPENDABOT_CHANGESET_TOKEN`                        | A repository secret                                                                                                                                                            | [Dependabot changeset token](#dependabot-changeset-token)                          |
-| Default `GITHUB_TOKEN` permissions                  | Read-only                                                                                                                                                                      | **Settings → Actions → General → Workflow permissions**                            |
-| GitHub Actions can create and approve pull requests | On. When merging `main` back into `develop` conflicts, the [sync workflow](#release-schedule-release-pr-from-develop-to-main) opens a pull request with its own `GITHUB_TOKEN` | **Settings → Actions → General → Workflow permissions**                            |
-| Pages source                                        | GitHub Actions, for the [site deploy](#deployment)                                                                                                                             | **Settings → Pages**                                                               |
-| `github-pages` environment deployment branches      | `develop`                                                                                                                                                                      | **Settings → Environments → `github-pages`**                                       |
-| Trusted Publisher of each npm package               | `release.yml` in this repository                                                                                                                                               | The package's npm settings, as [Trusted Publishing](#trusted-publishing) describes |
+| Setting                                             | Value                                                                                                                                                                                                                                                                                                   | Declared or set in                                                                 |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Required checks on `main`                           | `Check` and `Changeset` from CI, and `Scan` from gitleaks, on a branch that is up to date with `main`                                                                                                                                                                                                   | `infra/github/protection.tf`                                                       |
+| Reviews on `main`                                   | [Code-owner review](#code-owner-review), with stale approvals dismissed and no minimum approval count                                                                                                                                                                                                   | `infra/github/protection.tf`                                                       |
+| Deletion of `develop`                               | Blocked by a ruleset, except for repository admins. Force-push to `develop` isn't blocked: the [sync's reset](#landing-and-release) of `develop` to `main` force-pushes with `GITHUB_TOKEN`, and a ruleset can only exempt apps the organization installed, which the built-in GitHub Actions app isn't | `infra/github/rulesets.tf`                                                         |
+| Force-push to `main`, and its deletion              | Blocked                                                                                                                                                                                                                                                                                                 | `infra/github/protection.tf`                                                       |
+| Secret scanning and push protection                 | On                                                                                                                                                                                                                                                                                                      | `infra/github/repository.tf`                                                       |
+| Merge methods                                       | Squash only, for the release PR as for every other PR, as [Release schedule](#release-schedule-release-pr-from-develop-to-main) says                                                                                                                                                                    | `infra/github/repository.tf`                                                       |
+| `release` environment reviewers                     | The maintainer, `betsalel-williamson`, from `release_reviewer` in `infra/github/variables.tf`. It has to be a user: the repository's owner is an organization, and an organization's ID leaves the environment with no reviewer                                                                         | `infra/github/environments.tf`                                                     |
+| `release` environment admin bypass                  | On, so a repository admin can deploy without a reviewer's approval                                                                                                                                                                                                                                      | `infra/github/environments.tf`                                                     |
+| `release` environment deployment branches           | `main` and `v*` tags                                                                                                                                                                                                                                                                                    | **Settings → Environments → `release`**                                            |
+| `RELEASE_GITHUB_TOKEN`                              | A secret of the `release` environment                                                                                                                                                                                                                                                                   | [Release token](#release-token)                                                    |
+| `DEPENDABOT_CHANGESET_TOKEN`                        | A repository secret                                                                                                                                                                                                                                                                                     | [Dependabot changeset token](#dependabot-changeset-token)                          |
+| Default `GITHUB_TOKEN` permissions                  | Read-only                                                                                                                                                                                                                                                                                               | **Settings → Actions → General → Workflow permissions**                            |
+| GitHub Actions can create and approve pull requests | On. When merging `main` back into `develop` conflicts, the [sync workflow](#release-schedule-release-pr-from-develop-to-main) opens a pull request with its own `GITHUB_TOKEN`                                                                                                                          | **Settings → Actions → General → Workflow permissions**                            |
+| Pages source                                        | GitHub Actions, for the [site deploy](#deployment)                                                                                                                                                                                                                                                      | **Settings → Pages**                                                               |
+| `github-pages` environment deployment branches      | `develop`                                                                                                                                                                                                                                                                                               | **Settings → Environments → `github-pages`**                                       |
+| Trusted Publisher of each npm package               | `release.yml` in this repository                                                                                                                                                                                                                                                                        | The package's npm settings, as [Trusted Publishing](#trusted-publishing) describes |
 
 ### Terraform
 
@@ -1712,7 +1709,7 @@ A **domain glossary** is a repository's own glossary: one shard per term under `
 
 Outside agent tooling, the word skill can mean a person's ability or a general AI capability. In these docs it always means the packaged directory.
 
-Merlon Docs’ main skill is `merlon-docs`, with its source in `skills/merlon-docs/`. It contains the **documentation system** guardrails that direct agents to shard and maintain docs one piece at a time. Optional [archetype](docs/features/system/extensions-and-archetypes.md#archetypes-battery-types) skills are under `skills/merlon-docs-arch-*`.
+Merlon Docs’ main skill is `merlon-docs`, with its source in `skills/merlon-docs/`. It contains the **documentation system** guardrails that direct agents to shard and maintain docs one piece at a time. It works alongside other skills, and a project can extend it with its own ([Extensions and archetypes](docs/features/system/extensions-and-archetypes.md)).
 
 Install and validation: [Agent Skill](docs/features/agent-skill.md).
 
@@ -1782,7 +1779,7 @@ A **guide tier** is one category in an [archetype](#archetype)'s guide layout. E
 
 ## archetype
 
-An **archetype**, or battery type, is a documented bundle of guide layout, glossary seeds, optional prompts and extension pointers for one project class. The default, the Code Repository Archetype, is the four [guide tiers](#guide-tier) that [Default guide layout](docs/features/system/merlon-docs-1.0-spec.md#2-default-guide-layout-code-repository-archetype) defines. The other archetypes in this repository are archetype skills, `merlon-docs-arch-*` [Agent Skills](#agent-skills), which [Archetypes](docs/features/system/extensions-and-archetypes.md#archetypes-battery-types) lists, and a team can define its own for another documentation system.
+An **archetype**, or battery type, is a documented bundle of guide layout, glossary seeds, optional prompts and extension pointers for one project class. The default, the Code Repository Archetype, is the four [guide tiers](#guide-tier) that [Default guide layout](docs/features/system/merlon-docs-1.0-spec.md#2-default-guide-layout-code-repository-archetype) defines. A team can define its own for another documentation system, as [Archetypes](docs/features/system/extensions-and-archetypes.md#archetypes-battery-types) says.
 
 The adoption archetypes in [Personas and priority tiers](docs/features/personas-and-priority-tiers.md#adoption-archetypes), such as Learner and Author, are reader goals, not layouts.
 

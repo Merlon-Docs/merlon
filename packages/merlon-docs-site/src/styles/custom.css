@@ -144,6 +144,20 @@
   color: var(--merlon-ink);
 }
 
+.merlon-hero__badge {
+  display: inline-block;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+  line-height: 0;
+}
+
+/* Badges load from skills.sh and shields.io, and their width follows their text. */
+.merlon-hero__badge img {
+  display: block;
+  width: auto;
+  height: 20px;
+}
+
 .merlon-hero__install-label span {
   margin-left: 0.4rem;
   text-transform: none;
@@ -327,9 +341,24 @@
 }
 
 .sl-markdown-content .merlon-status-versions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
   margin: 1.5rem 0 0;
   font-size: 0.9375rem;
   color: var(--sl-color-gray-2);
+}
+
+/* npm badges load from shields.io, and their width follows their text. */
+.sl-markdown-content .merlon-status-badge {
+  line-height: 0;
+}
+
+.sl-markdown-content .merlon-status-badge img {
+  display: block;
+  width: auto;
+  height: 20px;
 }
 
 /* Inline code in the muted note takes the body text color: the muted color on a code

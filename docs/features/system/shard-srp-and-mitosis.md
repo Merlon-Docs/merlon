@@ -91,7 +91,7 @@ Mixing two jobs in one shard is a mitosis signal. Named lineage: [Acknowledgment
 
 ## Extensions beyond this archetype
 
-Go-to-market documentation, such as marketing and sales docs, belongs to a separate internal archetype (`merlon-docs-arch-gtm`) outside the Code Repository Archetype. See [Extensions and archetypes](./extensions-and-archetypes.md).
+Go-to-market documentation, such as marketing and sales docs, falls outside the Code Repository Archetype. A project that keeps it in the same repository defines its own guide tiers for it, as [Extensions and archetypes](./extensions-and-archetypes.md) says.
 
 ## Acceptance
 

@@ -6,7 +6,7 @@
  *
  * Usage:
  *   node scripts/release-build.mjs --packages merlon-docs-cli,merlon-docs-core
- *   node scripts/release-build.mjs --skills merlon-docs,merlon-docs-arch-gtm
+ *   node scripts/release-build.mjs --skills merlon-docs
  *   node scripts/release-build.mjs --packages merlon-docs-cli --dry-run
  */
 import { execSync } from 'node:child_process';

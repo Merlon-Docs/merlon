@@ -6,8 +6,7 @@ merlon/
 ├── README.md                # Compiled (committed)
 ├── DEVELOPERS.md            # Compiled (committed)
 ├── skills/                  # Agent Skills install surface only (npx skills add)
-│   ├── merlon-docs/         # The Merlon Docs skill + workflows (no package.json / CHANGELOG here)
-│   └── merlon-docs-arch-*/  # Internal archetypes (metadata.internal)
+│   └── merlon-docs/         # The Merlon Docs skill + workflows (no package.json / CHANGELOG here)
 ├── tests/skills/            # Live eval fixtures (optional; not publishable packs)
 ├── skills.sh.json           # skills.sh repo page layout
 ├── .agents/skills/          # Vendor-managed installs + vendored skill-creator, writing-skills

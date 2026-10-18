@@ -37,8 +37,8 @@ maintain as ideas keep coming.
 
 This is the only skill a project installs. It chooses a workflow for the task in
 front of it (see [Pick the workflow](#5-pick-the-workflow)) and loads just that
-workflow's file. Complementary archetype skills can extend it for specific
-documentation architectures.
+workflow's file. It works alongside other skills and tools, and a project can
+extend it with its own guide tiers, presets or local skills.
 
 Install help: [references/install.md](references/install.md).
 What compile / check / refs mean and CLI commands:

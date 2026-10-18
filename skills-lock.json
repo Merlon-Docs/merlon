@@ -6,26 +6,6 @@
       "sourceType": "local",
       "computedHash": "6b06e25dc48761ae41fbb1016da9866e276cacc36c57e314acafa85bff55c33e"
     },
-    "merlon-docs-arch-gtm": {
-      "source": ".",
-      "sourceType": "local",
-      "computedHash": "cc9d4101cef1fc477ef4bdbee77b3b98bce9f8bef0cab1f853facea4a87ddd16"
-    },
-    "merlon-docs-arch-oss-library": {
-      "source": ".",
-      "sourceType": "local",
-      "computedHash": "84f378fc84ed2d112e7eed6073de5f7fbb382f23a869cd1e68d4e725af6a4924"
-    },
-    "merlon-docs-arch-product-docs-site": {
-      "source": ".",
-      "sourceType": "local",
-      "computedHash": "a6fdfeab39226e3a134022b8e67c9c764c9ac382c9e380725628e6876824e6f3"
-    },
-    "merlon-docs-arch-research": {
-      "source": ".",
-      "sourceType": "local",
-      "computedHash": "4e5f7f0c24b98489546d02e48e8bdd15da3bee1b23186dca35693be934f40a01"
-    },
     "skill-creator": {
       "source": "anthropics/skills",
       "sourceType": "github",

@@ -4,6 +4,7 @@ import {
   packagesMissingGithubReleases,
   packagesNeedingReleaseHeal,
   parseGitLsRemoteTags,
+  releaseLatestFlag,
   releaseTag,
 } from './github-releases.mjs';
 
@@ -83,5 +84,16 @@ ghi refs/tags/v0.7.0
     ];
     const existing = new Set(['@merlon-docs/merlon-docs-cli@0.7.1']);
     assert.deepEqual(packagesMissingGithubReleases(packages, existing), []);
+  });
+
+  it('marks the CLI final release Latest and keeps every other final release off Latest', () => {
+    assert.equal(releaseLatestFlag('@merlon-docs/merlon-docs-cli@1.0.0'), '--latest');
+    assert.equal(releaseLatestFlag('@merlon-docs/merlon-docs-core@1.0.0'), '--latest=false');
+    assert.equal(releaseLatestFlag('@merlon-docs/skill-example@1.2.3'), '--latest=false');
+  });
+
+  it('marks a prerelease as a prerelease, whatever the package', () => {
+    assert.equal(releaseLatestFlag('@merlon-docs/merlon-docs-cli@2.0.0-rc.1'), '--prerelease');
+    assert.equal(releaseLatestFlag('@merlon-docs/merlon-docs-core@1.1.0-draft.3'), '--prerelease');
   });
 });

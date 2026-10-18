@@ -21,13 +21,6 @@ Each workflow is a file inside the skill. The agent loads only the one the task 
 | [ux](../skills/merlon-docs/references/workflows/ux.md)                                   | End-user value, processes, and workflows (UI when it serves those flows). See [UX workflow](./features/system/workflows/ux.md).                                      |
 | [doc-review](../skills/merlon-docs/references/workflows/doc-review.md)                   | Review the docs as a set: catch sprawl and duplication, then merge, split, move, or reword. See [Doc-review workflow](./features/system/workflows/doc-review.md).    |
 
-## Architecture Extensions
+## Working with other skills
 
-Archetype skills for specific documentation architectures. They aren't released to consumers. Each one sets `metadata.internal: true`, which keeps it out of the `skills` CLI's default discovery, as [Publishing the skill pack](./developer/agent-skill.md#publishing-the-skill-pack) says.
-
-| Skill                                                                                       | Description                                                                  |
-| ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| [merlon-docs-arch-oss-library](../skills/merlon-docs-arch-oss-library/SKILL.md)             | Open-source library archetype.                                               |
-| [merlon-docs-arch-product-docs-site](../skills/merlon-docs-arch-product-docs-site/SKILL.md) | Product documentation site archetype.                                        |
-| [merlon-docs-arch-gtm](../skills/merlon-docs-arch-gtm/SKILL.md)                             | Go-to-market archetype.                                                      |
-| [merlon-docs-arch-research](../skills/merlon-docs-arch-research/SKILL.md)                   | Research project archetype: dated records kept separate from product shards. |
+The skill works alongside the other skills and tools in your agent, and it's easy to extend: a project that needs more can add its own guide tiers, presets or local skills. [Extensions and archetypes](./features/system/extensions-and-archetypes.md) says how.
