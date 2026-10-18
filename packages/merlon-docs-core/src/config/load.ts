@@ -13,7 +13,7 @@ export { defaultGuideOutputFile, resolveUnderOutputDir } from './paths.js';
 /**
  * Validates a parsed config file with `MerlonConfigSchema` and migrates the former
  * `protocolVersion` key: when `standardVersion` is absent, it sets `standardVersion`
- * to `DEFAULT_STANDARD_VERSION` (`1.0.0-draft.0`), and `protocolVersion` then mirrors
+ * to `DEFAULT_STANDARD_VERSION`, and `protocolVersion` then mirrors
  * `standardVersion`. Different values under the two keys are an error.
  */
 export function parseConfig(raw: unknown): MerlonConfig {

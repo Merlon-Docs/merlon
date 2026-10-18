@@ -1,11 +1,12 @@
 import { describe, it, expect } from 'vitest';
+import { DEFAULT_STANDARD_VERSION } from '@merlon-docs/merlon-docs-core';
 import { migrateFormerConfigText } from '../src/former-config.js';
 
 describe('migrateFormerConfigText', () => {
-  it('renames a top-level protocolVersion key to standardVersion at 1.0.0-draft.0 and keeps the formatting', () => {
+  it('renames a top-level protocolVersion key to standardVersion at the package version and keeps the formatting', () => {
     const text = '{\n  "outputDir": "_build",\n  "protocolVersion" : "0.4.0.0"\n}\n';
     expect(migrateFormerConfigText(text)).toBe(
-      '{\n  "outputDir": "_build",\n  "standardVersion" : "1.0.0-draft.0"\n}\n',
+      `{\n  "outputDir": "_build",\n  "standardVersion" : "${DEFAULT_STANDARD_VERSION}"\n}\n`,
     );
   });
 

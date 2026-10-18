@@ -2,7 +2,7 @@ import { DEFAULT_STANDARD_VERSION } from '@merlon-docs/merlon-docs-core';
 
 /**
  * Text of a former config with its top-level `protocolVersion` key renamed to
- * `standardVersion` and its value updated to `DEFAULT_STANDARD_VERSION` (`1.0.0-draft.0`).
+ * `standardVersion` and its value updated to `DEFAULT_STANDARD_VERSION`.
  * Other text and formatting are kept, and text that isn't a JSON object, or that already
  * sets `standardVersion`, comes back unchanged.
  */
