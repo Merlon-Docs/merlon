@@ -1,5 +1,5 @@
-data "github_user" "maintainer" {
-  username = var.owner
+data "github_user" "release_reviewer" {
+  username = var.release_reviewer
 }
 
 resource "github_repository_environment" "release" {
@@ -10,7 +10,7 @@ resource "github_repository_environment" "release" {
   prevent_self_review = false
 
   reviewers {
-    users = [data.github_user.maintainer.id]
+    users = [data.github_user.release_reviewer.id]
   }
 
   # Deployment branch policy (main branch + v* tags) and individual branch
