@@ -15,10 +15,14 @@ describe('release-build', () => {
       { cwd: root, encoding: 'utf8' },
     );
     assert.equal(result.status, 0, result.stderr);
-    assert.match(result.stdout, /merlon-docs-cli: 1\.0\.0-draft\.0 → 1\.0\.0-draft\.0-build\.1/);
+    // The release bumps the CLI before it runs the tests, so read the version instead of pinning it.
     const version = JSON.parse(
       readFileSync(join(root, 'packages/merlon-docs-cli/package.json'), 'utf8'),
     ).version;
+    assert.ok(
+      result.stdout.includes(`merlon-docs-cli: ${version} → ${version}-build.1`),
+      result.stdout,
+    );
     assert.doesNotMatch(version, /-build\./);
   });
 });
