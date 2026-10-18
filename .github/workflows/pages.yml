@@ -16,6 +16,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    outputs:
+      indexnow_count: ${{ steps.indexnow.outputs.count }}
+      indexnow_payload: ${{ steps.indexnow.outputs.payload }}
     steps:
       # Harden-Runner: audit mode only — logs egress; block mode is follow-up (#179).
       - uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
@@ -43,6 +46,13 @@ jobs:
       # themes at desktop and phone widths, using the runner's Chrome.
       - run: pnpm --filter @merlon-docs/merlon-docs-site run check:a11y
 
+      # Hashes each built page against the hashes the live site published at its last deploy,
+      # and writes the new set into dist/ so this deploy publishes it. The changed pages become
+      # the IndexNow submission, which the indexnow job sends once the deploy succeeds.
+      - name: Plan the IndexNow submission
+        id: indexnow
+        run: node packages/merlon-docs-site/scripts/indexnow.mjs
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
@@ -67,3 +77,25 @@ jobs:
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+
+  indexnow:
+    name: Tell IndexNow which pages changed
+    needs: [build, deploy]
+    if: needs.build.outputs.indexnow_count != '0'
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      # Harden-Runner: audit mode only — logs egress; block mode is follow-up (#179).
+      - uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        with:
+          egress-policy: audit
+
+      - name: Submit the changed pages
+        env:
+          PAYLOAD: ${{ needs.build.outputs.indexnow_payload }}
+          COUNT: ${{ needs.build.outputs.indexnow_count }}
+        run: |
+          curl -fsS -X POST https://api.indexnow.org/indexnow \
+            -H 'Content-Type: application/json; charset=utf-8' \
+            --data "$PAYLOAD"
+          echo "Submitted ${COUNT} changed page(s) to IndexNow." | tee -a "$GITHUB_STEP_SUMMARY"
