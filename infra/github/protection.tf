@@ -11,7 +11,7 @@ resource "github_branch_protection" "main" {
   lock_branch                     = false
 
   required_status_checks {
-    strict = true
+    strict   = true
     contexts = ["Check", "Changeset", "Scan"]
   }
 
