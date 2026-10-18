@@ -979,22 +979,8 @@ See [Shard single responsibility and idea mitosis](../../docs/features/system/sh
 
 ## archetype
 
-An **archetype**, or battery type, is a documented bundle of guide layout, glossary seeds, optional prompts and extension pointers for one project class. The default, the Code Repository Archetype, is the four [guide tiers](#guide-tier) that [Default guide layout](../../docs/features/system/merlon-docs-1.0-spec.md#2-default-guide-layout-code-repository-archetype) defines. The other archetypes in this repository are archetype skills, `merlon-docs-arch-*` [Agent Skills](#agent-skills), which [Archetypes](../../docs/features/system/extensions-and-archetypes.md#archetypes-battery-types) lists, and a team can define its own for another documentation system.
+An **archetype**, or battery type, is a documented bundle of guide layout, glossary seeds, optional prompts and extension pointers for one project class. The default, the Code Repository Archetype, is the four [guide tiers](#guide-tier) that [Default guide layout](../../docs/features/system/merlon-docs-1.0-spec.md#2-default-guide-layout-code-repository-archetype) defines. A team can define its own for another documentation system, as [Archetypes](../../docs/features/system/extensions-and-archetypes.md#archetypes-battery-types) says.
 
 The adoption archetypes in [Personas and priority tiers](../../docs/features/personas-and-priority-tiers.md#adoption-archetypes), such as Learner and Author, are reader goals, not layouts.
 
 <!-- merlon-shard: end ../../docs/glossary/archetype.md -->
-
-<!-- merlon-shard: start ../../docs/glossary/agent-skills.md -->
-
-## Agent Skills
-
-**Agent Skills** is the [open standard](https://agentskills.io) for portable packages of agent instructions. Each package is a directory with a `SKILL.md` file and optional companion files, and agent hosts discover and load it. One package is an **Agent Skill**, usually shortened to **skill**, and several packages are _skills_.
-
-Outside agent tooling, the word skill can mean a person's ability or a general AI capability. In these docs it always means the packaged directory.
-
-Merlon Docs’ main skill is `merlon-docs`, with its source in `skills/merlon-docs/`. It contains the **documentation system** guardrails that direct agents to shard and maintain docs one piece at a time. Optional [archetype](../../docs/features/system/extensions-and-archetypes.md#archetypes-battery-types) skills are under `skills/merlon-docs-arch-*`.
-
-Install and validation: [Agent Skill](../../docs/features/agent-skill.md).
-
-<!-- merlon-shard: end ../../docs/glossary/agent-skills.md -->

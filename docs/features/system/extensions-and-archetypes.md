@@ -32,7 +32,7 @@ These principles are advisory ([Enforceable rules](../design-constraints/enforce
 
 ## Extensions directory
 
-Extensions are complementary skills. Merlon Docs' own are the internal archetypes under `skills/merlon-docs-arch-*`, and a project can add its own in a local `docs/extensions/`. Register that directory as a [guide](../../glossary/guide.md) with its own manifest, its files as `standaloneGuides` entries, or the directory in `scan.ignore`. Otherwise the [coverage scan](../coverage-scan.md) reports each markdown file in it as uncaptured, and `merlon check` fails under `scan.strict: true`.
+Merlon Docs ships one skill, and it works alongside the other skills and tools in an agent. Extending it is optional: a project that needs more can add its own extensions in a local `docs/extensions/`. Register that directory as a [guide](../../glossary/guide.md) with its own manifest, its files as `standaloneGuides` entries, or the directory in `scan.ignore`. Otherwise the [coverage scan](../coverage-scan.md) reports each markdown file in it as uncaptured, and `merlon check` fails under `scan.strict: true`.
 
 | Kind                | Purpose                                                            | Example                                   |
 | ------------------- | ------------------------------------------------------------------ | ----------------------------------------- |
@@ -42,8 +42,8 @@ Extensions are complementary skills. Merlon Docs' own are the internal archetype
 
 ### Fork, use locally, or contribute back
 
-- **Fork** complementary skills into your repo under `docs/extensions/` when you need proprietary or experimental packs.
-- **Contribute back** via PR when an extension or a change to `skills/merlon-docs/` is broadly useful. We want shared archetypes to grow.
+- **Keep** your own extensions in your repo under `docs/extensions/` when you need proprietary or experimental packs.
+- **Contribute back** via PR when a change to `skills/merlon-docs/` or the engine is broadly useful.
 - **No obligation** — Merlon Docs uses **MIT**; local-only proprietary extensions are explicitly encouraged when they encode competitive or regulated workflow detail.
 
 [Skill security](../agent-skill.md#skill-security) in Agent Skill says that a skill runs with the user's permissions and that a third-party skill is untrusted.
@@ -56,16 +56,7 @@ The default Merlon Docs installation provides the **Code Repository Archetype** 
 
 Because the underlying Merlon Docs engine (`merlon compile`, `merlon check`) is domain-agnostic, teams can define alternative archetypes for other documentation systems — for example factory SOPs, equipment manuals, training curricula, Legal Operations, or HR Policies — that use completely different guide tiers.
 
-The archetype extensions in this repository are internal (`metadata.internal: true`) and not released, as [Publishing the skill pack](../../developer/agent-skill.md#publishing-the-skill-pack) says:
-
-| Archetype          | Extension id                         | When to use                            | Shard emphasis                                                                         |
-| ------------------ | ------------------------------------ | -------------------------------------- | -------------------------------------------------------------------------------------- |
-| OSS library        | `merlon-docs-arch-oss-library`       | npm/crates publishable API             | Pointer shards to `src/`; minimal duplication of signatures                            |
-| Product docs site  | `merlon-docs-arch-product-docs-site` | MkDocs, Docusaurus, VitePress          | A `format-*` formatting pack (a naming slot; no such skill exists) + client guide tier |
-| Go-to-market / GTM | `merlon-docs-arch-gtm`               | Marketing, sales, awareness, messaging | `awareness/`, `messaging/`, `audience/` guide tiers                                    |
-| Research project   | `merlon-docs-arch-research`          | Studies, field reports, benchmarks     | `research/` tier of dated records beside `design-constraints/`                         |
-
-Each archetype is a `SKILL.md` under `skills/merlon-docs-arch-*`. Start from an archetype's `SKILL.md`, copy its patterns into `docs/`, then customize under `docs/extensions/`.
+Merlon Docs ships only the Code Repository Archetype. A team that needs another one defines its guide tiers in its own manifests, and can keep any conventions or prompts for it in `docs/extensions/`.
 
 ## Related
 

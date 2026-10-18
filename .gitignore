@@ -37,10 +37,6 @@ docs/superpowers/
 
 # Agent Skills — local installs / workspaces (publishable source lives in skills/)
 .agents/skills/merlon-docs/
-.agents/skills/merlon-docs-arch-oss-library/
-.agents/skills/merlon-docs-arch-product-docs-site/
-.agents/skills/merlon-docs-arch-gtm/
-.agents/skills/merlon-docs-arch-research/
 .agents/skills/*-workspace/
 skills/*-workspace/
 # skill-creator is vendored (committed) for the local live-eval loop — do not gitignore

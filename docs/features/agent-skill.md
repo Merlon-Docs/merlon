@@ -16,8 +16,7 @@ Packaging Merlon Docs as an Agent Skill gives:
 
 **Upstream source** (this repository, publishable):
 
-- [`skills/merlon-docs/`](../../skills/merlon-docs/) holds the documentation system skill and its workflows, the supported consumer install.
-- `skills/merlon-docs-arch-*/` holds the internal archetype skills that [Extensions and archetypes](./system/extensions-and-archetypes.md) lists. [Publishing the skill pack](../developer/agent-skill.md#publishing-the-skill-pack) says when one is released.
+- [`skills/merlon-docs/`](../../skills/merlon-docs/) holds the documentation system skill and its workflows, the supported consumer install and the only skill in this repository.
 
 **Consumer install target** after `npx skills add`: the **agent-specific** skills directory the [`skills` CLI](https://www.skills.sh/docs/cli) chooses (`--agent` or auto-detect) — vendored into your repo. Per-agent paths: [Supported Agents](https://github.com/vercel-labs/skills#supported-agents).
 

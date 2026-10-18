@@ -4,6 +4,6 @@
 
 Outside agent tooling, the word skill can mean a person's ability or a general AI capability. In these docs it always means the packaged directory.
 
-Merlon Docs’ main skill is `merlon-docs`, with its source in `skills/merlon-docs/`. It contains the **documentation system** guardrails that direct agents to shard and maintain docs one piece at a time. Optional [archetype](../features/system/extensions-and-archetypes.md#archetypes-battery-types) skills are under `skills/merlon-docs-arch-*`.
+Merlon Docs’ main skill is `merlon-docs`, with its source in `skills/merlon-docs/`. It contains the **documentation system** guardrails that direct agents to shard and maintain docs one piece at a time. It works alongside other skills, and a project can extend it with its own ([Extensions and archetypes](../features/system/extensions-and-archetypes.md)).
 
 Install and validation: [Agent Skill](../features/agent-skill.md).

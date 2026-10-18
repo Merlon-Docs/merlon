@@ -159,14 +159,6 @@ importers:
 
   packages/skill-merlon-docs: {}
 
-  packages/skill-merlon-docs-arch-gtm: {}
-
-  packages/skill-merlon-docs-arch-oss-library: {}
-
-  packages/skill-merlon-docs-arch-product-docs-site: {}
-
-  packages/skill-merlon-docs-arch-research: {}
-
 packages:
 
   '@antfu/install-pkg@2.1.0':
