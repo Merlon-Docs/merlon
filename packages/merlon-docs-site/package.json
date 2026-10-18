@@ -6,11 +6,12 @@
   "type": "module",
   "scripts": {
     "sync": "node scripts/sync-content.mjs",
-    "dev": "node scripts/sync-content.mjs && astro dev",
-    "build:site": "node scripts/sync-content.mjs && astro build && node scripts/check-links.mjs",
+    "dev": "node scripts/sync-content.mjs && node scripts/measure-site.mjs && astro dev",
+    "build:site": "node scripts/sync-content.mjs && node scripts/measure-site.mjs && astro build && node scripts/check-links.mjs",
     "preview": "astro preview",
     "test": "node --test scripts/*.test.mjs",
-    "check:a11y": "node scripts/check-a11y.mjs"
+    "check:a11y": "node scripts/check-a11y.mjs",
+    "measure": "node scripts/measure-site.mjs"
   },
   "devDependencies": {
     "@astrojs/starlight": "^0.42.6",

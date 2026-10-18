@@ -479,7 +479,7 @@ Link lint, broken-link marking, the link passes and `codeEvidence` mask code spa
 
 ## Benchmarks
 
-`pnpm bench:dogfood` times compile and check on this repository's own docs against the [Performance goals](docs/features/system/performance.md). `pnpm bench:context-size` measures how much context a whole compiled guide and one shard of those docs take. CI doesn't run either script. The growth benchmarks that CI runs on pull requests are separate: [Growth benchmarks](#growth-benchmarks) describes them.
+`pnpm bench:dogfood` times compile and check on this repository's own docs against the [Performance goals](docs/features/system/performance.md). `pnpm bench:context-size` measures how much context a whole compiled guide and one shard of those docs take. CI doesn't run either script. The site build also runs `scripts/bench-context-size.mjs`, into a gitignored file, so the homepage shows each build's sizes, as [Measured on each build](#measured-on-each-build) says. The growth benchmarks that CI runs on pull requests are separate: [Growth benchmarks](#growth-benchmarks) describes them.
 
 ### Before you run
 
@@ -1087,7 +1087,7 @@ The public docs site at <https://merlon-docs.github.io/merlon/> is an [Astro Sta
 
 ### Content comes from shards
 
-The landing page (`packages/merlon-docs-site/src/content/docs/index.mdx`) and the Learn page (`packages/merlon-docs-site/src/content/docs/learn.mdx`) are hand-authored. The other pages are generated at build time by [`packages/merlon-docs-site/scripts/sync-content.mjs`](packages/merlon-docs-site/scripts/sync-content.mjs) from these guides:
+The landing page (`packages/merlon-docs-site/src/content/docs/index.mdx`) and the Learn page (`packages/merlon-docs-site/src/content/docs/learn.mdx`) are hand-authored, apart from two sections the build measures, which [Measured on each build](#measured-on-each-build) describes. The other pages are generated at build time by [`packages/merlon-docs-site/scripts/sync-content.mjs`](packages/merlon-docs-site/scripts/sync-content.mjs) from these guides:
 
 | Shards              | Site section | Route            |
 | ------------------- | ------------ | ---------------- |
@@ -1115,18 +1115,28 @@ The sync fails on any internal link it cannot resolve, and the build then checks
 
 ### Build and preview
 
+`pnpm site:dev` builds the packages, compiles the docs, syncs and measures, then starts `astro dev`. `pnpm site:build` takes the same steps, then runs `astro build` and the link check on `dist/`. `pnpm site:a11y` runs the axe-core WCAG 2.2 A and AA checks on the built site, and the site package's `test` script runs the unit tests of its scripts:
+
 ```bash
-pnpm site:dev     # build packages, compile docs, sync, then astro dev
-pnpm site:build   # same steps, then astro build and the dist link check
-pnpm site:a11y    # axe-core WCAG 2.2 A and AA checks on the built site
-pnpm --filter @merlon-docs/merlon-docs-site test   # unit tests of the site scripts
+pnpm site:build &&
+pnpm site:a11y &&
+pnpm --filter @merlon-docs/merlon-docs-site test
 ```
 
-The first two commands run `pnpm build` and `pnpm docs:compile:repo` first, because the sync needs the CLI build and the refs registry. `pnpm site:a11y` checks the `dist/` that `pnpm site:build` wrote. It opens a sample of pages in a local Chrome, in both themes at desktop and phone widths, and fails on any violation. Set `CHROME_PATH` to use another Chrome or Chromium binary.
+The first two commands run `pnpm build` and `pnpm docs:compile:repo` first, because the sync and the measurements need the CLI build, the compiled guides and the refs registry. `pnpm site:a11y` checks the `dist/` that `pnpm site:build` wrote. It opens a sample of pages in a local Chrome, in both themes at desktop and phone widths, and fails on any violation. Set `CHROME_PATH` to use another Chrome or Chromium binary.
+
+### Measured on each build
+
+Two homepage sections show figures the build measures, so each published page reflects the commit it was built from. After the sync, [`packages/merlon-docs-site/scripts/measure-site.mjs`](packages/merlon-docs-site/scripts/measure-site.mjs) writes two gitignored files to `packages/merlon-docs-site/.generated/`:
+
+- `context-size.csv`: `scripts/bench-context-size.mjs` on the compiled guides, whole guides against single shards in estimated tokens. **How much an agent reads**, on the homepage and the Learn page, renders it.
+- `site-stats.json`: the specification's version from its **Version** line, the packages' versions, and the median time of three `merlon check` runs on `docs/`, with the commit and time measured. **Where Merlon Docs stands** renders it.
+
+A failing `merlon check` fails the build, so a deployed page never shows figures from a tree that doesn't pass. Each section's note gives the build date and links the commit, as [Figures measured at build](docs/features/system/benefit-claims-and-evidence.md#figures-measured-at-build) asks.
 
 ### Deployment
 
-[`.github/workflows/pages.yml`](.github/workflows/pages.yml) runs only when dispatched. The [land workflow](.github/workflows/land-develop.yml) dispatches it on `develop` after each landing, in its Deploy the docs site from develop step, because the landing's push to `develop` uses the workflow's own token, which doesn't start a workflow. A maintainer can also dispatch it by hand, on `develop`. The run executes the site tests, `pnpm site:build` and the accessibility check, and deploys the result to GitHub Pages from the ref it was dispatched on. A pull request doesn't build the site, so run `pnpm site:build` before landing; otherwise a sync or link failure shows up in the deploy run after the landing. [Repository settings](#repository-settings) lists the Pages source and the `github-pages` environment that the deploy needs.
+[`.github/workflows/pages.yml`](.github/workflows/pages.yml) runs only when dispatched. The [land workflow](.github/workflows/land-develop.yml) dispatches it on `develop` after each landing, in its Deploy the docs site from develop step, because the landing's push to `develop` uses the workflow's own token, which doesn't start a workflow. The sync from `main` dispatches it too after it resets `develop` to `main`, so the site shows a release's versions without waiting for the next landing. A maintainer can also dispatch it by hand, on `develop`. The run executes the site tests, `pnpm site:build` and the accessibility check, and deploys the result to GitHub Pages from the ref it was dispatched on. A pull request doesn't build the site, so run `pnpm site:build` before landing; otherwise a sync or link failure shows up in the deploy run after the landing. [Repository settings](#repository-settings) lists the Pages source and the `github-pages` environment that the deploy needs.
 
 ### Coverage scan
 

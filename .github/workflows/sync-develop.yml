@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write # Reset develop to main, or push the merge to land/sync-main
-      actions: write # Dispatch the land workflow on land/sync-main
+      actions: write # Dispatch the land workflow on land/sync-main, or Pages after a reset
       pull-requests: write # Open a sync PR when the merge conflicts
     steps:
       # Harden-Runner: audit mode only — logs egress; block mode is follow-up (#179).
@@ -70,6 +70,10 @@ jobs:
             develop_sha="$(git rev-parse origin/develop)"
             git push --force-with-lease="develop:${develop_sha}" origin "origin/main:refs/heads/develop"
             echo "develop held main's files; reset develop ($(git rev-parse --short "${develop_sha}")) to main ($(git rev-parse --short origin/main))." | tee -a "$GITHUB_STEP_SUMMARY"
+            # A push made with GITHUB_TOKEN starts no workflow, so deploy the site from the new
+            # develop by name, as the land workflow does after a landing.
+            gh workflow run pages.yml --ref develop --repo "${GITHUB_REPOSITORY}"
+            echo "Dispatched the Pages deploy for develop." | tee -a "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
 

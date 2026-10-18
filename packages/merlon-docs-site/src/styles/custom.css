@@ -326,6 +326,12 @@
   color: var(--merlon-muted);
 }
 
+.sl-markdown-content .merlon-status-versions {
+  margin: 1.5rem 0 0;
+  font-size: 0.9375rem;
+  color: var(--sl-color-gray-2);
+}
+
 .sl-markdown-content .merlon-evidence--three {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }

@@ -1,0 +1,50 @@
+---
+// "Where Merlon Docs stands": versions and checks measured each time the site is built.
+// scripts/measure-site.mjs writes the figures, and the build fails when `merlon check` fails, so
+// a published page only shows a passing check. The note gives the build's date and commit, as
+// Benefit claims and evidence asks of a measured figure.
+import csv from '../../.generated/context-size.csv?raw';
+import stats from '../../.generated/site-stats.json';
+import { BASE } from '../../site.config.mjs';
+
+const shardCount = Number(
+  csv
+    .trim()
+    .split('\n')
+    .find((line) => line.startsWith('shard_count,'))
+    ?.split(',')[1] ?? 0,
+);
+const fmt = new Intl.NumberFormat('en-US');
+const commitUrl = `https://github.com/Merlon-Docs/merlon/commit/${stats.commit}`;
+const builtOn = stats.measuredAt.slice(0, 10);
+---
+
+<p class="merlon-status-versions">
+  <a href={`${BASE}/concepts/system/merlon-docs-10-spec/`}>Specification</a>{' '}
+  <strong>{stats.specVersion}</strong> · CLI <strong>{stats.packages.cli}</strong> · core{' '}
+  <strong>{stats.packages.core}</strong> · presets <strong>{stats.packages.presets}</strong>
+</p>
+
+<dl class="merlon-evidence merlon-evidence--three" aria-label="Measured on this build">
+  <div>
+    <dt>{fmt.format(shardCount)}</dt>
+    <dd>shards in this repository's guides, each one listed in its guide's manifest</dd>
+  </div>
+  <div>
+    <dt>0</dt>
+    <dd>broken internal links, unindexed docs files or unresolved paths in prose</dd>
+  </div>
+  <div>
+    <dt>{stats.checkSeconds} s</dt>
+    <dd>for <code>merlon check</code> to compile and check all of this repository's docs</dd>
+  </div>
+</dl>
+
+<div class="merlon-evidence-note">
+  <p>
+    Measured by merlon check when this site was built on {builtOn}, from commit{' '}
+    <a href={commitUrl}>{stats.commit.slice(0, 7)}</a>. The build stops when the check
+    fails, so these figures always come from a passing run. The time is the median of three runs on
+    the build machine, so it varies between builds.
+  </p>
+</div>
