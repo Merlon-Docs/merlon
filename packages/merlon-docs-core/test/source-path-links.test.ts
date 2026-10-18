@@ -63,12 +63,38 @@ describe('lintShardLinks source-file targets', () => {
     });
   });
 
-  it('leaves targets without a source extension unvalidated', () => {
+  it('leaves bare words without a source extension unvalidated', () => {
     withTmpDir('merlon-src-link-prose-', (work) => {
       const guideDir = join(work, 'g');
       mkdirSync(guideDir, { recursive: true });
       const shard = join(guideDir, 'section.md');
-      writeFileSync(shard, '## S\n\n[a placeholder](path) and [a directory](src/)\n');
+      writeFileSync(shard, '## S\n\n[a placeholder](path)\n');
+      expect(lintShardLinks({ shardFile: shard, guideDir })).toEqual([]);
+    });
+  });
+
+  it('validates directory link targets and reports a missing directory', () => {
+    withTmpDir('merlon-src-link-dir-', (work) => {
+      const guideDir = join(work, 'g');
+      mkdirSync(join(guideDir, 'live-dir'), { recursive: true });
+      const shard = join(guideDir, 'section.md');
+      writeFileSync(shard, '## S\n\n[live](./live-dir/) and [gone](./missing-dir/)\n');
+      const issues = lintShardLinks({ shardFile: shard, guideDir });
+      expect(issues).toHaveLength(1);
+      expect(issues[0].kind).toBe('missing file');
+      expect(issues[0].brokenTarget).toBe('./missing-dir/');
+    });
+  });
+
+  it('skips external http://, https:// and protocol-relative // URLs without network calls', () => {
+    withTmpDir('merlon-src-link-ext-url-', (work) => {
+      const guideDir = join(work, 'g');
+      mkdirSync(guideDir, { recursive: true });
+      const shard = join(guideDir, 'section.md');
+      writeFileSync(
+        shard,
+        '## S\n\n[h](http://example.invalid/missing.ts) [s](https://example.invalid/gone/) [p](//example.invalid/x.ts)\n',
+      );
       expect(lintShardLinks({ shardFile: shard, guideDir })).toEqual([]);
     });
   });
@@ -109,6 +135,21 @@ describe('validateCompiledLinkTarget source-file targets', () => {
         outputFile: out,
       });
       expect(result.valid).toBe(true);
+    });
+  });
+
+  it('validates a compiled link to a directory target', () => {
+    withTmpDir('merlon-compiled-dir-', (work) => {
+      const out = join(work, 'out.md');
+      writeFileSync(out, '# Out\n');
+      mkdirSync(join(work, 'live-dir'), { recursive: true });
+      const registry = buildSlugRegistry('# Out');
+      expect(validateCompiledLinkTarget('./live-dir/', registry, { outputFile: out }).valid).toBe(
+        true,
+      );
+      const missing = validateCompiledLinkTarget('./missing-dir/', registry, { outputFile: out });
+      expect(missing.valid).toBe(false);
+      expect(missing.reason).toBe('missing file');
     });
   });
 });

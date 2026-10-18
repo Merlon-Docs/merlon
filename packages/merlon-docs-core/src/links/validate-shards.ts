@@ -4,6 +4,8 @@ import { extractLinks } from './extract.js';
 import {
   defaultSearchRoots,
   hasFileExtension,
+  isDirectoryTarget,
+  isExistingDirectory,
   resolveRelativeFile,
 } from '../compile/hooks/path-resolve.js';
 import { sectionAnchorSlugs, type ShardSnapshot } from '../compile/shard-cache.js';
@@ -51,18 +53,31 @@ export function lintShardLinks(options: LintShardLinksOptions): LinkIssue[] {
       continue;
     }
 
-    if (/^https?:\/\//i.test(link.target)) continue;
+    if (/^https?:\/\//i.test(link.target) || link.target.startsWith('//')) continue;
 
     const filePart = link.target.split('#')[0];
-    // A shard link names either another shard or a source file. Anything else
-    // (a bare word, a directory) is too ambiguous to resolve, so it is skipped.
-    if (!filePart.endsWith('.md') && !hasFileExtension(filePart, options.fileExtensions)) continue;
+    const dirTarget = isDirectoryTarget(filePart);
+    // A shard link names another shard, a source/data file, or a directory (trailing `/`).
+    // Anything else (such as a bare word) is too ambiguous to resolve, so it is skipped.
+    if (
+      !filePart.endsWith('.md') &&
+      !dirTarget &&
+      !hasFileExtension(filePart, options.fileExtensions)
+    ) {
+      continue;
+    }
 
     const resolved =
       resolveRelativeFile(filePart, shardDir, searchRoots) ??
       resolveRelativeFile(filePart, options.guideDir, searchRoots);
 
-    if (!resolved || !existsSync(resolved)) {
+    const exists = resolved
+      ? dirTarget
+        ? isExistingDirectory(resolved)
+        : existsSync(resolved)
+      : false;
+
+    if (!exists) {
       issues.push({
         kind: 'missing file',
         file: options.shardFile,

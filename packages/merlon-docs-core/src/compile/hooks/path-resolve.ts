@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { CompileHookContext } from '../hooks.js';
 
@@ -274,4 +274,19 @@ export function hasCodeExtension(path: string, extensions?: Set<string>): boolea
   const ext = extensionOf(path);
   if (!ext) return false;
   return (extensions ?? codeExtensionSet()).has(ext);
+}
+
+/** True when `path` names a directory link target, such as `src/` or `../skills/merlon-docs/`. */
+export function isDirectoryTarget(path: string): boolean {
+  const bare = path.split('#')[0].split('?')[0];
+  return bare.length > 0 && bare.endsWith('/');
+}
+
+/** True when `path` is a directory on disk. */
+export function isExistingDirectory(path: string): boolean {
+  try {
+    return statSync(path).isDirectory();
+  } catch {
+    return false;
+  }
 }

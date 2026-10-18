@@ -82,12 +82,15 @@ const GuideSchema = z.object({
     .optional(),
 });
 
+export const DEFAULT_STANDARD_VERSION = '1.0.0-draft.0';
+
 export const MerlonConfigSchema = z.object({
   /** Version of the Merlon Docs standard the repository conforms to (default 1.0.0-draft.0). */
-  standardVersion: z.string().default('1.0.0-draft.0'),
+  standardVersion: z.string().default(DEFAULT_STANDARD_VERSION),
   /**
    * @deprecated Former name of `standardVersion`, still read until 2.0.0.
-   * `parseConfig` and `loadConfig` copy it to `standardVersion` and set it to the same value.
+   * When `standardVersion` is absent, `parseConfig` and `loadConfig` migrate it to
+   * `DEFAULT_STANDARD_VERSION` (`1.0.0-draft.0`) and mirror `standardVersion` on `protocolVersion`.
    */
   protocolVersion: z.string().optional(),
 

@@ -1,4 +1,5 @@
 export {
+  DEFAULT_STANDARD_VERSION,
   MerlonConfigSchema,
   type MerlonConfig,
   type MerlonConfigInput,
@@ -151,6 +152,8 @@ export {
   fileExtensionSet,
   hasCodeExtension,
   hasFileExtension,
+  isDirectoryTarget,
+  isExistingDirectory,
   type ExtensionConfig,
 } from './compile/hooks/path-resolve.js';
 export {

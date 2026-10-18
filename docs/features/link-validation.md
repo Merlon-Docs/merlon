@@ -8,7 +8,7 @@ Internal markdown links can compile cleanly but still be broken in published out
 
 `merlon compile` and `merlon check` validate links in the compiled outputs, and `merlon check` adds the standalone guides. A broken link fails both commands with IDE-clickable `path:line:` diagnostics unless warn mode is on. Compile also marks a dead `#fragment` with a **`BROKEN LINK`** marker by default. The shard phase is for API callers.
 
-Validated target classes are `.md` paths, `#fragment` anchors and **file paths**. A target with a known extension, such as `.ts`, `.yaml` or `.csv`, names a repository file, so an unresolved one is a defect. Any other target, such as a bare word or a directory path, stays unvalidated, because nothing tells a stale one from an illustrative one.
+Validated target classes are `.md` paths, `#fragment` anchors, **file paths** and **directory paths** (ending in `/`). A target with a known extension, such as `.ts`, `.yaml` or `.csv`, names a repository file, and a target ending in `/` names a directory, so an unresolved one is a defect. Any other target, such as a bare word, stays unvalidated, because nothing tells a stale one from an illustrative one. Built-in link validation is local to the filesystem and skips `http://`, `https://` and `//` URLs without network requests.
 
 The extensions come from a built-in code list and a built-in data list. Link validation checks that a file with either kind of extension exists. The [code evidence hook](../client-core/compile-hooks/code-evidence.md) uses the same lists and says how it treats each kind. `lint.codeExtensions` and `lint.dataExtensions` add extensions for stacks the built-in lists leave out.
 
@@ -152,8 +152,8 @@ link: /repo/docs/_build/a.md:5: dead anchor "#nope" (compiled guide "a")
 - Shard dead file link at `path:line`
 - A link inside an HTML comment is validated
 - Shard dead same-doc `#fragment`
-- A shard or compiled link to a source file that does not resolve reports `missing file`
-- Link target with no known extension (bare word, directory) stays unvalidated
+- A shard or compiled link to a source file or directory (`path/`) that does not resolve reports `missing file`
+- Link target with no known extension or trailing slash (bare word) stays unvalidated
 - `standaloneGuides` files are link-linted, globs included, at the scan root
 - An extension listed in `lint.codeExtensions` or `lint.dataExtensions` is validated like a built-in one, with or without a leading dot
 - A data-file link is validated and rebased, and symbol lookup gives it no `#L` fragment; the same extension listed in `lint.codeExtensions` gets one

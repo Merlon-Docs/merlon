@@ -1,7 +1,11 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve, isAbsolute } from 'node:path';
 import { buildSlugRegistry } from '../refs/slugs.js';
-import { hasFileExtension } from '../compile/hooks/path-resolve.js';
+import {
+  hasFileExtension,
+  isDirectoryTarget,
+  isExistingDirectory,
+} from '../compile/hooks/path-resolve.js';
 import type { RefsRegistry } from '../refs/slugs.js';
 
 export type LinkFailureReason = 'dead anchor' | 'missing file' | 'missing publish path';
@@ -139,22 +143,24 @@ function hasResolvedPath(paths: Set<string> | undefined, resolved: string): bool
 }
 
 /**
- * Resolve a compiled link that names a source file. The `codeEvidence` hook
- * rewrites these targets relative to the output file, so an unresolved target
- * means the file the docs cite is gone. Targets without a known source
- * extension (a bare word, a directory) stay unvalidated.
+ * Resolve a compiled link that names a source file or directory. The `codeEvidence`
+ * hook and the publish-relative pass rewrite these targets relative to the output
+ * file, so an unresolved target means the file or directory the docs cite is gone.
+ * Targets without a known source extension or trailing slash (a bare word) stay unvalidated.
  */
 function validateSourceFileTarget(
   target: string,
   filePart: string,
   options: ValidateCompiledLinkOptions,
 ): LinkValidationResult {
-  if (!hasFileExtension(filePart, options.fileExtensions) || !options.outputFile) {
+  const dirTarget = isDirectoryTarget(filePart);
+  if ((!dirTarget && !hasFileExtension(filePart, options.fileExtensions)) || !options.outputFile) {
     return { valid: true };
   }
   const baseDir = dirname(resolve(options.outputFile));
   const resolved = isAbsolute(filePart) ? filePart : resolve(baseDir, filePart);
-  if (existsSync(resolved)) return { valid: true };
+  const exists = dirTarget ? isExistingDirectory(resolved) : existsSync(resolved);
+  if (exists) return { valid: true };
   return { valid: false, reason: 'missing file', brokenTarget: target };
 }
 

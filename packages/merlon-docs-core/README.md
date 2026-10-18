@@ -124,7 +124,7 @@ With `shardsGlobs`, it returns each entry as written, negated entries included, 
 
 `loadConfig` validates the file with `MerlonConfigSchema` through `parseConfig`, and fills the top-level defaults, such as `outputDir`, `banner`, `sourceTags`, `scan`, `backup`, `refs` and `review`. A key inside an omitted optional object, such as `lint`, `lint.links`, `vale` or a guide's `compile`, is `undefined` after loading, and the code that reads it applies the documented default. Config essentials lists the output layout and its defaults under [Path layout](../merlon-docs-cli/README.md#path-layout). [Source tags and default banner](../../docs/features/source-tags-and-banner.md) gives the default banner text and the per-guide `compile.includeBanner` and `compile.sourceTags` keys.
 
-A config written before the rename stores the standard version under `protocolVersion`. `parseConfig` copies that value to `standardVersion` when `standardVersion` is absent, and it sets `protocolVersion` to the result. Different values under the two keys are an error. Parsing with `MerlonConfigSchema` alone skips that copy, so `standardVersion` takes its default.
+A config written before the rename stores the standard version under `protocolVersion`. When `standardVersion` is absent, `parseConfig` migrates it to the `1.0.0-draft.0` default on `standardVersion` and sets `protocolVersion` to the result. Different values under the two keys are an error.
 
 #### Publish outputs and link paths
 

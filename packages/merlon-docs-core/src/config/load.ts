@@ -1,15 +1,20 @@
 import { readFileSync, existsSync, statSync } from 'node:fs';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
-import { MerlonConfigSchema, type MerlonConfig, type GuideConfig } from './schema.js';
+import {
+  DEFAULT_STANDARD_VERSION,
+  MerlonConfigSchema,
+  type MerlonConfig,
+  type GuideConfig,
+} from './schema.js';
 import { resolveUnderOutputDir, defaultGuideOutputFile } from './paths.js';
 
 export { defaultGuideOutputFile, resolveUnderOutputDir } from './paths.js';
 
 /**
- * Validates a parsed config file with `MerlonConfigSchema` and reads the former
- * `protocolVersion` key: its value fills `standardVersion` when that key is
- * absent, and `protocolVersion` then mirrors `standardVersion`. Different values
- * under the two keys are an error.
+ * Validates a parsed config file with `MerlonConfigSchema` and migrates the former
+ * `protocolVersion` key: when `standardVersion` is absent, it sets `standardVersion`
+ * to `DEFAULT_STANDARD_VERSION` (`1.0.0-draft.0`), and `protocolVersion` then mirrors
+ * `standardVersion`. Different values under the two keys are an error.
  */
 export function parseConfig(raw: unknown): MerlonConfig {
   let input = raw;
@@ -17,7 +22,7 @@ export function parseConfig(raw: unknown): MerlonConfig {
     const record = raw as Record<string, unknown>;
     if (record.protocolVersion !== undefined) {
       if (record.standardVersion === undefined) {
-        input = { ...record, standardVersion: record.protocolVersion };
+        input = { ...record, standardVersion: DEFAULT_STANDARD_VERSION };
       } else if (record.standardVersion !== record.protocolVersion) {
         throw new Error(
           `Config sets standardVersion (${String(record.standardVersion)}) and its former name protocolVersion (${String(record.protocolVersion)}) to different values. Keep standardVersion only.`,

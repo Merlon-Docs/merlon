@@ -110,25 +110,25 @@
 
 - 58452d2: MDCP (MarkDown Context Protocol) is now Merlon Docs. The packages publish as `@merlon-docs/merlon-docs-cli`, `@merlon-docs/merlon-docs-core` and `@merlon-docs/merlon-docs-presets`, and the CLI command is `merlon`. The Agent Skill installs as `merlon-docs` with `npx skills add Merlon-Docs/merlon --skill merlon-docs`, and the archetypes are `merlon-docs-arch-*`.
 
-  The config file is `merlon.config.json`. Until 2.0.0, a CLI run that finds `mdcp.config.json` and no `merlon.config.json` upgrades the project itself. It writes the config to `merlon.config.json` with `protocolVersion` renamed to `standardVersion`, deletes `mdcp.config.json` and prints a notice. The illustrative-paths marker is `<!-- merlon-paths: illustrative -->`, and the former `mdcp-paths` spelling still works until 2.0.0.
+  The config file is `merlon.config.json`. Until 2.0.0, a CLI run that finds `mdcp.config.json` and no `merlon.config.json` upgrades the project itself. It writes the config to `merlon.config.json` with `protocolVersion` renamed to `standardVersion` and set to `1.0.0-draft.0`, deletes `mdcp.config.json` and prints a notice. The illustrative-paths marker is `<!-- merlon-paths: illustrative -->`, and the former `mdcp-paths` spelling still works until 2.0.0.
 
   The Vale style is `MerlonDocs`, so a rule reads `MerlonDocs.DatedClaim`. Compiled outputs carry `<!-- merlon-shard: … -->` markers. In the core API the config types are `MerlonConfig`, `MerlonConfigInput` and `MerlonConfigSchema`, and the `Mdcp*` names stay as deprecated aliases until 2.0.0.
 
   To migrate a project, install the new packages, run any `merlon` command once to upgrade the config file, and change `MDCP` to `MerlonDocs` in `.vale.ini`, in `<!-- vale MDCP.… -->` comments and in the `StylesPath` link to the presets.
 
-- 9bc05cd: Validate source-file link targets and link-lint standalone guides
+- 9bc05cd: Validate source-file and directory link targets and link-lint standalone guides
 
-  `merlon check` now fails on a link whose target names a source file that does not
+  `merlon check` now fails on a link whose target names a source file or directory (`path/`) that does not
   resolve, in shard sources and in compiled output. Previously any target not
-  ending in `.md` was skipped, so a link to a deleted module passed the gate
+  ending in `.md` was skipped, so a link to a deleted module or directory passed the gate
   indefinitely.
 
   Files registered under `standaloneGuides` are now link-linted with the same
   checks a shard gets. They are never compiled, so no phase read their links
   before; the docs already claimed they were validated.
 
-  Targets that name no resolvable file class — a bare word, a directory path —
-  stay unvalidated.
+  Targets that name no resolvable file or directory class — a bare word —
+  stay unvalidated, and external `http://`, `https://` and `//` URLs are skipped without network requests.
 
 - 9bc05cd: `merlon prose` and `merlon check` run Vale over the files that `standaloneGuides` registers, as well as the guide directories. They add the standalone files when `vale.scanGlobs` is set too, because that setting replaces only the guide directories. Each standalone guide is linted once, even when it is inside a scanned directory or two `standaloneGuides` entries match it. The exception is a guide that a scanned directory also reaches through a symlinked subdirectory, which Vale lints under both names.
 
@@ -281,7 +281,7 @@
   The core README no longer links the monolith glossary entry, which led to a chain of doc-authoring terms, so it stitches three glossary entries where it stitched fifteen. Compile API defines the monolith in one sentence instead.
 
 - 9bc05cd: The coverage section of the README now says the scan does not follow symbolic links, so a `standaloneGuides` entry whose path is a symlink is reported as missing. Register the file the link points to.
-- a922454: Drop the npm keyword `mdcp` from the CLI and presets packages. The old name stays only on the compatibility aliases that a project still needs: `mdcp.config.json` upgrades to `merlon.config.json` until 2.0.0, `protocolVersion` still fills `standardVersion`, the `MdcpConfig` names stay as deprecated exports, and `<!-- mdcp-paths: illustrative -->` is still read.
+- a922454: Drop the npm keyword `mdcp` from the CLI and presets packages. The old name stays only on the compatibility aliases that a project still needs: `mdcp.config.json` upgrades to `merlon.config.json` until 2.0.0, `protocolVersion` still migrates to `standardVersion`, the `MdcpConfig` names stay as deprecated exports, and `<!-- mdcp-paths: illustrative -->` is still read.
 - 3b4eb6f: Doc review corrections in sections that the READMEs stitch. The `orphan` entry in both READMEs links the new Orphan check scope section of the Manifest compile order spec, which says what the check reports and which files it doesn't read. The entry's second paragraph restated that scope and is gone.
 
   In the CLI README, the `refs registry` entry says that `merlon compile`, `merlon refs-gen` and `merlon check` rewrite `refs.json` from their own compile, and that only `merlon refs-check` fails on a stale file, as the new Stale registry check section of the Refs registry path spec says. It used to say that `merlon check` verifies the registry against the latest compile, which can't fail because `merlon check` writes the file first. The `refs` entry there drops "via `merlon check`" from its check refs row and links the registry entry from its own row.
@@ -383,7 +383,7 @@
   `hookState` for each assembly.
 
 - 9bc05cd: README corrections from a doc review: the CLI README documents the `--backup` options, `refs-list --format`, the `lint.codeExtensions`, `lint.dataExtensions` and `lint.paths.*` config keys, and the registered `refs-gen`/`refs-check`/`refs-list` names. Code examples that showed empty code where a heading id was stripped now render. The core README lists `computeCoverage` and `probeDocumentPaths`.
-- 01b6d2b: The config key for the version of the Merlon Docs standard is now `standardVersion`, defaulting to `1.0.0-draft.0` with the 1.0 draft line (replacing the former `0.5.0.0` label and `protocolVersion` name). A config that still sets `protocolVersion` keeps working until 2.0.0: `loadConfig` and the new `parseConfig` copy its value to `standardVersion`, and they fail when the two keys hold different values. A parsed config still has `protocolVersion`, set to the same value. The JSON schema marks `protocolVersion` as deprecated.
+- 01b6d2b: The config key for the version of the Merlon Docs standard is now `standardVersion`, defaulting to `1.0.0-draft.0` with the 1.0 draft line (replacing the former `0.5.0.0` label and `protocolVersion` name). A config that still sets `protocolVersion` keeps working until 2.0.0: when `standardVersion` is absent, `loadConfig` and the new `parseConfig` migrate it to `1.0.0-draft.0` on `standardVersion`, and they fail when the two keys hold different values. A parsed config still has `protocolVersion`, set to the same value. The JSON schema marks `protocolVersion` as deprecated.
 
   The copyright line in each license now reads Merlon Docs. Code comments, the JSON schema and the docs now call the specification "the standard". The presets README now refers to the `MerlonDocs` Vale style, which the rename had missed.
 

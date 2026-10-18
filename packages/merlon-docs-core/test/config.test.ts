@@ -122,10 +122,10 @@ describe('standardVersion', () => {
     expect(cfg.protocolVersion).toBe('1.0.0-draft.0');
   });
 
-  it('reads the former protocolVersion key', () => {
+  it('migrates the former protocolVersion key to 1.0.0-draft.0', () => {
     const cfg = parseConfig({ compileOrder: ['a'], protocolVersion: '0.6.0.0' });
-    expect(cfg.standardVersion).toBe('0.6.0.0');
-    expect(cfg.protocolVersion).toBe('0.6.0.0');
+    expect(cfg.standardVersion).toBe('1.0.0-draft.0');
+    expect(cfg.protocolVersion).toBe('1.0.0-draft.0');
   });
 
   it('prefers standardVersion and accepts the same value under both keys', () => {
@@ -143,13 +143,13 @@ describe('standardVersion', () => {
     ).toThrow(/standardVersion.*protocolVersion/);
   });
 
-  it('loadConfig reads protocolVersion from a file', () => {
+  it('loadConfig migrates protocolVersion from a file to 1.0.0-draft.0', () => {
     withTmpDir('merlon-config-', (dir) => {
       writeFileSync(
         join(dir, 'merlon.config.json'),
         JSON.stringify({ compileOrder: ['a'], protocolVersion: '0.6.0.0' }),
       );
-      expect(loadConfig('merlon.config.json', dir).standardVersion).toBe('0.6.0.0');
+      expect(loadConfig('merlon.config.json', dir).standardVersion).toBe('1.0.0-draft.0');
     });
   });
 });

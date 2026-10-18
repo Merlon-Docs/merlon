@@ -401,7 +401,7 @@ describe('cli smoke', () => {
           protocolVersion?: string;
           compileOrder?: string[];
         };
-        expect(upgraded.standardVersion).toBe('0.4.0.0');
+        expect(upgraded.standardVersion).toBe('1.0.0-draft.0');
         expect(upgraded.protocolVersion).toBeUndefined();
         expect(upgraded.compileOrder).toEqual(['g']);
         expect(existsSync(join(dir, '_build', 'guides.md'))).toBe(true);
