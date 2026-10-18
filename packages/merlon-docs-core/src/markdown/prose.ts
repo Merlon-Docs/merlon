@@ -386,6 +386,20 @@ function stripComments(line: string, open: boolean): { text: string; open: boole
 }
 
 /**
+ * Index of the first line after a leading YAML front matter block: a first line of `---` and a
+ * later closing line of `---` or `...`. 0 when the text has no front matter, including when the
+ * opening `---` is never closed.
+ */
+export function frontMatterEnd(lines: readonly string[]): number {
+  if (lines.length === 0 || lines[0].replace(/^\uFEFF/, '').trimEnd() !== '---') return 0;
+  for (let j = 1; j < lines.length; j++) {
+    const t = lines[j].trimEnd();
+    if (t === '---' || t === '...') return j + 1;
+  }
+  return 0;
+}
+
+/**
  * Return one entry per input line with non-prose regions blanked: leading YAML front matter,
  * fenced code blocks (fence lines included), and HTML comments. Line numbers are preserved
  * (index + 1), and a blanked line acts as a paragraph break.
@@ -393,17 +407,7 @@ function stripComments(line: string, open: boolean): { text: string; open: boole
 export function maskNonProse(markdown: string): string[] {
   const lines = markdown.split('\n').map((l) => (l.endsWith('\r') ? l.slice(0, -1) : l));
   const out: string[] = new Array<string>(lines.length).fill('');
-  let i = 0;
-
-  if (lines.length > 0 && lines[0].trimEnd() === '---') {
-    for (let j = 1; j < lines.length; j++) {
-      const t = lines[j].trimEnd();
-      if (t === '---' || t === '...') {
-        i = j + 1;
-        break;
-      }
-    }
-  }
+  let i = frontMatterEnd(lines);
 
   let fence: Fence | null = null;
   let inComment = false;

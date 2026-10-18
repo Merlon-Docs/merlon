@@ -1,4 +1,5 @@
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
+import { shardBody } from './shard-body.js';
 import { join, resolve, dirname } from 'node:path';
 import { loadShardSnapshot, type ShardCache } from './shard-cache.js';
 import { mdLinkPaths, slugLinkTargets } from './link-scan.js';
@@ -89,7 +90,7 @@ export function linkedSectionFiles(guideDir: string, options: SectionFilesOption
     const filePath = queue.shift()!;
     const text = cache
       ? loadShardSnapshot(filePath, cache, preambleSection).raw
-      : readFileSync(filePath, 'utf-8');
+      : shardBody(readFileSync(filePath, 'utf-8')).text;
     for (const path of mdLinkPaths(text)) {
       const rel = path.split('#')[0];
       const resolved = resolve(dirname(filePath), rel);

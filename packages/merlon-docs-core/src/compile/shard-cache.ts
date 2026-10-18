@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { shardBody } from './shard-body.js';
 import { basename, join, resolve } from 'node:path';
 import GithubSlugger from 'github-slugger';
 import { extractLinks, type ExtractedLink } from '../links/extract.js';
@@ -13,7 +14,10 @@ import { guideLeadHeading } from './headings.js';
 import { declaredSectionSlug, sectionBodyForSlug, slugForDemotedSection } from './section-slug.js';
 
 export interface ShardSnapshot {
+  /** The shard's text as compile stitches it: front matter discarded, trimmed. */
   raw: string;
+  /** 1-based line of the shard file that `raw` starts on. */
+  firstLine: number;
   processed: string;
   slug: string | null;
   links: ExtractedLink[];
@@ -37,12 +41,16 @@ export function sectionAnchorSlugs(processed: string): Set<string> {
   return slugs;
 }
 
-function provenanceFromLinks(links: ExtractedLink[], sourceFile: string): LinkProvenance[] {
+function provenanceFromLinks(
+  links: ExtractedLink[],
+  sourceFile: string,
+  firstLine: number,
+): LinkProvenance[] {
   return links.map((l) => ({
     label: l.label,
     originalTarget: l.target,
     sourceFile,
-    sourceLine: l.line,
+    sourceLine: l.line + firstLine - 1,
   }));
 }
 
@@ -57,16 +65,17 @@ export function loadShardSnapshot(
   if (existing) return existing;
 
   const name = basename(absPath);
-  const raw = readFileSync(absPath, 'utf-8').trim();
+  const { text: raw, firstLine } = shardBody(readFileSync(absPath, 'utf-8'));
   const processed = sectionBodyForSlug(name, raw, preambleSection);
   const slug = slugForDemotedSection(name, processed);
   const links = extractLinks(raw);
   const snapshot: ShardSnapshot = {
     raw,
+    firstLine,
     processed,
     slug,
     links,
-    provenance: provenanceFromLinks(links, absPath),
+    provenance: provenanceFromLinks(links, absPath, firstLine),
     anchorSlugs: sectionAnchorSlugs(processed),
   };
   cache.set(absPath, snapshot);
@@ -98,7 +107,7 @@ function readSection(
   preambleSection: string,
 ): { raw: string; processed: string } {
   if (cache) return loadShardSnapshot(filePath, cache, preambleSection);
-  const raw = readFileSync(filePath, 'utf-8').trim();
+  const raw = shardBody(readFileSync(filePath, 'utf-8')).text;
   return { raw, processed: sectionBodyForSlug(basename(filePath), raw, preambleSection) };
 }
 

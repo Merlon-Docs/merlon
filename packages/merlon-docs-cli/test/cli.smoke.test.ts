@@ -1395,6 +1395,41 @@ describe('cli smoke', () => {
   });
 
   // The examples under "Diagnostic shape" in docs/features/link-validation.md come from this run.
+  it("discards a shard's front matter and reports its lines as the shard file numbers them", () => {
+    const docs = mkdtempSync(join(tmpdir(), 'merlon-front-matter-'));
+    try {
+      mkdirSync(join(docs, 'g'), { recursive: true });
+      writeFileSync(join(docs, 'g', 'index.md'), '# G\n\n- [Spec](./spec.md)\n');
+      writeFileSync(
+        join(docs, 'g', 'spec.md'),
+        [
+          '---', // 1
+          'title: Spec', // 2
+          'tags: [spec, draft]', // 3
+          '---', // 4
+          '', // 5
+          '# Spec', // 6
+          '', // 7
+          'See [x](#nope).', // 8
+          '',
+        ].join('\n'),
+      );
+      writeFileSync(
+        join(docs, 'merlon.config.json'),
+        JSON.stringify({ outputFile: 'guides.md', compileOrder: ['g'] }),
+      );
+
+      const checked = runIn(docs, ['check', '--skip-vale']);
+      const compiled = readFileSync(join(docs, '_build', 'guides.md'), 'utf-8');
+      expect(compiled).not.toContain('title: Spec');
+      expect(compiled).not.toContain('tags: [spec, draft]');
+      expect(compiled).toContain('## Spec');
+      expect(checked.output).toContain(`→ shard: ${join(docs, 'g', 'spec.md')}:8 → #nope`);
+    } finally {
+      rmSync(docs, { recursive: true, force: true });
+    }
+  });
+
   it('prints each link issue as the link validation spec shows it', () => {
     const docs = mkdtempSync(join(tmpdir(), 'merlon-diagnostic-shape-'));
     try {
