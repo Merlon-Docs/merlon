@@ -42,8 +42,8 @@ const builtOn = stats.measuredAt.slice(0, 10);
 
 <div class="merlon-evidence-note">
   <p>
-    Measured by merlon check when this site was built on {builtOn}, from commit{' '}
-    <a href={commitUrl}>{stats.commit.slice(0, 7)}</a>. The build stops when the check
+    Measured by <code>merlon check</code> when this site was built on {builtOn}, from commit{' '}
+    <a href={commitUrl}><code>{stats.commit.slice(0, 7)}</code></a>. The build stops when the check
     fails, so these figures always come from a passing run. The time is the median of three runs on
     the build machine, so it varies between builds.
   </p>

@@ -332,6 +332,12 @@
   color: var(--sl-color-gray-2);
 }
 
+/* Inline code in the muted note takes the body text color: the muted color on a code
+   background falls below the WCAG AA contrast ratio in both themes. */
+.sl-markdown-content .merlon-evidence-note code {
+  color: var(--sl-color-white);
+}
+
 .sl-markdown-content .merlon-evidence--three {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
