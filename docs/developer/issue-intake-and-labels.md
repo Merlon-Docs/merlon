@@ -31,7 +31,7 @@ Roadmap **area** (what used to be a separate **Track** column on a private board
 
 Apply **one** `track:*` label on intake when the area is clear.
 
-**Milestone** attaches issues to a delivery cut (for example `1.0.0-draft`). Leave milestone empty for long-range or deferred work.
+**Milestone** attaches issues to a delivery cut (for example `1.1.0`). Leave milestone empty for long-range or deferred work.
 
 ## Label catalog (public open source)
 
