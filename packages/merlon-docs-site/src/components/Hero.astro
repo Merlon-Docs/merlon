@@ -15,6 +15,12 @@ const installs = [
     label: 'AI skill',
     where: 'in your coding agent',
     command: 'npx skills add Merlon-Docs/merlon --skill merlon-docs',
+    // skills.sh's own badge for this repository, linking to its listing there.
+    badge: {
+      href: 'https://skills.sh/Merlon-Docs/merlon',
+      src: 'https://skills.sh/b/Merlon-Docs/merlon',
+      alt: 'Merlon Docs on skills.sh',
+    },
   },
   { label: 'CLI', where: 'in your repo and CI', command: 'npm install -D @merlon-docs/merlon-docs-cli' },
 ];
@@ -39,10 +45,15 @@ const installs = [
     }
     <div class="merlon-hero__installs">
       {
-        installs.map(({ label, where, command }) => (
+        installs.map(({ label, where, command, badge }) => (
           <div class="merlon-hero__install">
             <p class="merlon-hero__install-label">
               {label} <span>{where}</span>
+              {badge && (
+                <a class="merlon-hero__badge" href={badge.href}>
+                  <img src={badge.src} alt={badge.alt} width="73" height="20" />
+                </a>
+              )}
             </p>
             <code>
               <span aria-hidden="true">$ </span>

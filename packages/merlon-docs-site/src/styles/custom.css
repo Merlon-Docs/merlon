@@ -144,6 +144,17 @@
   color: var(--merlon-ink);
 }
 
+.merlon-hero__badge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+  line-height: 0;
+}
+
+.merlon-hero__badge img {
+  display: block;
+}
+
 .merlon-hero__install-label span {
   margin-left: 0.4rem;
   text-transform: none;
