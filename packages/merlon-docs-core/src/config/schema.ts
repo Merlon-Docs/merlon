@@ -28,42 +28,57 @@ const GuideSourceSchema = z.discriminatedUnion('type', [
 
 const GuideSchema = z.object({
   name: z.string(),
-  /** Shard directory relative to docs root (default: {docsRoot}/{name}/). */
-  path: z.string().optional(),
+  path: z
+    .string()
+    .optional()
+    .describe('Shard directory relative to docs root (default: {docsRoot}/{name}/).'),
   splitLevel: z.number().int().min(1).max(6).default(2),
   source: GuideSourceSchema.optional(),
   compile: z
     .object({
       preambleSection: z.string().default('about-this-guide.md'),
-      /** Manifest file name (default index.md; use shards.md for review trees). */
-      manifest: z.string().default('index.md'),
-      /** When set, only links after this ## heading are used for compile order from the manifest. */
-      sectionsHeading: z.string().optional(),
-      /** Injected compile title as ## heading, followed by a blank line before the first section. */
-      title: z.string().optional(),
+      manifest: z
+        .string()
+        .default('index.md')
+        .describe('Manifest file name; review trees use shards.md.'),
+      sectionsHeading: z
+        .string()
+        .optional()
+        .describe('When set, only links after this ## heading in the manifest set compile order.'),
+      title: z
+        .string()
+        .optional()
+        .describe('Compile title, injected as a ## heading before the first section.'),
       scopeRoot: z.string().optional(),
-      /** Per-guide output path relative to outputDir (absolute allowed). */
-      outputFile: z.string().optional(),
-      /** Apply global banner to this guide's output (default: true). */
-      includeBanner: z.boolean().default(true),
-      /** Wrap each shard in source tags for this guide (default: inherits top-level sourceTags). */
-      sourceTags: z.boolean().optional(),
-      /** Named compile hooks (see compile/hooks.ts). String array replaces defaults; object opts out. */
-      hooks: z.union([z.array(z.string()), z.record(z.string(), z.boolean())]).optional(),
-      /** Cross-guide link rewrite options (assembly-time; not a compile hook). */
+      outputFile: z
+        .string()
+        .optional()
+        .describe('Output path for this guide, relative to outputDir or absolute.'),
+      includeBanner: z
+        .boolean()
+        .default(true)
+        .describe("Put the top-level banner at the head of this guide's output."),
+      sourceTags: z
+        .boolean()
+        .optional()
+        .describe('Wrap each shard in source tags for this guide (default: top-level sourceTags).'),
+      hooks: z
+        .union([z.array(z.string()), z.record(z.string(), z.boolean())])
+        .optional()
+        .describe(
+          'Named compile hooks. An array replaces the defaults; an object turns named hooks on or off.',
+        ),
       crossGuideLinks: z
         .object({
-          /**
-           * Target guide names: links from this guide to shards of a listed guide keep source `.md`
-           * paths instead of `#slug` targets in the target guide's compiled guide or in the monolith.
-           * A link to a shard this guide stitches can still take its in-document anchor: through same
-           * compiled output preference, or through the intra-guide pass for a `./` or bare link. The
-           * `compile.crossGuideLinks.ignoreGuides` section of
-           * docs/features/compile-pipeline/cross-guide-links.md links both rules.
-           */
-          ignoreGuides: z.array(z.string()).optional(),
+          ignoreGuides: z
+            .array(z.string())
+            .optional()
+            .describe(
+              "Guides whose shards this guide's links keep as .md paths instead of #slug targets. A link to a shard this guide stitches still gets its in-document anchor.",
+            ),
         })
-        .optional(),
+        .optional()
+        .describe('How links to other guides are rewritten when this guide is assembled.'),
       hooksConfig: z
         .object({
           inlineInserts: z
@@ -88,28 +103,21 @@ export const DEFAULT_STANDARD_VERSION: string = STANDARD_VERSION;
 
 export const MerlonConfigSchema = z
   .object({
-    /** Version of the Merlon Docs standard the repository conforms to (default `DEFAULT_STANDARD_VERSION`). */
     standardVersion: z
       .string()
       .default(DEFAULT_STANDARD_VERSION)
       .describe('Four-part version of the Merlon Docs standard the repository conforms to.'),
-    /**
-     * @deprecated Former name of `standardVersion`, still read until 2.0.0.
-     * When `standardVersion` is absent, `parseConfig` and `loadConfig` migrate it to
-     * `DEFAULT_STANDARD_VERSION` and mirror `standardVersion` on `protocolVersion`.
-     */
+    /** @deprecated Use `standardVersion`. */
     protocolVersion: z.string().optional().meta({
       description: 'Former name of standardVersion, still read until 2.0.0. Use standardVersion.',
       deprecated: true,
     }),
 
     source: z.string().optional(),
-    /** Generated output root relative to docs root (default `_build`). */
     outputDir: z
       .string()
       .default('_build')
       .describe('Generated output root relative to docs root.'),
-    /** Optional stitched monolith filename relative to outputDir. */
     outputFile: z
       .string()
       .optional()
@@ -126,7 +134,6 @@ export const MerlonConfigSchema = z
       .describe("Wrap each shard's content in HTML source tags indicating its relative path."),
     guides: z.array(GuideSchema).optional(),
 
-    /** Files or globs (relative to scan root) registered as standalone guides: captured by the coverage scan, with no compile output of their own. */
     standaloneGuides: z
       .array(z.string())
       .default([])
@@ -134,27 +141,24 @@ export const MerlonConfigSchema = z
         'Files or globs (relative to scan root) registered as standalone guides: captured by the coverage scan, with no compile output of their own.',
       ),
 
-    /** Repository-wide markdown coverage scan options. */
     scan: z
       .object({
-        /** Honor `.gitignore` (repo-root inside git; scan-root only otherwise; default true). */
         gitignore: z
           .boolean()
           .default(true)
-          .describe('Honor the repository .gitignore when walking for markdown files.'),
-        /** Extra ignore globs beyond the built-in defaults. */
+          .describe(
+            "Honor .gitignore when walking for markdown files: the repository root's inside git, the scan root's outside it.",
+          ),
         ignore: z
           .array(z.string())
           .default([])
           .describe(
             'Extra ignore globs beyond the built-in defaults (.git, node_modules, .agents).',
           ),
-        /** Walk root for the scan (default: invocation directory). */
         root: z
           .string()
           .optional()
           .describe('Walk root for the scan (default: invocation directory).'),
-        /** Fail `merlon check` when uncaptured files or missing standalone entries exist. */
         strict: z
           .boolean()
           .default(false)
@@ -163,25 +167,28 @@ export const MerlonConfigSchema = z
       .default({ gitignore: true, ignore: [], strict: false })
       .describe('Repository-wide markdown coverage scan options.'),
 
-    /** Opt-in backup of existing compile/export targets before overwrite. */
     backup: z
       .object({
         enabled: z.boolean().default(false),
-        /** Directory relative to outputDir (default `.caches/backups`). */
-        dir: z.string().default('.caches/backups'),
-        /** Suffix appended to backup filename. */
-        ext: z.string().default(''),
+        dir: z
+          .string()
+          .default('.caches/backups')
+          .describe('Backup directory relative to outputDir.'),
+        ext: z.string().default('').describe('Suffix appended to each backup file name.'),
       })
       .default({
         enabled: false,
         dir: '.caches/backups',
         ext: '',
-      }),
+      })
+      .describe('Back up existing compile targets before overwriting them.'),
 
     refs: z
       .object({
-        /** Registry path relative to outputDir. */
-        registryFile: z.string().default('.caches/refs.json'),
+        registryFile: z
+          .string()
+          .default('.caches/refs.json')
+          .describe('Slug registry path relative to outputDir.'),
         slugAlgorithm: z.enum(['github']).default('github'),
       })
       .default({
@@ -195,8 +202,12 @@ export const MerlonConfigSchema = z
           .object({
             shardsConfig: z.string().optional(),
             compiledConfig: z.string().optional(),
-            /** Shard lint paths relative to docs root (default: compileOrder guide dirs). */
-            shardsGlobs: z.array(z.string()).optional(),
+            shardsGlobs: z
+              .array(z.string())
+              .optional()
+              .describe(
+                'Shard lint paths relative to docs root (default: the compileOrder guide directories).',
+              ),
           })
           .optional(),
         links: z
@@ -207,60 +218,36 @@ export const MerlonConfigSchema = z
             config: z.string().optional(),
           })
           .optional(),
-        /**
-         * Extra code extensions, added to the built-in defaults. A link or path
-         * claim carrying one of these names a file that has to exist, and a
-         * symbol in the link label can cite a line in it. Needed by a project on
-         * a stack the defaults do not list, or to have lines cited in a format
-         * shipped as data (workflow YAML, for instance).
-         */
         codeExtensions: z
           .array(z.string())
           .default([])
           .describe(
-            'Extra code extensions, added to the built-in defaults. Validated for existence and citable by line.',
+            'Extra code extensions, added to the built-in defaults. A link or path to such a file must resolve, and a symbol in the link label can cite a line in it, as for a stack the defaults leave out or for workflow YAML.',
           ),
-        /**
-         * Extra data extensions, added to the built-in defaults. Validated for
-         * existence like code, never cited by line.
-         */
         dataExtensions: z
           .array(z.string())
           .default([])
           .describe(
-            'Extra data extensions, added to the built-in defaults. Validated for existence, never cited by line.',
+            'Extra data extensions, added to the built-in defaults. A link or path to such a file must resolve; its lines are never cited.',
           ),
-        /** Backtick-path resolution in documentation prose. Opt-in: default `off`. */
         paths: z
           .object({
             severity: z.enum(['off', 'warn', 'error']).default('off'),
-            /** Extra resolution roots relative to the scan root, tried after it. */
             searchRoots: z
               .array(z.string())
               .default([])
-              .describe('Extra resolution roots relative to the scan root.'),
-            /**
-             * Scan-root-relative prefixes that are real but absent in a clean
-             * checkout: build output, caches, vendor-managed installs. Matched as
-             * a prefix, so everything beneath one is covered.
-             */
+              .describe('Extra resolution roots relative to the scan root, tried after it.'),
             generated: z
               .array(z.string())
               .default([])
               .describe(
-                'Prefixes that are real but absent in a clean checkout: build output, caches, vendor-managed installs.',
+                'Scan-root-relative prefixes that are real but absent in a clean checkout: build output, caches, vendor-managed installs. Everything beneath a prefix is covered.',
               ),
-            /**
-             * Paths this repository documents without having: names the standard
-             * defines for a consumer repository, or another project's tree.
-             * Matched exactly, so an invented file beneath one still has to
-             * resolve.
-             */
             vocabulary: z
               .array(z.string())
               .default([])
               .describe(
-                'Exact names this repository documents without having, such as a tier the standard defines and a consumer creates.',
+                "Paths this repository documents without having: names the standard defines for a consumer repository, or another project's tree. Matched exactly, so a file beneath one still has to resolve.",
               ),
           })
           .optional()
@@ -276,10 +263,8 @@ export const MerlonConfigSchema = z
       })
       .optional(),
 
-    /** Thresholds for `merlon review` sprawl signals. */
     review: z
       .object({
-        /** Most shard links one index group may list before `index-size` fires. */
         maxIndexEntries: z
           .number()
           .int()
@@ -288,14 +273,12 @@ export const MerlonConfigSchema = z
           .describe(
             'Most shard links one index group (links under one ## or deeper heading, or before any) may list before index-size fires.',
           ),
-        /** Most prose words a shard may hold before `long-shard` fires. */
         maxShardWords: z
           .number()
           .int()
           .positive()
           .default(2500)
           .describe('Most prose words a shard may hold before long-shard fires.'),
-        /** Fewest words a paragraph needs before `duplicate-paragraph` compares it. */
         minDuplicateWords: z
           .number()
           .int()
@@ -308,31 +291,26 @@ export const MerlonConfigSchema = z
       .default({ maxIndexEntries: 12, maxShardWords: 2500, minDuplicateWords: 25 })
       .describe('Thresholds for merlon review sprawl signals.'),
 
-    /** Optional split diagnostic file sinks for `merlon check`, `merlon compile`, and `merlon review`. */
     diagnostics: z
       .object({
-        /** Directory for split `errors.txt` and `warnings.txt` files (relative to outputDir or absolute). */
         dir: z
           .string()
           .optional()
           .describe(
             'Directory for split errors.txt and warnings.txt files (relative to outputDir or absolute).',
           ),
-        /** File path for error-severity diagnostics (relative to invocation directory or absolute). */
         errorsFile: z
           .string()
           .optional()
           .describe(
             'File path for error-severity diagnostics (relative to invocation directory or absolute).',
           ),
-        /** File path for warning-severity diagnostics (relative to invocation directory or absolute). */
         warningsFile: z
           .string()
           .optional()
           .describe(
             'File path for warning-severity diagnostics (relative to invocation directory or absolute).',
           ),
-        /** Write `errors.txt` and `warnings.txt` under `diagnostics.dir` (default `.caches/diagnostics` under `outputDir`). */
         splitFiles: z
           .boolean()
           .default(false)
