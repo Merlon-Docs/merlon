@@ -35,6 +35,10 @@ pnpm formal:check        # the Alloy models in formal/alloy/
 
 [Local setup](docs/developer/local-setup.md) says how CI's checks differ from `pnpm run check`.
 
+## Tests
+
+A test runs our code on input it controls and checks what our code does. Never write a test that checks a committed file's text, a value that changes by design (our package versions, dates, host paths), another tool's output, that a script merely runs, or the shape of the code. [What a test checks](docs/developer/packages-and-tests.md#what-a-test-checks) explains each case.
+
 ## Pull requests and hooks
 
 Open every pull request as a draft, and mark it ready once, when the work is done. CI skips drafts, as [Pull requests](docs/developer/versioning-and-releases.md#pull-requests) explains. The pre-commit hook runs fast offline checks, and the pre-push hook runs the full gate. [Git hooks](docs/developer/local-setup.md#git-hooks) lists what each one runs.

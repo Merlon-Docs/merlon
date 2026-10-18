@@ -19,7 +19,6 @@ import {
   readRefsRegistry,
   refsOutputTexts,
 } from '../src/refs/registry.js';
-import * as merlon from '../src/index.js';
 import { withTmpDir } from './helpers/tmp-dir.js';
 
 const BANNER = '<!-- generated -->\n\n';
@@ -82,10 +81,6 @@ describe('refsOutputTexts', () => {
       ]);
       for (const o of outputs) expect(o.text).toBe(readFileSync(join(work, o.file), 'utf-8'));
     });
-  });
-
-  it('is exported from the package entry point', () => {
-    expect(typeof merlon.refsOutputTexts).toBe('function');
   });
 });
 
