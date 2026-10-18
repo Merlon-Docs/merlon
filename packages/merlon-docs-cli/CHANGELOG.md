@@ -1,5 +1,12 @@
 # @merlon-docs/merlon-docs-cli
 
+## 1.0.1
+
+### Patch Changes
+
+- Updated dependencies [6a65761]
+  - @merlon-docs/merlon-docs-core@1.0.1
+
 ## 1.0.0
 
 ### Major Changes
