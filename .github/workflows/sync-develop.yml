@@ -1,10 +1,14 @@
 name: Sync develop
 
 # After anything lands on main (a release PR, the release commit, a hotfix),
-# merge main back into develop so develop never falls behind the release branch.
-# A clean merge goes through the land gate: it is pushed to land/sync-main and
-# land-develop.yml is dispatched on that branch, which tests it and pushes it to
-# develop like any landing. A conflict opens a PR from main to develop instead.
+# carry main back into develop so develop never falls behind the release branch.
+# When develop already holds main's files, as a squashed release leaves it,
+# develop is reset to main, so the next release PR lists only new commits. The
+# tree develop shows doesn't change, so no gate is needed. Otherwise main is
+# merged in: a clean merge goes through the land gate (it is pushed to
+# land/sync-main and land-develop.yml is dispatched on that branch, which tests
+# it and pushes it to develop like any landing), and a conflict opens a PR from
+# main to develop instead.
 
 on:
   push:
@@ -24,11 +28,11 @@ permissions: {}
 
 jobs:
   sync:
-    name: Merge main into develop
+    name: Carry main into develop
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Push the merge to land/sync-main
-      actions: write # Dispatch the land workflow on land/sync-main
+      contents: write # Reset develop to main, or push the merge to land/sync-main
+      actions: write # Dispatch the land workflow on land/sync-main, or Pages after a reset
       pull-requests: write # Open a sync PR when the merge conflicts
     steps:
       # Harden-Runner: audit mode only — logs egress; block mode is follow-up (#179).
@@ -58,6 +62,18 @@ jobs:
 
           if git merge-base --is-ancestor origin/main origin/develop; then
             echo "develop already contains main ($(git rev-parse --short origin/main)). Nothing to do."
+            exit 0
+          fi
+
+          if git diff --quiet origin/main origin/develop; then
+            # The lease refuses the push if develop moved since the fetch.
+            develop_sha="$(git rev-parse origin/develop)"
+            git push --force-with-lease="develop:${develop_sha}" origin "origin/main:refs/heads/develop"
+            echo "develop held main's files; reset develop ($(git rev-parse --short "${develop_sha}")) to main ($(git rev-parse --short origin/main))." | tee -a "$GITHUB_STEP_SUMMARY"
+            # A push made with GITHUB_TOKEN starts no workflow, so deploy the site from the new
+            # develop by name, as the land workflow does after a landing.
+            gh workflow run pages.yml --ref develop --repo "${GITHUB_REPOSITORY}"
+            echo "Dispatched the Pages deploy for develop." | tee -a "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
 

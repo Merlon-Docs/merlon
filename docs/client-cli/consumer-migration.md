@@ -22,6 +22,7 @@ This config makes the first H1 section the `overview` guide, and the second and 
 
 ```json
 {
+  "configVersion": "1.0.0",
   "source": "old.md",
   "compileOrder": ["overview", "admin"],
   "guides": [

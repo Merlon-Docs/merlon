@@ -55,7 +55,8 @@ package manager. Optional peers only if needed: `markdownlint-cli2`, `prettier`,
 
 ### 3. Config and scripts
 
-Add `merlon.config.json` under the docs root (`compileOrder`, guides, lint paths).
+Add `merlon.config.json` under the docs root (`configVersion` set to the installed
+`@merlon-docs/merlon-docs-core` version, `compileOrder`, guides, lint paths).
 Wire `merlon compile` / `merlon check` into the script runner. CI with optional
 linters: `--require-lint` / `--require-vale`.
 

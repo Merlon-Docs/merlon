@@ -326,6 +326,18 @@
   color: var(--merlon-muted);
 }
 
+.sl-markdown-content .merlon-status-versions {
+  margin: 1.5rem 0 0;
+  font-size: 0.9375rem;
+  color: var(--sl-color-gray-2);
+}
+
+/* Inline code in the muted note takes the body text color: the muted color on a code
+   background falls below the WCAG AA contrast ratio in both themes. */
+.sl-markdown-content .merlon-evidence-note code {
+  color: var(--sl-color-white);
+}
+
 .sl-markdown-content .merlon-evidence--three {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -951,4 +963,13 @@
   .sl-markdown-content .merlon-lead {
     font-size: 1.0625rem;
   }
+}
+
+/*
+ * Starlight's search button reveals a "Ctrl K" (or "⌘ K") hint inside the button, which its
+ * aria-label "Search" doesn't contain, so axe's label-content-name-mismatch fails on every page.
+ * The shortcut still works, and aria-keyshortcuts announces it, so hide only the visual hint.
+ */
+button[data-open-modal] > kbd {
+  display: none !important;
 }

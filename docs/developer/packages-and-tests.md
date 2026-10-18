@@ -30,7 +30,7 @@ pnpm --filter @merlon-docs/merlon-docs-core run typecheck
 
 Tests live under `packages/merlon-docs-core/test/`. Integration tests invoke the built CLI against `examples/sample-guides/`.
 
-`merlon.config.schema.json` is the editor schema for `merlon.config.json`, maintained by hand. `test/config-json-schema.test.ts` compares it with the zod schema in `src/config/schema.ts` and fails when they disagree on any key, required key, type, enum or bound, or on a default the JSON declares. A commit that changes a config key has to update both files to pass it.
+`merlon.config.schema.json` is the editor schema for `merlon.config.json`. It is generated: `pnpm build` runs `scripts/generate-config-schema.mjs` after tsup, which writes the file from the zod schema in `src/config/schema.ts`, descriptions included. Don't edit the JSON file. Change a key, its default or its description in `src/config/schema.ts`, run `pnpm build` and commit both files. CI, the land gate and the pre-push hook run `git diff --exit-code` after the build, so a stale copy fails them.
 
 ## merlon-docs-cli
 
@@ -58,6 +58,35 @@ Each spec shard below is written first, and the tests in its row follow the shar
 | [Path resolution in prose](../features/path-resolution.md)                                | `packages/merlon-docs-core/test/path-probe.test.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | [Built-in link validation](../features/link-validation.md)                                | `packages/merlon-docs-core/test/links.test.ts`, `packages/merlon-docs-core/test/cross-guide-links.test.ts`, `packages/merlon-docs-core/test/guide-output-path.test.ts`, `packages/merlon-docs-core/test/source-path-links.test.ts` and `packages/merlon-docs-cli/test/cli.smoke.test.ts`                                                                                                                                                                                                                      |
 
+## What a test checks
+
+A test runs our code on input the test controls and checks what our code does with it: a return value, a written file, an exit code, or a line in one of our own documented output formats. Before writing a test, name the behavior of Merlon Docs it protects. When the only answer is that some text is still that text, don't write it.
+
+Don't write tests that check these things, because none of them is our code's behavior:
+
+- **The text of a committed file.** For example, a workflow, git hook, `.vale.ini`, preset, README, docs page, JSON schema file or locale file contains some string or value. Reviewers and `merlon check` cover files.
+- **A value that changes by design.** For example, our own package versions, the current date, or a host path such as a temp directory, which macOS reaches through the `/var` → `/private/var` symlink. Derive an expected value from the test's own input instead.
+- **Another tool's output.** For example, the wording, banners, limits or version-specific behavior of Vale, markdownlint-cli2, npm, git or a library such as zod. Check our own lines about the tool's result instead, such as our hint or our `peer exited non-zero` line.
+- **That a script runs.** Running a script or command only to see that it exits 0 or prints a line doesn't test its logic. Move the logic into a function, the way `scripts/lib/` does, and test the function on fixed inputs.
+- **How long a run takes.** A wall-clock limit such as 50 ms passes or fails with the machine's speed. Check the growth rate in a [benchmark](#growth-benchmarks) instead.
+- **The shape of the code.** For example, that a module does or doesn't export a name, that a constant equals a literal, or how many times an internal function was called.
+
+When a test like this fails, delete it, or rewrite it to check behavior. Don't widen it to accept the new value.
+
+## Growth benchmarks
+
+`packages/merlon-docs-core/bench/` holds growth benchmarks: checks that a reader's running time grows in proportion to its input, so a crafted line can't make it take the square of the line's length. CodeQL's `js/polynomial-redos` alerts describe that kind of input, and [Safe Markdown parsing](./safe-markdown-parsing.md) explains the readers they guard.
+
+Each benchmark calls `expectLinearGrowth` from `bench/helpers/growth.ts` with a function that builds the input for a size `n` and returns the call to time. The helper times the call at `n / 4` and at `n`, taking the fastest of five runs at each size, and fails when the time grows 10× or more. A linear reader grows about 4×, and a quadratic one about 16×. Times under 1 ms count as 1 ms, so noise can't fail a fast reader. Pick `n` so that a quadratic reader takes over a second at `n`. The ratio decides the result, not the machine's speed.
+
+The benchmarks are slower than the unit tests, so `pnpm test`, the git hooks and the land gate leave them out. CI's Benchmarks job runs them on every ready pull request. To run them locally:
+
+```bash
+pnpm bench
+```
+
+`pnpm bench:dogfood` and `pnpm bench:context-size` are a different kind of benchmark: measurements of this repository's own docs that a developer runs by hand, as [Benchmarks](./benchmarks.md) describes.
+
 ## Test code coverage
 
 Vitest coverage for `@merlon-docs/merlon-docs-core` and `@merlon-docs/merlon-docs-cli` (not root `scripts/` tests). This is **test** coverage of TypeScript sources — distinct from the [documentation coverage scan](../features/coverage-scan.md). Note that CLI package totals are understated because smoke tests drive the built binary out-of-process (V8 coverage does not follow that subprocess).
@@ -74,7 +103,7 @@ JSONC markdownlint configs plus the shippable `MerlonDocs` Vale style (`vale/Mer
 
 ## Repository script tests
 
-Most `*.test.mjs` files under `scripts/` test the script beside them, and `pnpm test` runs them all after the package tests, as [Daily commands](./local-setup.md#daily-commands) lists. `scripts/vale-merlon-docs-style.test.mjs` has no script beside it: it runs the `MerlonDocs` Vale style of `merlon-docs-presets` on fixtures. The site's script tests run with the package tests, and [Build and preview](./docs-site.md#build-and-preview) gives the command that runs them alone.
+Most `*.test.mjs` files under `scripts/` test the script beside them, and `pnpm test` runs them all after the package tests, as [Daily commands](./local-setup.md#daily-commands) lists. The site's script tests run with the package tests, and [Build and preview](./docs-site.md#build-and-preview) gives the command that runs them alone.
 
 A test that runs git in a throwaway repository removes every `GIT_*` variable from `process.env` first, as `scripts/lib/consumed-changesets.test.mjs` does. A git hook exports `GIT_INDEX_FILE`, and other git-driven runs can export more `GIT_*` variables; while one is set, git in the throwaway repository reads the checkout that runs the tests.
 

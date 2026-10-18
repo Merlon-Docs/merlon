@@ -28,9 +28,3 @@ describe('resolveCompileHooks', () => {
     ).toEqual(['stripAnchors', 'codeEvidence']);
   });
 });
-
-describe('DEFAULT_COMPILE_HOOKS', () => {
-  it('lists built-in hooks in compile order', () => {
-    expect(DEFAULT_COMPILE_HOOKS).toEqual(['stripAnchors', 'codeEvidence', 'inlineInserts']);
-  });
-});

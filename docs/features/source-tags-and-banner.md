@@ -33,7 +33,9 @@ Content.
 <!-- merlon-shard: end guide/section.md -->
 ```
 
+When compile dropped lines before a shard's body, such as its [front matter](./compile-pipeline/front-matter.md), the start tag adds the shard line the body starts on: `<!-- merlon-shard: start guide/section.md#L6 -->`.
+
 The path in the tag is relative to the directory of the file the tag is in, which is the guide's [link base](./compile-pipeline/publish-relative-links.md#when-it-runs). So the tags in a guide's compiled guide and in its copy in the monolith each resolve from that file's directory. AI agents reading compiled output can use that path to easily locate and edit the exact shard responsible for a specific section of text.
 
 - **Global Config**: Disable source tags entirely by setting `sourceTags: false` in `merlon.config.json`.
-- **Per-Guide Config**: Override for a specific guide by setting `compile.sourceTags: false` (or `true`) in its configuration. Useful for outputs where wrapping comments interfere with downstream tooling — for example a Slidev deck whose leading `---` frontmatter must stay at the top of the file.
+- **Per-Guide Config**: Override for a specific guide by setting `compile.sourceTags: false` (or `true`) in its configuration. Useful for outputs where wrapping comments interfere with downstream tooling.

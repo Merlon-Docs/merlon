@@ -92,7 +92,7 @@ Each term is its own shard under `docs/glossary/`. [Shared glossary](./packages/
 
 - Node.js **>= 18.0.0** (see `engines` in root [`package.json`](package.json); [`.nvmrc`](.nvmrc) pins major version `18` for `nvm use`)
 - [pnpm](https://pnpm.io/) 11.x (see `packageManager` in root [`package.json`](package.json))
-- [Vale](https://vale.sh/docs/vale-cli/installation/) on `PATH` for prose lint (`pnpm docs:check` uses `--require-vale`). macOS: `brew install vale`; Linux: `snap install vale` or a [GitHub release](https://github.com/vale-cli/vale/releases) tarball. Any Vale 3.x works locally, and tests that touch Vale accept the behavior of every 3.x release they have been run against. CI pins **3.15.1**. The workflows that install Vale ([`ci.yml`](.github/workflows/ci.yml) and [`land-develop.yml`](.github/workflows/land-develop.yml)) and the Claude Code session-start hook (`.claude/hooks/session-start.sh`) each set `VALE_VERSION` to it. No check compares those copies with this line. A Vale bump edits all four.
+- [Vale](https://vale.sh/docs/vale-cli/installation/) on `PATH` for prose lint (`pnpm docs:check` uses `--require-vale`). macOS: `brew install vale`; Linux: `snap install vale` or a [GitHub release](https://github.com/vale-cli/vale/releases) tarball. Any Vale 3.x works locally. CI pins **3.15.1**. The workflows that install Vale ([`ci.yml`](.github/workflows/ci.yml) and [`land-develop.yml`](.github/workflows/land-develop.yml)) and the Claude Code session-start hook (`.claude/hooks/session-start.sh`) each set `VALE_VERSION` to it. No check compares those copies with this line. A Vale bump edits all four.
 - Java 17 or later on `PATH` for `pnpm formal:check`, which runs the [formal models](#formal-models).
 
 ### First-time bootstrap
@@ -158,7 +158,7 @@ CI doesn't rely on any hook, since a contributor may skip them or never install 
 
 CI's Check job runs the steps of `pnpm run check`, except that it tests only merlon-docs-core, merlon-docs-cli and the repository scripts. The site's tests run in the Pages workflow. Before those steps it runs `pnpm run verify:peers`, which confirms that markdownlint-cli2 and Vale are on `PATH`, and the dependency audit `pnpm audit --audit-level=high`. A new high advisory, even on a devDependency, fails the audit, and the build and test steps after it don't run. [Overrides and the release-age gate](#overrides-and-the-release-age-gate) says how to resolve one. Before `docs:check` it runs `pnpm run prepare:docs`, which repeats the peer check and syncs the Vale styles. Last, it recompiles every guide and fails if `git diff` shows a change.
 
-CI skips a draft pull request and runs when the PR is marked ready, as [Pull requests](#pull-requests) describes. The other CI jobs run beside Check. The Coverage job runs `pnpm test:coverage`, as [Test code coverage](#test-code-coverage) describes, and the Formal models job runs `pnpm formal:check`. On pull requests the Changeset job runs the changeset checks that [When to add a changeset](#when-to-add-a-changeset) describes.
+CI skips a draft pull request and runs when the PR is marked ready, as [Pull requests](#pull-requests) describes. The other CI jobs run beside Check. The Coverage job runs `pnpm test:coverage`, as [Test code coverage](#test-code-coverage) describes, and the Formal models job runs `pnpm formal:check`. On pull requests the Changeset job runs the changeset checks that [When to add a changeset](#when-to-add-a-changeset) describes, and the Benchmarks job runs `pnpm bench`, the [growth benchmarks](#growth-benchmarks) that `pnpm run check` and the git hooks leave out.
 
 The land gate's test step is the full `pnpm test`, so it also runs the site's tests. [Landing on `develop`](#landing-on-develop) says what else it runs and what it pushes.
 
@@ -298,7 +298,7 @@ pnpm --filter @merlon-docs/merlon-docs-core run typecheck
 
 Tests live under `packages/merlon-docs-core/test/`. Integration tests invoke the built CLI against `examples/sample-guides/`.
 
-`merlon.config.schema.json` is the editor schema for `merlon.config.json`, maintained by hand. `test/config-json-schema.test.ts` compares it with the zod schema in `src/config/schema.ts` and fails when they disagree on any key, required key, type, enum or bound, or on a default the JSON declares. A commit that changes a config key has to update both files to pass it.
+`merlon.config.schema.json` is the editor schema for `merlon.config.json`. It is generated: `pnpm build` runs `scripts/generate-config-schema.mjs` after tsup, which writes the file from the zod schema in `src/config/schema.ts`, descriptions included. Don't edit the JSON file. Change a key, its default or its description in `src/config/schema.ts`, run `pnpm build` and commit both files. CI, the land gate and the pre-push hook run `git diff --exit-code` after the build, so a stale copy fails them.
 
 ### merlon-docs-cli
 
@@ -326,6 +326,35 @@ Each spec shard below is written first, and the tests in its row follow the shar
 | [Path resolution in prose](docs/features/path-resolution.md)                                | `packages/merlon-docs-core/test/path-probe.test.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | [Built-in link validation](docs/features/link-validation.md)                                | `packages/merlon-docs-core/test/links.test.ts`, `packages/merlon-docs-core/test/cross-guide-links.test.ts`, `packages/merlon-docs-core/test/guide-output-path.test.ts`, `packages/merlon-docs-core/test/source-path-links.test.ts` and `packages/merlon-docs-cli/test/cli.smoke.test.ts`                                                                                                                                                                                                                        |
 
+### What a test checks
+
+A test runs our code on input the test controls and checks what our code does with it: a return value, a written file, an exit code, or a line in one of our own documented output formats. Before writing a test, name the behavior of Merlon Docs it protects. When the only answer is that some text is still that text, don't write it.
+
+Don't write tests that check these things, because none of them is our code's behavior:
+
+- **The text of a committed file.** For example, a workflow, git hook, `.vale.ini`, preset, README, docs page, JSON schema file or locale file contains some string or value. Reviewers and `merlon check` cover files.
+- **A value that changes by design.** For example, our own package versions, the current date, or a host path such as a temp directory, which macOS reaches through the `/var` → `/private/var` symlink. Derive an expected value from the test's own input instead.
+- **Another tool's output.** For example, the wording, banners, limits or version-specific behavior of Vale, markdownlint-cli2, npm, git or a library such as zod. Check our own lines about the tool's result instead, such as our hint or our `peer exited non-zero` line.
+- **That a script runs.** Running a script or command only to see that it exits 0 or prints a line doesn't test its logic. Move the logic into a function, the way `scripts/lib/` does, and test the function on fixed inputs.
+- **How long a run takes.** A wall-clock limit such as 50 ms passes or fails with the machine's speed. Check the growth rate in a [benchmark](#growth-benchmarks) instead.
+- **The shape of the code.** For example, that a module does or doesn't export a name, that a constant equals a literal, or how many times an internal function was called.
+
+When a test like this fails, delete it, or rewrite it to check behavior. Don't widen it to accept the new value.
+
+### Growth benchmarks
+
+`packages/merlon-docs-core/bench/` holds growth benchmarks: checks that a reader's running time grows in proportion to its input, so a crafted line can't make it take the square of the line's length. CodeQL's `js/polynomial-redos` alerts describe that kind of input, and [Safe Markdown parsing](#safe-markdown-parsing) explains the readers they guard.
+
+Each benchmark calls `expectLinearGrowth` from `bench/helpers/growth.ts` with a function that builds the input for a size `n` and returns the call to time. The helper times the call at `n / 4` and at `n`, taking the fastest of five runs at each size, and fails when the time grows 10× or more. A linear reader grows about 4×, and a quadratic one about 16×. Times under 1 ms count as 1 ms, so noise can't fail a fast reader. Pick `n` so that a quadratic reader takes over a second at `n`. The ratio decides the result, not the machine's speed.
+
+The benchmarks are slower than the unit tests, so `pnpm test`, the git hooks and the land gate leave them out. CI's Benchmarks job runs them on every ready pull request. To run them locally:
+
+```bash
+pnpm bench
+```
+
+`pnpm bench:dogfood` and `pnpm bench:context-size` are a different kind of benchmark: measurements of this repository's own docs that a developer runs by hand, as [Benchmarks](#benchmarks) describes.
+
 ### Test code coverage
 
 Vitest coverage for `@merlon-docs/merlon-docs-core` and `@merlon-docs/merlon-docs-cli` (not root `scripts/` tests). This is **test** coverage of TypeScript sources — distinct from the [documentation coverage scan](docs/features/coverage-scan.md). Note that CLI package totals are understated because smoke tests drive the built binary out-of-process (V8 coverage does not follow that subprocess).
@@ -342,7 +371,7 @@ JSONC markdownlint configs plus the shippable `MerlonDocs` Vale style (`vale/Mer
 
 ### Repository script tests
 
-Most `*.test.mjs` files under `scripts/` test the script beside them, and `pnpm test` runs them all after the package tests, as [Daily commands](#daily-commands) lists. `scripts/vale-merlon-docs-style.test.mjs` has no script beside it: it runs the `MerlonDocs` Vale style of `merlon-docs-presets` on fixtures. The site's script tests run with the package tests, and [Build and preview](#build-and-preview) gives the command that runs them alone.
+Most `*.test.mjs` files under `scripts/` test the script beside them, and `pnpm test` runs them all after the package tests, as [Daily commands](#daily-commands) lists. The site's script tests run with the package tests, and [Build and preview](#build-and-preview) gives the command that runs them alone.
 
 A test that runs git in a throwaway repository removes every `GIT_*` variable from `process.env` first, as `scripts/lib/consumed-changesets.test.mjs` does. A git hook exports `GIT_INDEX_FILE`, and other git-driven runs can export more `GIT_*` variables; while one is set, git in the throwaway repository reads the checkout that runs the tests.
 
@@ -386,14 +415,14 @@ Link validation finds broken-link markers with `findTemplateMatches`, a scanner 
 
 The manifest walk and the `inlineInserts` hook read a whole manifest or shard body with `scanMarkdownLinks` in `compile/link-scan.ts`, the scanner that [Link idioms](#link-idioms) describes. The walk also reads `](#slug)` links with `slugLinkTargets` in that file. It returns what the regex `\]\(#([^)]+)\)` matches, a target that can span lines, in time that grows linearly with the text.
 
-`codeEvidence` reads line ranges such as `L6-L8` or `lines 12–15` with `lineRangeFromText`, an imperative scanner in `compile/hooks/line-range.ts`. It takes its words from the locale pack. The hook trims the backticks around a link label with a loop, and `shardLintPaths` uses one too, for the slashes at the end of a `shardsGlobs` entry that starts with `../`. Public package APIs keep their names, and call sites delegate to the helpers. Duration-budget tests in `packages/merlon-docs-core/test/redos-budget.test.ts` run the helpers and scanners on pump inputs, so a regex that brings the class back fails CI.
+`codeEvidence` reads line ranges such as `L6-L8` or `lines 12–15` with `lineRangeFromText`, an imperative scanner in `compile/hooks/line-range.ts`. It takes its words from the locale pack. The hook trims the backticks around a link label with a loop, and `shardLintPaths` uses one too, for the slashes at the end of a `shardsGlobs` entry that starts with `../`. Public package APIs keep their names, and call sites delegate to the helpers. Growth benchmarks in `packages/merlon-docs-core/bench/redos-growth.test.ts` run the helpers and scanners on pump inputs of two sizes, so a regex that brings the class back fails CI's Benchmarks job. [Growth benchmarks](#growth-benchmarks) explains how they measure.
 
 ### Regex sites that remain
 
 A regex in `packages/merlon-docs-core/src/` falls under this rule:
 
 - **Keep** a pattern that is clearly linear.
-- **Rewrite** a pattern next to the CodeQL class, such as `\s*` or overlapping optional groups next to digits, as a scanner with a duration-budget test.
+- **Rewrite** a pattern next to the CodeQL class, such as `\s*` or overlapping optional groups next to digits, as a scanner with a growth benchmark.
 - Leave prose and language opinion out of core, because it belongs in Vale.
 
 #### Kept (linear)
@@ -431,7 +460,7 @@ The scan ends a target at its line, so an unfinished link such as `[x](see` does
 
 [No placeholder links](docs/features/link-validation.md#no-placeholder-links) states the rule that link validation leaves an image's src unchecked. Neither built-in list behind `lint.codeExtensions` and `lint.dataExtensions` has an image extension, so a check of srcs would pass one with an image extension or an https: URL without reading the disk, and it would read a src such as `./x.md` as a page.
 
-The scan stops only at a backslash, a `!` or a bracket, and a regex of one character class finds the next one, so it reads each index of its input a fixed number of times. Images nest, so on a line of nested images the alts add up to the square of the line's length. So `codeEvidence` reads a label without the links and images in it, both for a line range or a symbol and for the text that tells the links it rebased apart. Broken-link marking scans the label of each link for the images in it, and links don't nest, so it reads each index once. It then splices each marker into the body on its own, so marking takes time that grows with the number of marked links times the length of the body. Duration-budget tests run each reader on a line that repeats an unfinished link, and compile and `codeEvidence` on a line of nested images.
+The scan stops only at a backslash, a `!` or a bracket, and a regex of one character class finds the next one, so it reads each index of its input a fixed number of times. Images nest, so on a line of nested images the alts add up to the square of the line's length. So `codeEvidence` reads a label without the links and images in it, both for a line range or a symbol and for the text that tells the links it rebased apart. Broken-link marking scans the label of each link for the images in it, and links don't nest, so it reads each index once. It then splices each marker into the body on its own, so marking takes time that grows with the number of marked links times the length of the body. Growth benchmarks run each reader on a line that repeats an unfinished link, and compile and `codeEvidence` on a line of nested images.
 
 [ADR 0005](docs/features/adr/0005-keep-ts-scanners-over-rg-peggy-rust.md) keeps hand-written TypeScript scanners for the core micro-parsers, and these readers follow it. None of them is a regex now. CommonMark's bracket rule needs a stack of the brackets still open, and `scanMarkdownLinks` keeps one in a hand-written loop, so it doesn't meet the ADR's trigger for a grammar.
 
@@ -450,7 +479,7 @@ Link lint, broken-link marking, the link passes and `codeEvidence` mask code spa
 
 ## Benchmarks
 
-`pnpm bench:dogfood` times compile and check on this repository's own docs against the [Performance goals](docs/features/system/performance.md). `pnpm bench:context-size` measures how much context a whole compiled guide and one shard of those docs take. CI doesn't run either script.
+`pnpm bench:dogfood` times compile and check on this repository's own docs against the [Performance goals](docs/features/system/performance.md). `pnpm bench:context-size` measures how much context a whole compiled guide and one shard of those docs take. CI doesn't run either script. The site build also runs `scripts/bench-context-size.mjs`, into a gitignored file, so the homepage shows each build's sizes, as [Measured on each build](#measured-on-each-build) says. The growth benchmarks that CI runs on pull requests are separate: [Growth benchmarks](#growth-benchmarks) describes them.
 
 ### Before you run
 
@@ -599,7 +628,7 @@ Roadmap **area** (what used to be a separate **Track** column on a private board
 
 Apply **one** `track:*` label on intake when the area is clear.
 
-**Milestone** attaches issues to a delivery cut (for example `1.0.0-draft`). Leave milestone empty for long-range or deferred work.
+**Milestone** attaches issues to a delivery cut (for example `1.1.0`). Leave milestone empty for long-range or deferred work.
 
 ### Label catalog (public open source)
 
@@ -1058,7 +1087,7 @@ The public docs site at <https://merlon-docs.github.io/merlon/> is an [Astro Sta
 
 ### Content comes from shards
 
-The landing page (`packages/merlon-docs-site/src/content/docs/index.mdx`) and the Learn page (`packages/merlon-docs-site/src/content/docs/learn.mdx`) are hand-authored. The other pages are generated at build time by [`packages/merlon-docs-site/scripts/sync-content.mjs`](packages/merlon-docs-site/scripts/sync-content.mjs) from these guides:
+The landing page (`packages/merlon-docs-site/src/content/docs/index.mdx`) and the Learn page (`packages/merlon-docs-site/src/content/docs/learn.mdx`) are hand-authored, apart from two sections the build measures, which [Measured on each build](#measured-on-each-build) describes. The other pages are generated at build time by [`packages/merlon-docs-site/scripts/sync-content.mjs`](packages/merlon-docs-site/scripts/sync-content.mjs) from these guides:
 
 | Shards              | Site section | Route            |
 | ------------------- | ------------ | ---------------- |
@@ -1086,18 +1115,34 @@ The sync fails on any internal link it cannot resolve, and the build then checks
 
 ### Build and preview
 
+`pnpm site:dev` builds the packages, compiles the docs, syncs and measures, then starts `astro dev`. `pnpm site:build` takes the same steps, then runs `astro build` and the link check on `dist/`. `pnpm site:a11y` runs the axe-core WCAG 2.2 A and AA checks on the built site, and the site package's `test` script runs the unit tests of its scripts:
+
 ```bash
-pnpm site:dev     # build packages, compile docs, sync, then astro dev
-pnpm site:build   # same steps, then astro build and the dist link check
-pnpm site:a11y    # axe-core WCAG 2.2 A and AA checks on the built site
-pnpm --filter @merlon-docs/merlon-docs-site test   # unit tests of the site scripts
+pnpm site:build &&
+pnpm site:a11y &&
+pnpm --filter @merlon-docs/merlon-docs-site test
 ```
 
-The first two commands run `pnpm build` and `pnpm docs:compile:repo` first, because the sync needs the CLI build and the refs registry. `pnpm site:a11y` checks the `dist/` that `pnpm site:build` wrote. It opens a sample of pages in a local Chrome, in both themes at desktop and phone widths, and fails on any violation. Set `CHROME_PATH` to use another Chrome or Chromium binary.
+The first two commands run `pnpm build` and `pnpm docs:compile:repo` first, because the sync and the measurements need the CLI build, the compiled guides and the refs registry. `pnpm site:a11y` checks the `dist/` that `pnpm site:build` wrote. It opens a sample of pages in a local Chrome, in both themes at desktop and phone widths, and fails on any violation. Set `CHROME_PATH` to use another Chrome or Chromium binary.
+
+### Measured on each build
+
+Two homepage sections show figures the build measures, so each published page reflects the commit it was built from. After the sync, [`packages/merlon-docs-site/scripts/measure-site.mjs`](packages/merlon-docs-site/scripts/measure-site.mjs) writes two gitignored files to `packages/merlon-docs-site/.generated/`:
+
+- `context-size.csv`: `scripts/bench-context-size.mjs` on the compiled guides, whole guides against single shards in estimated tokens. **How much an agent reads**, on the homepage and the Learn page, renders it.
+- `site-stats.json`: the specification's version from its **Version** line, the packages' versions, and the median time of three `merlon check` runs on `docs/`, with the commit and time measured. **Where Merlon Docs stands** renders it.
+
+A failing `merlon check` fails the build, so a deployed page never shows figures from a tree that doesn't pass. Each section's note gives the build date and links the commit, as [Figures measured at build](docs/features/system/benefit-claims-and-evidence.md#figures-measured-at-build) asks.
 
 ### Deployment
 
-[`.github/workflows/pages.yml`](.github/workflows/pages.yml) runs only when dispatched. The [land workflow](.github/workflows/land-develop.yml) dispatches it on `develop` after each landing, in its Deploy the docs site from develop step, because the landing's push to `develop` uses the workflow's own token, which doesn't start a workflow. A maintainer can also dispatch it by hand, on `develop`. The run executes the site tests, `pnpm site:build` and the accessibility check, and deploys the result to GitHub Pages from the ref it was dispatched on. A pull request doesn't build the site, so run `pnpm site:build` before landing; otherwise a sync or link failure shows up in the deploy run after the landing. [Repository settings](#repository-settings) lists the Pages source and the `github-pages` environment that the deploy needs.
+[`.github/workflows/pages.yml`](.github/workflows/pages.yml) runs only when dispatched. The [land workflow](.github/workflows/land-develop.yml) dispatches it on `develop` after each landing, in its Deploy the docs site from develop step, because the landing's push to `develop` uses the workflow's own token, which doesn't start a workflow. The sync from `main` dispatches it too after it resets `develop` to `main`, so the site shows a release's versions without waiting for the next landing. A maintainer can also dispatch it by hand, on `develop`. The run executes the site tests, `pnpm site:build` and the accessibility check, and deploys the result to GitHub Pages from the ref it was dispatched on. A pull request doesn't build the site, so run `pnpm site:build` before landing; otherwise a sync or link failure shows up in the deploy run after the landing. [Repository settings](#repository-settings) lists the Pages source and the `github-pages` environment that the deploy needs.
+
+### IndexNow
+
+Each deploy tells search engines that take [IndexNow](https://www.indexnow.org/) submissions which pages changed, instead of leaving them to recrawl the site. Before the upload, [`packages/merlon-docs-site/scripts/indexnow.mjs`](packages/merlon-docs-site/scripts/indexnow.mjs) hashes every built page and compares the hashes with `indexnow-pages.json`, which the live site published at its last deploy. It writes the new hashes into `dist/` for this deploy to publish, and the pages that are new or changed become the submission. Once the deploy succeeds, the workflow's IndexNow job posts them to `api.indexnow.org`, and it doesn't run when no page changed. When the live site has no hash file, every page counts as changed.
+
+The key is the file `packages/merlon-docs-site/public/<key>.txt`, whose contents are the key itself. The site serves it under its base path, which limits submissions to URLs under that path, and the script reads the key from it, so there is no second copy to keep in step. The key is public by design. To change it, replace that file with a new one; the script stops the build unless exactly one such file exists.
 
 ### Coverage scan
 
@@ -1122,11 +1167,11 @@ Independent versioning is configured in [`.changeset/config.json`](.changeset/co
 
 ### Branches
 
-| Branch     | Role                                                                    | Who merges into it                                     |
-| ---------- | ----------------------------------------------------------------------- | ------------------------------------------------------ |
-| `develop`  | Integration trunk. Work lands here without a PR once it passes the gate | `claude/**` and `land/**` pushes, and Dependabot PRs   |
-| `main`     | Protected release branch. `npx skills add` installs from it             | Release PRs from `develop`, and `hotfix/*` branches    |
-| `hotfix/*` | An urgent fix cut from `main` that can't wait for the next release      | Merged to `main`; the sync job carries it to `develop` |
+| Branch     | Role                                                               | Who merges into it                                             |
+| ---------- | ------------------------------------------------------------------ | -------------------------------------------------------------- |
+| `develop`  | Integration trunk. Work lands here once it passes the gate         | `claude/**` and `land/**` pushes, topic PRs and Dependabot PRs |
+| `main`     | Protected release branch. `npx skills add` installs from it        | Release PRs from `develop`, and `hotfix/*` branches            |
+| `hotfix/*` | An urgent fix cut from `main` that can't wait for the next release | Merged to `main`; the sync job carries it to `develop`         |
 
 #### Landing on `develop`
 
@@ -1136,9 +1181,15 @@ Pushing to a branch named `claude/**` or `land/**` runs the [land workflow](.git
 - **A failed gate lands nothing.** Fix the branch and push again, and do the same when it conflicts with `develop`. Only one run waits behind the running one, so a newer landing or sync cancels the waiting run. When that happens, or when `develop` moved during the run, re-run all jobs of the workflow, or push a new commit to the branch. After `develop` moves, re-running only the failed job reuses the old `develop` and fails again. Pushing a branch whose tip hasn't changed doesn't start a run.
 - **Landings run one at a time**, and each one pushes only the tree that passed its gate. A clean sync from `main` goes through the same gate. Other paths move `develop` without the gate. A merged PR, from Dependabot or from the sync when `main` conflicts, does unless a branch rule makes PRs into `develop` up to date, and a maintainer can push directly unless a rule blocks it. When a PR's base changes from `main` to `develop`, CI runs again against `develop`. [Formal models](#landing-and-release) shows which guards close each of those paths.
 - **The gate doesn't wait for scans.** Gitleaks scans every `claude/**` and `land/**` push, in parallel with the land run, and every pull request that isn't a draft. The landing is pushed with the workflow's own `GITHUB_TOKEN`, and GitHub doesn't start workflows for such pushes. The scan's push trigger lists only `claude/**` and `land/**`, so the release commit's push to `main` and a push to a `hotfix/*` branch aren't scanned until they reach a pull request. The `Scan` check that `main`'s branch rule requires runs on the pull request. CodeQL and Zizmor first see landed work on the release PR. A finding from any of the three is fixed forward on `develop`.
-- **Review happens once**, on the release PR from `develop` to `main`.
+- **Stakeholder review happens on topic PRs.** A push to `claude/**` or `land/**` lands without review, so put a change that someone should review on a topic branch instead, as [Reviewing a change](#reviewing-a-change) says.
 
 Dependabot still opens PRs against `develop`, because its changes come from outside the project.
+
+#### Reviewing a change
+
+Give a reviewer one concern at a time. Push the change to a topic branch, any name outside `claude/**` and `land/**`, open a draft PR into `develop`, mark it ready when the work is done, and squash-merge it after review. The reviewer sees only that change: its commits, its Files changed tab and its discussion.
+
+The release PR from `develop` to `main` then bundles changes that were already reviewed. Review it on its Files changed tab. Its Commits tab lists the commits since the last release, because the sync resets `develop` to `main` after each release.
 
 #### Pull requests
 
@@ -1153,10 +1204,10 @@ CI doesn't assume that a contributor ran the [git hooks](#git-hooks). The pre-pu
 There is **no calendar cadence** and **no Version Packages PR**. A release is a PR from `develop` to `main`, followed by **one CI job**:
 
 1. Changesets reach `develop` with the landings they describe ([When to add a changeset](#when-to-add-a-changeset)). The release workflow versions and publishes only after a release PR reaches `main`.
-2. When `develop` is tested and ready, confirm that the pending `.changeset/*.md` files list only the packages and skills that should bump, and that each unreleased skill is still internal, as [Publishing the skill pack](#publishing-the-skill-pack) requires. Then open a PR from `develop` to `main` and merge it with a **merge commit**. Squashing would give `main` history that `develop` lacks.
+2. When `develop` is tested and ready, confirm that the pending `.changeset/*.md` files list only the packages and skills that should bump, and that each unreleased skill is still internal, as [Publishing the skill pack](#publishing-the-skill-pack) requires. Then open a PR from `develop` to `main` and **squash** it, the only merge method the repository allows. `main` then holds one commit per release, and the sync resets `develop` to it, as step 4 says, so each release PR lists only the commits since the last release. Review it on its Files changed tab, as [Reviewing a change](#reviewing-a-change) says.
 3. The merge runs the [release workflow](.github/workflows/release.yml) (`pnpm release:main`), which needs the `RELEASE_GITHUB_TOKEN` secret described in [Publishing](#publishing). The **Release plan** job posts the pending changesets (and any **missing GitHub Releases**) to the run summary. Read that summary on the latest run to review the bumps and release notes, then approve the **`release` environment** there. The version job **resets to the current `origin/main` tip** (so post-approval work includes all merged changesets), then **sequentially**: applies changesets → syncs skill `metadata.version` → runs `pnpm skill:validate` → builds → runs `pnpm typecheck` and `pnpm test` → commits `chore: release` → **pushes to `main`** → runs the dependency audit `pnpm audit --audit-level=high` → publishes public packages to npm → **pushes tags** → creates GitHub Releases (including skill carriers).
-4. Every push to `main` runs the [sync workflow](.github/workflows/sync-develop.yml), which merges `main`, with the release commit and any hotfix, back into `develop`. A clean merge is pushed to the `land/sync-main` branch, and the sync dispatches the land workflow on it. The merge goes to `develop` only after it passes the gate. If the gate fails, `develop` doesn't get `main`'s commits until someone fixes the failure. They can merge `main` into a `land/**` branch other than `land/sync-main` and fix it there, or land the fix on `develop` and run **Sync develop** again. The next sync overwrites `land/sync-main`, so a fix pushed there is lost. A conflict opens a PR from `main` to `develop` instead. Resolve it the same way, by merging `main` into a `land/**` branch other than `land/sync-main`. The PR itself can't take the fix, because its head is the protected `main`. Once `develop` contains `main`, the PR closes as merged.
-5. Check that each bumped item, skill carriers included, has a GitHub Release and that npm shows the new version of each public package. Then confirm that the land workflow's run on `land/sync-main` put the release commit on `develop`. A landing queued after it can cancel it while it waits, and it fails when `develop` moves during the run. In either case, re-run all of its jobs or run **Sync develop** again.
+4. Every push to `main` runs the [sync workflow](.github/workflows/sync-develop.yml). After a squashed release, `develop` usually holds exactly `main`'s files, and the sync resets `develop` to `main`. That drops the old history from `develop`, so the next release PR lists only new commits. It pushes with a lease on the `develop` commit it compared, so a landing in between makes the reset fail instead of disappearing; run **Sync develop** again. When `develop` has commits `main` lacks, the sync merges `main` into it instead, and the rest of this step applies. A clean merge is pushed to the `land/sync-main` branch, and the sync dispatches the land workflow on it. The merge goes to `develop` only after it passes the gate. If the gate fails, `develop` doesn't get `main`'s commits until someone fixes the failure. They can merge `main` into a `land/**` branch other than `land/sync-main` and fix it there, or land the fix on `develop` and run **Sync develop** again. The next sync overwrites `land/sync-main`, so a fix pushed there is lost. A conflict opens a PR from `main` to `develop` instead. Resolve it the same way, by merging `main` into a `land/**` branch other than `land/sync-main`. The PR itself can't take the fix, because its head is the protected `main`. Once `develop` contains `main`, the PR closes as merged.
+5. Check that each bumped item, skill carriers included, has a GitHub Release and that npm shows the new version of each public package. Then confirm that the sync reset `develop` to `main`, or, when it merged instead, that the land workflow's run on `land/sync-main` put the release commit on `develop`. A landing queued after it can cancel it while it waits, and it fails when `develop` moves during the run. In either case, re-run all of its jobs or run **Sync develop** again.
 6. When a workflow change reached `develop` after the previous sync, check that the sync's push to `land/sync-main` went through. The sync pushes with `GITHUB_TOKEN`, which can't be given the `workflows` permission, and its force-push includes every workflow change `develop` gained since that sync. If the push was refused, reset `land/sync-main` to `develop` with your own access and run **Sync develop** again. Its push then includes only what `main` adds.
 
 **Latest main wins:** concurrency does **not** cancel an in-flight publish (`cancel-in-progress: false`). The Release plan job **cancels** other Release runs on `main` that are still **waiting** (env approval) or **queued**. If `main` moves during the short version window, `pnpm release:main` aborts the push with a superseded message (no force-push).
@@ -1177,11 +1228,9 @@ Packages and skills are **pre-1.0** while on `0.x.y`. Until an item reaches **1.
 
 ### Prereleases
 
-While `.changeset/pre.json` exists, the repository is in Changesets prerelease mode. A release then publishes prerelease versions in place of final ones. The current line is `draft`, which leads to 1.0.0: each release versions the items it bumps as `1.0.0-draft.N` and publishes them under the npm `draft` dist-tag. Their GitHub Releases are marked as prereleases.
+While `.changeset/pre.json` says `"mode": "pre"`, the repository is in Changesets prerelease mode. Each release then versions the items it bumps as prereleases of the line's tag, such as `1.0.0-draft.N` for the `draft` line, publishes them under that npm dist-tag, and marks their GitHub Releases as prereleases. `changeset version` moves each changeset it consumes into `.changeset/pre/`; leave the files there, because the final release reads them to write each item's CHANGELOG entry. The changeset status check counts a moved changeset as consumed. `pnpm release:build` refuses a prerelease version.
 
-In prerelease mode, `changeset version` moves each changeset it consumes into `.changeset/pre/`. Leave the files there, because the final release reads them to write each item's 1.0.0 CHANGELOG entry. The changeset status check counts a moved changeset as consumed. `pnpm release:build` refuses a prerelease version.
-
-To release 1.0.0, run `pnpm changeset pre exit` on `develop` and land the change. The next release versions each drafted item as `1.0.0` and publishes it under `latest`. That release also deletes `.changeset/pre/` and `pre.json`. `pnpm changeset pre enter <tag>` starts a new prerelease line.
+`pnpm changeset pre exit` ends a line by setting `"mode": "exit"`. The next release then versions each item the line drafted at its final version, publishes it under `latest`, and deletes `.changeset/pre/` and `pre.json`. The `draft` line ended this way at 1.0.0, so every package and skill carrier releases as `1.0.0`. `pnpm changeset pre enter <tag>` starts a new prerelease line.
 
 ### Durable docs vs pending changesets
 
@@ -1245,7 +1294,7 @@ The trace lists the states in order. In each state, `Step.kind` names the event 
 
 ### Landing and release
 
-`formal/alloy/landing.als` models the events that move `develop` or `main`. A landing and the sync from `main` move `develop`, the release commit moves `main`, and a PR merge or a maintainer's direct push can move either branch. It also models CI on pull requests, including a PR whose base branch changes after it opens and a PR that opens as a draft.
+`formal/alloy/landing.als` models the events that move `develop` or `main`. A landing, the sync from `main` and the sync's reset move `develop`, the release commit moves `main`, and a PR merge or a maintainer's direct push can move either branch. It also models CI on pull requests, including a PR whose base branch changes after it opens and a PR that opens as a draft.
 
 The model checks three properties. Each one is true only while all of its guards are in place, and for each guard a check finds a run that breaks the property without it. A guard is either a branch rule, which is a [repository setting](#repository-settings) that no workflow can enforce, or a choice in a workflow under `.github/workflows/`.
 
@@ -1267,7 +1316,9 @@ Every job in CI skips a draft PR, as [Pull requests](#pull-requests) describes. 
 
 The sync in `.github/workflows/sync-develop.yml` pushes a clean merge to the `land/sync-main` branch and dispatches the land workflow on it. A push made with the workflow's own `GITHUB_TOKEN` doesn't start a workflow, but a dispatch does. The land gate then tests the merge like any other landing, and `develop` moves only when the gate passes. Without that gate, an untested merge that broke `develop` would fail every later landing until someone fixed `develop`.
 
-Only the land workflow pushes `develop`, with that `GITHUB_TOKEN`. So both branch rules for `develop` have to exempt the identity it pushes as. Otherwise they block landings along with everyone else. The sync force-pushes `land/sync-main` as the same identity, so a rule that blocks force-push has to leave that branch out.
+When `develop` already holds `main`'s tree, as a squashed release leaves it, the sync resets `develop` to `main` instead of merging. The reset needs no gate and no guard of its own: `develop` shows the same tree before and after, and that tree was tested when `develop` got it. The sync pushes the reset with a lease on the `develop` commit it compared, so a landing that moved `develop` in between makes the push fail rather than disappear.
+
+Only the land workflow pushes `develop`, with that `GITHUB_TOKEN`. So both branch rules for `develop` have to exempt the identity it pushes as. Otherwise they block landings along with everyone else. The sync force-pushes `land/sync-main` as the same identity, and force-pushes `develop` for the reset, so a rule that blocks force-push has to leave `land/sync-main` out and let that identity bypass it on `develop`, as the [`develop` ruleset](#settings) does.
 
 #### `main` only moves to a tested tree
 
@@ -1293,9 +1344,9 @@ The third guard is in place. `.github/workflows/release-source.yml` runs on the 
 
 #### Scenarios and bounds
 
-With every guard on, the model also runs scenarios that show the checks above are not vacuous. A landing is followed by a release PR. The release commit syncs back to `develop`. A Dependabot PR merges into `develop` after a landing moves it, and a hotfix merged into `main` reaches `develop`. A PR that opens as a draft merges into `develop` after it is marked ready.
+With every guard on, the model also runs scenarios that show the checks above are not vacuous. A landing is followed by a release PR. The release commit syncs back to `develop`, and a release can sync back by resetting `develop` to `main`. A Dependabot PR merges into `develop` after a landing moves it, and a hotfix merged into `main` reaches `develop`. A PR that opens as a draft merges into `develop` after it is marked ready.
 
-Every check covers traces of up to seven steps over six commits and one pull request. A passing check means no counterexample exists within that bound, which is large enough for each counterexample above to appear. The model assumes merges are clean and that force-push to `develop` and `main` is blocked. A pushed branch may move to any commit, as the sync's force-push of `land/sync-main` does. It also assumes a code owner approves whenever a rule requires it, and that no branch changes the workflow that checks it. A pushed branch runs its own copy of the land workflow, and a PR runs its own copy of CI and Release source. On a PR into `main`, code owner review of `.github/` is what catches such a change. A landing's copy of the land workflow runs before anyone reviews it.
+Every check covers traces of up to seven steps over six commits and one pull request. A passing check means no counterexample exists within that bound, which is large enough for each counterexample above to appear. The model assumes merges are clean and that force-push to `develop` and `main` is blocked, except the sync's reset of `develop`. A pushed branch may move to any commit, as the sync's force-push of `land/sync-main` does. It also assumes a code owner approves whenever a rule requires it, and that no branch changes the workflow that checks it. A pushed branch runs its own copy of the land workflow, and a PR runs its own copy of CI and Release source. On a PR into `main`, code owner review of `.github/` is what catches such a change. A landing's copy of the land workflow runs before anyone reviews it.
 
 ### Adding a model
 
@@ -1482,9 +1533,10 @@ Some controls in this repository live in its settings on the hosting platform, a
 | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
 | Required checks on `main`                           | `Check` and `Changeset` from CI, and `Scan` from gitleaks, on a branch that is up to date with `main`                                                                          | `infra/github/protection.tf`                                                       |
 | Reviews on `main`                                   | [Code-owner review](#code-owner-review), with stale approvals dismissed and no minimum approval count                                                                          | `infra/github/protection.tf`                                                       |
+| Force-push to `develop`, and its deletion           | Blocked by a ruleset, except for repository admins and GitHub Actions, which the [sync's reset](#landing-and-release) of `develop` to `main` needs                             | `infra/github/rulesets.tf`                                                         |
 | Force-push to `main`, and its deletion              | Blocked                                                                                                                                                                        | `infra/github/protection.tf`                                                       |
 | Secret scanning and push protection                 | On                                                                                                                                                                             | `infra/github/repository.tf`                                                       |
-| Merge methods                                       | Merge commit, squash and rebase are allowed. The release PR needs a merge commit, as [Release schedule](#release-schedule-release-pr-from-develop-to-main) says                | `infra/github/repository.tf`                                                       |
+| Merge methods                                       | Squash only, for the release PR as for every other PR, as [Release schedule](#release-schedule-release-pr-from-develop-to-main) says                                           | `infra/github/repository.tf`                                                       |
 | `release` environment reviewers                     | The repository owner                                                                                                                                                           | `infra/github/environments.tf`                                                     |
 | `release` environment admin bypass                  | On, so a repository admin can deploy without a reviewer's approval                                                                                                             | `infra/github/environments.tf`                                                     |
 | `release` environment deployment branches           | `main` and `v*` tags                                                                                                                                                           | **Settings → Environments → `release`**                                            |
@@ -1500,17 +1552,20 @@ Some controls in this repository live in its settings on the hosting platform, a
 
 [`infra/github/`](infra/github) declares the settings whose row names a `.tf` file, with the `integrations/github` provider. It also declares settings that no page here depends on, such as the repository's description and topics. Its `imports.tf` adopts the existing repository, `main` protection and `release` environment. An apply then changes them in place. The provider can't set the branch and tag policies of an environment on a user account's repository, and `environments.tf` leaves them to the settings page.
 
-The live settings can drift from the files between applies. With admin access to the repository, compare and apply them from a checkout:
+The live settings can drift from the files between applies. This repository applies them with [OpenTofu](https://opentofu.org/), and `terraform` runs the same files with the same subcommands. With admin access to the repository, set `GITHUB_TOKEN` to an admin token, then compare from the repository root. The plan lists each live setting that differs from the files:
 
 ```bash
-cd infra/github
-export GITHUB_TOKEN=<admin token>
-terraform init
-terraform plan    # lists each live setting that differs from the files
-terraform apply
+tofu -chdir=infra/github init &&
+tofu -chdir=infra/github plan
 ```
 
-Terraform writes its state to `infra/github/terraform.tfstate`, and `infra/github/.gitignore` keeps that file out of commits, along with `.terraform/` and plan files.
+Apply once the plan shows only the changes you expect:
+
+```bash
+tofu -chdir=infra/github apply
+```
+
+OpenTofu writes its state to `infra/github/terraform.tfstate`, and `infra/github/.gitignore` keeps that file out of commits, along with `.terraform/` and plan files.
 
 ### Code-owner review
 

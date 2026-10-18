@@ -17,7 +17,7 @@ const BROKEN_MARKER_ORIG_RE = /\(`([^`\n]+)`\)\s*→\s*`([^`\n]+)`/;
  */
 function parseShardCommentTag(
   trimmedLine: string,
-): { kind: 'start' | 'end'; relPath: string } | null {
+): { kind: 'start' | 'end'; relPath: string; firstLine: number } | null {
   if (
     !trimmedLine.startsWith(SHARD_COMMENT_PREFIX) ||
     !trimmedLine.endsWith(SHARD_COMMENT_SUFFIX)
@@ -32,14 +32,19 @@ function parseShardCommentTag(
   if (afterKey.startsWith('start')) {
     const rest = afterKey.slice('start'.length);
     if (rest.length === 0 || (rest[0] !== ' ' && rest[0] !== '\t')) return null;
-    const relPath = rest.trim();
-    return relPath ? { kind: 'start', relPath } : null;
+    const target = rest.trim();
+    // `path#L<n>`: the body starts on shard line n, after lines compile dropped (front matter).
+    const hash = target.lastIndexOf('#L');
+    const line = hash > 0 ? Number(target.slice(hash + 2)) : NaN;
+    const lineSuffix = Number.isInteger(line) && line > 0;
+    const relPath = lineSuffix ? target.slice(0, hash) : target;
+    return relPath ? { kind: 'start', relPath, firstLine: lineSuffix ? line : 1 } : null;
   }
   if (afterKey.startsWith('end')) {
     const rest = afterKey.slice('end'.length);
     if (rest.length === 0 || (rest[0] !== ' ' && rest[0] !== '\t')) return null;
     const relPath = rest.trim();
-    return relPath ? { kind: 'end', relPath } : null;
+    return relPath ? { kind: 'end', relPath, firstLine: 1 } : null;
   }
   return null;
 }
@@ -51,6 +56,8 @@ export interface CompiledShardSpan {
   endLine: number;
   /** Resolved shard file path. */
   shardFile: string;
+  /** 1-based shard line that `startLine` shows. */
+  shardFirstLine: number;
 }
 
 /**
@@ -65,7 +72,8 @@ export function resolveCompiledShardLine(
   const baseDir = dirname(resolve(outputFile));
   const spans: CompiledShardSpan[] = [];
   const inFence = createQuotedFenceScanner();
-  let activeShard: { shardFile: string; firstContentLine: number } | undefined;
+  let activeShard:
+    { shardFile: string; firstContentLine: number; shardFirstLine: number } | undefined;
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -77,6 +85,7 @@ export function resolveCompiledShardLine(
       activeShard = {
         shardFile: resolve(baseDir, tag.relPath),
         firstContentLine: i + 1 + (nextIsBlank ? 2 : 1),
+        shardFirstLine: tag.firstLine,
       };
       continue;
     }
@@ -88,6 +97,7 @@ export function resolveCompiledShardLine(
           startLine: activeShard.firstContentLine,
           endLine,
           shardFile: activeShard.shardFile,
+          shardFirstLine: activeShard.shardFirstLine,
         });
       }
       activeShard = undefined;
@@ -100,7 +110,7 @@ export function resolveCompiledShardLine(
       if (compiledLine >= s.startLine && compiledLine <= s.endLine) {
         return {
           shardFile: s.shardFile,
-          shardLine: compiledLine - s.startLine + 1,
+          shardLine: compiledLine - s.startLine + s.shardFirstLine,
         };
       }
     }

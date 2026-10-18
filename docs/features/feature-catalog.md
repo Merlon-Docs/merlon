@@ -2,20 +2,6 @@
 
 Command and capability reference. For the end-to-end mental model, including how compiled guides relate to the optional monolith, read [Overview](./overview.md) first.
 
-## Compile
-
-Stitch shard directories into compiled guides. Compile demotes headings and handles the preamble shard as [Project layout](../client-cli/project-layout.md#one-subdirectory--one-guide) says. Per-guide titles and publish paths are optional. Compile injects source tags and a default warning banner. See [Source tags and default banner](./source-tags-and-banner.md).
-
-```bash
-merlon compile --config merlon.config.json --docs-root .
-```
-
-Guides compile to per-guide files under `outputDir` by default (`{name}.md`, or `guide.md` when alone). Set top-level `outputFile` for an optional stitched monolith. Path layout: [Config essentials](../client-cli/config-essentials.md#path-layout).
-
-## Refs registry file
-
-Heading-slug **registry** for validation after compile. See [Refs registry path](./refs-registry-path.md). Confirm `#` cross-links with `merlon check`. What refs are and are not for: [refs](../glossary/refs.md).
-
 ## Agent Skill and workflows
 
 One Agent Skill at `skills/merlon-docs/SKILL.md`, installed into your agent's skills directory with [its install command](./agent-skill.md#install-surfaces). See [Agent Skill](./agent-skill.md).
@@ -30,6 +16,20 @@ The skill picks a workflow for each authoring job and loads only that file. Cata
 [Doc-review](./system/workflows/doc-review.md).
 
 [Live skill evals](../developer/live-skill-evals.md), which grade each workflow with and without the skill, are maintainer work.
+
+## Compile
+
+Stitch shard directories into compiled guides. Compile demotes headings and handles the preamble shard as [Project layout](../client-cli/project-layout.md#one-subdirectory--one-guide) says. Per-guide titles and publish paths are optional. Compile injects source tags and a default warning banner. See [Source tags and default banner](./source-tags-and-banner.md).
+
+```bash
+merlon compile --config merlon.config.json --docs-root .
+```
+
+Guides compile to per-guide files under `outputDir` by default (`{name}.md`, or `guide.md` when alone). Set top-level `outputFile` for an optional stitched monolith. Path layout: [Config essentials](../client-cli/config-essentials.md#path-layout).
+
+## Refs registry file
+
+Heading-slug **registry** for validation after compile. See [Refs registry path](./refs-registry-path.md). Confirm `#` cross-links with `merlon check`. What refs are and are not for: [refs](../glossary/refs.md).
 
 ## Validation gate
 

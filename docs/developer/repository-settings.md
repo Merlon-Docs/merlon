@@ -8,9 +8,10 @@ Some controls in this repository live in its settings on the hosting platform, a
 | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
 | Required checks on `main`                           | `Check` and `Changeset` from CI, and `Scan` from gitleaks, on a branch that is up to date with `main`                                                                                                      | `infra/github/protection.tf`                                                                      |
 | Reviews on `main`                                   | [Code-owner review](#code-owner-review), with stale approvals dismissed and no minimum approval count                                                                                                      | `infra/github/protection.tf`                                                                      |
+| Force-push to `develop`, and its deletion           | Blocked by a ruleset, except for repository admins and GitHub Actions, which the [sync's reset](./formal-models.md#landing-and-release) of `develop` to `main` needs                                       | `infra/github/rulesets.tf`                                                                        |
 | Force-push to `main`, and its deletion              | Blocked                                                                                                                                                                                                    | `infra/github/protection.tf`                                                                      |
 | Secret scanning and push protection                 | On                                                                                                                                                                                                         | `infra/github/repository.tf`                                                                      |
-| Merge methods                                       | Merge commit, squash and rebase are allowed. The release PR needs a merge commit, as [Release schedule](./versioning-and-releases.md#release-schedule-release-pr-from-develop-to-main) says                | `infra/github/repository.tf`                                                                      |
+| Merge methods                                       | Squash only, for the release PR as for every other PR, as [Release schedule](./versioning-and-releases.md#release-schedule-release-pr-from-develop-to-main) says                                           | `infra/github/repository.tf`                                                                      |
 | `release` environment reviewers                     | The repository owner                                                                                                                                                                                       | `infra/github/environments.tf`                                                                    |
 | `release` environment admin bypass                  | On, so a repository admin can deploy without a reviewer's approval                                                                                                                                         | `infra/github/environments.tf`                                                                    |
 | `release` environment deployment branches           | `main` and `v*` tags                                                                                                                                                                                       | **Settings → Environments → `release`**                                                           |
@@ -26,17 +27,20 @@ Some controls in this repository live in its settings on the hosting platform, a
 
 [`infra/github/`](../../infra/github/) declares the settings whose row names a `.tf` file, with the `integrations/github` provider. It also declares settings that no page here depends on, such as the repository's description and topics. Its `imports.tf` adopts the existing repository, `main` protection and `release` environment. An apply then changes them in place. The provider can't set the branch and tag policies of an environment on a user account's repository, and `environments.tf` leaves them to the settings page.
 
-The live settings can drift from the files between applies. With admin access to the repository, compare and apply them from a checkout:
+The live settings can drift from the files between applies. This repository applies them with [OpenTofu](https://opentofu.org/), and `terraform` runs the same files with the same subcommands. With admin access to the repository, set `GITHUB_TOKEN` to an admin token, then compare from the repository root. The plan lists each live setting that differs from the files:
 
 ```bash
-cd infra/github
-export GITHUB_TOKEN=<admin token>
-terraform init
-terraform plan    # lists each live setting that differs from the files
-terraform apply
+tofu -chdir=infra/github init &&
+tofu -chdir=infra/github plan
 ```
 
-Terraform writes its state to `infra/github/terraform.tfstate`, and `infra/github/.gitignore` keeps that file out of commits, along with `.terraform/` and plan files.
+Apply once the plan shows only the changes you expect:
+
+```bash
+tofu -chdir=infra/github apply
+```
+
+OpenTofu writes its state to `infra/github/terraform.tfstate`, and `infra/github/.gitignore` keeps that file out of commits, along with `.terraform/` and plan files.
 
 ## Code-owner review
 

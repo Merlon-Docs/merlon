@@ -1,6 +1,6 @@
 # Benchmarks
 
-`pnpm bench:dogfood` times compile and check on this repository's own docs against the [Performance goals](../features/system/performance.md). `pnpm bench:context-size` measures how much context a whole compiled guide and one shard of those docs take. CI doesn't run either script.
+`pnpm bench:dogfood` times compile and check on this repository's own docs against the [Performance goals](../features/system/performance.md). `pnpm bench:context-size` measures how much context a whole compiled guide and one shard of those docs take. CI doesn't run either script. The site build also runs `scripts/bench-context-size.mjs`, into a gitignored file, so the homepage shows each build's sizes, as [Measured on each build](./docs-site.md#measured-on-each-build) says. The growth benchmarks that CI runs on pull requests are separate: [Growth benchmarks](./packages-and-tests.md#growth-benchmarks) describes them.
 
 ## Before you run
 

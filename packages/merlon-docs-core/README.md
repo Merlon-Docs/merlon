@@ -122,9 +122,9 @@ Pass `process.cwd()` as `configBase` for `loadConfig`. Pass the docs root as `do
 
 With `shardsGlobs`, it returns each entry as written, negated entries included, with two exceptions. A `.` entry becomes `**`. An entry that starts with `../` gets the escaped absolute directory those segments name in their place, then `/**` when the entry is a directory, and a negated one gets `**` in front.
 
-`loadConfig` validates the file with `MerlonConfigSchema` through `parseConfig`, and fills the top-level defaults, such as `outputDir`, `banner`, `sourceTags`, `scan`, `backup`, `refs` and `review`. A key inside an omitted optional object, such as `lint`, `lint.links`, `vale` or a guide's `compile`, is `undefined` after loading, and the code that reads it applies the documented default. Config essentials lists the output layout and its defaults under [Path layout](../merlon-docs-cli/README.md#path-layout). [Source tags and default banner](../../docs/features/source-tags-and-banner.md) gives the default banner text and the per-guide `compile.includeBanner` and `compile.sourceTags` keys.
+`loadConfig` validates the file with `MerlonConfigFileSchema` through `parseConfig`, and fills the top-level defaults, such as `outputDir`, `banner`, `sourceTags`, `scan`, `backup`, `refs` and `review`. A key inside an omitted optional object, such as `lint`, `lint.links`, `vale` or a guide's `compile`, is `undefined` after loading, and the code that reads it applies the documented default. Config essentials lists the output layout and its defaults under [Path layout](../merlon-docs-cli/README.md#path-layout). [Source tags and default banner](../../docs/features/source-tags-and-banner.md) gives the default banner text and the per-guide `compile.includeBanner` and `compile.sourceTags` keys.
 
-A config written before the rename stores the standard version under `protocolVersion`. When `standardVersion` is absent, `parseConfig` migrates it to the `1.0.0-draft.0` default on `standardVersion` and sets `protocolVersion` to the result. Different values under the two keys are an error.
+A config file declares the config format version it follows in `configVersion`. `DEFAULT_CONFIG_VERSION` is the format version of the installed package, its own version from `package.json`. `parseConfig` rejects a file that declares no version, and its error names the line to add. A file written before the key's rename declares `standardVersion` or `protocolVersion` instead; `parseConfig` migrates it to `DEFAULT_CONFIG_VERSION` and sets both former keys to the result until 2.0.0. `MerlonConfigFileSchema` is the file format, and `MerlonConfigSchema`, the in-memory config the compile API takes, doesn't require the version.
 
 #### Publish outputs and link paths
 
@@ -435,14 +435,13 @@ The hook finds fenced code and code spans as the [link passes](../../docs/featur
 
 Line ranges are parsed from the **link label** first, then from the path (before any `#` fragment). The hook always emits GitHub-style **`#L…` fragments** (a fixed format that isn't localized).
 
-**Language-neutral forms** (always recognized):
+**Language-neutral forms** (always recognized). A bare range such as `1-2` isn't one: it could as well be a version or page range, so a line range needs `L`, `:` or a locale word:
 
 | Form in label or path | Fragment           |
 | --------------------- | ------------------ |
 | `L6-L8`, `L6–L8`      | `#L6-L8`           |
 | `L42`                 | `#L42`             |
 | `:10-20`, `:10`       | `#L10-L20`, `#L10` |
-| bare `1-2`            | `#L1-L2`           |
 
 **Locale word forms** come from the active [locale pack](#locale-pack) (`lineRangeWords`). Default **en-US** recognizes `line` / `lines` (case-insensitive), for example `line 42` → `#L42` and `lines 12–15` → `#L12-L15`. Other locales may supply different authored words; they are not part of the Merlon Docs format. See [Locale and language boundary](../../docs/features/design-constraints/locale-and-language.md).
 

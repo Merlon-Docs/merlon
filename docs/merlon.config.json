@@ -1,6 +1,6 @@
 {
   "$schema": "../packages/merlon-docs-core/merlon.config.schema.json",
-  "standardVersion": "1.0.0-draft.0",
+  "configVersion": "1.0.0",
   "outputDir": "_build",
   "outputFile": "guides.md",
   "compileOrder": ["features", "developer", "client-cli", "client-core", "repo-readme"],
@@ -83,6 +83,7 @@
       "docs/superpowers/**",
       "tests/**",
       "examples/**",
+      "**/.terraform/**",
       "**/CHANGELOG.md"
     ]
   },
@@ -123,7 +124,8 @@
         "node_modules",
         ".claude/skills",
         ".windsurf/skills",
-        ".changeset/pre"
+        ".changeset/pre",
+        "packages/merlon-docs-site/.generated"
       ],
       "vocabulary": ["docs/client", "docs/extensions"]
     }

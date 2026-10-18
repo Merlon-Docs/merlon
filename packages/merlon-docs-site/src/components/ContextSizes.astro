@@ -1,14 +1,13 @@
 ---
-// Whole guides versus single shards, in estimated tokens, read at build time from the CSV of
-// the context-size research record. `pnpm bench:context-size` writes a new dated CSV; when a run
-// gets its own record, point this import, RECORD_PATH and RECORD_TITLE at that record.
-import csv from '../../../../docs/features/system/research/context-size-dogfood-2026-10-05.csv?raw';
+// Whole guides versus single shards, in estimated tokens, measured each time the site is built:
+// scripts/measure-site.mjs runs `bench-context-size` on this build's compiled guides. The caption
+// gives the build's date and commit, as Benefit claims and evidence asks of a measured figure.
+import csv from '../../.generated/context-size.csv?raw';
+import stats from '../../.generated/site-stats.json';
 import { BASE } from '../../site.config.mjs';
 
-// The record's page on this site. The caption links it, as Benefit claims and evidence asks of
-// public copy that uses a record's figure.
-const RECORD_PATH = 'concepts/system/research/context-size-dogfood-2026-10-05/';
-const RECORD_TITLE = "Context sizes: this repository's guides against one shard";
+const commitUrl = `https://github.com/Merlon-Docs/merlon/commit/${stats.commit}`;
+const builtOn = stats.measuredAt.slice(0, 10);
 
 const metrics = new Map(
   csv
@@ -45,15 +44,10 @@ const rows = [
 
 const max = Math.max(...rows.map((row) => row.tokens));
 const tokenizer = metrics.get('tokenizer')?.value ?? 'unknown';
-const recordedAt = metrics.get('tokenizer')?.recordedAt;
 ---
 
 <figure class="merlon-sizes">
   <table>
-    <caption>
-      Estimated tokens an agent loads: a whole compiled guide against one shard, measured on
-      this repository's {fmt.format(shardCount)} shards.
-    </caption>
     <thead>
       <tr>
         <th scope="col">What the agent reads</th>
@@ -79,11 +73,12 @@ const recordedAt = metrics.get('tokenizer')?.recordedAt;
     </tbody>
   </table>
   <figcaption>
-    Counted with <code>{tokenizer}</code> from the open-source gpt-tokenizer{
-      recordedAt && <> on {recordedAt}</>
-    }. Every model and system tokenizes differently, so read these as rough, relative sizes,
-    not costs. The dated record <a href={`${BASE}/${RECORD_PATH}`}>{RECORD_TITLE}</a> gives the
-    method and the caveats. <a href={`${BASE}/contributing/benchmarks/`}>Benchmarks</a> says how to
-    re-measure with <code>pnpm bench:context-size</code> and another tokenizer or a counter of your own.
+    Estimated tokens an agent loads: a whole compiled guide against one shard, measured on this
+    repository's {fmt.format(shardCount)} shards when this site was built on {builtOn}, from commit{' '}
+    <a href={commitUrl}><code>{stats.commit.slice(0, 7)}</code></a>. Counted with{' '}
+    <code>{tokenizer}</code> from the open-source gpt-tokenizer. Every model and system tokenizes
+    differently, so read these as rough, relative sizes, not costs.{' '}
+    <a href={`${BASE}/contributing/benchmarks/`}>Benchmarks</a> says how to re-measure with{' '}
+    <code>pnpm bench:context-size</code> and another tokenizer or a counter of your own.
   </figcaption>
 </figure>

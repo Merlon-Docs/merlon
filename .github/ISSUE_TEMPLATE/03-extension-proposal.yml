@@ -98,9 +98,9 @@ body:
   - type: input
     id: standard-version
     attributes:
-      label: Target standardVersion
-      description: Four-part spec version (`standardVersion`, formerly `protocolVersion`) this extension claims to support
-      placeholder: '1.0.0-draft.0'
+      label: Target specification version
+      description: The version of the Merlon Docs specification this extension claims to support, from the Version line of docs/features/system/merlon-docs-1.0-spec.md
+      placeholder: '1.0.0'
     validations:
       required: true
 

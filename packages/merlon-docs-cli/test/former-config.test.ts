@@ -1,21 +1,25 @@
 import { describe, it, expect } from 'vitest';
+import { DEFAULT_CONFIG_VERSION } from '@merlon-docs/merlon-docs-core';
 import { migrateFormerConfigText } from '../src/former-config.js';
 
 describe('migrateFormerConfigText', () => {
-  it('renames a top-level protocolVersion key to standardVersion at 1.0.0-draft.0 and keeps the formatting', () => {
-    const text = '{\n  "outputDir": "_build",\n  "protocolVersion" : "0.4.0.0"\n}\n';
-    expect(migrateFormerConfigText(text)).toBe(
-      '{\n  "outputDir": "_build",\n  "standardVersion" : "1.0.0-draft.0"\n}\n',
-    );
-  });
+  it.each(['protocolVersion', 'standardVersion'])(
+    'renames a top-level %s key to configVersion at this release and keeps the formatting',
+    (key) => {
+      const text = `{\n  "outputDir": "_build",\n  "${key}" : "0.4.0.0"\n}\n`;
+      expect(migrateFormerConfigText(text)).toBe(
+        `{\n  "outputDir": "_build",\n  "configVersion" : "${DEFAULT_CONFIG_VERSION}"\n}\n`,
+      );
+    },
+  );
 
-  it('leaves a config without protocolVersion unchanged', () => {
+  it('leaves a config without a former version key unchanged', () => {
     const text = '{ "outputDir": "_build" }';
     expect(migrateFormerConfigText(text)).toBe(text);
   });
 
-  it('leaves a config that already sets standardVersion unchanged', () => {
-    const text = '{ "standardVersion": "1.0.0-draft.0", "protocolVersion": "1.0.0-draft.0" }';
+  it('leaves a config that already sets configVersion unchanged', () => {
+    const text = '{ "configVersion": "0.9.0", "protocolVersion": "0.4.0.0" }';
     expect(migrateFormerConfigText(text)).toBe(text);
   });
 

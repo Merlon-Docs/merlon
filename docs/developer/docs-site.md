@@ -4,7 +4,7 @@ The public docs site at <https://merlon-docs.github.io/merlon/> is an [Astro Sta
 
 ## Content comes from shards
 
-The landing page (`packages/merlon-docs-site/src/content/docs/index.mdx`) and the Learn page (`packages/merlon-docs-site/src/content/docs/learn.mdx`) are hand-authored. The other pages are generated at build time by [`packages/merlon-docs-site/scripts/sync-content.mjs`](../../packages/merlon-docs-site/scripts/sync-content.mjs) from these guides:
+The landing page (`packages/merlon-docs-site/src/content/docs/index.mdx`) and the Learn page (`packages/merlon-docs-site/src/content/docs/learn.mdx`) are hand-authored, apart from two sections the build measures, which [Measured on each build](#measured-on-each-build) describes. The other pages are generated at build time by [`packages/merlon-docs-site/scripts/sync-content.mjs`](../../packages/merlon-docs-site/scripts/sync-content.mjs) from these guides:
 
 | Shards              | Site section | Route            |
 | ------------------- | ------------ | ---------------- |
@@ -32,18 +32,34 @@ The sync fails on any internal link it cannot resolve, and the build then checks
 
 ## Build and preview
 
+`pnpm site:dev` builds the packages, compiles the docs, syncs and measures, then starts `astro dev`. `pnpm site:build` takes the same steps, then runs `astro build` and the link check on `dist/`. `pnpm site:a11y` runs the axe-core WCAG 2.2 A and AA checks on the built site, and the site package's `test` script runs the unit tests of its scripts:
+
 ```bash
-pnpm site:dev     # build packages, compile docs, sync, then astro dev
-pnpm site:build   # same steps, then astro build and the dist link check
-pnpm site:a11y    # axe-core WCAG 2.2 A and AA checks on the built site
-pnpm --filter @merlon-docs/merlon-docs-site test   # unit tests of the site scripts
+pnpm site:build &&
+pnpm site:a11y &&
+pnpm --filter @merlon-docs/merlon-docs-site test
 ```
 
-The first two commands run `pnpm build` and `pnpm docs:compile:repo` first, because the sync needs the CLI build and the refs registry. `pnpm site:a11y` checks the `dist/` that `pnpm site:build` wrote. It opens a sample of pages in a local Chrome, in both themes at desktop and phone widths, and fails on any violation. Set `CHROME_PATH` to use another Chrome or Chromium binary.
+The first two commands run `pnpm build` and `pnpm docs:compile:repo` first, because the sync and the measurements need the CLI build, the compiled guides and the refs registry. `pnpm site:a11y` checks the `dist/` that `pnpm site:build` wrote. It opens a sample of pages in a local Chrome, in both themes at desktop and phone widths, and fails on any violation. Set `CHROME_PATH` to use another Chrome or Chromium binary.
+
+## Measured on each build
+
+Two homepage sections show figures the build measures, so each published page reflects the commit it was built from. After the sync, [`packages/merlon-docs-site/scripts/measure-site.mjs`](../../packages/merlon-docs-site/scripts/measure-site.mjs) writes two gitignored files to `packages/merlon-docs-site/.generated/`:
+
+- `context-size.csv`: `scripts/bench-context-size.mjs` on the compiled guides, whole guides against single shards in estimated tokens. **How much an agent reads**, on the homepage and the Learn page, renders it.
+- `site-stats.json`: the specification's version from its **Version** line, the packages' versions, and the median time of three `merlon check` runs on `docs/`, with the commit and time measured. **Where Merlon Docs stands** renders it.
+
+A failing `merlon check` fails the build, so a deployed page never shows figures from a tree that doesn't pass. Each section's note gives the build date and links the commit, as [Figures measured at build](../features/system/benefit-claims-and-evidence.md#figures-measured-at-build) asks.
 
 ## Deployment
 
-[`.github/workflows/pages.yml`](../../.github/workflows/pages.yml) runs only when dispatched. The [land workflow](../../.github/workflows/land-develop.yml) dispatches it on `develop` after each landing, in its Deploy the docs site from develop step, because the landing's push to `develop` uses the workflow's own token, which doesn't start a workflow. A maintainer can also dispatch it by hand, on `develop`. The run executes the site tests, `pnpm site:build` and the accessibility check, and deploys the result to GitHub Pages from the ref it was dispatched on. A pull request doesn't build the site, so run `pnpm site:build` before landing; otherwise a sync or link failure shows up in the deploy run after the landing. [Repository settings](./repository-settings.md) lists the Pages source and the `github-pages` environment that the deploy needs.
+[`.github/workflows/pages.yml`](../../.github/workflows/pages.yml) runs only when dispatched. The [land workflow](../../.github/workflows/land-develop.yml) dispatches it on `develop` after each landing, in its Deploy the docs site from develop step, because the landing's push to `develop` uses the workflow's own token, which doesn't start a workflow. The sync from `main` dispatches it too after it resets `develop` to `main`, so the site shows a release's versions without waiting for the next landing. A maintainer can also dispatch it by hand, on `develop`. The run executes the site tests, `pnpm site:build` and the accessibility check, and deploys the result to GitHub Pages from the ref it was dispatched on. A pull request doesn't build the site, so run `pnpm site:build` before landing; otherwise a sync or link failure shows up in the deploy run after the landing. [Repository settings](./repository-settings.md) lists the Pages source and the `github-pages` environment that the deploy needs.
+
+## IndexNow
+
+Each deploy tells search engines that take [IndexNow](https://www.indexnow.org/) submissions which pages changed, instead of leaving them to recrawl the site. Before the upload, [`packages/merlon-docs-site/scripts/indexnow.mjs`](../../packages/merlon-docs-site/scripts/indexnow.mjs) hashes every built page and compares the hashes with `indexnow-pages.json`, which the live site published at its last deploy. It writes the new hashes into `dist/` for this deploy to publish, and the pages that are new or changed become the submission. Once the deploy succeeds, the workflow's IndexNow job posts them to `api.indexnow.org`, and it doesn't run when no page changed. When the live site has no hash file, every page counts as changed.
+
+The key is the file `packages/merlon-docs-site/public/<key>.txt`, whose contents are the key itself. The site serves it under its base path, which limits submissions to URLs under that path, and the script reads the key from it, so there is no second copy to keep in step. The key is public by design. To change it, replace that file with a new one; the script stops the build unless exactly one such file exists.
 
 ## Coverage scan
 

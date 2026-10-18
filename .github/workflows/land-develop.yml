@@ -3,8 +3,9 @@ name: Land on develop
 # Trunk-based landing: a push to a claude/** or land/** branch is merged with
 # the current develop, run through the gate below (CI's Check and Changeset
 # jobs, plus the Formal models job when formal/ changed), and pushed to develop
-# when it passes. No pull request is needed for develop; review and approval
-# happen once, on the release PR from develop to main.
+# when it passes. No pull request is needed for develop. A change someone
+# should review goes on a topic branch and a PR into develop instead, and the
+# release PR from develop to main is approved before it merges.
 #
 # sync-develop.yml dispatches this workflow on land/sync-main, because its push
 # is made with GITHUB_TOKEN and starts no workflow. A dispatch on any branch

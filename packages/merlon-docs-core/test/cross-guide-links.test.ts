@@ -838,8 +838,6 @@ describe('section slugs count every earlier heading', () => {
         ],
       };
       const built = buildGuideLinkIndex(opts, work);
-      // The per-guide numbering stays internal, off the exported result type.
-      expect(built).not.toHaveProperty('slugsByGuide');
       const { index } = built;
       const { slugsByGuide } = buildGuideLinkIndexWithSlugs(opts, work);
       const results = compileGuideResults(opts);

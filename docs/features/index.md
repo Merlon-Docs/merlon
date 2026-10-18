@@ -12,6 +12,17 @@ Product documentation for **what Merlon Docs is designed to do**: the problems i
 - [Personas and priority tiers](./personas-and-priority-tiers.md)
 - [Feature catalog](./feature-catalog.md)
 
+## Agent Skill and its workflows
+
+- [Agent Skill](./agent-skill.md)
+- [Skill workflows](./system/skill-workflows.md)
+- [Getting-started workflow](./system/workflows/getting-started.md)
+- [Feature-level workflow](./system/workflows/feature-level.md)
+- [Doc-only workflow](./system/workflows/doc-only.md)
+- [Design-architecture workflow](./system/workflows/design-architecture.md)
+- [UX workflow](./system/workflows/ux.md)
+- [Doc-review workflow](./system/workflows/doc-review.md)
+
 ## Compile and validate
 
 - [Manifest compile order](./manifest-compile-order.md)
@@ -27,17 +38,6 @@ Product documentation for **what Merlon Docs is designed to do**: the problems i
 - [Standalone guides](./standalone-guides.md)
 - [Refs registry path](./refs-registry-path.md)
 
-## Agent Skill and its workflows
-
-- [Agent Skill](./agent-skill.md)
-- [Skill workflows](./system/skill-workflows.md)
-- [Getting-started workflow](./system/workflows/getting-started.md)
-- [Feature-level workflow](./system/workflows/feature-level.md)
-- [Doc-only workflow](./system/workflows/doc-only.md)
-- [Design-architecture workflow](./system/workflows/design-architecture.md)
-- [UX workflow](./system/workflows/ux.md)
-- [Doc-review workflow](./system/workflows/doc-review.md)
-
 ## Decisions and constraints
 
 - [Architecture decision records](./adr/index.md)
@@ -51,7 +51,7 @@ Product documentation for **what Merlon Docs is designed to do**: the problems i
 - [Usage model](./system/usage-model.md)
 - [Shard single responsibility and idea mitosis](./system/shard-srp-and-mitosis.md)
 - [Extensions and archetypes](./system/extensions-and-archetypes.md)
-- [Merlon Docs 1.0 spec (draft)](./system/merlon-docs-1.0-spec.md)
+- [Merlon Docs 1.0 spec](./system/merlon-docs-1.0-spec.md)
 - [Acknowledgments](./system/acknowledgments.md)
 
 ## Evidence and research

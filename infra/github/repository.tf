@@ -1,7 +1,7 @@
 resource "github_repository" "merlon" {
-  name        = "merlon"
-  description = "Merlon Docs: a documentation system for software projects, run by an Agent Skill with human review"
-  homepage_url = "https://www.skills.sh/Merlon-Docs/merlon"
+  name         = "merlon"
+  description  = "Merlon Docs: a documentation system for software projects, run by an Agent Skill with human review"
+  homepage_url = "https://merlon-docs.github.io/merlon/"
 
   visibility = "public"
   archived   = false
@@ -11,16 +11,14 @@ resource "github_repository" "merlon" {
   has_wiki        = true
   has_discussions = true
 
-  allow_squash_merge   = true
-  allow_merge_commit   = true
-  allow_rebase_merge   = true
-  allow_auto_merge     = true
+  allow_squash_merge     = true
+  allow_merge_commit     = false
+  allow_rebase_merge     = false
+  allow_auto_merge       = true
   delete_branch_on_merge = false
 
   squash_merge_commit_title   = "COMMIT_OR_PR_TITLE"
   squash_merge_commit_message = "COMMIT_MESSAGES"
-  merge_commit_title          = "MERGE_MESSAGE"
-  merge_commit_message        = "PR_TITLE"
 
   topics = ["ai", "ai-tools", "skills-sh"]
 

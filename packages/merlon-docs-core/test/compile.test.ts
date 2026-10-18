@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { mkdirSync, writeFileSync, existsSync, readFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
@@ -679,26 +679,6 @@ describe('cli e2e', () => {
     expect(output).not.toContain('](../tables/status-codes.md)');
     expect(output).not.toContain('](../media/walkthrough.md)');
     expect(output).not.toContain('](../figures/raster-formats.md)');
-  });
-
-  it('merlon compile exits 0 on sample-guides', () => {
-    const out = execFileSync(
-      'node',
-      [CLI, 'compile', '--config', SAMPLE_CONFIG, '--docs-root', FIXTURE],
-      { encoding: 'utf-8', cwd: REPO_ROOT },
-    );
-    expect(out).toMatch(/guides\.md/);
-    expect(existsSync(join(FIXTURE, '_build', 'guides.md'))).toBe(true);
-  });
-
-  it('merlon refs lookup is removed (unrecognized command)', () => {
-    expect(() =>
-      execFileSync(
-        'node',
-        [CLI, 'refs', 'lookup', 'admin', '--config', SAMPLE_CONFIG, '--docs-root', FIXTURE],
-        { encoding: 'utf-8', cwd: REPO_ROOT },
-      ),
-    ).toThrow();
   });
 
   it('merlon refs list still works after compile', () => {

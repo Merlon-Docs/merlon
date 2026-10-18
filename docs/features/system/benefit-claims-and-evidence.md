@@ -26,9 +26,13 @@ Public copy that uses a figure from a published study, such as those in [Documen
 
 The same advisory label applies, because no check reads how public copy cites a figure either.
 
+## Figures measured at build
+
+Some figures on the site are measured each time it is built, from the commit being built, as [Measured on each build](../../developer/docs-site.md#measured-on-each-build) describes. Public copy that shows one gives the build's date and links the commit it measured, and it states the main caveat, such as tokenizer estimates or timing on the build machine. Like a record's figure, it describes this repository at that commit and supports at most a Tier B claim.
+
 ## Context size
 
-When agents follow the [usage model](./usage-model.md) and read one shard instead of the whole [monolith](../../glossary/monolith.md), per-turn context can be smaller. That is the Tier B form of the claim. The figures for Merlon Docs' own docs are in a dated record, [Context sizes: this repository's guides against one shard](./research/context-size-dogfood-2026-10-05.md). The Agent Skill tells an agent to find one shard with host search and open it, and to read compiled output only as a last resort. It can't stop an agent from reading a whole compiled guide or the monolith, and no record has measured how often agents stay at one shard.
+When agents follow the [usage model](./usage-model.md) and read one shard instead of the whole [monolith](../../glossary/monolith.md), per-turn context can be smaller. That is the Tier B form of the claim. The site's homepage measures the figures for Merlon Docs' own docs on each build, and a dated record, [Context sizes: this repository's guides against one shard](./research/context-size-dogfood-2026-10-05.md), keeps one measured run with its method. The Agent Skill tells an agent to find one shard with host search and open it, and to read compiled output only as a last resort. It can't stop an agent from reading a whole compiled guide or the monolith, and no record has measured how often agents stay at one shard.
 
 Token counts in that record, and in any figure like it, are rough estimates for comparing sizes, because every model family tokenizes differently. [Benchmarks](../../developer/benchmarks.md) says how Merlon Docs' contributors measure them.
 

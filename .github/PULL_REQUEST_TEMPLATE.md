@@ -1,4 +1,5 @@
 <!-- Open this PR as a draft. Mark it ready once, when the work is done, and CI runs then. -->
+<!-- One concern per PR, from a topic branch into develop, so a reviewer sees only this change. A release PR from develop to main is reviewed on its Files changed tab. See docs/developer/versioning-and-releases.md#reviewing-a-change. -->
 
 ## Summary
 
@@ -8,9 +9,9 @@
 
 <!-- Required when the change touches system shards, skills, schemas, or CLI contracts. Otherwise write N/A. -->
 
-- **standardVersion**: <!-- e.g. 1.0.0-draft.0 — schema default -->
-- **Parent skill** (`skills/merlon-docs` `metadata.version`): <!-- e.g. 1.0.0-draft.0 -->
-- **merlon-docs-cli** (if relevant): <!-- e.g. 1.0.0-draft.0 -->
+- **Specification** (the spec's Version line): <!-- e.g. 1.0.0 -->
+- **Parent skill** (`skills/merlon-docs` `metadata.version`): <!-- e.g. 1.0.0 -->
+- **merlon-docs-cli** (if relevant): <!-- e.g. 1.0.0 -->
 
 ## Checklist
 
