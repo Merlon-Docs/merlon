@@ -33,7 +33,13 @@ Glossary terms **SHOULD** be one shard per entry. [Shared glossary](../../client
 
 Other documentation systems **MAY** introduce their own [archetypes](./extensions-and-archetypes.md#archetypes-battery-types) with different guide tiers on the same `merlon compile` and `merlon check` mechanics.
 
-## 3. Compile and validation
+## 3. Skill workflows
+
+Skill workflows are part of the Merlon Docs 1.0 authoring profile. The `merlon-docs` skill selects one per task (e.g. the feature-level workflow for a code change). See [Skill workflows](./skill-workflows.md).
+
+Work-item workflows **MUST** resolve `WORK_ITEM` and `WORK_ITEM_LOOKUP` before editing, as [Required intake](./skill-workflows.md#required-intake) defines. Feature work **SHOULD** use the [feature-level workflow](./workflows/feature-level.md). Both rules are advisory, like the other obligations on [Skill workflows](./skill-workflows.md), which says who applies them and what evidence a session leaves.
+
+## 4. Compile and validation
 
 The normative clauses for compile and validation are the twelve shards that the Features guide's manifest, `docs/features/index.md`, groups under Compile and validate:
 
@@ -49,12 +55,6 @@ The normative clauses for compile and validation are the twelve shards that the 
 - [Documentation coverage scan](../coverage-scan.md): the markdown files nothing in the config accounts for
 - [Standalone guides](../standalone-guides.md): how compile and each check treat a file registered in `standaloneGuides`
 - [Refs registry path](../refs-registry-path.md): where compile writes the refs registry and where commands read it
-
-## 4. Skill workflows
-
-Skill workflows are part of the Merlon Docs 1.0 authoring profile. The `merlon-docs` skill selects one per task (e.g. the feature-level workflow for a code change). See [Skill workflows](./skill-workflows.md).
-
-Work-item workflows **MUST** resolve `WORK_ITEM` and `WORK_ITEM_LOOKUP` before editing, as [Required intake](./skill-workflows.md#required-intake) defines. Feature work **SHOULD** use the [feature-level workflow](./workflows/feature-level.md). Both rules are advisory, like the other obligations on [Skill workflows](./skill-workflows.md), which says who applies them and what evidence a session leaves.
 
 ## 5. Skills and immutability
 
