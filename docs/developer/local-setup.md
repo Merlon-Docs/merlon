@@ -2,8 +2,7 @@
 
 ## Requirements
 
-- Node.js **>= 22.13.0** for this monorepo (see `engines` in root [`package.json`](../../package.json); [`.nvmrc`](../../.nvmrc) pins major version `24` for `nvm use`). pnpm 11, Vitest, and the Astro docs site need Node 22 or later; CI runs Node 24.
-- Published `@merlon-docs/*` packages (`merlon-docs-cli`, `merlon-docs-core`, `merlon-docs-presets`) declare **`engines.node` `>=20.19.0`** for adopters who install only those packages.
+- Node.js **>= 22.13.0** (see `engines` in root [`package.json`](../../package.json) and in each published `@merlon-docs/*` package; [`.nvmrc`](../../.nvmrc) pins major version `22` for `nvm use`). Node 22 is the supported floor for adopters and contributors; CI runs Node 24.
 - [pnpm](https://pnpm.io/) 11.x (see `packageManager` in root [`package.json`](../../package.json))
 - [Vale](https://vale.sh/docs/vale-cli/installation/) on `PATH` for prose lint (`pnpm docs:check` uses `--require-vale`). macOS: `brew install vale`; Linux: `snap install vale` or a [GitHub release](https://github.com/vale-cli/vale/releases) tarball. Any Vale 3.x works locally. CI pins **3.15.1**. The workflows that install Vale ([`ci.yml`](../../.github/workflows/ci.yml) and [`land-develop.yml`](../../.github/workflows/land-develop.yml)) and the Claude Code session-start hook (`.claude/hooks/session-start.sh`) each set `VALE_VERSION` to it. No check compares those copies with this line. A Vale bump edits all four.
 - Java 17 or later on `PATH` for `pnpm formal:check`, which runs the [formal models](./formal-models.md).
