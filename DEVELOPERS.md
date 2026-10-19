@@ -1106,6 +1106,8 @@ The sync script rewrites links for the site:
 - Compiled cross-links such as `[text](#slug)` resolve through the refs registry (`docs/_build/refs.json`) and the per-guide compiled outputs. The `merlon-shard` source markers in each compiled file name the shard that defines the slug.
 - Links to other repository files point at the file on GitHub.
 
+The sync script also wraps each top-level table in a scroll region that keyboard users can focus, so a table wider than the page can still be scrolled without a mouse. Screen readers announce the region by the heading before the table.
+
 The sync fails on any internal link it cannot resolve, and the build then checks every internal link and anchor in the generated HTML. Generated pages, the sidebar file, and Astro output are gitignored. Edit the shard under `docs/`, never the generated page. Each page's edit link opens the shard.
 
 ### Build and preview
@@ -1118,7 +1120,7 @@ pnpm site:a11y &&
 pnpm --filter @merlon-docs/merlon-docs-site test
 ```
 
-The first two commands run `pnpm build` and `pnpm docs:compile:repo` first, because the sync and the measurements need the CLI build, the compiled guides and the refs registry. `pnpm site:a11y` checks the `dist/` that `pnpm site:build` wrote. It opens a sample of pages in a local Chrome, in both themes at desktop and phone widths, and fails on any violation. Set `CHROME_PATH` to use another Chrome or Chromium binary.
+The first two commands run `pnpm build` and `pnpm docs:compile:repo` first, because the sync and the measurements need the CLI build, the compiled guides and the refs registry. `pnpm site:a11y` checks the `dist/` that `pnpm site:build` wrote. It opens a sample of pages in a local Chrome, in both themes at desktop and phone widths, and fails on any violation. The sample is the landing page, the first page of each section, and the page in each section whose table has the most columns, because wide tables scroll sideways at phone width. Pass `--all` to the site package's `check:a11y` script to check every page. Set `CHROME_PATH` to use another Chrome or Chromium binary.
 
 ### Measured on each build
 

@@ -17,6 +17,7 @@ import {
   rewriteLinksInText,
   splitFences,
   syncContent,
+  wrapTables,
 } from './sync-content.mjs';
 
 /** Minimal stand-in for merlon-docs-core's buildSlugRegistry (headings → GitHub slugs). */
@@ -645,5 +646,39 @@ describe('syncContent (fixture repository)', () => {
     );
     assert.ok(skillPage.includes('[Pick the workflow](#pick-the-workflow)'));
     assert.ok(skillPage.includes('[install](/b/skill/references/install/)'));
+  });
+});
+
+describe('wrapTables', () => {
+  const open = (label) =>
+    `<div class="merlon-table-scroll" role="region" tabindex="0" aria-label="${label}">`;
+
+  it('wraps a table in a focusable region named after the heading before it', () => {
+    const md = '## Tools & `options`\n\nIntro.\n| a | b |\n| :-- | --: |\n| 1 | 2 |\n\nAfter.';
+    assert.equal(
+      wrapTables(md),
+      `## Tools & \`options\`\n\nIntro.\n${open('Table: Tools &amp; options')}\n\n` +
+        '| a | b |\n| :-- | --: |\n| 1 | 2 |\n\n</div>\n\nAfter.',
+    );
+  });
+
+  it('names a table with no heading before it "Table"', () => {
+    assert.equal(wrapTables('a | b\n--|--'), `${open('Table')}\n\na | b\n--|--\n\n</div>`);
+  });
+
+  it('leaves code fences, setext headings, and indented or quoted tables alone', () => {
+    const md = [
+      '```md',
+      '| a | b |',
+      '| - | - |',
+      '```',
+      'Title | here',
+      '---',
+      '    | a | b |',
+      '    | - | - |',
+      '> | a | b |',
+      '> | - | - |',
+    ].join('\n');
+    assert.equal(wrapTables(md), md);
   });
 });
