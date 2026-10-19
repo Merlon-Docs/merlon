@@ -941,10 +941,10 @@ When changing skill instructions:
 
 The [Agent Skill acceptance criteria](docs/features/agent-skill.md#agent-skill-acceptance-criteria) say what a skill change must keep true.
 
-| Command               | Purpose                                                                                                            |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `pnpm skill:validate` | Frontmatter fence lint + [skills-ref](https://agentskills.io/specification) validate on all skills under `skills/` |
-| `pnpm docs:check`     | Docs compile + lint gate after shard edits                                                                         |
+| Command               | Purpose                                                                                                                                                                                                    |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm skill:validate` | Install-surface lint (YAML fence, no `package.json`/`CHANGELOG.md` under `skills/<id>/`, carrier version sync) + [skills-ref](https://agentskills.io/specification) validate on all skills under `skills/` |
+| `pnpm docs:check`     | Docs compile + lint gate after shard edits                                                                                                                                                                 |
 
 `pnpm skill:validate` runs in local `pnpm check`, the land gate, PR CI, and during **`pnpm release:main`** after skill version sync (hard fail before the release commit / publish). It is not a [live skill eval](#live-skill-eval). [Live skill evals](#live-skill-evals) covers those evals, an optional local loop that grades agent runs with and without the skill.
 
@@ -1213,7 +1213,7 @@ There is **no calendar cadence** and **no Version Packages PR**. A release is a 
 
 On a run without pending changesets, the Release plan detects **missing** `name@version` git tags and GitHub Releases, and the release job **heals** them without bumping versions again (tag + `gh release create … --target` at the commit that last changed that package’s `package.json`). Heal restores tags and GitHub Releases, not npm packages. The audit runs after the push to `main`. When it fails on a new advisory, `main` holds versions that npm never received. [Dry run and manual fallback](#dry-run-and-manual-fallback) says how to publish them.
 
-**Skills** are under `skills/`, the directory that `npx skills add` installs from. Each skill versions through a private carrier package in `packages/skill-<id>/`, which holds its `package.json` and CHANGELOG. Keep both files out of `skills/`, because every install would copy them into agent context. `pnpm release:main` syncs the carrier version into `skills/<id>/SKILL.md` `metadata.version`, so never edit that field by hand.
+**Skills** are under `skills/`, the directory that `npx skills add` installs from. Each skill versions through a private carrier package in `packages/skill-<id>/`, which holds its `package.json` and CHANGELOG. Keep both files out of `skills/`, because every install would copy them into agent context — `pnpm skill:validate` fails when `skills/<id>/` contains `package.json` or `CHANGELOG.md`. `pnpm release:main` runs `node scripts/sync-skill-versions.mjs` and then `pnpm skill:validate`, so the carrier `package.json` version and `skills/<id>/SKILL.md` `metadata.version` stay aligned; never edit `metadata.version` by hand. A mismatch fails `pnpm skill:validate` until you run `pnpm sync:skill-versions`.
 
 ### Pre-1.0 policy (`0.x.y`)
 
