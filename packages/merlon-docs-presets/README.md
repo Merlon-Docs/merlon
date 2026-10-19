@@ -6,7 +6,7 @@ Install alongside `@merlon-docs/merlon-docs-cli` when you want `merlon lint` / `
 
 ## Requirements
 
-- Node.js **>= 20.19.0**
+- Node.js **>= 22.13.0**
 - `markdownlint-cli2` for structure lint
 - [Vale](https://vale.sh/) on `PATH` for prose lint (peer binary; not an npm dependency)
 

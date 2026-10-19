@@ -25,7 +25,7 @@ Packaging Merlon Docs as an Agent Skill gives:
 - **Format:** `SKILL.md` per the [Agent Skills](https://agentskills.io) open standard (progressive disclosure, with a lean activation body and depth in `references/`).
 - **Upstream path:** [`skills/merlon-docs/SKILL.md`](../../skills/merlon-docs/SKILL.md).
 - **Install path:** your agent's skills directory after `npx skills add` (not one universal folder — the CLI maps each host to its own tree; see [Supported Agents](https://github.com/vercel-labs/skills#supported-agents)).
-- **Frontmatter:** `license`, `compatibility` (Node.js 20.19+ / `@merlon-docs/merlon-docs-cli`), and `metadata.version` (independent per skill, and synced from `packages/skill-<id>/` at release).
+- **Frontmatter:** `license`, `compatibility` (Node.js 22+ / `@merlon-docs/merlon-docs-cli`), and `metadata.version` (independent per skill, and synced from `packages/skill-<id>/` at release).
 
 The skill calls the Merlon Docs CLI directly, without skill scripts. [`skills/merlon-docs/references/cli-and-scripts.md`](../../skills/merlon-docs/references/cli-and-scripts.md) says what **compile** (build docs), **check** (validate the tree) and **refs** (cross-link registry) mean, and why that logic stays in the CLI.
 

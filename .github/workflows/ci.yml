@@ -158,8 +158,8 @@ jobs:
       - name: Ensure documentation outputs are up-to-date
         run: git diff --exit-code
 
-  consumer-node-floor:
-    name: Consumer Node floor
+  node-minimum:
+    name: Node minimum floor
     runs-on: ubuntu-latest
     needs: tested
     if: ${{ !cancelled() && needs.tested.outputs.skip != 'true' && (github.event_name != 'pull_request' || !github.event.pull_request.draft) }}
@@ -179,12 +179,12 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 20.19.0
+          node-version: 22.13.0
+          cache: pnpm
 
-      # Root engines target contributors on Node 22+; relax strict only to build the published packages here.
-      - run: pnpm install --frozen-lockfile --config.engine-strict=false
+      - run: pnpm install --frozen-lockfile
 
-      - name: Build CLI packages on Node 20.19
+      - name: Build CLI packages on Node 22
         run: pnpm --filter @merlon-docs/merlon-docs-core --filter @merlon-docs/merlon-docs-cli run build
 
       - name: merlon compile (examples/sample-guides)
