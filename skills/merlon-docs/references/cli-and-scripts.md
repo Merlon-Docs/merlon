@@ -22,7 +22,7 @@ The core packages are:
 
 ## Dependencies
 
-- Node.js **18+**
+- Node.js **20.19+**
 - `npm install -g @merlon-docs/merlon-docs-cli` or `npm install -D @merlon-docs/merlon-docs-cli`
 - Optional: Vale on `PATH` for prose (`merlon prose` / `merlon check --require-vale`)
 
