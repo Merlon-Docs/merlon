@@ -184,30 +184,21 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # Pack what npm would publish, so the floor run installs only the packages' runtime dependencies.
-      - name: Build and pack core and CLI
-        run: |
-          pnpm --filter @merlon-docs/merlon-docs-core --filter @merlon-docs/merlon-docs-cli run build
-          pnpm --filter @merlon-docs/merlon-docs-core --filter @merlon-docs/merlon-docs-cli pack --pack-destination "$RUNNER_TEMP/packages"
+      - name: Build core and CLI
+        run: pnpm --filter @merlon-docs/merlon-docs-core --filter @merlon-docs/merlon-docs-cli run build
 
-      # Keep in step with engines.node in packages/*/package.json.
+      # Keep in step with engines.node in packages/*/package.json. The dependencies stay the ones
+      # the lockfile installed above; only the runtime that executes the built CLI changes.
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22.13.0
-
-      - name: Install the packed packages on the floor version
-        run: |
-          mkdir "$RUNNER_TEMP/consumer"
-          cd "$RUNNER_TEMP/consumer"
-          npm init -y
-          npm install --no-audit --no-fund "$RUNNER_TEMP"/packages/*.tgz
 
       - name: merlon compile and check (examples/sample-guides)
         working-directory: examples/sample-guides
         run: |
           node --version
-          "$RUNNER_TEMP/consumer/node_modules/.bin/merlon" compile
-          "$RUNNER_TEMP/consumer/node_modules/.bin/merlon" check --skip-vale
+          node ../../packages/merlon-docs-cli/dist/cli.js compile
+          node ../../packages/merlon-docs-cli/dist/cli.js check --skip-vale
 
   coverage:
     name: Coverage
