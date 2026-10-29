@@ -44,7 +44,7 @@
   },
   "dependencies": {
     "@merlon-docs/merlon-docs-core": "workspace:*",
-    "cac": "^7.0.1"
+    "cac": "^7.1.0"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
