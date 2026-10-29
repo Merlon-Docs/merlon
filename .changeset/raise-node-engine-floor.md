@@ -2,6 +2,7 @@
 '@merlon-docs/merlon-docs-cli': minor
 '@merlon-docs/merlon-docs-core': minor
 '@merlon-docs/merlon-docs-presets': minor
+'@merlon-docs/skill-merlon-docs': patch
 ---
 
-Raise the documented Node.js engine floor to `>=22.13.0`. Node 18 was not a working runtime for 1.x (`merlon compile` fails with `CustomEvent is not defined` on Node 18.20.8 because cac 7 requires the Node 20.19+ `CustomEvent` global).
+Require Node.js 22 LTS, 22.13.0 or later. `engines.node` said `>=18.0.0`, but Node 18 never ran 1.x: `merlon compile`, `check` and `review` fail with `CustomEvent is not defined`, because cac 7 needs Node 20.19 or later.

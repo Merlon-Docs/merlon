@@ -15,7 +15,7 @@ description: >-
   workflows.
 license: MIT
 compatibility: >-
-  Requires Node.js 22+ for @merlon-docs/merlon-docs-cli (docs compile,
+  Requires Node.js 22.13+ for @merlon-docs/merlon-docs-cli (docs compile,
   validate, and cross-link registry commands). Skill scripts are thin
   wrappers; they do not replace the CLI.
 metadata:
