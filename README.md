@@ -213,7 +213,7 @@ The skill tells agents _when_ and _how_ to use documentation; the CLI and core *
 
 ## Versions and feedback
 
-Packages and skills version independently, and the [pre-1.0 policy](docs/developer/versioning-and-releases.md#pre-10-policy-0xy) says what can change before each one reaches 1.0.0.
+Packages and skills version independently. On **1.0.0** and later, a breaking change for an item needs a **major** release; on **`0.x.y`**, the [pre-1.0 policy](docs/developer/versioning-and-releases.md#pre-10-policy-0xy) applied until that item reached 1.0.0.
 
 ### Get involved
 
