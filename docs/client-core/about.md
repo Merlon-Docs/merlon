@@ -16,7 +16,7 @@ Use this package when you need compile, validation, and refs APIs in scripts, CI
 
 ## Requirements
 
-- Node.js **>= 18.0.0**
+- Node.js **22** or later. Use the latest release of your major version for its security fixes.
 
 ## Install
 

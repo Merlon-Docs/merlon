@@ -158,6 +158,19 @@ jobs:
       - name: Ensure documentation outputs are up-to-date
         run: git diff --exit-code
 
+      # Run the built CLI on the oldest Node that engines.node allows. Keep in step with
+      # packages/*/package.json. Only the runtime changes; the dependencies stay the locked ones.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.0.0
+
+      - name: Run the built CLI on the Node floor (examples/sample-guides)
+        working-directory: examples/sample-guides
+        run: |
+          node --version
+          node ../../packages/merlon-docs-cli/dist/cli.js compile
+          node ../../packages/merlon-docs-cli/dist/cli.js check --skip-vale
+
   coverage:
     name: Coverage
     runs-on: ubuntu-latest

@@ -126,6 +126,21 @@ jobs:
           fi
           pnpm changeset:status
 
+      # Mirrors the end of CI's Check job: the built CLI on the oldest Node that engines.node allows.
+      - name: Set up the Node floor
+        if: steps.merge.outputs.skip == 'false'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.0.0
+
+      - name: Run the built CLI on the Node floor (examples/sample-guides)
+        if: steps.merge.outputs.skip == 'false'
+        working-directory: examples/sample-guides
+        run: |
+          node --version
+          node ../../packages/merlon-docs-cli/dist/cli.js compile
+          node ../../packages/merlon-docs-cli/dist/cli.js check --skip-vale
+
   land:
     name: Land
     needs: gate

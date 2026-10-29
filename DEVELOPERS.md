@@ -90,7 +90,7 @@ Each term is its own shard under `docs/glossary/`. [Shared glossary](./packages/
 
 ### Requirements
 
-- Node.js **>= 18.0.0** (see `engines` in root [`package.json`](package.json); [`.nvmrc`](.nvmrc) pins major version `18` for `nvm use`)
+- Node.js **22** or later. `engines` in root [`package.json`](package.json) and in each published `@merlon-docs/*` package says `>=22.0.0`, so only the major version is enforced. Run the latest release of your major version for its security fixes; pnpm 11 also needs 22.13 or later, and some dev tools declare a higher minimum (lint-staged 17 declares 22.22.1). [`.nvmrc`](.nvmrc) pins major version `22`, so `nvm install` takes the newest 22.x. CI runs Node 24, and its Check job and the land gate finish by running the built CLI on 22.0.0.
 - [pnpm](https://pnpm.io/) 11.x (see `packageManager` in root [`package.json`](package.json))
 - [Vale](https://vale.sh/docs/vale-cli/installation/) on `PATH` for prose lint (`pnpm docs:check` uses `--require-vale`). macOS: `brew install vale`; Linux: `snap install vale` or a [GitHub release](https://github.com/vale-cli/vale/releases) tarball. Any Vale 3.x works locally. CI pins **3.15.1**. The workflows that install Vale ([`ci.yml`](.github/workflows/ci.yml) and [`land-develop.yml`](.github/workflows/land-develop.yml)) and the Claude Code session-start hook (`.claude/hooks/session-start.sh`) each set `VALE_VERSION` to it. No check compares those copies with this line. A Vale bump edits all four.
 - Java 17 or later on `PATH` for `pnpm formal:check`, which runs the [formal models](#formal-models).
@@ -160,6 +160,8 @@ CI's Check job runs the steps of `pnpm run check`, except that it tests only mer
 
 CI skips a draft pull request and runs when the PR is marked ready, as [Pull requests](#pull-requests) describes. The other CI jobs run beside Check. The Coverage job runs `pnpm test:coverage`, as [Test code coverage](#test-code-coverage) describes, and the Formal models job runs `pnpm formal:check`. On pull requests the Changeset job runs the changeset checks that [When to add a changeset](#when-to-add-a-changeset) describes, and the Benchmarks job runs `pnpm bench`, the [growth benchmarks](#growth-benchmarks) that `pnpm run check` and the git hooks leave out.
 
+Check and the land gate both end on the Node floor. They switch to Node 22.0.0, the oldest release `engines` allows, and run the built CLI's `compile` and `check --skip-vale` in `examples/sample-guides` with the lockfile's dependencies. So a Dependabot bump or a landing that needs a newer Node than `engines` says fails there. The pre-push hook leaves this step out, because it runs on your own Node.
+
 The land gate's test step is the full `pnpm test`, so it also runs the site's tests. [Landing on `develop`](#landing-on-develop) says what else it runs and what it pushes.
 
 <!-- merlon-shard: end docs/developer/local-setup.md -->
@@ -194,7 +196,7 @@ A fresh Cursor VM needs the same toolchain as [Local setup](#requirements), plus
 2. **Vale peer binary.** Vale is a peer binary that `pnpm install` doesn't fetch. Install the version that [Requirements](#requirements) gives to `/usr/local/bin`, where it persists in the VM snapshot. The exact release command is in [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 3. **gitleaks peer binary.** `pnpm install` doesn't fetch gitleaks either, and the pre-commit hook runs `gitleaks protect --staged` when it is on `PATH`. Install version 8.30.1 to `/usr/local/bin`, where it persists in the VM snapshot. If it goes missing, reinstall from the [gitleaks releases](https://github.com/gitleaks/gitleaks/releases): download `gitleaks_8.30.1_linux_x64.tar.gz` and extract the `gitleaks` binary into `/usr/local/bin` (same pattern as Vale). CI runs its own scan via `gitleaks-action`, so the local install is defense-in-depth.
 4. **Bootstrap.** The update script doesn't build `dist/` or sync the Vale styles. Run the rest of [First-time bootstrap](#first-time-bootstrap) on a new VM, and rebuild as that section says. The synced styles then persist in the snapshot.
-5. **Node version.** The VM runs Node 22, which satisfies `engines >=18`, and CI uses Node 24. Do not switch Node unless a version-specific issue appears.
+5. **Node version.** The VM runs Node 22, which satisfies the `engines` floor of Node 22, and CI uses Node 24. Do not switch Node unless a version-specific issue appears.
 
 #### Cursor limitations and workarounds
 
