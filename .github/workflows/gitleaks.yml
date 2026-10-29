@@ -27,6 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     permissions:
+      actions: read
       contents: read
     steps:
       # Harden-Runner: audit mode only — logs egress; block mode is follow-up (#179).
@@ -34,11 +35,33 @@ jobs:
         with:
           egress-policy: audit
 
+      # A landing's commit reaches a pull request (the release PR) with the SHA
+      # its claude/** or land/** push already scanned. When that push scan
+      # passed, the PR's scan would repeat it, so this run passes without
+      # scanning. A failed, missing or still-running push scan means a full scan.
+      - id: scanned
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          last=$(gh api "repos/$REPO/actions/workflows/gitleaks.yml/runs?head_sha=$HEAD_SHA&event=push&per_page=20" \
+            --jq '.workflow_runs | sort_by(.created_at) | last | "\(.status)/\(.conclusion)"') || last=""
+          if [ "$last" = completed/success ]; then
+            echo "The push scan of $HEAD_SHA passed, so this run doesn't scan again."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        if: steps.scanned.outputs.skip != 'true'
         with:
           fetch-depth: 0
           persist-credentials: false
       - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3
+        if: steps.scanned.outputs.skip != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}

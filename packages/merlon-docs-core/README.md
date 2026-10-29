@@ -22,7 +22,7 @@ Use this package when you need compile, validation, and refs APIs in scripts, CI
 
 ### Requirements
 
-- Node.js **>= 18.0.0**
+- Node.js **22** or later. Use the latest release of your major version for its security fixes.
 
 ### Install
 
@@ -32,7 +32,7 @@ npm install @merlon-docs/merlon-docs-core
 
 ### Stability
 
-Before **1.0.0**, exported functions, types, the `merlon.config.json` schema and compile output can change in any `0.x.y` release, under the [pre-1.0 policy](../../DEVELOPERS.md#pre-10-policy-0xy). [Stability](../merlon-docs-cli/README.md#stability) in the CLI README says what to read before upgrading.
+On **1.0.0** and later, exported functions, types, the `merlon.config.json` schema, and compile output follow semver: breaking changes ship only in **major** releases, as [Versioning and releases](../../DEVELOPERS.md#pre-10-policy-0xy) describes for the move past 1.0.0. On **`0.x.y`**, those surfaces had no API stability guarantee under that policy. [Stability](../merlon-docs-cli/README.md#stability) in the CLI README says what to read before upgrading.
 
 <!-- merlon-shard: end ../../docs/client-core/about.md -->
 

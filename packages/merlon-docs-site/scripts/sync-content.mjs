@@ -112,6 +112,57 @@ export function mermaidToHtml(markdown) {
     .join('\n');
 }
 
+export const TABLE_SCROLL_CLASS = 'merlon-table-scroll';
+
+const HTML_ATTR_ESCAPES = { ...HTML_ESCAPES, '"': '&quot;' };
+const TABLE_DELIMITER = /^ {0,3}\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$/;
+
+/**
+ * Wrap each top-level GFM table outside fenced code in a focusable, labelled scroll region.
+ * Starlight scrolls wide tables sideways, and a scrolling element keyboard users can't focus
+ * can't be scrolled without a mouse (axe-core's scrollable-region-focusable rule). The region
+ * does the scrolling (src/styles/custom.css) and is named after the nearest heading before
+ * the table. Blank lines around the table keep it Markdown inside the HTML block. The delimiter
+ * row must have a pipe, so a setext heading underline is never read as one. Tables indented or
+ * inside a blockquote are left alone, since a wrapper would break their container.
+ */
+export function wrapTables(markdown) {
+  let heading = '';
+  return splitFences(markdown)
+    .map((seg) => {
+      if (seg.type !== 'text') return seg.value;
+      const lines = seg.value.split('\n');
+      const out = [];
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const h = ATX.exec(line);
+        if (h) heading = plainText(h[2]);
+        const header = /^ {0,3}[^\s>]/.test(line) && line.includes('|');
+        const delimiter = lines[i + 1] ?? '';
+        if (!header || !delimiter.includes('|') || !TABLE_DELIMITER.test(delimiter)) {
+          out.push(line);
+          continue;
+        }
+        let end = i + 2;
+        while (end < lines.length && lines[end].trim() !== '') end++;
+        const label = (heading ? `Table: ${heading}` : 'Table').replace(
+          /[&<>"]/g,
+          (c) => HTML_ATTR_ESCAPES[c],
+        );
+        out.push(
+          `<div class="${TABLE_SCROLL_CLASS}" role="region" tabindex="0" aria-label="${label}">`,
+          '',
+          ...lines.slice(i, end),
+          '',
+          '</div>',
+        );
+        i = end - 1;
+      }
+      return out.join('\n');
+    })
+    .join('\n');
+}
+
 /** Apply `fn` to the text (non-fenced) segments only. */
 export function mapTextSegments(markdown, fn) {
   return splitFences(markdown)
@@ -620,7 +671,7 @@ export function syncContent(opts) {
 
   // When the Agent Skill guide (`repo-readme`) is published, also publish `docs/skills.md` and
   // the source files under `skills/**` directly under that guide's route so readers can read
-  // `SKILL.md` and its workflows on the site as Part 1.
+  // `SKILL.md` and its workflows on the site as Parts 1 and 2.
   const skillGuide = guides.find((g) => g.name === 'repo-readme');
   const skillSidebarGroups = [];
   if (skillGuide) {
@@ -843,9 +894,11 @@ export function syncContent(opts) {
       rmSync(join(contentDir, entry), { recursive: true, force: true });
   }
   for (const page of pages.values()) {
-    const body = mermaidToHtml(
-      mapTextSegments(page.body, (text) =>
-        rewriteLinksInText(text, (dest, { image }) => rewriteDest(page, dest, image)),
+    const body = wrapTables(
+      mermaidToHtml(
+        mapTextSegments(page.body, (text) =>
+          rewriteLinksInText(text, (dest, { image }) => rewriteDest(page, dest, image)),
+        ),
       ),
     );
     const sourceRel = toPosix(relative(repoRoot, page.abs));

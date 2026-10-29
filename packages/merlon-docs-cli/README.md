@@ -54,7 +54,7 @@ To install the Agent Skill instead, see [Get started](../../README.md#get-starte
 
 ### Requirements
 
-- Node.js **20.19.0** or later.
+- Node.js **22** or later. Use the latest release of your major version for its security fixes.
 
 ### Install
 
@@ -73,7 +73,7 @@ Several commands run peer tools that you install in your repository, such as mar
 
 ### Stability
 
-Before **1.0.0**, CLI commands, flags, the `merlon.config.json` schema and compile output can change in any `0.x.y` release, under the [pre-1.0 policy](../../DEVELOPERS.md#pre-10-policy-0xy).
+On **1.0.0** and later, CLI commands, flags, the `merlon.config.json` schema, and compile output follow semver: breaking changes ship only in **major** releases, as [Versioning and releases](../../DEVELOPERS.md#pre-10-policy-0xy) describes for the move past 1.0.0. On **`0.x.y`**, those surfaces could change in any release with no API stability guarantee under the same policy.
 
 Before upgrading, read the changelog and release notes of each Merlon Docs package you use. They hold the upgrade notes for earlier releases, which the feature catalog doesn't repeat.
 

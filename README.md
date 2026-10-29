@@ -213,7 +213,7 @@ The skill tells agents _when_ and _how_ to use documentation; the CLI and core *
 
 ## Versions and feedback
 
-Packages and skills version independently, and the [pre-1.0 policy](docs/developer/versioning-and-releases.md#pre-10-policy-0xy) says what can change before each one reaches 1.0.0.
+Packages and skills version independently. On **1.0.0** and later, a breaking change for an item needs a **major** release; on **`0.x.y`**, the [pre-1.0 policy](docs/developer/versioning-and-releases.md#pre-10-policy-0xy) applied until that item reached 1.0.0.
 
 ### Get involved
 
@@ -232,7 +232,7 @@ Go deeper by goal:
 - **Own content, not the toolchain:** the [Overview](docs/features/overview.md) of how Merlon Docs fits together, and the [usage model](docs/features/system/usage-model.md) for how people and agents read shards.
 - **Evaluate or sponsor adoption:** the [vision and roadmap](docs/features/system/00-vision-and-roadmap.md), and the [benefit claims policy](docs/features/system/benefit-claims-and-evidence.md).
 
-The [docs site](https://merlon-docs.github.io/merlon/) publishes the Agent Skill (Part 1), the CLI guide (Part 2), the concepts, the library API, and the glossary as web pages.
+The [docs site](https://merlon-docs.github.io/merlon/) publishes the Agent Skill and its workflows (Parts 1 and 2), the CLI guide (Part 3), the concepts, the library API, and the glossary as web pages.
 
 <!-- merlon-shard: end docs/repo-readme/learn-more.md -->
 

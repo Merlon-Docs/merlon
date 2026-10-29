@@ -33,10 +33,30 @@ overrides:
   smol-toml@<1.9.1: 1.9.1
   # merlon-docs-site → mermaid → dompurify (dev-only docs site).
   # GHSA-v2wj-7wpq-c8vv / GHSA-h7mw-gpvr-xq4m / GHSA-crv5-9vww-q3g8: patched >=3.4.0.
-  dompurify: ^3.4.0
+  # GHSA-cg2g-xh64-v4q7 (>=3.4.4 <=3.4.16) + GHSA-mrv2-3pqr-j5jr (<=3.4.16): patched >=3.4.17.
+  dompurify: ^3.4.17
   # @changesets/cli → launch-editor → shell-quote (dev-only release tooling).
   # GHSA-pqg4-j6r4-53mv: command injection in quote(), patched >=1.11.0.
   shell-quote@<1.12.0: 1.12.0
+  # @changesets/cli → launch-editor (dev-only release tooling).
+  # GHSA-587h-7wmj-h5pm: existence check bypass on Windows, patched >=2.14.2.
+  launch-editor@<2.14.2: 2.14.2
+  # vitest → @vitest/mocker → vite, and astro → vite (dev-only test and site tooling).
+  # GHSA-587h-7wmj-h5pm (launch-editor, bundled >=8.3.0 <=8.3.2): patched >=8.3.3.
+  vite@>=8.3.0 <8.3.3: 8.3.5
+  # markdownlint-cli2 → markdown-it (dev-only lint of this repo's Markdown).
+  # GHSA-r7fv-28h4-cvq7 (<15.0.2) + GHSA-gfr2-rv44-r23c (<15.0.3): patched >=15.0.3.
+  markdown-it@>=15.0.0 <15.0.3: 15.0.3
+  # markdownlint-cli2 → markdownlint → re2js (dev-only lint of this repo's Markdown).
+  # GHSA-gg6h-894w-4m9c (>=2.2.0 <2.8.7): patched >=2.8.7.
+  re2js@>=2.2.0 <2.8.7: 2.8.7
+  # merlon-docs-site → astro → unifont → undici (dev-only docs site build).
+  # GHSA-xjj6-f33q-929c / GHSA-4w7w-5xrc-9h26 / GHSA-2m5v-pch6-74hx / GHSA-qrxm-fqhp-jwvm
+  # (>=8.0.0 <8.12.2): patched >=8.12.2.
+  undici@>=8.0.0 <8.12.2: 8.12.3
+  # merlon-docs-site → astro and @astrojs/sitemap → zod (dev-only docs site build).
+  # merlon-docs-core requires ^4.6.6 directly. GHSA-mrhx-c7xc-m3w5: patched >=4.6.6.
+  zod@<4.6.6: 4.6.7
   # merlon-docs-site → astro → sharp (dev-only docs site build).
   # GHSA-wq5f-xc86-pv6w / CVE-2026-96889: librsvg dependency, patched >=0.35.5.
   sharp@<0.35.5: 0.35.5

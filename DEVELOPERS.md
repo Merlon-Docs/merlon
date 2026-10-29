@@ -90,7 +90,7 @@ Each term is its own shard under `docs/glossary/`. [Shared glossary](./packages/
 
 ### Requirements
 
-- Node.js **>= 18.0.0** (see `engines` in root [`package.json`](package.json); [`.nvmrc`](.nvmrc) pins major version `18` for `nvm use`)
+- Node.js **22** or later. `engines` in root [`package.json`](package.json) and in each published `@merlon-docs/*` package says `>=22.0.0`, so only the major version is enforced. Run the latest release of your major version for its security fixes; pnpm 11 also needs 22.13 or later, and some dev tools declare a higher minimum (lint-staged 17 declares 22.22.1). [`.nvmrc`](.nvmrc) pins major version `22`, so `nvm install` takes the newest 22.x. CI runs Node 24, and its Check job and the land gate finish by running the built CLI on 22.0.0.
 - [pnpm](https://pnpm.io/) 11.x (see `packageManager` in root [`package.json`](package.json))
 - [Vale](https://vale.sh/docs/vale-cli/installation/) on `PATH` for prose lint (`pnpm docs:check` uses `--require-vale`). macOS: `brew install vale`; Linux: `snap install vale` or a [GitHub release](https://github.com/vale-cli/vale/releases) tarball. Any Vale 3.x works locally. CI pins **3.15.1**. The workflows that install Vale ([`ci.yml`](.github/workflows/ci.yml) and [`land-develop.yml`](.github/workflows/land-develop.yml)) and the Claude Code session-start hook (`.claude/hooks/session-start.sh`) each set `VALE_VERSION` to it. No check compares those copies with this line. A Vale bump edits all four.
 - Java 17 or later on `PATH` for `pnpm formal:check`, which runs the [formal models](#formal-models).
@@ -160,6 +160,8 @@ CI's Check job runs the steps of `pnpm run check`, except that it tests only mer
 
 CI skips a draft pull request and runs when the PR is marked ready, as [Pull requests](#pull-requests) describes. The other CI jobs run beside Check. The Coverage job runs `pnpm test:coverage`, as [Test code coverage](#test-code-coverage) describes, and the Formal models job runs `pnpm formal:check`. On pull requests the Changeset job runs the changeset checks that [When to add a changeset](#when-to-add-a-changeset) describes, and the Benchmarks job runs `pnpm bench`, the [growth benchmarks](#growth-benchmarks) that `pnpm run check` and the git hooks leave out.
 
+Check and the land gate both end on the Node floor. They switch to Node 22.0.0, the oldest release `engines` allows, and run the built CLI's `compile` and `check --skip-vale` in `examples/sample-guides` with the lockfile's dependencies. So a Dependabot bump or a landing that needs a newer Node than `engines` says fails there. The pre-push hook leaves this step out, because it runs on your own Node.
+
 The land gate's test step is the full `pnpm test`, so it also runs the site's tests. [Landing on `develop`](#landing-on-develop) says what else it runs and what it pushes.
 
 <!-- merlon-shard: end docs/developer/local-setup.md -->
@@ -194,7 +196,7 @@ A fresh Cursor VM needs the same toolchain as [Local setup](#requirements), plus
 2. **Vale peer binary.** Vale is a peer binary that `pnpm install` doesn't fetch. Install the version that [Requirements](#requirements) gives to `/usr/local/bin`, where it persists in the VM snapshot. The exact release command is in [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 3. **gitleaks peer binary.** `pnpm install` doesn't fetch gitleaks either, and the pre-commit hook runs `gitleaks protect --staged` when it is on `PATH`. Install version 8.30.1 to `/usr/local/bin`, where it persists in the VM snapshot. If it goes missing, reinstall from the [gitleaks releases](https://github.com/gitleaks/gitleaks/releases): download `gitleaks_8.30.1_linux_x64.tar.gz` and extract the `gitleaks` binary into `/usr/local/bin` (same pattern as Vale). CI runs its own scan via `gitleaks-action`, so the local install is defense-in-depth.
 4. **Bootstrap.** The update script doesn't build `dist/` or sync the Vale styles. Run the rest of [First-time bootstrap](#first-time-bootstrap) on a new VM, and rebuild as that section says. The synced styles then persist in the snapshot.
-5. **Node version.** The VM runs Node 22, which satisfies `engines >=18`, and CI uses Node 24. Do not switch Node unless a version-specific issue appears.
+5. **Node version.** The VM runs Node 22, which satisfies the `engines` floor of Node 22, and CI uses Node 24. Do not switch Node unless a version-specific issue appears.
 
 #### Cursor limitations and workarounds
 
@@ -1106,6 +1108,8 @@ The sync script rewrites links for the site:
 - Compiled cross-links such as `[text](#slug)` resolve through the refs registry (`docs/_build/refs.json`) and the per-guide compiled outputs. The `merlon-shard` source markers in each compiled file name the shard that defines the slug.
 - Links to other repository files point at the file on GitHub.
 
+The sync script also wraps each top-level table in a scroll region that keyboard users can focus, so a table wider than the page can still be scrolled without a mouse. Screen readers announce the region by the heading before the table.
+
 The sync fails on any internal link it cannot resolve, and the build then checks every internal link and anchor in the generated HTML. Generated pages, the sidebar file, and Astro output are gitignored. Edit the shard under `docs/`, never the generated page. Each page's edit link opens the shard.
 
 ### Build and preview
@@ -1118,7 +1122,7 @@ pnpm site:a11y &&
 pnpm --filter @merlon-docs/merlon-docs-site test
 ```
 
-The first two commands run `pnpm build` and `pnpm docs:compile:repo` first, because the sync and the measurements need the CLI build, the compiled guides and the refs registry. `pnpm site:a11y` checks the `dist/` that `pnpm site:build` wrote. It opens a sample of pages in a local Chrome, in both themes at desktop and phone widths, and fails on any violation. Set `CHROME_PATH` to use another Chrome or Chromium binary.
+The first two commands run `pnpm build` and `pnpm docs:compile:repo` first, because the sync and the measurements need the CLI build, the compiled guides and the refs registry. `pnpm site:a11y` checks the `dist/` that `pnpm site:build` wrote. It opens a sample of pages in a local Chrome, in both themes at desktop and phone widths, and fails on any violation. The sample is the landing page, the first page of each section, and the page in each section whose table has the most columns, because wide tables scroll sideways at phone width. Pass `--all` to the site package's `check:a11y` script to check every page. Set `CHROME_PATH` to use another Chrome or Chromium binary.
 
 ### Measured on each build
 
@@ -1177,7 +1181,7 @@ Pushing to a branch named `claude/**` or `land/**` runs the [land workflow](.git
 - **Evidence lives with the work.** Put what was measured or verified in the commit message, or in a research record for larger results. The run summary lists the commits each landing brought in.
 - **A failed gate lands nothing.** Fix the branch and push again, and do the same when it conflicts with `develop`. Only one run waits behind the running one, so a newer landing or sync cancels the waiting run. When that happens, or when `develop` moved during the run, re-run all jobs of the workflow, or push a new commit to the branch. After `develop` moves, re-running only the failed job reuses the old `develop` and fails again. Pushing a branch whose tip hasn't changed doesn't start a run.
 - **Landings run one at a time**, and each one pushes only the tree that passed its gate. A clean sync from `main` goes through the same gate. Other paths move `develop` without the gate. A merged PR, from Dependabot or from the sync when `main` conflicts, does unless a branch rule makes PRs into `develop` up to date, and a maintainer can push directly unless a rule blocks it. When a PR's base changes from `main` to `develop`, CI runs again against `develop`. [Formal models](#landing-and-release) shows which guards close each of those paths.
-- **The gate doesn't wait for scans.** Gitleaks scans every `claude/**` and `land/**` push, in parallel with the land run, and every pull request that isn't a draft. The landing is pushed with the workflow's own `GITHUB_TOKEN`, and GitHub doesn't start workflows for such pushes. The scan's push trigger lists only `claude/**` and `land/**`, so the release commit's push to `main` and a push to a `hotfix/*` branch aren't scanned until they reach a pull request. The `Scan` check that `main`'s branch rule requires runs on the pull request. CodeQL and Zizmor first see landed work on the release PR. A finding from any of the three is fixed forward on `develop`.
+- **The gate doesn't wait for scans.** Gitleaks scans every `claude/**` and `land/**` push, in parallel with the land run, and every pull request that isn't a draft. A pull request whose head commit already passed its push scan, as a landing's commit does on the release PR, passes without scanning it again. The landing is pushed with the workflow's own `GITHUB_TOKEN`, and GitHub doesn't start workflows for such pushes. The scan's push trigger lists only `claude/**` and `land/**`, so the release commit's push to `main` and a push to a `hotfix/*` branch aren't scanned until they reach a pull request. The `Scan` check that `main`'s branch rule requires runs on the pull request. CodeQL and Zizmor first see landed work on the release PR. A finding from any of the three is fixed forward on `develop`.
 - **Stakeholder review happens on topic PRs.** A push to `claude/**` or `land/**` lands without review, so put a change that someone should review on a topic branch instead, as [Reviewing a change](#reviewing-a-change) says.
 
 Dependabot still opens PRs against `develop`, because its changes come from outside the project.
@@ -1190,7 +1194,7 @@ The release PR from `develop` to `main` then bundles changes that were already r
 
 #### Pull requests
 
-Open a pull request as a draft, and mark it ready once, when its work is done. CI, CodeQL, Zizmor and the gitleaks scan skip a draft, so a push to a draft runs only the Release source check. Marking the PR ready runs them, and each push after that runs them again. GitHub won't merge a draft, so the skipped runs can't let one merge. Moving a ready PR back to draft and marking it ready again repeats the full run, so leave a PR in draft until it is ready. Dependabot opens its PRs as ready, and CI runs on them at once.
+Open a pull request as a draft, and mark it ready once, when its work is done. CI, CodeQL, Zizmor and the gitleaks scan skip a draft, so a push to a draft runs only the Release source check. Marking the PR ready runs them, and each push after that runs them again. Editing a ready PR's title or body doesn't rerun CI's jobs when its latest run on that head passed. When a squash merge puts a PR's tested tree on `main`, CI's run on that push skips its jobs too. The release commit has no PR, so CI tests it. GitHub won't merge a draft, so the skipped runs can't let one merge. Moving a ready PR back to draft and marking it ready again repeats the full run, so leave a PR in draft until it is ready. Dependabot opens its PRs as ready, and CI runs on them at once.
 
 CI doesn't assume that a contributor ran the [git hooks](#git-hooks). The pre-push hook runs the land gate's checks before a push, which catches a failure before CI spends a run on it.
 
@@ -1307,7 +1311,7 @@ No test pins a workflow guard. The only check that one is still in place is the 
 | CI runs when a draft PR is marked ready       | Workflow    | A PR opened as a draft merges on the skipped run that counts as passing, untested               |
 | The sync from `main` runs through a land gate | Workflow    | The sync puts the release commit, or its merge with newer `develop` work, on `develop` untested |
 
-All three workflow guards are in place. GitHub's up-to-date rule asks only that a PR's head contain the base branch's latest commit. It does not ask which base CI last ran against. GitHub proposes `main` as the base of a new PR, and the Release source check asks its author to move it to `develop`. Without a new run, the PR could then merge on its run against `main`. CI in `.github/workflows/ci.yml` also runs on the `edited` event that a base change sends. Moving the PR starts a run against `develop`. No job in it has an `if` that skips an edit to a ready PR, because a skipped run counts as passing and would replace an earlier failure. A title edit reruns CI too.
+All three workflow guards are in place. GitHub's up-to-date rule asks only that a PR's head contain the base branch's latest commit. It does not ask which base CI last ran against. GitHub proposes `main` as the base of a new PR, and the Release source check asks its author to move it to `develop`. Without a new run, the PR could then merge on its run against `main`. CI in `.github/workflows/ci.yml` also runs on the `edited` event that a base change sends. Moving the PR starts a run against `develop`. A skipped run counts as passing, so an edit that leaves the base alone, such as a title edit, skips CI's jobs only when the newest other CI run on that head finished and passed. A run still going, cancelled or failed, as after a base change, means a full run, so a skip never replaces a failure or a run against the old base.
 
 Every job in CI skips a draft PR, as [Pull requests](#pull-requests) describes. That skipped run counts as passing too, and GitHub merges no draft, so the run that counts is the one that starts when the PR is marked ready. CI in `.github/workflows/ci.yml` runs on the `ready_for_review` event for that reason. Without it, a draft PR marked ready would merge on its skipped run.
 
@@ -1583,7 +1587,7 @@ gh api -X PATCH repos/Merlon-Docs/merlon/branches/main/protection/required_pull_
 
 `protection.tf` doesn't list Release source among the required checks on `main`. [Formal models](#main-only-merges-develop-or-hotfix) says what goes wrong without that rule.
 
-CodeQL and Zizmor run on every pull request that isn't a draft and on each push to `main`:
+CodeQL and Zizmor run on every pull request that isn't a draft. CodeQL also runs on each push to `main`, so code scanning keeps an analysis of the default branch to compare pull requests against. Zizmor uploads nothing, and every change reaches `main` through a pull request it scanned, so it doesn't run on a push:
 
 - **CodeQL**, the `Analyze` job, analyzes `javascript-typescript` for the package sources and `actions` for workflow queries in one run, and uploads SARIF to code scanning. [Safe markdown parsing](#safe-markdown-parsing) says how a ReDoS finding on a library regex gets fixed.
 - **Zizmor** scans the workflow files for misconfigurations. The job fails on a finding and annotates the pull request.
@@ -1669,7 +1673,7 @@ Re-run the affected rows when any of the following change:
 - Dependabot or secret-scanning configuration
 - Release mechanics ([Publishing](#publishing): OIDC, environments, npm trust)
 
-The [Zizmor](#required-checks-and-scanners) job checks part of that review for workflow-file changes, because it fails on a workflow misconfiguration. It scans every pull request that isn't a draft, Dependabot's among them, and each push to `main`. Its first scan of a workflow change that lands through the land workflow, or that a maintainer pushes to `develop` directly, is on the release PR ([Landing on `develop`](#landing-on-develop)).
+The [Zizmor](#required-checks-and-scanners) job checks part of that review for workflow-file changes, because it fails on a workflow misconfiguration. It scans every pull request that isn't a draft, Dependabot's among them. Its first scan of a workflow change that lands through the land workflow, or that a maintainer pushes to `develop` directly, is on the release PR ([Landing on `develop`](#landing-on-develop)).
 
 Even when nothing changes, a maintainer should run a **periodic pass** by hand about once a quarter so third-party action advisories and OWASP guidance updates do not drift unnoticed. A full pass gives every dated row a new date, so an oldest date more than a quarter old shows that a pass is overdue.
 

@@ -7,7 +7,8 @@
 
 :root[data-theme='light'] {
   --sl-color-accent-low: #c9f0ea;
-  --sl-color-accent: #0b7a71;
+  /* At least 4.5:1 on white, accent-low, and the inline code background (links in code). */
+  --sl-color-accent: #0a746b;
   --sl-color-accent-high: #0a3a36;
 }
 
@@ -1001,4 +1002,19 @@
  */
 button[data-open-modal] > kbd {
   display: none !important;
+}
+
+/* Wide Markdown tables: the content sync wraps each table in a focusable region, which scrolls
+   instead of the table so keyboard users can reach the overflow. */
+.sl-markdown-content .merlon-table-scroll {
+  overflow-x: auto;
+}
+
+.sl-markdown-content .merlon-table-scroll > table {
+  overflow: visible;
+}
+
+.sl-markdown-content .merlon-table-scroll:focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 2px;
 }
