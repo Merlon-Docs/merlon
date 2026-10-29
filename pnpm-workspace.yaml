@@ -47,6 +47,9 @@ overrides:
   # markdownlint-cli2 → markdown-it (dev-only lint of this repo's Markdown).
   # GHSA-r7fv-28h4-cvq7 (<15.0.2) + GHSA-gfr2-rv44-r23c (<15.0.3): patched >=15.0.3.
   markdown-it@>=15.0.0 <15.0.3: 15.0.3
+  # markdownlint-cli2 → markdownlint → re2js (dev-only lint of this repo's Markdown).
+  # GHSA-gg6h-894w-4m9c (>=2.2.0 <2.8.7): patched >=2.8.7.
+  re2js@>=2.2.0 <2.8.7: 2.8.7
   # merlon-docs-site → astro → unifont → undici (dev-only docs site build).
   # GHSA-xjj6-f33q-929c / GHSA-4w7w-5xrc-9h26 / GHSA-2m5v-pch6-74hx / GHSA-qrxm-fqhp-jwvm
   # (>=8.0.0 <8.12.2): patched >=8.12.2.
