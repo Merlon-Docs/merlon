@@ -26,7 +26,7 @@ A fresh Cursor VM needs the same toolchain as [Local setup](./local-setup.md#req
 2. **Vale peer binary.** Vale is a peer binary that `pnpm install` doesn't fetch. Install the version that [Requirements](./local-setup.md#requirements) gives to `/usr/local/bin`, where it persists in the VM snapshot. The exact release command is in [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml).
 3. **gitleaks peer binary.** `pnpm install` doesn't fetch gitleaks either, and the pre-commit hook runs `gitleaks protect --staged` when it is on `PATH`. Install version 8.30.1 to `/usr/local/bin`, where it persists in the VM snapshot. If it goes missing, reinstall from the [gitleaks releases](https://github.com/gitleaks/gitleaks/releases): download `gitleaks_8.30.1_linux_x64.tar.gz` and extract the `gitleaks` binary into `/usr/local/bin` (same pattern as Vale). CI runs its own scan via `gitleaks-action`, so the local install is defense-in-depth.
 4. **Bootstrap.** The update script doesn't build `dist/` or sync the Vale styles. Run the rest of [First-time bootstrap](./local-setup.md#first-time-bootstrap) on a new VM, and rebuild as that section says. The synced styles then persist in the snapshot.
-5. **Node version.** The `engines` floor is Node 22.23.4, and CI uses Node 24. Check `node --version` first: on an older Node 22, every pnpm command prints an `Unsupported engine` warning, so update the image's Node before working. Do not switch Node unless a version-specific issue appears.
+5. **Node version.** The VM runs Node 22, which satisfies the `engines` floor of Node 22, and CI uses Node 24. Do not switch Node unless a version-specific issue appears.
 
 ### Cursor limitations and workarounds
 
