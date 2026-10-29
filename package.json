@@ -53,7 +53,7 @@
     "site:a11y": "pnpm --filter @merlon-docs/merlon-docs-site run check:a11y"
   },
   "engines": {
-    "node": ">=22.13.0"
+    "node": ">=22.23.4"
   },
   "lint-staged": {
     "packages/**/*.{ts,mjs}": [

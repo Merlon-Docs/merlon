@@ -8,7 +8,7 @@ To install the Agent Skill instead, see [Get started](../../README.md#get-starte
 
 ## Requirements
 
-- Node.js **22.13.0** or later.
+- Node.js **22.23.4** or later, the Node 22 LTS release with the October 2026 security fixes.
 
 ## Install
 

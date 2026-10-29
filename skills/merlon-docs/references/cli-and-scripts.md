@@ -22,7 +22,7 @@ The core packages are:
 
 ## Dependencies
 
-- Node.js **22.13.0** or later (Node 22 LTS; see package `engines`)
+- Node.js **22.23.4** or later (Node 22 LTS with the October 2026 security fixes; see package `engines`)
 - `npm install -g @merlon-docs/merlon-docs-cli` or `npm install -D @merlon-docs/merlon-docs-cli`
 - Optional: Vale on `PATH` for prose (`merlon prose` / `merlon check --require-vale`)
 
