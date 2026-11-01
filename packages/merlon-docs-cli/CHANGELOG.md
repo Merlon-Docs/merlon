@@ -1,5 +1,20 @@
 # @merlon-docs/merlon-docs-cli
 
+## 1.1.0
+
+### Minor Changes
+
+- 7c11374: Require Node.js 22 or later. `engines.node` said `>=18.0.0`, but Node 18 never ran 1.x: `merlon compile`, `check` and `review` fail with `CustomEvent is not defined`, because cac 7 needs Node 20.19 or later. Run the latest release of your Node major version for its security fixes.
+
+### Patch Changes
+
+- 7c11374: Update the `cac` command-line parser from 7.0.1 to 7.1.0.
+- 7c11374: Update consumer README stability copy for 1.x semver (major for breaking changes) and one sentence on the former 0.x pre-1.0 policy.
+- Updated dependencies [7c11374]
+- Updated dependencies [7c11374]
+- Updated dependencies [7c11374]
+  - @merlon-docs/merlon-docs-core@1.1.0
+
 ## 1.0.1
 
 ### Patch Changes

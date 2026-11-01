@@ -1,5 +1,11 @@
 # @merlon-docs/merlon-docs-presets
 
+## 1.1.0
+
+### Minor Changes
+
+- 7c11374: Require Node.js 22 or later. `engines.node` said `>=18.0.0`, but Node 18 never ran 1.x: `merlon compile`, `check` and `review` fail with `CustomEvent is not defined`, because cac 7 needs Node 20.19 or later. Run the latest release of your Node major version for its security fixes.
+
 ## 1.0.0
 
 ### Major Changes
