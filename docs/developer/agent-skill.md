@@ -46,7 +46,7 @@ The [Agent Skill acceptance criteria](../features/agent-skill.md#agent-skill-acc
 
 | Command               | Purpose                                                                                                            |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `pnpm skill:validate` | Frontmatter fence lint + [skills-ref](https://agentskills.io/specification) validate on all skills under `skills/` |
+| `pnpm skill:validate` | Fence, carrier version, stray-file lint + [skills-ref](https://agentskills.io/specification) validate on `skills/` |
 | `pnpm docs:check`     | Docs compile + lint gate after shard edits                                                                         |
 
 `pnpm skill:validate` runs in local `pnpm check`, the land gate, PR CI, and during **`pnpm release:main`** after skill version sync (hard fail before the release commit / publish). It is not a [live skill eval](../glossary/live-skill-eval.md). [Live skill evals](./live-skill-evals.md) covers those evals, an optional local loop that grades agent runs with and without the skill.
