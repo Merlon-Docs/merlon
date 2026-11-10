@@ -40,7 +40,7 @@
     "release:build": "node scripts/release-build.mjs",
     "sync:skill-versions": "node scripts/sync-skill-versions.mjs",
     "prepare": "husky",
-    "skill:validate": "node scripts/lint-skill-frontmatter.mjs && skills-ref validate ./skills/merlon-docs",
+    "skill:validate": "node scripts/lint-skill-frontmatter.mjs && node scripts/check-skills-lock.mjs && skills-ref validate ./skills/merlon-docs",
     "skill:install": "npx skills add .",
     "skill:update": "pnpm run skill:install",
     "skill:dev": "DISABLE_TELEMETRY=1 npx -y skills add . --skill merlon-docs --agent claude-code cursor --yes",

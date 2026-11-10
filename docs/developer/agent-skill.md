@@ -12,7 +12,7 @@ pnpm skill:update
 
 (`pnpm skill:update` runs `pnpm skill:install`, and either name does the same task.)
 
-That runs `npx skills add .`, which installs the publishable skill, `skills/merlon-docs`, from this checkout under `.agents/skills/` and records it in `skills-lock.json`.
+That runs `npx skills add .`, which installs the publishable skill, `skills/merlon-docs`, from this checkout under `.agents/skills/` and records it in `skills-lock.json`. Run it from the repo root, so the lock records the skill's `source` as `"."`. `pnpm skill:validate` fails when a local skill's `source` is an absolute path, such as a cloud agent's checkout path.
 
 [Cloud agent sessions](./cloud-agent-environments.md) install the skill on their own. The Claude Code session-start hook (`.claude/hooks/session-start.sh`) and the Cursor environment (`.cursor/environment.json`) both run `pnpm skill:dev`, which installs this checkout's `skills/merlon-docs` for Claude Code and Cursor with telemetry off. An agent working here loads the skill from the branch it works on.
 
