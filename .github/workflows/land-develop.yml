@@ -127,6 +127,7 @@ jobs:
           pnpm changeset:status
 
       # Mirrors the end of CI's Check job: the built CLI on the oldest Node that engines.node allows.
+      # `pnpm run lint` keeps this step's node-version equal to the minimum of engines.node.
       - name: Set up the Node floor
         if: steps.merge.outputs.skip == 'false'
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
