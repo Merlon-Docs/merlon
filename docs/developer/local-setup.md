@@ -40,19 +40,19 @@ Agents load tracker issues and delivery conventions from [Agent work-item tracki
 
 [Agent Skill development](./agent-skill.md#do-not-hand-edit-agentsskills) covers refreshing the vendor-managed installs and why nobody hand-edits them.
 
-Optional locally: `brew install gitleaks` (CI always scans).
+Optional locally: `brew install betterleaks` (CI always scans).
 
 ## Git hooks
 
 `pnpm install` sets up three hooks. The pre-commit hook is fast and works offline, so it never builds, runs tests or reaches the network. The pre-push hook runs the full gate and may take minutes.
 
-| Hook       | Step            | What runs                                                                            |
-| ---------- | --------------- | ------------------------------------------------------------------------------------ |
-| pre-commit | lint-staged     | Prettier and ESLint on staged files (including `.jsonc`)                             |
-| pre-commit | affected checks | `scripts/pre-commit-affected.mjs`, with the offline checks the staged paths call for |
-| pre-commit | gitleaks        | `gitleaks protect --staged` when gitleaks is on `PATH`, and a warning when it isn't  |
-| commit-msg | commitlint      | The Conventional Commits rules of `@commitlint/config-conventional`                  |
-| pre-push   | full gate       | `scripts/pre-push.mjs`, with the checks the [land gate](#ci-and-the-land-gate) runs  |
+| Hook       | Step            | What runs                                                                                          |
+| ---------- | --------------- | -------------------------------------------------------------------------------------------------- |
+| pre-commit | lint-staged     | Prettier and ESLint on staged files (including `.jsonc`)                                           |
+| pre-commit | affected checks | `scripts/pre-commit-affected.mjs`, with the offline checks the staged paths call for               |
+| pre-commit | betterleaks     | `betterleaks git --pre-commit --staged` when betterleaks is on `PATH`, and a warning when it isn't |
+| commit-msg | commitlint      | The Conventional Commits rules of `@commitlint/config-conventional`                                |
+| pre-push   | full gate       | `scripts/pre-push.mjs`, with the checks the [land gate](#ci-and-the-land-gate) runs                |
 
 The affected checks run by staged path:
 

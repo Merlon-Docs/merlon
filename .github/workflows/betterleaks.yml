@@ -1,4 +1,4 @@
-name: gitleaks
+name: betterleaks
 
 on:
   push:
@@ -46,7 +46,7 @@ jobs:
           REPO: ${{ github.repository }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          last=$(gh api "repos/$REPO/actions/workflows/gitleaks.yml/runs?head_sha=$HEAD_SHA&event=push&per_page=20" \
+          last=$(gh api "repos/$REPO/actions/workflows/betterleaks.yml/runs?head_sha=$HEAD_SHA&event=push&per_page=20" \
             --jq '.workflow_runs | sort_by(.created_at) | last | "\(.status)/\(.conclusion)"') || last=""
           if [ "$last" = completed/success ]; then
             echo "The push scan of $HEAD_SHA passed, so this run doesn't scan again."
@@ -60,8 +60,24 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3
+
+      # Betterleaks needs no license or secret, so Dependabot's pull requests,
+      # which get no repository secrets, scan like any other.
+      - name: Install Betterleaks
         if: steps.scanned.outputs.skip != 'true'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+          BETTERLEAKS_VERSION: 1.10.0
+          BETTERLEAKS_SHA256: 9d9ad503cd5d80d18a939352266c3fcca52f10da9b83cd5cfe646989b13940fe
+        run: |
+          archive="betterleaks_${BETTERLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -fsSLo "$RUNNER_TEMP/$archive" \
+            "https://github.com/betterleaks/betterleaks/releases/download/v${BETTERLEAKS_VERSION}/$archive"
+          echo "$BETTERLEAKS_SHA256  $RUNNER_TEMP/$archive" | sha256sum -c -
+          mkdir -p "$RUNNER_TEMP/betterleaks"
+          tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP/betterleaks" betterleaks
+          echo "$RUNNER_TEMP/betterleaks" >> "$GITHUB_PATH"
+
+      # Scans the whole history, which takes seconds on this repository.
+      - name: Scan
+        if: steps.scanned.outputs.skip != 'true'
+        run: betterleaks git . --config .betterleaks.toml --redact --no-banner --verbose
