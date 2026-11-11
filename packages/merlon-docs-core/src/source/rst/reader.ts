@@ -32,6 +32,7 @@ const PROSE_DIRECTIVES = new Set([
   'error',
   'highlights',
   'hint',
+  'ifconfig',
   'important',
   'note',
   'only',
@@ -47,6 +48,31 @@ const PROSE_DIRECTIVES = new Set([
 ]);
 
 const INCLUDE_DIRECTIVES = new Set(['include', 'literalinclude']);
+
+/**
+ * Directives whose body is code, data or markup in another language: nothing in it is read.
+ * The body of any other directive that isn't prose (tables, figures) is scanned for labels,
+ * `:name:` options and includes, but its text doesn't count as prose.
+ */
+const OPAQUE_DIRECTIVES = new Set([
+  'code',
+  'code-block',
+  'csv-table',
+  'doctest',
+  'graphviz',
+  'highlight',
+  'kernel-doc',
+  'kernel-render',
+  'literalinclude',
+  'math',
+  'parsed-literal',
+  'productionlist',
+  'raw',
+  'sourcecode',
+  'testcode',
+  'testoutput',
+  'toctree',
+]);
 
 /** `.. name:: argument`, optionally as a list item (`* .. note::`). */
 const DIRECTIVE = /^(\s*)(?:[*+-]\s+)?\.\.\s+([A-Za-z0-9_][\w:+.-]*)::(?:\s+(.*))?$/;
@@ -121,6 +147,8 @@ function scan(lines: string[]): Scan {
   let seenContent = false;
   /** Indent of the paragraph that ended with `::`, while its literal block may still follow. */
   let literalAfter: number | null = null;
+  /** Lines before this index are in the body of a table-like directive: no prose is kept. */
+  let quietUntil = 0;
 
   const levelOf = (style: string) => {
     let i = styles.indexOf(style);
@@ -217,15 +245,18 @@ function scan(lines: string[]): Scan {
             ...(glob && /[*?[]/.test(target) ? { glob: true } : {}),
           });
         }
-      } else if (INCLUDE_DIRECTIVES.has(name) && arg) {
+      } else if (INCLUDE_DIRECTIVES.has(name) && arg && !/^<.*>$/.test(arg)) {
         manifest.push({ target: arg, line: i + 1, group: 'includes', kind: 'include' });
       }
 
       if (PROSE_DIRECTIVES.has(name)) {
-        if (arg && name !== 'only') prose[i] = arg;
+        if (arg && name !== 'only' && name !== 'ifconfig' && i >= quietUntil) prose[i] = arg;
         i = j;
-      } else {
+      } else if (OPAQUE_DIRECTIVES.has(name)) {
         i = end;
+      } else {
+        quietUntil = Math.max(quietUntil, end);
+        i = j;
       }
       continue;
     }
@@ -279,7 +310,7 @@ function scan(lines: string[]): Scan {
       i++;
       continue;
     }
-    prose[i] = trimmed.endsWith('::') ? trimmed.slice(0, -1) : trimmed;
+    if (i >= quietUntil) prose[i] = trimmed.endsWith('::') ? trimmed.slice(0, -1) : trimmed;
     if (trimmed.endsWith('::') && (isBlank(lines[i + 1]) || i + 1 >= lines.length)) {
       literalAfter = indent;
     }

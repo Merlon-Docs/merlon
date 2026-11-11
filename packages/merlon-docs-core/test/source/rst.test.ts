@@ -140,6 +140,33 @@ describe('rst reader: labels and refs', () => {
   });
 });
 
+describe('rst reader: inside table and conditional directives', () => {
+  it('reads labels and includes in a table body, but not its text as prose', () => {
+    const doc = read([
+      '.. flat-table:: Formats',
+      '   :header-rows: 1',
+      '',
+      '   * .. _`CEC-EVENT-STATE-CHANGE`:',
+      '',
+      '     - ``CEC_EVENT_STATE_CHANGE``',
+      '     - Generated when the adapter state changes.',
+      '',
+      '.. ifconfig:: builder != "latex"',
+      '',
+      '   .. include:: blockmap.rst',
+      '',
+      'After the table.',
+    ]);
+    expect(doc.anchors.map((a) => a.id)).toEqual(['cec-event-state-change']);
+    expect(doc.manifest.map((e) => e.target)).toEqual(['blockmap.rst']);
+    expect(doc.paragraphs.map((p) => p.plain)).toEqual(['After the table.']);
+  });
+
+  it('skips docutils standard includes such as <isonum.txt>', () => {
+    expect(read(['.. include:: <isonum.txt>']).manifest).toEqual([]);
+  });
+});
+
 describe('rst reader: prose', () => {
   it('turns inline markup into plain text', () => {
     expect(
