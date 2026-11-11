@@ -37,7 +37,7 @@ source text ──Reader──▶ SourceDoc ──core passes──▶ findings
 
 A format is a registered bundle of a Reader and, where the format has them, an anchor scheme and a ref resolver. GFM is the first bundle, extracted from today's code with no behaviour change. RST, plain text and man pages follow.
 
-**Compile stays GFM.** `merlon compile` keeps its current code and becomes a capability of the GFM bundle only. A non-GFM tree is compiled by its own tool, and `merlon check --no-compile` and `merlon review --no-compile` run the static checks on its sources. Compile code isn't moved onto the model, because no format but GFM would use it.
+**Compile stays GFM**, for the reasons in [Compile scope](#compile-scope). `merlon compile` keeps its current code and becomes a capability of the GFM bundle only. A non-GFM tree is compiled by its own tool, and `merlon check --no-compile` and `merlon review --no-compile` run the static checks on its sources. Compile code isn't moved onto the model, because no format but GFM would use it.
 
 ### SOLID, applied
 
@@ -109,7 +109,18 @@ The getting-started workflow gains a "brownfield, non-Markdown" branch: a projec
 
 ## Compile scope
 
-Decided on 2026-11-11: Merlon Docs compiles GFM guides only. Projects whose docs another system builds (Sphinx, MkDocs, Antora) keep that system for compiling, and use Merlon Docs for static checks and review. A `compile` run that meets a non-GFM guide fails with a message pointing at `--no-compile`. Same-format compile (RST in, RST out) and conversion to GFM were both declined: they duplicate tools these projects already trust, and conversion loses the roles and directives the checks rely on.
+Decided on 2026-11-11.
+
+**Merlon Docs is not a document compiler or converter.** It is not Pandoc, Sphinx, MkDocs, Antora, Asciidoctor or any other publishing system, and it does not try to become one.
+
+`merlon compile` exists for one reason: GFM has no way to assemble a guide from shards. Plain Markdown has no include directive and no table of contents that builds a document, so a sharded Markdown tree needs a step that stitches its shards into readable guides. Formats such as RST and AsciiDoc already have that step in their own toolchains (`toctree` and `include` in Sphinx, `include::` in Asciidoctor), and their projects already trust those tools.
+
+So:
+
+- `merlon compile` stays a GFM shard stitcher, and nothing more.
+- Projects whose docs another system builds keep that system, and use Merlon Docs for its static checks and review: links, anchors, refs, headings, orphans and sprawl.
+- A `compile` run that meets a non-GFM guide fails with a message pointing at `--no-compile`.
+- Same-format compile (RST in, RST out) and conversion between formats are declined, now and as a direction. They would duplicate tools these projects already use, and conversion loses the roles and directives the checks rely on.
 
 ## Alternatives considered
 
@@ -142,4 +153,3 @@ Plus a contract fixture: one small document written in GFM, RST, text and man, w
 ## Re-evaluate when
 
 - A reader's line-level heuristics produce false positives the fixtures can't capture, which would justify a stricter parser behind the same interface.
-- A project with no external build system wants Merlon Docs to compile a non-GFM format.
