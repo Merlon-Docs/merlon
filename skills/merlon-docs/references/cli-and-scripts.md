@@ -45,3 +45,5 @@ merlon check --config <config> --docs-root <docs-root>
 merlon refs list --config <config> --docs-root <docs-root>
 merlon review --config <config> --docs-root <docs-root>
 ```
+
+For docs another tool builds (Sphinx RST, plain text, man pages), add `--no-compile` to `check` and `review`. They read the config's `sources` instead of compiling guides, and the config can live outside the project.

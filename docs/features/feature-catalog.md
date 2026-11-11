@@ -67,6 +67,10 @@ Report markdown files that no guide accounts for. Register single files as [stan
 
 `merlon review` reports documentation sprawl signals (oversized index groups, long shards, paragraphs duplicated across shards, and same-titled shards in one guide) without failing unless you pass `--strict`. See [Commands reference](../client-cli/commands-reference.md#sprawl-review).
 
+## Non-Markdown sources
+
+`merlon check --no-compile` and `merlon review --no-compile` read reStructuredText, plain text and man pages, as well as Markdown, for trees that Sphinx or another tool builds. Compile stays Markdown-only. See [Non-Markdown sources](../client-cli/non-markdown-sources.md) and [ADR 0008](./adr/0008-one-document-model.md).
+
 ## Peer linter orchestration
 
 Orchestrate markdownlint-cli2, Vale, Prettier, markdown-link-check from host repo. Shard markdownlint and Vale prose read the files [In-scope guide fileset](../client-cli/optional-linters.md#in-scope-guide-fileset) lists.

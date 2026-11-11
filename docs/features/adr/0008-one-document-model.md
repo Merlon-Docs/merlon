@@ -1,6 +1,6 @@
 # ADR 0008: One document model behind every source format
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-11
 - **Related:** [ADR 0007](./0007-doc-review-workflow.md); [GFM scope](../design-constraints/gfm-scope.md); [`merlon review`](../../client-cli/commands-reference.md#sprawl-review)
 
@@ -51,29 +51,36 @@ A format is a registered bundle of a Reader and, where the format has them, an a
 
 ```ts
 interface SourceDoc {
-  path: string; // docs-root-relative POSIX path, symlinks resolved
+  path: string; // absolute path; a symlinked document is read once, under its target
   format: string; // 'gfm' | 'rst' | 'text' | 'man'
-  title: Heading | null;
-  headings: Heading[]; // { text, level, line, span }
-  blocks: Block[]; // paragraph | code | list-item | table | directive, each with line + span
-  links: DocLink[]; // { kind: 'file' | 'doc' | 'anchor' | 'label' | 'manpage' | 'external', target, fragment?, line, span }
-  anchors: Anchor[]; // { id, line, origin: 'heading' | 'label' | 'name' | 'generated' }
-  manifest: ManifestEntry[]; // { target, line, group, kind: 'toc' | 'include', glob? }
-  orphanOk: boolean; // RST `:orphan:`
+  isIndex: boolean; // its manifest entries count toward index-size
+  title: DocHeading | null;
+  headings: DocHeading[]; // { text, plain, level, line }
+  paragraphs: DocParagraph[]; // { plain, line }: prose only
+  proseWords: number;
+  links: DocLink[]; // { kind: 'file' | 'doc' | 'anchor' | 'label' | 'manpage' | 'external', target, fragment?, line }
+  anchors: DocAnchor[]; // { id, line, origin: 'heading' | 'label' | 'name' | 'generated' }
+  manifest: ManifestEntry[]; // { target, resolved?, line, group, kind: 'toc' | 'include', glob? }
+  orphanOk: boolean; // RST `:orphan:`; always true for formats with no table of contents
 }
 
 interface SourceReader {
-  read(text: string, path: string): SourceDoc;
+  read(text: string, context: { path: string; manifest?: string }): SourceDoc;
 }
-interface AnchorScheme {
-  anchorsFor(doc: SourceDoc): Anchor[];
-} // GitHub slugs, Sphinx labels + autosectionlabel
-interface RefResolver {
-  resolve(link: DocLink, from: SourceDoc): Resolution;
-}
+interface TargetLocator {
+  candidates(
+    target: string,
+    kind: 'toc' | 'include' | 'file' | 'doc',
+    context: LocateContext,
+  ): string[];
+  globName?(absPath: string): string;
+} // how a format names files: RST drops the extension and roots `/` at the docs root
+interface RefResolverFactory {
+  prepare(docs: SourceDoc[], docsRoot: string): RefResolver;
+} // Sphinx: labels, :name:, autosectionlabel, ignoreLabels, objects.inv
 ```
 
-Prose for words and paragraphs comes from `blocks` with code, literal, directive and table blocks excluded, so `long-shard` and `duplicate-paragraph` count the same thing in every format.
+A `SourceFormat` bundles a reader with an optional locator and ref resolver. The reader leaves code, literal blocks, directive bodies that aren't prose, comments and tables out of `paragraphs` and `proseWords`, so `long-shard` and `duplicate-paragraph` count the same thing in every format.
 
 ### Formats in this change
 
@@ -82,7 +89,7 @@ Prose for words and paragraphs comes from `blocks` with code, literal, directive
 | `gfm`  | Today's behaviour, moved behind the interfaces                                                                                                                                                                                                                                                                                                 | GitHub heading slugs, `refs.json`                                                                                            |
 | `rst`  | Over/underline titles; `toctree` (relative, `/absolute`, `:glob:`, `:caption:` as the index group); `include` and `literalinclude`; `:ref:` and `:doc:` with wrapped targets; `.. _label:` (indented, in list items, backquoted) and `:name:`; `:orphan:`; literal and directive bodies masked; `../x` in a toctree is an entry, not a comment | Sphinx resolver: labels, `:name:`, `autosectionlabel` (`prefixDocument`, `maxDepth`), `ignoreLabels`, optional `objects.inv` |
 | `text` | Blank-line paragraphs; an underlined first line as title; files starting with `#!` skipped; `README` and extensionless files via `sources` globs                                                                                                                                                                                               | none                                                                                                                         |
-| `man`  | troff `.TH` title, `.SH`/`.SS` headings, `.PP`/`.P` paragraphs, `.nf`…`.fi` and `.EX`…`.EE` masked; `.BR name (N)` and `name(N)` as `manpage` links                                                                                                                                                                                            | `manpage` links resolve to `name.N` files under the configured roots                                                         |
+| `man`  | troff `.TH` title, `.SH`/`.SS` headings, `.PP`/`.P` paragraphs, `.nf`…`.fi` and `.EX`…`.EE` masked; `.BR name (N)` and `name(N)` as `manpage` links                                                                                                                                                                                            | `manpage` links are read; resolving them is left for later                                                                   |
 
 ### Config
 
@@ -99,7 +106,7 @@ Every key gets `.describe()` text and lands in `merlon.config.schema.json`. A co
 
 ### Commands
 
-- `merlon check` and `merlon review` run on every format in `sources`. Check reports broken file links, undefined refs and anchors, and orphans. Orphans follow manifest entries, includes, `doc` links, the manifest hook and `orphanOk`. Symlinks are resolved and counted once. Every finding carries file and line; JSON findings gain an additive `locations` array, and the text report is unchanged for a Markdown-only config.
+- `merlon check --no-compile` and `merlon review --no-compile` run on every format in `sources`. Check reports broken file links, undefined refs and anchors, and orphans. Orphans follow manifest entries, includes, `doc` links, the manifest hook and `orphanOk`. Symlinks are resolved and counted once. Under `--no-compile`, every review finding carries a `locations` list of file and line, in JSON and in the text report. A Markdown tree reviewed without `--no-compile` keeps its earlier output.
 - `--no-compile` skips the compile step (and markdownlint, Vale and `refs.json`) for trees another tool builds.
 - `--config` may live outside the docs root; module and inventory paths in it resolve against the config file.
 

@@ -20,6 +20,7 @@
 - [Compile and the refs registry](./compile-refs-registry.md)
 - [Cross-links and refs](./cross-links-and-refs.md)
 - [Optional linters](./optional-linters.md)
+- [Non-Markdown sources](./non-markdown-sources.md)
 
 ## See also
 

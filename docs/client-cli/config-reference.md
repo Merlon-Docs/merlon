@@ -36,6 +36,7 @@ This table links the page that documents each key:
 | `compileOrder`, `guides[].name`, `guides[].path`, `outputDir`, `outputFile`, `refs.registryFile`, `compile.outputFile` | [Minimal config](./config-essentials.md#minimal-config) and [Path layout](./config-essentials.md#path-layout)                                                  |
 | `compile.scopeRoot`                                                                                                    | [Shared glossary](./shared-glossary.md)                                                                                                                        |
 | `review.*`                                                                                                             | [Review thresholds](#review-thresholds) on this page                                                                                                           |
+| `sources`, `roots`, `manifestHook`, `sphinx.*`                                                                         | [Non-Markdown sources](./non-markdown-sources.md)                                                                                                              |
 | `configVersion`, `standardVersion`, `protocolVersion`                                                                  | [Minimal config](./config-essentials.md#minimal-config)                                                                                                        |
 | `refs.slugAlgorithm`                                                                                                   | [Schema-only fields](#schema-only-fields) on this page                                                                                                         |
 | `source`, `guides[].source`, `guides[].splitLevel`                                                                     | [Consumer migration](./consumer-migration.md#map-the-document-to-guides)                                                                                       |
@@ -73,6 +74,7 @@ This table links the page that documents each key:
 | `review.maxIndexEntries`   | `12`    | Most shard links one index group lists before `index-size` fires                      |
 | `review.maxShardWords`     | `2500`  | Most prose words one shard holds before `long-shard` fires                            |
 | `review.minDuplicateWords` | `25`    | Fewest words a paragraph needs before `duplicate-paragraph` compares it across shards |
+| `review.guides`            | none    | Per-guide overrides of the three keys above, keyed by guide name                      |
 
 `merlon review` also honors `scan.ignore` and `scan.root`, so paths the coverage scan skips stay out of the review. [Sprawl review](./commands-reference.md#sprawl-review) in Commands reference defines each signal.
 

@@ -46,6 +46,9 @@ Discover package manager and existing docs before editing.
   - Pull useful content into new shards.
   - Mark each migrated legacy file **ready to archive after review** (banner).
     Never auto-delete.
+- **Brownfield, non-Markdown** — the docs are reStructuredText, plain text or
+  man pages, and Sphinx, MkDocs or Antora already builds them. Follow
+  [Brownfield, non-Markdown](#brownfield-non-markdown) instead of steps 2–7.
 
 ### 2. Install
 
@@ -105,6 +108,29 @@ recommend the weekly review routine from `SKILL.md`. Tell the user what it
 needs to start each run and what evidence a run leaves. Document the routine
 only with a trigger the repo has, or label it advisory. For a one-off project,
 say it is not needed.
+
+### Brownfield, non-Markdown
+
+Merlon Docs doesn't compile these trees; the project's own tool keeps doing
+that. Merlon Docs adds the static checks and the review.
+
+1. **No scaffold.** Don't create `docs/`, guides or a `merlon.config.json` in
+   the project unless the user asks.
+2. **Out-of-tree config.** Write the config outside the project, or in a path
+   the user names, with `sources` (one `{ glob, format }` per kind of file:
+   `rst`, `text`, `man`), `roots` (the entry document, such as `index.rst`),
+   and no `compileOrder`. Copy Sphinx settings from `conf.py` into `sphinx`:
+   `autosectionlabel` when the extension is loaded, and `ignoreLabels` for
+   labels the build generates. Set `review.guides` for directories whose pages
+   are long on purpose.
+3. **Project-local extension skill.** Add a small skill in the project's skill
+   directory (or the user's, if the project takes no new files) that names the
+   config path, the commands below, and which findings the project accepts.
+   It extends this skill; it doesn't copy its rules.
+4. **Run review only.** `merlon check --no-compile` and `merlon review --no-compile`
+   with `--config <config> --docs-root <docs-root>`. Report findings with file
+   and line, and fix them in the project's own format only when asked. Then
+   continue with the [doc-review workflow](doc-review.md) lenses.
 
 ### 7. First feature tutorial (optional)
 
