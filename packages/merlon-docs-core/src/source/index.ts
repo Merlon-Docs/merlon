@@ -27,3 +27,5 @@ export {
   normalizeRstLabel,
   rstInlineToPlain,
 } from './rst/reader.js';
+export { textFormat, textReader, textInlineToPlain } from './text/reader.js';
+export { manFormat, manReader, troffToPlain } from './man/reader.js';

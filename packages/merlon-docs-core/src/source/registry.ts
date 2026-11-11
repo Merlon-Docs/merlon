@@ -1,9 +1,11 @@
 import type { SourceFormat } from './format.js';
 import { gfmFormat } from './gfm/reader.js';
+import { manFormat } from './man/reader.js';
 import { rstFormat } from './rst/reader.js';
+import { textFormat } from './text/reader.js';
 
 /** Built-in formats, present without any registration call (no import side effects). */
-const BUILT_IN_FORMATS: SourceFormat[] = [gfmFormat, rstFormat];
+const BUILT_IN_FORMATS: SourceFormat[] = [gfmFormat, rstFormat, textFormat, manFormat];
 
 const registry = new Map<string, SourceFormat>(BUILT_IN_FORMATS.map((f) => [f.id, f]));
 
