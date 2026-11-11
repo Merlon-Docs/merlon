@@ -200,7 +200,7 @@ export function checkSourceDocs(options: SourceCheckOptions): SourceIssue[] {
       }
       if (link.kind === 'label') {
         if (!refsFor(doc).resolves(link, doc)) {
-          linkIssue(doc, link, 'undefined-ref', `label "${link.target}" is not defined`);
+          linkIssue(doc, link, 'undefined-ref', 'label is not defined');
         }
         continue;
       }

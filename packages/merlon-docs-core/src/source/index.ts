@@ -19,3 +19,11 @@ export type {
 } from './format.js';
 export { getFormat, listFormats, registerFormat } from './registry.js';
 export { gfmFormat, gfmReader } from './gfm/reader.js';
+export {
+  rstFormat,
+  rstReader,
+  rstLocator,
+  rstDocname,
+  normalizeRstLabel,
+  rstInlineToPlain,
+} from './rst/reader.js';

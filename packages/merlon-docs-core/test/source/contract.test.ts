@@ -35,6 +35,30 @@ const CONTRACT: Record<string, ContractFixture> = {
     ].join('\n'),
     linkKinds: ['file'],
   },
+  rst: {
+    path: '/docs/install.rst',
+    text: [
+      '================',
+      'Install the tool',
+      '================',
+      '',
+      'Before you start',
+      '================',
+      '',
+      'You need a recent *Node* release and a shell.',
+      '',
+      '.. code-block:: sh',
+      '',
+      '   npm install --global the-tool',
+      '',
+      'Next steps',
+      '==========',
+      '',
+      'Read the :doc:`getting started guide <guide>` next.',
+      '',
+    ].join('\n'),
+    linkKinds: ['doc'],
+  },
 };
 
 const EXPECTED = {

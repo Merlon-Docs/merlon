@@ -1,8 +1,9 @@
 import type { SourceFormat } from './format.js';
 import { gfmFormat } from './gfm/reader.js';
+import { rstFormat } from './rst/reader.js';
 
 /** Built-in formats, present without any registration call (no import side effects). */
-const BUILT_IN_FORMATS: SourceFormat[] = [gfmFormat];
+const BUILT_IN_FORMATS: SourceFormat[] = [gfmFormat, rstFormat];
 
 const registry = new Map<string, SourceFormat>(BUILT_IN_FORMATS.map((f) => [f.id, f]));
 
