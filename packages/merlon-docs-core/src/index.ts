@@ -151,7 +151,20 @@ export {
   type SourceDoc,
   type SourceFormat,
   type SourceReader,
+  type TargetLocator,
+  type LocateContext,
+  type RefResolver,
+  type RefResolverFactory,
 } from './source/index.js';
+export {
+  checkSourceDocs,
+  formatSourceIssue,
+  globToRegExp,
+  PLAIN_LOCATOR,
+  type SourceCheckOptions,
+  type SourceIssue,
+  type SourceIssueType,
+} from './check/sources.js';
 export {
   reviewDocs,
   formatReviewReport,
