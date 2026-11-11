@@ -200,7 +200,9 @@ function scan(lines: string[]): Scan {
 
       if (name === 'toctree') {
         const caption = options.get('caption');
-        const group = caption ? `toctree "${caption}"` : `uncaptioned toctree at line ${i + 1}`;
+        const group = caption
+          ? `in toctree "${caption}"`
+          : `in uncaptioned toctree at line ${i + 1}`;
         const glob = options.has('glob');
         for (let k = j; k < end; k++) {
           const entry = lines[k].trim();

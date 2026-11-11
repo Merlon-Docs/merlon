@@ -37,3 +37,9 @@ export {
   type SphinxRefOptions,
   type SphinxInventory,
 } from './rst/sphinx.js';
+export {
+  readSources,
+  type ReadSourcesOptions,
+  type ReadSourcesResult,
+  type SourceSpec,
+} from './read.js';

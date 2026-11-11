@@ -34,7 +34,10 @@ import {
   shardFromMonolith,
   formatLinkIssue,
   reviewDocs,
+  reviewSourceDocs,
   formatReviewReport,
+  checkSourceDocs,
+  formatSourceIssue,
   refsOutputTexts,
   type HeadingEntry,
   type LinkIssue,
@@ -51,6 +54,7 @@ import {
 } from './compile-workspace.js';
 import { valeArgs, valeCheckHints, valeScanPaths } from './vale-args.js';
 import { migrateFormerConfigText } from './former-config.js';
+import { loadSourceMode } from './source-mode.js';
 
 interface GlobalOpts {
   config?: string;
@@ -100,6 +104,17 @@ function configPath(opts: GlobalOpts): string {
     `Upgraded ${FORMER_DEFAULT_CONFIG} to ${DEFAULT_CONFIG}${keyNote}. Commit the new file in place of the old one.`,
   );
   return DEFAULT_CONFIG;
+}
+
+/** Absolute path of the config file a run reads (call after `getConfig`, which may migrate it). */
+function configFileOf(opts: GlobalOpts): string {
+  return resolve(process.cwd(), opts.config ?? DEFAULT_CONFIG);
+}
+
+/** Print an async action's failure the way a sync one is printed, and fail the run. */
+function failRun(e: unknown): void {
+  console.error(e instanceof Error ? e.message : String(e));
+  process.exitCode = 1;
 }
 
 /**
@@ -600,11 +615,26 @@ cli.command('shard', 'Split a source document into shards (md-tree)').action((op
 
 cli
   .command('check', 'Full validation gate')
+  .option(
+    '--no-compile',
+    'Check the sources in any format without compiling: orphans, broken links and undefined refs',
+  )
   .option('--require-lint', 'Require markdownlint-cli2')
   .option('--require-vale', 'Require Vale')
   .option('--skip-vale', 'Skip Vale')
   .action(
-    (opts: GlobalOpts & { requireLint?: boolean; requireVale?: boolean; skipVale?: boolean }) => {
+    (
+      opts: GlobalOpts & {
+        compile?: boolean;
+        requireLint?: boolean;
+        requireVale?: boolean;
+        skipVale?: boolean;
+      },
+    ) => {
+      if (opts.compile === false) {
+        checkSources(opts).catch(failRun);
+        return;
+      }
       const config = getConfig(opts);
       const docsRoot = getDocsRoot(opts);
       const failures: CheckStepDiagnostic[] = [];
@@ -853,44 +883,109 @@ cli
   .option('--json', 'Print findings as a JSON array')
   .option('--strict', 'Exit 1 when there is any finding')
   .option('--guide <name>', 'Review one guide from compileOrder (cross-guide duplicates included)')
-  .action((opts: GlobalOpts & { json?: boolean; strict?: boolean; guide?: string }) => {
-    const config = getConfig(opts);
-    const docsRoot = getDocsRoot(opts);
-    const result = reviewDocs({
-      guide: opts.guide,
-      guides: guideEntries(config, docsRoot),
+  .option('--no-compile', 'Review the sources in any format, as config sources lists them')
+  .action(
+    (
+      opts: GlobalOpts & { json?: boolean; strict?: boolean; guide?: string; compile?: boolean },
+    ) => {
+      if (opts.compile === false) {
+        reviewSources(opts).catch(failRun);
+        return;
+      }
+      const config = getConfig(opts);
+      const docsRoot = getDocsRoot(opts);
+      printReview(
+        config,
+        docsRoot,
+        opts,
+        reviewDocs({
+          guide: opts.guide,
+          guides: guideEntries(config, docsRoot),
+          docsRoot,
+          scanRoot: getScanRoot(config, opts),
+          ignore: config.scan?.ignore ?? [],
+          thresholds: config.review,
+          guideThresholds: config.review.guides,
+        }),
+      );
+    },
+  );
+
+function printReview(
+  config: MerlonConfig,
+  docsRoot: string,
+  opts: GlobalOpts & { json?: boolean; strict?: boolean },
+  result: ReturnType<typeof reviewDocs>,
+): void {
+  if (opts.json) {
+    const jsonOut = JSON.stringify(result.findings, null, 2);
+    console.log(jsonOut);
+    writeDiagnosticSinks(
+      config,
       docsRoot,
-      scanRoot: getScanRoot(config, opts),
-      ignore: config.scan?.ignore ?? [],
-      thresholds: config.review,
-      guideThresholds: config.review.guides,
-    });
-    if (opts.json) {
-      const jsonOut = JSON.stringify(result.findings, null, 2);
-      console.log(jsonOut);
-      writeDiagnosticSinks(
-        config,
-        docsRoot,
-        opts,
-        opts.strict && result.findings.length > 0 ? [jsonOut] : [],
-        result.findings.map((f) => `${f.signal}: ${f.files.join(', ')}: ${f.detail} -> ${f.fix}`),
-      );
-    } else {
-      const report = formatReviewReport(result);
-      console.log(report);
-      const findingLines = result.findings.map(
-        (f) => `${f.signal}: ${f.files.join(', ')}: ${f.detail} -> ${f.fix}`,
-      );
-      writeDiagnosticSinks(
-        config,
-        docsRoot,
-        opts,
-        opts.strict && findingLines.length > 0 ? findingLines : [],
-        findingLines,
-      );
-    }
-    if (opts.strict && result.findings.length > 0) process.exitCode = 1;
+      opts,
+      opts.strict && result.findings.length > 0 ? [jsonOut] : [],
+      result.findings.map((f) => `${f.signal}: ${f.files.join(', ')}: ${f.detail} -> ${f.fix}`),
+    );
+  } else {
+    const report = formatReviewReport(result);
+    console.log(report);
+    const findingLines = result.findings.map(
+      (f) => `${f.signal}: ${f.files.join(', ')}: ${f.detail} -> ${f.fix}`,
+    );
+    writeDiagnosticSinks(
+      config,
+      docsRoot,
+      opts,
+      opts.strict && findingLines.length > 0 ? findingLines : [],
+      findingLines,
+    );
+  }
+  if (opts.strict && result.findings.length > 0) process.exitCode = 1;
+}
+
+/** `merlon review --no-compile`: the four signals over `sources`, in any format. */
+async function reviewSources(
+  opts: GlobalOpts & { json?: boolean; strict?: boolean; guide?: string },
+): Promise<void> {
+  const config = getConfig(opts, false);
+  const docsRoot = getDocsRoot(opts);
+  const { docs } = await loadSourceMode(config, docsRoot, configFileOf(opts));
+  let result = reviewSourceDocs({
+    docs,
+    docsRoot,
+    thresholds: config.review,
+    guideThresholds: config.review.guides,
   });
+  if (opts.guide !== undefined) {
+    const prefix = `${opts.guide}/`;
+    result = {
+      ...result,
+      findings: result.findings.filter((f) => f.files.some((rel) => rel.startsWith(prefix))),
+    };
+  }
+  printReview(config, docsRoot, opts, result);
+}
+
+/** `merlon check --no-compile`: reachability, links and refs over `sources`, in any format. */
+async function checkSources(opts: GlobalOpts): Promise<void> {
+  const config = getConfig(opts, false);
+  const docsRoot = getDocsRoot(opts);
+  const inputs = await loadSourceMode(config, docsRoot, configFileOf(opts));
+  const issues = checkSourceDocs({ docsRoot, ...inputs });
+  const lines = issues.map(formatSourceIssue);
+  for (const line of lines) console.error(line);
+  writeDiagnosticSinks(config, docsRoot, opts, lines, []);
+  if (issues.length > 0) {
+    console.error('');
+    console.error(
+      `merlon check --no-compile failed: ${issues.length} issue(s) in ${inputs.docs.length} document(s).`,
+    );
+    process.exitCode = 1;
+    return;
+  }
+  console.log(`merlon check --no-compile passed: ${inputs.docs.length} document(s)`);
+}
 
 try {
   // Backwards compatibility for `refs <subcommand>` -> `refs-<subcommand>`

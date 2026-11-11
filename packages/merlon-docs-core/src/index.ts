@@ -156,6 +156,10 @@ export {
   textReader,
   manFormat,
   manReader,
+  readSources,
+  type ReadSourcesOptions,
+  type ReadSourcesResult,
+  type SourceSpec,
   type AnchorOrigin,
   type DocAnchor,
   type DocHeading,
@@ -183,6 +187,8 @@ export {
 } from './check/sources.js';
 export {
   reviewDocs,
+  reviewSourceDocs,
+  type SourceReviewOptions,
   formatReviewReport,
   DEFAULT_REVIEW_THRESHOLDS,
   REVIEW_SIGNALS,

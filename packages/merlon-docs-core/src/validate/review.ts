@@ -32,6 +32,11 @@ export interface ReviewFinding {
   files: string[];
   detail: string;
   fix: string;
+  /**
+   * Where the finding is, file and 1-based line, sorted. Present only when the review was asked
+   * for locations (`merlon review --no-compile`), so Markdown-guide JSON keeps its shape.
+   */
+  locations?: { file: string; line: number }[];
 }
 
 export interface ReviewThresholds {
@@ -121,10 +126,14 @@ function collectShardOwners(
   return owners;
 }
 
-function reviewIndex(shard: Shard, max: number): ReviewFinding | null {
+function reviewIndex(
+  shard: Shard,
+  max: number,
+): (ReviewFinding & { overGroups?: string[] }) | null {
   const groups = new Map<string, Set<string>>();
   const order: string[] = [];
   for (const entry of shard.doc.manifest) {
+    if (entry.kind !== 'toc') continue;
     const target = entry.resolved ?? entry.target;
     let set = groups.get(entry.group);
     if (!set) {
@@ -144,6 +153,7 @@ function reviewIndex(shard: Shard, max: number): ReviewFinding | null {
     files: [shard.rel],
     detail: `${parts.join('; ')} (limit ${max} per group)`,
     fix: REVIEW_FIXES['index-size'],
+    overGroups: over,
   };
 }
 
@@ -151,6 +161,18 @@ function excerpt(normalized: string, words = 12): string {
   const tokens = normalized.split(' ');
   const head = tokens.slice(0, words).join(' ');
   return tokens.length > words ? `${head} …` : head;
+}
+
+function mergeThresholds(
+  base: ReviewThresholds,
+  over: Partial<ReviewThresholds> | undefined,
+): ReviewThresholds {
+  const merged = { ...base };
+  for (const key of Object.keys(DEFAULT_REVIEW_THRESHOLDS) as (keyof ReviewThresholds)[]) {
+    const v = over?.[key];
+    if (typeof v === 'number') merged[key] = v;
+  }
+  return merged;
 }
 
 /** Code-unit comparison (locale-independent, so output order is the same on every machine). */
@@ -169,59 +191,31 @@ function sortFindings(findings: ReviewFinding[]): ReviewFinding[] {
   });
 }
 
-/**
- * Report documentation sprawl signals across every guide shard (report-only; never writes).
- * Signals: `index-size`, `long-shard`, `duplicate-paragraph`, `similar-titles`.
- */
-export function reviewDocs(options: ReviewOptions): ReviewResult {
-  const thresholds: ReviewThresholds = { ...DEFAULT_REVIEW_THRESHOLDS };
-  for (const key of Object.keys(DEFAULT_REVIEW_THRESHOLDS) as (keyof ReviewThresholds)[]) {
-    const v = options.thresholds?.[key];
-    if (typeof v === 'number') thresholds[key] = v;
-  }
-  const docsRoot = resolve(options.docsRoot);
-  if (options.guide !== undefined && !options.guides.some((g) => g.name === options.guide)) {
-    const names = options.guides.map((g) => g.name).join(', ');
-    throw new Error(`Unknown guide "${options.guide}". Guides: ${names}`);
-  }
-
-  const gfm = getFormat('gfm');
-  const limitsFor = (guide: string): ReviewThresholds => {
-    const over = options.guideThresholds?.[guide];
-    if (!over) return thresholds;
-    const merged = { ...thresholds };
-    for (const key of Object.keys(DEFAULT_REVIEW_THRESHOLDS) as (keyof ReviewThresholds)[]) {
-      const v = over[key];
-      if (typeof v === 'number') merged[key] = v;
-    }
-    return merged;
-  };
-
-  const owners = collectShardOwners(options.guides);
-  let paths = [...owners.keys()];
-  if (options.scanRoot) {
-    paths = filterScanIgnored(options.scanRoot, paths, options.ignore ?? []);
-  }
-
-  const shards: Shard[] = paths
-    .map((abs) => {
-      const owner = owners.get(abs)!;
-      return {
-        abs,
-        rel: toPosix(relative(docsRoot, abs)),
-        guide: owner.guide,
-        doc: gfm.reader.read(readFileSync(abs, 'utf-8'), { path: abs, manifest: owner.manifest }),
-      };
-    })
-    .sort((a, b) => compare(a.rel, b.rel));
-
+/** The four sprawl signals over read shards. `limitsFor` gives each guide's thresholds. */
+function reviewShards(
+  shards: Shard[],
+  limitsFor: (guide: string) => ReviewThresholds,
+  withLocations: boolean,
+): ReviewFinding[] {
   const findings: ReviewFinding[] = [];
+  const at = (list: { rel: string; line: number }[]) =>
+    withLocations
+      ? {
+          locations: list
+            .map((l) => ({ file: l.rel, line: l.line }))
+            .sort((x, y) => compare(x.file, y.file) || x.line - y.line),
+        }
+      : {};
 
   // index-size
   for (const shard of shards) {
     if (!shard.doc.isIndex) continue;
     const f = reviewIndex(shard, limitsFor(shard.guide).maxIndexEntries);
-    if (f) findings.push(f);
+    if (f) {
+      const first = shard.doc.manifest.find((e) => f.overGroups?.includes(e.group));
+      const { overGroups: _, ...finding } = f;
+      findings.push({ ...finding, ...at([{ rel: shard.rel, line: first?.line ?? 1 }]) });
+    }
   }
 
   // long-shard
@@ -235,6 +229,7 @@ export function reviewDocs(options: ReviewOptions): ReviewResult {
         files: [shard.rel],
         detail: `${words} prose words (limit ${max})`,
         fix: REVIEW_FIXES['long-shard'],
+        ...at([{ rel: shard.rel, line: shard.doc.title?.line ?? 1 }]),
       });
     }
   }
@@ -263,6 +258,7 @@ export function reviewDocs(options: ReviewOptions): ReviewResult {
       files,
       detail: `${countWords(text)}-word paragraph in ${files.length} shards at ${where}: "${excerpt(text)}"`,
       fix: REVIEW_FIXES['duplicate-paragraph'],
+      ...at(locations),
     });
   }
 
@@ -287,8 +283,48 @@ export function reviewDocs(options: ReviewOptions): ReviewResult {
       files,
       detail: `${entries.length} shards in guide "${entries[0].guide}" share the title "${entries[0].title}"`,
       fix: REVIEW_FIXES['similar-titles'],
+      ...at(entries),
     });
   }
+
+  return findings;
+}
+
+/**
+ * Report documentation sprawl signals across every guide shard (report-only; never writes).
+ * Signals: `index-size`, `long-shard`, `duplicate-paragraph`, `similar-titles`.
+ */
+export function reviewDocs(options: ReviewOptions): ReviewResult {
+  const thresholds = mergeThresholds(DEFAULT_REVIEW_THRESHOLDS, options.thresholds);
+  const docsRoot = resolve(options.docsRoot);
+  if (options.guide !== undefined && !options.guides.some((g) => g.name === options.guide)) {
+    const names = options.guides.map((g) => g.name).join(', ');
+    throw new Error(`Unknown guide "${options.guide}". Guides: ${names}`);
+  }
+
+  const gfm = getFormat('gfm');
+  const limitsFor = (guide: string) =>
+    mergeThresholds(thresholds, options.guideThresholds?.[guide]);
+
+  const owners = collectShardOwners(options.guides);
+  let paths = [...owners.keys()];
+  if (options.scanRoot) {
+    paths = filterScanIgnored(options.scanRoot, paths, options.ignore ?? []);
+  }
+
+  const shards: Shard[] = paths
+    .map((abs) => {
+      const owner = owners.get(abs)!;
+      return {
+        abs,
+        rel: toPosix(relative(docsRoot, abs)),
+        guide: owner.guide,
+        doc: gfm.reader.read(readFileSync(abs, 'utf-8'), { path: abs, manifest: owner.manifest }),
+      };
+    })
+    .sort((a, b) => compare(a.rel, b.rel));
+
+  const findings = reviewShards(shards, limitsFor, false);
 
   if (options.guide !== undefined) {
     const inGuide = new Set(shards.filter((s) => s.guide === options.guide).map((s) => s.rel));
@@ -301,6 +337,40 @@ export function reviewDocs(options: ReviewOptions): ReviewResult {
   return { findings: sortFindings(findings), shardCount: shards.length, thresholds };
 }
 
+export interface SourceReviewOptions {
+  /** Documents to review, already read (see `readSources`). */
+  docs: SourceDoc[];
+  /** Docs root; reported paths are relative to it, and a guide is its top-level directory. */
+  docsRoot: string;
+  thresholds?: Partial<ReviewThresholds>;
+  /** Per-guide overrides of `thresholds`, keyed by top-level directory of the docs root. */
+  guideThresholds?: Record<string, Partial<ReviewThresholds>>;
+}
+
+/**
+ * The four sprawl signals over documents in any format, for a tree another tool builds
+ * (`merlon review --no-compile`). A document's guide is its top-level directory under the docs
+ * root (`.` for files at the root), and every finding carries `locations`.
+ */
+export function reviewSourceDocs(options: SourceReviewOptions): ReviewResult {
+  const thresholds = mergeThresholds(DEFAULT_REVIEW_THRESHOLDS, options.thresholds);
+  const docsRoot = resolve(options.docsRoot);
+  const shards: Shard[] = options.docs
+    .map((doc) => {
+      const rel = toPosix(relative(docsRoot, doc.path));
+      const slash = rel.indexOf('/');
+      return { abs: doc.path, rel, guide: slash === -1 ? '.' : rel.slice(0, slash), doc };
+    })
+    .sort((a, b) => compare(a.rel, b.rel));
+  const limitsFor = (guide: string) =>
+    mergeThresholds(thresholds, options.guideThresholds?.[guide]);
+  return {
+    findings: sortFindings(reviewShards(shards, limitsFor, true)),
+    shardCount: shards.length,
+    thresholds,
+  };
+}
+
 /** Human-readable report grouped by signal (stdout of `merlon review`). */
 export function formatReviewReport(result: ReviewResult): string {
   const out: string[] = [];
@@ -309,7 +379,10 @@ export function formatReviewReport(result: ReviewResult): string {
     if (group.length === 0) continue;
     out.push(`${signal} (${group.length}) — fix: ${REVIEW_FIXES[signal]}`);
     for (const f of group) {
-      out.push(`  - ${f.files.join(', ')}: ${f.detail}`);
+      const where = f.locations
+        ? f.locations.map((l) => `${l.file}:${l.line}`).join(', ')
+        : f.files.join(', ');
+      out.push(`  - ${where}: ${f.detail}`);
     }
     out.push('');
   }

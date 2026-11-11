@@ -64,10 +64,10 @@ describe('rst reader: toctrees and includes', () => {
       '   other',
     ]);
     expect(doc.manifest).toEqual([
-      { target: 'admin-guide/index', line: 5, group: 'toctree "User guides"', kind: 'toc' },
-      { target: '/process/index', line: 6, group: 'toctree "User guides"', kind: 'toc' },
-      { target: 'api/*', line: 7, group: 'toctree "User guides"', kind: 'toc', glob: true },
-      { target: 'other', line: 13, group: 'uncaptioned toctree at line 11', kind: 'toc' },
+      { target: 'admin-guide/index', line: 5, group: 'in toctree "User guides"', kind: 'toc' },
+      { target: '/process/index', line: 6, group: 'in toctree "User guides"', kind: 'toc' },
+      { target: 'api/*', line: 7, group: 'in toctree "User guides"', kind: 'toc', glob: true },
+      { target: 'other', line: 13, group: 'in uncaptioned toctree at line 11', kind: 'toc' },
     ]);
   });
 
