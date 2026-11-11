@@ -1,18 +1,19 @@
 import { existsSync, readFileSync } from 'node:fs';
-import { basename, dirname, join, relative, resolve, sep } from 'node:path';
+import { join, relative, resolve, sep } from 'node:path';
 import { linkedSectionFiles } from '../compile/section-manifest.js';
-import { extractLinks } from '../links/extract.js';
-import {
-  countWords,
-  headingTitlePlain,
-  inlineToPlain,
-  listMarkerLength,
-  maskNonProse,
-  parseHeading,
-  stripBlockMarkers,
-} from '../markdown/index.js';
+import { countWords, foldPlain, foldTitle } from '../source/text.js';
+import { getFormat } from '../source/registry.js';
+import type { SourceDoc } from '../source/model.js';
 import { filterScanIgnored } from './coverage.js';
 import type { GuideDirEntry } from './orphans.js';
+
+// GFM helpers this module exported before the source-format readers; kept for compatibility.
+export {
+  gfmProseWords as shardProseWords,
+  gfmParagraphUnits as paragraphUnits,
+  gfmNormalizeParagraph as normalizeParagraph,
+  gfmNormalizeTitle as normalizeTitle,
+} from '../source/gfm/reader.js';
 
 /** Sprawl signals reported by {@link reviewDocs}, in report order. */
 export const REVIEW_SIGNALS = [
@@ -84,8 +85,7 @@ interface Shard {
   abs: string;
   rel: string;
   guide: string;
-  isIndex: boolean;
-  lines: string[];
+  doc: SourceDoc;
 }
 
 function toPosix(p: string): string {
@@ -119,132 +119,16 @@ function collectShardOwners(
   return owners;
 }
 
-function isIndexFile(abs: string, manifest: string): boolean {
-  const name = basename(abs);
-  return name === manifest || name === 'index.md' || name === 'shards.md';
-}
-
-/** Reference-style link definition line (`[id]: target`), which carries no prose. */
-function isLinkDefinition(trimmed: string): boolean {
-  if (!trimmed.startsWith('[')) return false;
-  const close = trimmed.indexOf(']:');
-  return close > 1 && !trimmed.slice(1, close).includes(']');
-}
-
-function isTableRow(trimmed: string): boolean {
-  return trimmed.startsWith('|');
-}
-
-/** Prose words in a shard: fenced code, front matter, HTML comments, and link targets excluded. */
-export function shardProseWords(lines: string[]): number {
-  let words = 0;
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed || isLinkDefinition(trimmed)) continue;
-    const heading = parseHeading(trimmed);
-    const text = heading ? heading.title : stripBlockMarkers(trimmed);
-    words += countWords(inlineToPlain(text.split('|').join(' ')));
-  }
-  return words;
-}
-
-/** Lowercase, whitespace-collapsed plain text used to compare paragraphs. */
-export function normalizeParagraph(text: string): string {
-  return inlineToPlain(text).toLowerCase().split(/\s+/).filter(Boolean).join(' ');
-}
-
-/** Normalized title for comparison: plain text, lowercase, punctuation folded to spaces. */
-export function normalizeTitle(title: string): string {
-  return inlineToPlain(headingTitlePlain(title))
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}]+/gu, ' ')
-    .trim();
-}
-
-interface Paragraph {
-  line: number;
-  text: string;
-}
-
-/**
- * Paragraph-like units: runs of prose lines split at blank lines, headings, table rows, and
- * list-item starts (each list item is its own unit).
- */
-export function paragraphUnits(lines: string[]): Paragraph[] {
-  const units: Paragraph[] = [];
-  let current: Paragraph | null = null;
-  const flush = () => {
-    if (current) units.push(current);
-    current = null;
-  };
-  for (let i = 0; i < lines.length; i++) {
-    const trimmed = lines[i].trim();
-    if (!trimmed || parseHeading(trimmed) || isTableRow(trimmed) || isLinkDefinition(trimmed)) {
-      flush();
-      continue;
-    }
-    let quoted = trimmed;
-    while (quoted.startsWith('>')) quoted = quoted.slice(1).trimStart();
-    if (listMarkerLength(quoted) > 0) flush();
-    const text = stripBlockMarkers(trimmed);
-    if (!text) {
-      flush();
-      continue;
-    }
-    if (current) current.text += ` ${text}`;
-    else current = { line: i + 1, text };
-  }
-  flush();
-  return units;
-}
-
-function firstH1(lines: string[]): { title: string; line: number } | null {
-  for (let i = 0; i < lines.length; i++) {
-    const h = parseHeading(lines[i]);
-    if (h && h.level === 1) return { title: h.title, line: i + 1 };
-  }
-  return null;
-}
-
-function isShardLinkTarget(target: string): string | null {
-  if (target.startsWith('#') || target.includes('://') || target.startsWith('mailto:')) return null;
-  let path = target;
-  const hash = path.indexOf('#');
-  if (hash !== -1) path = path.slice(0, hash);
-  const query = path.indexOf('?');
-  if (query !== -1) path = path.slice(0, query);
-  // Strip an optional link title: `(path "Title")`.
-  const space = path.indexOf(' ');
-  if (space !== -1) path = path.slice(0, space);
-  return path.endsWith('.md') ? path : null;
-}
-
 function reviewIndex(shard: Shard, max: number): ReviewFinding | null {
   const groups = new Map<string, Set<string>>();
   const order: string[] = [];
-  const headingAt = new Map<number, string>();
-  shard.lines.forEach((line, i) => {
-    const h = parseHeading(line);
-    if (h && h.level >= 2) headingAt.set(i + 1, `"${'#'.repeat(h.level)} ${h.title.trim()}"`);
-  });
-
-  let group = 'before any ## heading';
-  const links = extractLinks(shard.lines.join('\n'));
-  let next = 0;
-  const headingLines = [...headingAt.keys()].sort((a, b) => a - b);
-  for (const link of links) {
-    while (next < headingLines.length && headingLines[next] <= link.line) {
-      group = `under ${headingAt.get(headingLines[next])}`;
-      next++;
-    }
-    const path = isShardLinkTarget(link.target);
-    if (!path) continue;
-    const target = resolve(dirname(shard.abs), path);
-    let set = groups.get(group);
+  for (const entry of shard.doc.manifest) {
+    const target = entry.resolved ?? entry.target;
+    let set = groups.get(entry.group);
     if (!set) {
       set = new Set();
-      groups.set(group, set);
-      order.push(group);
+      groups.set(entry.group, set);
+      order.push(entry.group);
     }
     set.add(target);
   }
@@ -299,6 +183,7 @@ export function reviewDocs(options: ReviewOptions): ReviewResult {
     throw new Error(`Unknown guide "${options.guide}". Guides: ${names}`);
   }
 
+  const gfm = getFormat('gfm');
   const owners = collectShardOwners(options.guides);
   let paths = [...owners.keys()];
   if (options.scanRoot) {
@@ -312,8 +197,7 @@ export function reviewDocs(options: ReviewOptions): ReviewResult {
         abs,
         rel: toPosix(relative(docsRoot, abs)),
         guide: owner.guide,
-        isIndex: isIndexFile(abs, owner.manifest),
-        lines: maskNonProse(readFileSync(abs, 'utf-8')),
+        doc: gfm.reader.read(readFileSync(abs, 'utf-8'), { path: abs, manifest: owner.manifest }),
       };
     })
     .sort((a, b) => compare(a.rel, b.rel));
@@ -322,14 +206,14 @@ export function reviewDocs(options: ReviewOptions): ReviewResult {
 
   // index-size
   for (const shard of shards) {
-    if (!shard.isIndex) continue;
+    if (!shard.doc.isIndex) continue;
     const f = reviewIndex(shard, thresholds.maxIndexEntries);
     if (f) findings.push(f);
   }
 
   // long-shard
   for (const shard of shards) {
-    const words = shardProseWords(shard.lines);
+    const words = shard.doc.proseWords;
     if (words > thresholds.maxShardWords) {
       findings.push({
         signal: 'long-shard',
@@ -344,8 +228,8 @@ export function reviewDocs(options: ReviewOptions): ReviewResult {
   // duplicate-paragraph
   const byText = new Map<string, { rel: string; line: number }[]>();
   for (const shard of shards) {
-    for (const unit of paragraphUnits(shard.lines)) {
-      const normalized = normalizeParagraph(unit.text);
+    for (const unit of shard.doc.paragraphs) {
+      const normalized = foldPlain(unit.plain);
       if (countWords(normalized) < thresholds.minDuplicateWords) continue;
       const list = byText.get(normalized) ?? [];
       list.push({ rel: shard.rel, line: unit.line });
@@ -371,13 +255,13 @@ export function reviewDocs(options: ReviewOptions): ReviewResult {
   // similar-titles (within one guide)
   const byTitle = new Map<string, { guide: string; title: string; rel: string; line: number }[]>();
   for (const shard of shards) {
-    const h1 = firstH1(shard.lines);
+    const h1 = shard.doc.title;
     if (!h1) continue;
-    const key = normalizeTitle(h1.title);
+    const key = foldTitle(h1.plain);
     if (!key) continue;
     const mapKey = `${shard.guide}\0${key}`;
     const list = byTitle.get(mapKey) ?? [];
-    list.push({ guide: shard.guide, title: h1.title.trim(), rel: shard.rel, line: h1.line });
+    list.push({ guide: shard.guide, title: h1.text, rel: shard.rel, line: h1.line });
     byTitle.set(mapKey, list);
   }
   for (const entries of byTitle.values()) {

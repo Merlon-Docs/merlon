@@ -135,6 +135,24 @@ export {
   type CoverageOptions,
 } from './validate/coverage.js';
 export {
+  getFormat,
+  listFormats,
+  registerFormat,
+  gfmFormat,
+  gfmReader,
+  type AnchorOrigin,
+  type DocAnchor,
+  type DocHeading,
+  type DocLink,
+  type DocLinkKind,
+  type DocParagraph,
+  type ManifestEntry,
+  type ReadContext,
+  type SourceDoc,
+  type SourceFormat,
+  type SourceReader,
+} from './source/index.js';
+export {
   reviewDocs,
   formatReviewReport,
   DEFAULT_REVIEW_THRESHOLDS,
