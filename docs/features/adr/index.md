@@ -13,4 +13,4 @@ Delivery backlog and roadmap work items stay in the issue tracker. A record keep
 - [ADR 0005 — Keep linear TypeScript scanners over rg, Peggy, or Rust](./0005-keep-ts-scanners-over-rg-peggy-rust.md)
 - [ADR 0006 — Publish one skill that routes to workflows](./0006-one-skill-with-workflows.md)
 - [ADR 0007 — Review the docs as a set in their own workflow](./0007-doc-review-workflow.md)
-- [ADR 0008 — Read non-Markdown sources through format adapters](./0008-source-format-adapters.md)
+- [ADR 0008 — One document model behind every source format](./0008-one-document-model.md)
