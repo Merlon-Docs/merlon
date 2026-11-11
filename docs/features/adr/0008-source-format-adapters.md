@@ -8,16 +8,16 @@
 
 The Merlon Docs workflow doesn't depend on the source format. Shard responsibility, the reviewer lenses, the sprawl signals and "one rule in one place" apply as well to a Sphinx tree as to a Markdown one. The core package does depend on it. Every layer assumes [GFM](../../glossary/gfm.md):
 
-| Layer        | Where (core 1.1.0, `packages/merlon-docs-core/src`)                                                                                                       | Assumption                                     |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| Discovery    | `validate/coverage.ts` and `validate/path-probe.ts` glob `**/*.md`; `sectionFiles` and `checkOrphansForGuides` fall back to `n.endsWith('.md')`           | shards are `.md`                               |
-| Manifest     | `isIndexFile` in `validate/review.ts` (`index.md`, `shards.md`); `resolveManifestPaths` and `linkedSectionFiles` in `compile/section-manifest.ts`         | a guide index is a Markdown link list          |
-| Headings     | `parseHeading` and `parseAtxHeading` in `markdown/`; `firstH1` in review; `demoteHeadings` and `extractFirstHeading` in compile                             | ATX `#` headings                               |
-| Links        | `extractLinks`, `mdLinkPaths`, `slugLinkTargets`, `scanMarkdownLinks`; `isShardLinkTarget` in review keeps `.md` targets only                             | `[text](target#frag)`                          |
-| Slugs / refs | `githubSlugify`, `buildSlugRegistry`, `refs.json`                                                                                                         | anchors are GitHub heading slugs               |
-| Paragraphs   | `maskNonProse`, `paragraphUnits`, `shardProseWords`, `createCodeFenceScanner`                                                                             | GFM block rules                                |
-| Output       | `defaultGuideOutputFile` gives `${guide}.md`                                                                                                              | compiled output is Markdown                    |
-| Config       | `compileOrder` is required (`.min(1)`)                                                                                                                    | every project compiles guides                  |
+| Layer        | Where (core 1.1.0, `packages/merlon-docs-core/src`)                                                                                               | Assumption                            |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| Discovery    | `validate/coverage.ts` and `validate/path-probe.ts` glob `**/*.md`; `sectionFiles` and `checkOrphansForGuides` fall back to `n.endsWith('.md')`   | shards are `.md`                      |
+| Manifest     | `isIndexFile` in `validate/review.ts` (`index.md`, `shards.md`); `resolveManifestPaths` and `linkedSectionFiles` in `compile/section-manifest.ts` | a guide index is a Markdown link list |
+| Headings     | `parseHeading` and `parseAtxHeading` in `markdown/`; `firstH1` in review; `demoteHeadings` and `extractFirstHeading` in compile                   | ATX `#` headings                      |
+| Links        | `extractLinks`, `mdLinkPaths`, `slugLinkTargets`, `scanMarkdownLinks`; `isShardLinkTarget` in review keeps `.md` targets only                     | `[text](target#frag)`                 |
+| Slugs / refs | `githubSlugify`, `buildSlugRegistry`, `refs.json`                                                                                                 | anchors are GitHub heading slugs      |
+| Paragraphs   | `maskNonProse`, `paragraphUnits`, `shardProseWords`, `createCodeFenceScanner`                                                                     | GFM block rules                       |
+| Output       | `defaultGuideOutputFile` gives `${guide}.md`                                                                                                      | compiled output is Markdown           |
+| Config       | `compileOrder` is required (`.min(1)`)                                                                                                            | every project compiles guides         |
 
 So a project whose docs are reStructuredText, plain text or AsciiDoc gets nothing from `merlon review` or `merlon check`: discovery sees zero files. A trial on the Linux kernel's `Documentation/` tree (3,489 `.rst` files plus `.txt`, `README` and extensionless prose, no `.md`, built by Sphinx) confirmed it. A standard-library Python prototype of `merlon review` for that tree found real sprawl, and seven of its first findings were false positives that a line-level reader has to get right. They are the test fixtures below.
 
@@ -51,16 +51,16 @@ The GFM adapter wraps the functions review and check already call (`maskNonProse
 
 ### Config
 
-| Key                                | Default                                    | Meaning                                                                                                                                  |
-| ---------------------------------- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `sources`                          | `[{ "glob": "**/*.md", "format": "gfm" }]` | Which files are docs, and how to read each. The first matching entry wins. Globs are relative to the docs root.                         |
-| `compileOrder`                     | required today                             | Becomes optional. `merlon compile`, and `merlon check` without `--no-compile`, fail with a clear message when it is missing.            |
-| `review.roots`                     | `["index.rst"]` for RST, else the guides   | Entry documents that reachability starts from in review-only mode.                                                                     |
-| `review.guides`                    | none                                       | Per-guide threshold overrides, for example `{ "ABI": { "maxShardWords": 20000 } }`. A guide is a `compileOrder` name, or in review-only mode a top-level directory of the docs root. |
-| `review.manifestHook`              | none                                       | Module path (relative to the config file) whose default export returns extra reachable docs-root-relative paths.                       |
-| `sphinx.autosectionlabel`          | off                                        | `{ "prefixDocument": true, "maxDepth": 0 }`, mirroring `autosectionlabel_prefix_document` and `autosectionlabel_maxdepth`.              |
-| `sphinx.ignoreLabels`              | `[]`                                       | Regexes for labels generated at build time (`genindex`, `modindex`, `search`, `abi_.*`).                                                 |
-| `sphinx.inventory`                 | none                                       | Path to a built `objects.inv`. Its `std:label` and `std:doc` entries count as defined.                                                 |
+| Key                       | Default                                    | Meaning                                                                                                                                                                              |
+| ------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `sources`                 | `[{ "glob": "**/*.md", "format": "gfm" }]` | Which files are docs, and how to read each. The first matching entry wins. Globs are relative to the docs root.                                                                      |
+| `compileOrder`            | required today                             | Becomes optional. `merlon compile`, and `merlon check` without `--no-compile`, fail with a clear message when it is missing.                                                         |
+| `review.roots`            | `["index.rst"]` for RST, else the guides   | Entry documents that reachability starts from in review-only mode.                                                                                                                   |
+| `review.guides`           | none                                       | Per-guide threshold overrides, for example `{ "ABI": { "maxShardWords": 20000 } }`. A guide is a `compileOrder` name, or in review-only mode a top-level directory of the docs root. |
+| `review.manifestHook`     | none                                       | Module path (relative to the config file) whose default export returns extra reachable docs-root-relative paths.                                                                     |
+| `sphinx.autosectionlabel` | off                                        | `{ "prefixDocument": true, "maxDepth": 0 }`, mirroring `autosectionlabel_prefix_document` and `autosectionlabel_maxdepth`.                                                           |
+| `sphinx.ignoreLabels`     | `[]`                                       | Regexes for labels generated at build time (`genindex`, `modindex`, `search`, `abi_.*`).                                                                                             |
+| `sphinx.inventory`        | none                                       | Path to a built `objects.inv`. Its `std:label` and `std:doc` entries count as defined.                                                                                               |
 
 Every new key gets `.describe()` text and lands in `merlon.config.schema.json`.
 
