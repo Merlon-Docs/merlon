@@ -21,29 +21,30 @@ The Merlon Docs workflow doesn't depend on the source format. Shard responsibili
 
 So a project whose docs are reStructuredText, plain text, man pages or AsciiDoc gets nothing from `merlon review` or `merlon check`: discovery sees zero files. A trial on the Linux kernel's `Documentation/` tree (3,489 `.rst` files plus `.txt`, `README`, extensionless prose and troff man pages, no `.md`, built by Sphinx) confirmed it. A standard-library Python prototype of `merlon review` for that tree found real sprawl, and seven of its first findings were false positives that a line-level reader has to get right. They are the test fixtures below.
 
-The fix is not a second code path per format. Links, anchors, headings, manifests, paragraphs and includes mean the same thing in every format; only their spelling differs. So core should check, review and compile one format-neutral model, and each format should only translate to and from it.
+The fix is not a second code path per format. Links, anchors, headings, manifests, paragraphs and includes mean the same thing in every format; only their spelling differs. So core should check and review one format-neutral model, and each format should only translate into it. Compiling guides is a different job: a tree that Sphinx, MkDocs or Antora already builds should keep being built by that tool, and Merlon Docs should do what it is good at there, the static checks that catch stale links, broken anchors and sprawl.
 
 ## Decision
 
-Split core into three layers and keep every format detail in the outer two:
+Split the checking side of core into two layers and keep every format detail in the outer one:
 
 ```text
-source text ──Reader──▶ SourceDoc ──core passes──▶ findings / edits ──Writer──▶ output text
-             (per format)  (neutral)  (format-free)                (per format)
+source text ──Reader──▶ SourceDoc ──core passes──▶ findings
+             (per format)  (neutral)  (format-free)
 ```
 
 - A **Reader** parses one format into a `SourceDoc`. It knows the syntax and nothing about checks.
-- **Core passes** (review signals, link and anchor validation, orphans, heading checks, coverage, compile planning) read only `SourceDoc` values and the small interfaces below. None of them imports `markdown/`.
-- A **Writer** turns the edits compile plans (demote a heading, rewrite a link target, insert a title, wrap in source tags) back into text of one format. Edits are spans on the original source, so untouched text passes through byte for byte.
+- **Core passes** (review signals, link and anchor validation, orphans, heading checks, coverage) read only `SourceDoc` values and the small interfaces below. None of them imports `markdown/`.
 
-A format is a registered bundle of a Reader, a Writer and an anchor scheme. GFM is the first bundle, extracted from today's code with no behaviour change. RST, plain text and man pages follow.
+A format is a registered bundle of a Reader and, where the format has them, an anchor scheme and a ref resolver. GFM is the first bundle, extracted from today's code with no behaviour change. RST, plain text and man pages follow.
+
+**Compile stays GFM.** `merlon compile` keeps its current code and becomes a capability of the GFM bundle only. A non-GFM tree is compiled by its own tool, and `merlon check --no-compile` and `merlon review --no-compile` run the static checks on its sources. Compile code isn't moved onto the model, because no format but GFM would use it.
 
 ### SOLID, applied
 
-- **Single responsibility.** Parsing, checking and emitting live in separate modules. A review signal never parses, and a reader never decides what is a finding.
-- **Open/closed.** Formats come from a registry (`registerFormat`). Adding AsciiDoc adds a bundle and its fixtures; review, check and compile don't change.
+- **Single responsibility.** Parsing, checking and compiling live in separate modules. A review signal never parses, and a reader never decides what is a finding.
+- **Open/closed.** Formats come from a registry (`registerFormat`). Adding AsciiDoc adds a bundle and its fixtures; review and check don't change.
 - **Liskov substitution.** One shared contract test suite runs against every registered format: the same fixture document written in each format must produce the same `SourceDoc` shape (title, heading tree, paragraph count, link kinds, anchors, manifest entries).
-- **Interface segregation.** No fat adapter. The interfaces are small and a format implements only what it supports: a plain-text bundle has a Reader but no anchor scheme, and a format that can't be compiled has no Writer.
+- **Interface segregation.** No fat adapter. The interfaces are small and a format implements only what it supports: a plain-text bundle has a Reader but no anchor scheme, and only GFM has a compiler.
 - **Dependency inversion.** Passes depend on `SourceDoc` and the interfaces; the registry injects the concrete format chosen by config.
 
 ### The model and interfaces
@@ -55,7 +56,7 @@ interface SourceDoc {
   title: Heading | null;
   headings: Heading[]; // { text, level, line, span }
   blocks: Block[]; // paragraph | code | list-item | table | directive, each with line + span
-  links: DocLink[]; // { kind: 'file' | 'doc' | 'anchor' | 'label' | 'term' | 'manpage' | 'external', target, fragment?, line, span }
+  links: DocLink[]; // { kind: 'file' | 'doc' | 'anchor' | 'label' | 'manpage' | 'external', target, fragment?, line, span }
   anchors: Anchor[]; // { id, line, origin: 'heading' | 'label' | 'name' | 'generated' }
   manifest: ManifestEntry[]; // { target, line, group, kind: 'toc' | 'include', glob? }
   orphanOk: boolean; // RST `:orphan:`
@@ -70,22 +71,18 @@ interface AnchorScheme {
 interface RefResolver {
   resolve(link: DocLink, from: SourceDoc): Resolution;
 }
-interface SourceWriter {
-  apply(text: string, edits: Edit[]): string;
-  render(node: Synthesized): string;
-} // titles, banners, source tags
 ```
 
 Prose for words and paragraphs comes from `blocks` with code, literal, directive and table blocks excluded, so `long-shard` and `duplicate-paragraph` count the same thing in every format.
 
 ### Formats in this change
 
-| Format | Reader covers                                                                                                                                                                                                                                                                                                                                         | Anchors and refs                                                                                                             | Writer                            |
-| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
-| `gfm`  | Today's behaviour, moved behind the interfaces                                                                                                                                                                                                                                                                                                        | GitHub heading slugs, `refs.json`                                                                                            | Today's compile output, unchanged |
-| `rst`  | Over/underline titles; `toctree` (relative, `/absolute`, `:glob:`, `:caption:` as the index group); `include` and `literalinclude`; `:ref:`, `:doc:`, `:term:` with wrapped targets; `.. _label:` (indented, in list items, backquoted) and `:name:`; `:orphan:`; literal and directive bodies masked; `../x` in a toctree is an entry, not a comment | Sphinx resolver: labels, `:name:`, `autosectionlabel` (`prefixDocument`, `maxDepth`), `ignoreLabels`, optional `objects.inv` | See the open decision below       |
-| `text` | Blank-line paragraphs; an underlined first line as title; files starting with `#!` skipped; `README` and extensionless files via `sources` globs                                                                                                                                                                                                      | none                                                                                                                         | none                              |
-| `man`  | troff `.TH` title, `.SH`/`.SS` headings, `.PP`/`.P` paragraphs, `.nf`…`.fi` and `.EX`…`.EE` masked; `.BR name (N)` and `name(N)` as `manpage` links                                                                                                                                                                                                   | `manpage` links resolve to `name.N` files under the configured roots                                                         | none                              |
+| Format | Reader covers                                                                                                                                                                                                                                                                                                                                  | Anchors and refs                                                                                                             |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `gfm`  | Today's behaviour, moved behind the interfaces                                                                                                                                                                                                                                                                                                 | GitHub heading slugs, `refs.json`                                                                                            |
+| `rst`  | Over/underline titles; `toctree` (relative, `/absolute`, `:glob:`, `:caption:` as the index group); `include` and `literalinclude`; `:ref:` and `:doc:` with wrapped targets; `.. _label:` (indented, in list items, backquoted) and `:name:`; `:orphan:`; literal and directive bodies masked; `../x` in a toctree is an entry, not a comment | Sphinx resolver: labels, `:name:`, `autosectionlabel` (`prefixDocument`, `maxDepth`), `ignoreLabels`, optional `objects.inv` |
+| `text` | Blank-line paragraphs; an underlined first line as title; files starting with `#!` skipped; `README` and extensionless files via `sources` globs                                                                                                                                                                                               | none                                                                                                                         |
+| `man`  | troff `.TH` title, `.SH`/`.SS` headings, `.PP`/`.P` paragraphs, `.nf`…`.fi` and `.EX`…`.EE` masked; `.BR name (N)` and `name(N)` as `manpage` links                                                                                                                                                                                            | `manpage` links resolve to `name.N` files under the configured roots                                                         |
 
 ### Config
 
@@ -102,7 +99,7 @@ Every key gets `.describe()` text and lands in `merlon.config.schema.json`. A co
 
 ### Commands
 
-- `merlon check` and `merlon review` run on every format in `sources`. Orphans follow manifest entries, includes, `doc` links, the manifest hook and `orphanOk`. Symlinks are resolved and counted once. Every finding carries file and line; JSON findings gain an additive `locations` array, and the text report is unchanged for a Markdown-only config.
+- `merlon check` and `merlon review` run on every format in `sources`. Check reports broken file links, undefined refs and anchors, and orphans. Orphans follow manifest entries, includes, `doc` links, the manifest hook and `orphanOk`. Symlinks are resolved and counted once. Every finding carries file and line; JSON findings gain an additive `locations` array, and the text report is unchanged for a Markdown-only config.
 - `--no-compile` skips the compile step (and markdownlint, Vale and `refs.json`) for trees another tool builds.
 - `--config` may live outside the docs root; module and inventory paths in it resolve against the config file.
 
@@ -110,17 +107,14 @@ Every key gets `.describe()` text and lands in `merlon.config.schema.json`. A co
 
 The getting-started workflow gains a "brownfield, non-Markdown" branch: a project-local extension skill and an out-of-tree config, then `merlon review --no-compile`, with no `docs/` scaffold.
 
-## Open decision: compile scope
+## Compile scope
 
-Compile moves onto the model for GFM in this change, with byte-identical output. What compile does for a non-GFM guide is still open:
-
-1. **Model now, non-GFM writers later (recommended).** The compile planner is format-neutral; only the GFM Writer ships. A guide in another format is rejected by `compile` with a clear message, and RST and man Writers are separate changes with their own fixtures.
-2. **Same-format compile now.** An RST guide compiles to one RST file (adornments re-levelled, `:doc:` links to stitched documents rewritten to `:ref:`). Larger change; Sphinx already builds the kernel tree.
-3. **Convert to GFM.** Any source compiles to Markdown. Lossy for directives and roles; was a non-goal of the original task.
+Decided on 2026-11-11: Merlon Docs compiles GFM guides only. Projects whose docs another system builds (Sphinx, MkDocs, Antora) keep that system for compiling, and use Merlon Docs for static checks and review. A `compile` run that meets a non-GFM guide fails with a message pointing at `--no-compile`. Same-format compile (RST in, RST out) and conversion to GFM were both declined: they duplicate tools these projects already trust, and conversion loses the roles and directives the checks rely on.
 
 ## Alternatives considered
 
 - **One fat adapter per format** (the first draft of this ADR). Every format would implement every method, including compile operations it can't support, and core would keep format branches. It fails interface segregation and leaves compile on a second path.
+- **Move compile onto the model too.** It would make compile format-neutral, but only GFM would ever use it, and it puts the largest module's byte-identical output at risk for no capability.
 - **Convert sources to Markdown first.** It throws away labels, roles and directives that the checks need, and it fights the tool that builds the project.
 - **Require docutils or a full troff parser.** Exact, but adds a Python or C dependency to a Node CLI. Line-level readers were enough in the prototype; a stricter reader can replace one later behind the same interface.
 
@@ -148,4 +142,4 @@ Plus a contract fixture: one small document written in GFM, RST, text and man, w
 ## Re-evaluate when
 
 - A reader's line-level heuristics produce false positives the fixtures can't capture, which would justify a stricter parser behind the same interface.
-- Someone asks to compile a format whose Writer doesn't exist yet.
+- A project with no external build system wants Merlon Docs to compile a non-GFM format.
