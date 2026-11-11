@@ -29,3 +29,11 @@ export {
 } from './rst/reader.js';
 export { textFormat, textReader, textInlineToPlain } from './text/reader.js';
 export { manFormat, manReader, troffToPlain } from './man/reader.js';
+export { rstFormatWithSphinx } from './rst/reader.js';
+export {
+  sphinxRefs,
+  parseSphinxInventory,
+  readSphinxInventory,
+  type SphinxRefOptions,
+  type SphinxInventory,
+} from './rst/sphinx.js';

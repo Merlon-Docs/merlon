@@ -1,4 +1,4 @@
-import { basename, dirname, extname, join, resolve } from 'node:path';
+import { dirname, extname, join, resolve } from 'node:path';
 import type { ReadContext, SourceFormat, SourceReader, TargetLocator } from '../format.js';
 import type {
   DocAnchor,
@@ -9,6 +9,10 @@ import type {
   SourceDoc,
 } from '../model.js';
 import { countWords } from '../text.js';
+import { normalizeRstLabel, RST_EXTENSIONS } from './names.js';
+
+export { normalizeRstLabel, rstDocname } from './names.js';
+import { sphinxRefs, type SphinxRefOptions } from './sphinx.js';
 
 /**
  * reStructuredText reader (ADR 0008). Line-level heuristics, no docutils: enough to find titles,
@@ -70,11 +74,6 @@ function indentOf(line: string): number {
 }
 
 const isBlank = (line: string | undefined) => line === undefined || line.trim() === '';
-
-/** Sphinx label and reference normal form: lowercase, whitespace collapsed. */
-export function normalizeRstLabel(text: string): string {
-  return text.trim().split(/\s+/).join(' ').toLowerCase();
-}
 
 /** The target of a role body: `Text <target>` gives `target`; `~` and `!` prefixes dropped. */
 function roleTarget(body: string): string {
@@ -358,9 +357,6 @@ export const rstReader: SourceReader = {
   },
 };
 
-/** RST source extensions a document name may omit, most likely first. */
-const RST_EXTENSIONS = ['.rst', '.txt'];
-
 /**
  * Sphinx names documents without their extension, relative to the referring document or, with
  * a leading `/`, to the source root. Includes name files with their extension.
@@ -378,17 +374,15 @@ export const rstLocator: TargetLocator = {
   },
 };
 
-/** Docname of an RST path: docs-root-relative POSIX path without its extension. */
-export function rstDocname(absPath: string, docsRoot: string): string {
-  const rel = absPath.startsWith(docsRoot) ? absPath.slice(docsRoot.length + 1) : basename(absPath);
-  const name = rel.split('\\').join('/');
-  const ext = extname(name);
-  return RST_EXTENSIONS.includes(ext) ? name.slice(0, -ext.length) : name;
-}
-
 export const rstFormat: SourceFormat = {
   id: 'rst',
   name: 'reStructuredText',
   reader: rstReader,
   locator: rstLocator,
+  refs: sphinxRefs(),
 };
+
+/** The RST format with references resolved under a project's Sphinx settings. */
+export function rstFormatWithSphinx(options: SphinxRefOptions): SourceFormat {
+  return { ...rstFormat, refs: sphinxRefs(options) };
+}
