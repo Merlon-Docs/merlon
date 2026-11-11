@@ -67,6 +67,8 @@ export interface ReviewOptions {
   /** `scan.ignore` globs, relative to `scanRoot`. Applied only when `scanRoot` is set. */
   ignore?: string[];
   thresholds?: Partial<ReviewThresholds>;
+  /** Per-guide overrides of `thresholds`, keyed by guide name (config `review.guides`). */
+  guideThresholds?: Record<string, Partial<ReviewThresholds>>;
   /**
    * Review one guide (by `compileOrder` name): keep findings that involve at least one of its
    * shards, including duplicates whose other copies sit in other guides. Unknown names throw.
@@ -184,6 +186,17 @@ export function reviewDocs(options: ReviewOptions): ReviewResult {
   }
 
   const gfm = getFormat('gfm');
+  const limitsFor = (guide: string): ReviewThresholds => {
+    const over = options.guideThresholds?.[guide];
+    if (!over) return thresholds;
+    const merged = { ...thresholds };
+    for (const key of Object.keys(DEFAULT_REVIEW_THRESHOLDS) as (keyof ReviewThresholds)[]) {
+      const v = over[key];
+      if (typeof v === 'number') merged[key] = v;
+    }
+    return merged;
+  };
+
   const owners = collectShardOwners(options.guides);
   let paths = [...owners.keys()];
   if (options.scanRoot) {
@@ -207,19 +220,20 @@ export function reviewDocs(options: ReviewOptions): ReviewResult {
   // index-size
   for (const shard of shards) {
     if (!shard.doc.isIndex) continue;
-    const f = reviewIndex(shard, thresholds.maxIndexEntries);
+    const f = reviewIndex(shard, limitsFor(shard.guide).maxIndexEntries);
     if (f) findings.push(f);
   }
 
   // long-shard
   for (const shard of shards) {
     const words = shard.doc.proseWords;
-    if (words > thresholds.maxShardWords) {
+    const max = limitsFor(shard.guide).maxShardWords;
+    if (words > max) {
       findings.push({
         signal: 'long-shard',
         severity: 'warning',
         files: [shard.rel],
-        detail: `${words} prose words (limit ${thresholds.maxShardWords})`,
+        detail: `${words} prose words (limit ${max})`,
         fix: REVIEW_FIXES['long-shard'],
       });
     }
@@ -230,7 +244,7 @@ export function reviewDocs(options: ReviewOptions): ReviewResult {
   for (const shard of shards) {
     for (const unit of shard.doc.paragraphs) {
       const normalized = foldPlain(unit.plain);
-      if (countWords(normalized) < thresholds.minDuplicateWords) continue;
+      if (countWords(normalized) < limitsFor(shard.guide).minDuplicateWords) continue;
       const list = byText.get(normalized) ?? [];
       list.push({ rel: shard.rel, line: unit.line });
       byText.set(normalized, list);

@@ -102,8 +102,18 @@ function configPath(opts: GlobalOpts): string {
   return DEFAULT_CONFIG;
 }
 
-function getConfig(opts: GlobalOpts) {
-  return loadConfig(configPath(opts), process.cwd());
+/**
+ * Load the run's config. Commands that compile or read compiled guides need `compileOrder`; a
+ * config for a tree another tool builds leaves it out and runs only `--no-compile` commands.
+ */
+function getConfig(opts: GlobalOpts, needsGuides = true) {
+  const config = loadConfig(configPath(opts), process.cwd());
+  if (needsGuides && config.compileOrder.length === 0) {
+    throw new Error(
+      'This config has no compileOrder, so there are no guides to compile. Add compileOrder, or for a tree another tool builds, run merlon check --no-compile or merlon review --no-compile.',
+    );
+  }
+  return config;
 }
 
 /**
@@ -853,6 +863,7 @@ cli
       scanRoot: getScanRoot(config, opts),
       ignore: config.scan?.ignore ?? [],
       thresholds: config.review,
+      guideThresholds: config.review.guides,
     });
     if (opts.json) {
       const jsonOut = JSON.stringify(result.findings, null, 2);
