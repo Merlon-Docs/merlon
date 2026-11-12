@@ -29,6 +29,7 @@ export {
 } from './rst/reader.js';
 export { textFormat, textReader, textInlineToPlain } from './text/reader.js';
 export { manFormat, manReader, troffToPlain } from './man/reader.js';
+export { htmlFormat, htmlReader, decodeEntities } from './html/reader.js';
 export { rstFormatWithSphinx } from './rst/reader.js';
 export {
   sphinxRefs,

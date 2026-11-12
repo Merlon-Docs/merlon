@@ -156,6 +156,8 @@ export {
   textReader,
   manFormat,
   manReader,
+  htmlFormat,
+  htmlReader,
   readSources,
   type ReadSourcesOptions,
   type ReadSourcesResult,
