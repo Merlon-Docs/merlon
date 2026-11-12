@@ -757,8 +757,9 @@ The `sources` config key says which files are docs and which format reads each. 
 | `rst`  | reStructuredText, as Sphinx builds it     | `toctree` entries, `include` and `literalinclude`, `:doc:` and `:ref:` targets, labels and `:name:` options, `:orphan:`; the review signals |
 | `text` | `README`s, `.txt` and extensionless prose | The review signals. A file that starts with `#!` is a script and reads as empty                                                             |
 | `man`  | troff man pages                           | The review signals, and page references such as `open(2)` that resolve nowhere                                                              |
+| `html` | Hand-written HTML pages                   | Links between pages and their `#fragment`s, `id` and `<a name>` anchors, orphans; the review signals                                        |
 
-Plain text and man pages have no table of contents, so they are never orphans.
+Plain text and man pages have no table of contents, so they are never orphans. An HTML page's links to other `.html` or `.htm` pages are its table of contents, grouped by the `<h2>` or deeper heading above each link, and `index.html` or `index.htm` is an index. The `html` reader takes the first `<h1>` as the title, or `<title>` when there is none, and leaves `<pre>`, `<script>`, `<style>` and comments out of the prose.
 
 ### A config for a Sphinx tree
 
@@ -794,8 +795,8 @@ A config without `compileOrder` can run only these two commands. `merlon compile
 `merlon check --no-compile` reads every source and reports, with file and line:
 
 - `orphan`: a document no root reaches. Reachability starts at `roots` (relative to the docs root; by default each guide's manifest) and follows table-of-contents entries (relative, `/absolute` and `:glob:`), includes, `:doc:` links and the manifest hook. A document that says `:orphan:` is never reported.
-- `broken-link`: a table-of-contents entry, include, `:doc:` link or Markdown file link that names a missing file.
-- `broken-anchor`: a Markdown link whose `#fragment` names no heading in its target.
+- `broken-link`: a table-of-contents entry, include, `:doc:` link, or Markdown or HTML file link that names a missing file.
+- `broken-anchor`: a Markdown link whose `#fragment` names no heading in its target, or an HTML link whose `#fragment` names no `id` or `<a name>` there.
 - `undefined-ref`: a `:ref:` label that no document defines.
 - `unresolved-manpage` (a warning): a man page reference that names no page in the tree and matches no `man.quiet` entry. See [Man page references](#man-page-references).
 

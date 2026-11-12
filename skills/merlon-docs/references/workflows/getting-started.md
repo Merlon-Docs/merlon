@@ -118,7 +118,7 @@ that. Merlon Docs adds the static checks and the review.
    the project unless the user asks.
 2. **Out-of-tree config.** Write the config outside the project, or in a path
    the user names, with `sources` (one `{ glob, format }` per kind of file:
-   `rst`, `text`, `man`), `roots` (the entry document, such as `index.rst`),
+   `rst`, `text`, `man`, `html`), `roots` (the entry document, such as `index.rst`),
    and no `compileOrder`. Copy Sphinx settings from `conf.py` into `sphinx`:
    `autosectionlabel` when the extension is loaded, and `ignoreLabels` for
    labels the build generates. Set `review.guides` for directories whose pages
