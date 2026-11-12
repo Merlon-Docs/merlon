@@ -13,6 +13,12 @@ describe('source-format config', () => {
     expect(config.sphinx).toBeUndefined();
   });
 
+  it('quiets no man page references by default, and reads sections given as numbers', () => {
+    expect(MerlonConfigSchema.parse({ compileOrder: ['guide'] }).man.quiet).toEqual([]);
+    const config = MerlonConfigSchema.parse({ man: { quiet: ['defaults', 4, 'msr(4)'] } });
+    expect(config.man.quiet).toEqual(['defaults', '4', 'msr(4)']);
+  });
+
   it('accepts a review-only config with no compileOrder', () => {
     const config = MerlonConfigFileSchema.parse({
       configVersion: '1.1.0',

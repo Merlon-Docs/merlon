@@ -497,7 +497,7 @@ This table links the page that documents each key:
 | `compileOrder`, `guides[].name`, `guides[].path`, `outputDir`, `outputFile`, `refs.registryFile`, `compile.outputFile` | [Minimal config](#minimal-config) and [Path layout](#path-layout)                                                                                                            |
 | `compile.scopeRoot`                                                                                                    | [Shared glossary](#shared-glossary)                                                                                                                                          |
 | `review.*`                                                                                                             | [Review thresholds](#review-thresholds) on this page                                                                                                                         |
-| `sources`, `roots`, `manifestHook`, `sphinx.*`                                                                         | [Non-Markdown sources](#non-markdown-sources)                                                                                                                                |
+| `sources`, `roots`, `manifestHook`, `sphinx.*`, `man.quiet`                                                            | [Non-Markdown sources](#non-markdown-sources)                                                                                                                                |
 | `configVersion`, `standardVersion`, `protocolVersion`                                                                  | [Minimal config](#minimal-config)                                                                                                                                            |
 | `refs.slugAlgorithm`                                                                                                   | [Schema-only fields](#schema-only-fields) on this page                                                                                                                       |
 | `source`, `guides[].source`, `guides[].splitLevel`                                                                     | [Consumer migration](#map-the-document-to-guides)                                                                                                                            |
@@ -756,7 +756,7 @@ The `sources` config key says which files are docs and which format reads each. 
 | `gfm`  | Markdown shards                           | Everything `merlon check` checks in a compiled tree, and the review signals                                                                 |
 | `rst`  | reStructuredText, as Sphinx builds it     | `toctree` entries, `include` and `literalinclude`, `:doc:` and `:ref:` targets, labels and `:name:` options, `:orphan:`; the review signals |
 | `text` | `README`s, `.txt` and extensionless prose | The review signals. A file that starts with `#!` is a script and reads as empty                                                             |
-| `man`  | troff man pages                           | The review signals. Page references such as `open(2)` are read but not resolved                                                             |
+| `man`  | troff man pages                           | The review signals, and page references such as `open(2)` that resolve nowhere                                                              |
 
 Plain text and man pages have no table of contents, so they are never orphans.
 
@@ -797,12 +797,27 @@ A config without `compileOrder` can run only these two commands. `merlon compile
 - `broken-link`: a table-of-contents entry, include, `:doc:` link or Markdown file link that names a missing file.
 - `broken-anchor`: a Markdown link whose `#fragment` names no heading in its target.
 - `undefined-ref`: a `:ref:` label that no document defines.
+- `unresolved-manpage` (a warning): a man page reference that names no page in the tree and matches no `man.quiet` entry. See [Man page references](#man-page-references).
 
-It exits 1 when there is any issue, and skips compile, `refs.json`, markdownlint and Vale. `scan.ignore` globs are relative to the docs root here, and `.git` and `node_modules` are always skipped. A symlinked document, such as `Changes -> process/changes.rst`, is read once under its target.
+It exits 1 when there is any issue other than a warning, and skips compile, `refs.json`, markdownlint and Vale. `scan.ignore` globs are relative to the docs root here, and `.git` and `node_modules` are always skipped. A symlinked document, such as `Changes -> process/changes.rst`, is read once under its target.
 
 #### Sphinx references
 
 A `:ref:` target resolves when any of these defines it: a `.. _label:` target (indented, in a list item or backquoted), a directive's `:name:` option, a Sphinx built-in label (`genindex`, `modindex`, `search`), or a label in a built `objects.inv` named by `sphinx.inventory`. With `sphinx.autosectionlabel`, every section title is a label too, as `docname:Section Title` when `prefixDocument` is set, down to `maxDepth` levels when it isn't `0`. Labels the build generates go in `sphinx.ignoreLabels` as regular expressions. Labels compare after folding case and whitespace, so a `:ref:` whose text wraps across lines still resolves.
+
+#### Man page references
+
+A man page reference, such as `cpupower(1)` in a man page or `` :manpage:`open(2)` `` in RST, resolves when the tree has that page, as a file named `cpupower.1` read as `man`. A reference that resolves nowhere is a warning, which is printed but doesn't fail the check. Most references name pages from other projects, so `man.quiet` lists the ones that shouldn't warn. Each entry is one of:
+
+- a section, such as `"4"`, which also covers suffixed sections such as `4p`;
+- a page or a `name(section)` pattern where `*` matches anything, such as `"msr(4)"`;
+- `"defaults"`, which stands for sections 1, 2, 3 and 8: user commands, system calls, library functions and administration commands.
+
+By default nothing is quiet. A reference to a name the tree has, in a section it doesn't have, such as `cpupower(8)` when the tree has `cpupower.1`, warns whatever `man.quiet` says.
+
+```json
+{ "man": { "quiet": ["defaults", "msr(4)"] } }
+```
 
 #### Manifest hook
 

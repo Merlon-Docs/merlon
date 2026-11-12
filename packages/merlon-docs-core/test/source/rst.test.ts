@@ -119,6 +119,14 @@ describe('rst reader: labels and refs', () => {
     ]);
   });
 
+  it('reads :manpage: roles as manpage links', () => {
+    const doc = read(['See :manpage:`open(2)` and :manpage:`proc (5)`, not :manpage:`bad`.']);
+    expect(doc.links).toEqual([
+      { kind: 'manpage', target: 'open(2)', line: 1 },
+      { kind: 'manpage', target: 'proc(5)', line: 1 },
+    ]);
+  });
+
   it('ignores roles inside code, comments and literal blocks', () => {
     const doc = read([
       'Use ``:ref:`x``` like this::',

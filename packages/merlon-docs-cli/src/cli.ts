@@ -972,19 +972,23 @@ async function checkSources(opts: GlobalOpts): Promise<void> {
   const config = getConfig(opts, false);
   const docsRoot = getDocsRoot(opts);
   const inputs = await loadSourceMode(config, docsRoot, configFileOf(opts));
-  const issues = checkSourceDocs({ docsRoot, ...inputs });
+  const issues = checkSourceDocs({ docsRoot, ...inputs, manPages: config.man });
   const lines = issues.map(formatSourceIssue);
   for (const line of lines) console.error(line);
   writeDiagnosticSinks(config, docsRoot, opts, lines, []);
-  if (issues.length > 0) {
+  const errors = issues.filter((i) => i.severity !== 'warning').length;
+  const warnings = issues.length - errors;
+  const warned = warnings > 0 ? `, ${warnings} warning(s)` : '';
+  if (errors > 0) {
     console.error('');
     console.error(
-      `merlon check --no-compile failed: ${issues.length} issue(s) in ${inputs.docs.length} document(s).`,
+      `merlon check --no-compile failed: ${errors} issue(s)${warned} in ${inputs.docs.length} document(s).`,
     );
     process.exitCode = 1;
     return;
   }
-  console.log(`merlon check --no-compile passed: ${inputs.docs.length} document(s)`);
+  if (warnings > 0) console.error('');
+  console.log(`merlon check --no-compile passed: ${inputs.docs.length} document(s)${warned}`);
 }
 
 try {

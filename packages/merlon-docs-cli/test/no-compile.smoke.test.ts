@@ -86,6 +86,38 @@ describe('merlon check --no-compile', () => {
     expect(r.stderr).not.toContain('README');
   });
 
+  it('warns on a man page reference outside the tree and man.quiet, without failing', () => {
+    const sources = [
+      { glob: '**/*.rst', format: 'rst' },
+      { glob: '**/*.8', format: 'man' },
+    ];
+    const write = (config: Record<string, unknown>) => {
+      const p = writeProject({ sources, roots: ['index.rst', 'generated.rst'], ...config });
+      made.push(p.base);
+      writeFileSync(
+        join(p.docs, 'tmon.8'),
+        '.TH TMON 8\n.SH "SEE ALSO"\ndmesg(1), open(2), reboot(8)\n',
+      );
+      return p;
+    };
+    const p = write({ sphinx: { autosectionlabel: { prefixDocument: true } } });
+    const r = run(p, 'check', '--no-compile');
+    expect(r.stderr).toContain(
+      'unresolved-manpage (warning): tmon.8:3: page is not in the tree or in man.quiet "reboot(8)"',
+    );
+    expect(r.stderr).toContain('"dmesg(1)"');
+    expect(r.stdout).toContain('passed: 6 document(s), 3 warning(s)');
+    expect(r.status).toBe(0);
+
+    const quiet = write({
+      sphinx: { autosectionlabel: { prefixDocument: true } },
+      man: { quiet: ['defaults'] },
+    });
+    const q = run(quiet, 'check', '--no-compile');
+    expect(q.stderr).toBe('');
+    expect(q.status).toBe(0);
+  });
+
   it('reports a manifest hook that does not export a function', () => {
     const p = writeProject({ manifestHook: 'hook.mjs' }, 'export const x = 1;\n');
     made.push(p.base);

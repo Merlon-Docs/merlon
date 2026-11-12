@@ -16,7 +16,7 @@ import { sphinxRefs, type SphinxRefOptions } from './sphinx.js';
 
 /**
  * reStructuredText reader (ADR 0008). Line-level heuristics, no docutils: enough to find titles,
- * sections, toctrees, includes, labels, `:ref:` and `:doc:` roles, and the prose between them.
+ * sections, toctrees, includes, labels, `:ref:`, `:doc:` and `:manpage:` roles, and the prose between them.
  */
 
 /** Directives whose body is prose a reader sees (admonitions and friends). */
@@ -86,7 +86,7 @@ const ADORNMENT = /^([!-/:-@[-`{-~])\1{2,}\s*$/;
 const GRID_BORDER = /^\s*\+[-=+]+\+\s*$/;
 const SIMPLE_BORDER = /^\s*=+(?: +=+)+\s*$/;
 const LIST_ITEM = /^(?:[*+-]|#\.|\d+[.)]|\(\d+\)|[a-zA-Z][.)])\s+/;
-const ROLE = /(?<![\w`]):(?:[\w-]+:)?(ref|doc):`([^`]+)`/g;
+const ROLE = /(?<![\w`]):(?:[\w-]+:)?(ref|doc|manpage):`([^`]+)`/g;
 const HYPERLINK = /`([^`<]*?)\s*<([^`>]+)>`__?/g;
 
 function indentOf(line: string): number {
@@ -345,7 +345,7 @@ function paragraphsOf(prose: (string | null)[]): DocParagraph[] {
     .filter((u) => u.plain.length > 0);
 }
 
-/** `:ref:` and `:doc:` roles and `` `text <url>`_ `` links, with role bodies that wrap lines. */
+/** `:ref:`, `:doc:` and `:manpage:` roles and `` `text <url>`_ `` links, with role bodies that wrap lines. */
 function linksOf(prose: (string | null)[]): DocLink[] {
   const text = prose
     .map((l) => (l === null ? '' : l.replace(/``[^`]*``/g, (m) => ' '.repeat(m.length))))
@@ -356,7 +356,11 @@ function linksOf(prose: (string | null)[]): DocLink[] {
     const target = roleTarget(m[2]);
     const line = lineAt(m.index ?? 0);
     if (m[1] === 'ref') links.push({ kind: 'label', target: normalizeRstLabel(target), line });
-    else links.push({ kind: 'doc', target, line });
+    else if (m[1] === 'doc') links.push({ kind: 'doc', target, line });
+    else {
+      const page = /^([^\s()]+)\s*\((\w+)\)$/.exec(target.replace(/\s+/g, ' ').trim());
+      if (page) links.push({ kind: 'manpage', target: `${page[1]}(${page[2]})`, line });
+    }
   }
   for (const m of text.matchAll(HYPERLINK)) {
     const target = m[2].trim();

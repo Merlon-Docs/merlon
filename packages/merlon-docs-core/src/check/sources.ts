@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs';
-import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import type { LocateContext, RefResolver, SourceFormat, TargetLocator } from '../source/format.js';
 import type { DocLink, ManifestEntry, SourceDoc } from '../source/model.js';
 import { getFormat } from '../source/registry.js';
@@ -8,7 +8,8 @@ import { getFormat } from '../source/registry.js';
  * Format-neutral checks over read documents (ADR 0008): reachability from the roots, file and
  * document links that resolve, fragments that name an anchor, and labels that are defined.
  */
-export type SourceIssueType = 'orphan' | 'broken-link' | 'broken-anchor' | 'undefined-ref';
+export type SourceIssueType =
+  'orphan' | 'broken-link' | 'broken-anchor' | 'undefined-ref' | 'unresolved-manpage';
 
 export interface SourceIssue {
   type: SourceIssueType;
@@ -19,6 +20,34 @@ export interface SourceIssue {
   /** The target as written, for link issues. */
   target?: string;
   message: string;
+  /** `warning` reports without failing the check. Absent means an error. */
+  severity?: 'warning';
+}
+
+/** How `name(section)` man page references resolve. */
+export interface ManPageOptions {
+  /**
+   * References that resolve outside the tree, so they don't warn. Each entry is a section
+   * (`"8"`, which also covers suffixed sections such as `8p`), a page or `name(section)` pattern
+   * where `*` matches anything (`"dmesg(1)"`, `"*(4)"`), or `"defaults"` for
+   * {@link MAN_QUIET_DEFAULTS}. A reference to a page the tree has is checked against the tree
+   * whatever these say.
+   */
+  quiet: string[];
+}
+
+/** Sections `"defaults"` quiets: user commands, system calls, library functions, admin commands. */
+export const MAN_QUIET_DEFAULTS = ['1', '2', '3', '8'];
+
+/** One `man.quiet` entry to the regular expressions it stands for over `name(section)`. */
+export function manQuietToRegExps(entry: string): RegExp[] {
+  if (entry === 'defaults') return MAN_QUIET_DEFAULTS.flatMap(manQuietToRegExps);
+  if (/^\d[a-z]*$/i.test(entry)) return [new RegExp(`\\(${entry}[a-z]*\\)$`, 'i')];
+  const body = entry
+    .split('*')
+    .map((part) => part.replace(/[.+?^${}()|[\]\\]/g, '\\$&'))
+    .join('.*');
+  return [new RegExp(`^${body}$`)];
 }
 
 export interface SourceCheckOptions {
@@ -32,6 +61,17 @@ export interface SourceCheckOptions {
   extraReachable?: string[];
   /** Format lookup; defaults to the registry. */
   formatOf?: (id: string) => SourceFormat;
+  /**
+   * Resolve man page references against the tree's `man` documents and the `quiet` entries,
+   * warning on the rest. Without it, man page references are not checked.
+   */
+  manPages?: ManPageOptions;
+}
+
+/** The `name(section)` a man page file stands for (`cpupower.1` → `cpupower(1)`), else null. */
+function manPageName(path: string): { name: string; section: string } | null {
+  const m = /^(.+)\.(\d[a-z]*)$/.exec(basename(path));
+  return m ? { name: m[1], section: m[2] } : null;
 }
 
 function toPosix(p: string): string {
@@ -184,11 +224,58 @@ export function checkSourceDocs(options: SourceCheckOptions): SourceIssue[] {
     issues.push({ type, file: rel(doc.path), line: link.line, target, message });
   };
 
+  // Man pages the tree has, by name and by `name(section)`.
+  const manSections = new Map<string, string[]>();
+  const manDocs = new Map<string, SourceDoc>();
+  for (const doc of options.docs) {
+    if (doc.format !== 'man') continue;
+    const page = manPageName(doc.path);
+    if (!page) continue;
+    manDocs.set(`${page.name}(${page.section})`, doc);
+    manSections.set(page.name, [...(manSections.get(page.name) ?? []), page.section]);
+  }
+  const quiet = (options.manPages?.quiet ?? []).flatMap(manQuietToRegExps);
+
+  const checkManPage = (doc: SourceDoc, link: DocLink) => {
+    const hit = manDocs.get(link.target);
+    if (hit) {
+      addEdge(doc, hit);
+      return;
+    }
+    const name = link.target.slice(0, link.target.lastIndexOf('('));
+    const sections = manSections.get(name);
+    if (sections) {
+      const have = sections.map((sec) => `${name}(${sec})`).join(', ');
+      issues.push({
+        type: 'unresolved-manpage',
+        severity: 'warning',
+        file: rel(doc.path),
+        line: link.line,
+        target: link.target,
+        message: `no such page in the tree, which has ${have}`,
+      });
+      return;
+    }
+    if (quiet.some((re) => re.test(link.target))) return;
+    issues.push({
+      type: 'unresolved-manpage',
+      severity: 'warning',
+      file: rel(doc.path),
+      line: link.line,
+      target: link.target,
+      message: 'page is not in the tree or in man.quiet',
+    });
+  };
+
   for (const doc of options.docs) {
     // A link that is also a manifest entry (a GFM shard link) was resolved above.
     const listed = new Set(doc.manifest.map((e) => `${e.line}\0${e.target}`));
     for (const link of doc.links) {
-      if (link.kind === 'external' || link.kind === 'manpage') continue;
+      if (link.kind === 'external') continue;
+      if (link.kind === 'manpage') {
+        if (options.manPages) checkManPage(doc, link);
+        continue;
+      }
       if (link.kind === 'file' && !link.fragment && listed.has(`${link.line}\0${link.target}`)) {
         continue;
       }
@@ -249,9 +336,10 @@ export function checkSourceDocs(options: SourceCheckOptions): SourceIssue[] {
   );
 }
 
-/** One line per issue: `type: file:line: message (target)`. */
+/** One line per issue: `type: file:line: message "target"`, with `(warning)` after a warning's type. */
 export function formatSourceIssue(issue: SourceIssue): string {
   const where = issue.line === undefined ? issue.file : `${issue.file}:${issue.line}`;
   const target = issue.target === undefined ? '' : ` "${issue.target}"`;
-  return `${issue.type}: ${where}: ${issue.message}${target}`;
+  const kind = issue.severity === 'warning' ? `${issue.type} (warning)` : issue.type;
+  return `${kind}: ${where}: ${issue.message}${target}`;
 }
