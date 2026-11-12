@@ -5,7 +5,7 @@ import { countWords } from '../text.js';
 /**
  * Plain-text reader (ADR 0008): `README`s, `.txt` files and extensionless prose. Paragraphs are
  * runs of non-blank lines; a line underlined with `=`, `-` or `~` is a heading, and the first
- * one is the title. A block indented deeper than the document's own indent is literal text.
+ * one is the title when no prose comes before it. A block indented deeper than the document's own indent is literal text.
  * A file that starts with `#!` is a script, and reads as empty.
  */
 
@@ -92,7 +92,12 @@ export const textReader: SourceReader = {
         !UNDERLINE.test(trimmed)
       ) {
         const plain = textInlineToPlain(trimmed);
-        headings.push({ text: trimmed, plain, level: headings.length === 0 ? 1 : 2, line: i + 1 });
+        headings.push({
+          text: trimmed,
+          plain,
+          level: headings.length === 0 && units.length === 0 && !current ? 1 : 2,
+          line: i + 1,
+        });
         i++;
         continue;
       }
@@ -114,7 +119,7 @@ export const textReader: SourceReader = {
       paragraphs.reduce((n, p) => n + countWords(p.plain), 0);
     return {
       ...emptyDoc(context.path),
-      title: headings[0] ?? null,
+      title: headings.find((h) => h.level === 1) ?? null,
       headings,
       paragraphs,
       proseWords,

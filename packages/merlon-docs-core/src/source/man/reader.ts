@@ -6,7 +6,10 @@ import { countWords } from '../text.js';
  * troff man page reader (ADR 0008), for the `man` and `mdoc`-free subset most pages use:
  * `.TH` is the title, `.SH` and `.SS` are sections, paragraph macros split prose, and
  * no-fill and example blocks (`.nf`/`.fi`, `.EX`/`.EE`) and macro definitions are left out.
- * A page reference such as `.BR open (2)` or `open(2)` is a `manpage` link.
+ * A no-fill or example block that is never closed ends at the next `.SH` or `.SS`, so a page
+ * that forgets `.fi` loses one section, not the rest of the page.
+ * A page reference such as `.BR open (2)` or `open(2)` is a `manpage` link, also inside a no-fill
+ * block, which is rendered text.
  */
 
 const BREAKS = new Set(['PP', 'P', 'LP', 'IP', 'TP', 'HP', 'sp', 'br', 'RS', 'RE', 'TQ']);
@@ -32,7 +35,7 @@ export function troffToPlain(text: string): string {
     .replace(/\\\((?:lq|rq)|\\\[(?:lq|rq)\]/g, '"')
     .replace(/\\-/g, '-')
     .replace(/\\e/g, '\\')
-    .replace(/\\&|\\c|\\%/g, '')
+    .replace(/\\[&c%|^/,]/g, '')
     .replace(/\\ /g, ' ')
     .replace(/\\(.)/g, '$1');
 }
@@ -48,12 +51,16 @@ export const manReader: SourceReader = {
       if (current) units.push(current);
       current = null;
     };
+    const pageRefs = (plain: string, line: number, name?: RegExp) => {
+      for (const m of plain.matchAll(PAGE_REF)) {
+        if (name && !name.test(m[1])) continue;
+        links.push({ kind: 'manpage', target: `${m[1]}(${m[2]})`, line });
+      }
+    };
     const addText = (plain: string, line: number) => {
       const t = plain.trim();
       if (!t) return;
-      for (const m of t.matchAll(PAGE_REF)) {
-        links.push({ kind: 'manpage', target: `${m[1]}(${m[2]})`, line });
-      }
+      pageRefs(t, line);
       if (current) current.text += ` ${t}`;
       else current = { line, text: t };
     };
@@ -66,12 +73,16 @@ export const manReader: SourceReader = {
     let skipUntil: string | null = null;
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
+      if (skipUntil && skipUntil !== '..' && /^[.']\s*S[HS]\b/.test(line)) skipUntil = null;
       if (skipUntil) {
         const done =
           skipUntil === '..'
             ? line.trim() === '..'
             : new RegExp(`^[.']\\s*${skipUntil}\\b`).test(line);
         if (done) skipUntil = null;
+        // No-fill text is still rendered, and a SEE ALSO section is often set no-fill.
+        // Sample output there can look like a reference (`CPUID(1):`), so a name needs a lowercase letter.
+        else if (skipUntil === 'fi') pageRefs(troffToPlain(line), i + 1, /[a-z]/);
         continue;
       }
       if (/^[.']\s*\\"/.test(line) || line.startsWith('\\"')) continue;

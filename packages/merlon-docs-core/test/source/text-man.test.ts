@@ -28,6 +28,19 @@ describe('plain-text reader', () => {
     expect(text(['Just prose.', '', 'More prose.']).title).toBeNull();
   });
 
+  it('reads a heading after prose as a section, not the title', () => {
+    const doc = text([
+      'This folder builds the bindings.',
+      '',
+      'requirements',
+      '------------',
+      '',
+      'A compiler.',
+    ]);
+    expect(doc.title).toBeNull();
+    expect(doc.headings).toMatchObject([{ text: 'requirements', level: 2, line: 3 }]);
+  });
+
   it('reads a file that starts with #! as empty', () => {
     const doc = text(['#!/bin/sh', 'echo "This is a script, not prose."']);
     expect(doc.paragraphs).toEqual([]);
@@ -92,6 +105,22 @@ describe('man reader', () => {
     expect(doc.paragraphs.map((p) => p.plain)).toEqual(['Visible text.', 'More visible text.']);
   });
 
+  it('ends a no-fill or example block that is never closed at the next section', () => {
+    const doc = man([
+      '.SH DESCRIPTION',
+      '.nf',
+      'hidden one',
+      '.SS Options',
+      'Visible option text.',
+      '.EX',
+      'hidden two',
+      '.SH NOTES',
+      'Visible note.',
+    ]);
+    expect(doc.headings.map((h) => h.plain)).toEqual(['DESCRIPTION', 'Options', 'NOTES']);
+    expect(doc.paragraphs.map((p) => p.plain)).toEqual(['Visible option text.', 'Visible note.']);
+  });
+
   it('reads page references as manpage links', () => {
     const doc = man(['.PP', 'See', '.BR close (2)', 'and fcntl(2).']);
     expect(doc.links).toEqual([
@@ -100,7 +129,23 @@ describe('man reader', () => {
     ]);
   });
 
+  it('reads page references inside a no-fill block, but not inside an example', () => {
+    const doc = man([
+      '.SH "SEE ALSO"',
+      '.nf',
+      'msr(4)',
+      'CPUID(1): family 6',
+      '.fi',
+      '.EX',
+      'call(2)',
+      '.EE',
+    ]);
+    expect(doc.links).toEqual([{ kind: 'manpage', target: 'msr(4)', line: 3 }]);
+    expect(doc.paragraphs).toEqual([]);
+  });
+
   it('turns troff escapes into plain text', () => {
     expect(troffToPlain('\\fBbold\\fR \\-\\-flag \\(em x\\&y')).toBe('bold --flag — xy');
+    expect(troffToPlain('\\fIiasl\\fR\\|(8), a\\^b\\/c')).toBe('iasl(8), abc');
   });
 });
