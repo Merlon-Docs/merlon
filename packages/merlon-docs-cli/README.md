@@ -756,10 +756,10 @@ The `sources` config key says which files are docs and which format reads each. 
 | `gfm`  | Markdown shards                           | Everything `merlon check` checks in a compiled tree, and the review signals                                                                 |
 | `rst`  | reStructuredText, as Sphinx builds it     | `toctree` entries, `include` and `literalinclude`, `:doc:` and `:ref:` targets, labels and `:name:` options, `:orphan:`; the review signals |
 | `text` | `README`s, `.txt` and extensionless prose | The review signals. A file that starts with `#!` is a script and reads as empty                                                             |
-| `man`  | troff man pages                           | The review signals, and page references such as `open(2)` that resolve nowhere                                                              |
+| `man`  | troff man pages                           | `.so` includes, the review signals, and page references such as `open(2)` that resolve nowhere                                              |
 | `html` | Hand-written HTML pages                   | Links between pages and their `#fragment`s, `id` and `<a name>` anchors, orphans; the review signals                                        |
 
-Plain text and man pages have no table of contents, so they are never orphans. An HTML page's links to other `.html` or `.htm` pages are its table of contents, grouped by the `<h2>` or deeper heading above each link, and `index.html` or `index.htm` is an index. The `html` reader takes the first `<h1>` as the title, or `<title>` when there is none, and leaves `<pre>`, `<script>`, `<style>` and comments out of the prose.
+Plain text has no table of contents, so it is never an orphan, and neither is a man page (a file with `.TH`). A man page's `.so` lines include other files, as `soelim` and `man` read them: from the page's directory, the docs root, or the parent of the page's directory (`.so man3/page.3`). A fragment it includes (a file without `.TH`) is reached through the page, and a fragment no page includes is an orphan, even without `roots`. The man reader titles a page by name and section, such as `term(5)`, so `term(5)` and `term(7)` are different titles. An HTML page's links to other `.html` or `.htm` pages are its table of contents, grouped by the `<h2>` or deeper heading above each link, and `index.html` or `index.htm` is an index. The `html` reader takes the first `<h1>` as the title, or `<title>` when there is none, and leaves `<pre>`, `<script>`, `<style>` and comments out of the prose.
 
 ### A config for a Sphinx tree
 
@@ -808,7 +808,7 @@ A `:ref:` target resolves when any of these defines it: a `.. _label:` target (i
 
 #### Man page references
 
-A man page reference, such as `cpupower(1)` in a man page or `` :manpage:`open(2)` `` in RST, resolves when the tree has that page, as a file named `cpupower.1` read as `man`. A reference that resolves nowhere is a warning, which is printed but doesn't fail the check. Most references name pages from other projects, so `man.quiet` lists the ones that shouldn't warn. Each entry is one of:
+A man page reference, such as `cpupower(1)` in a man page or `` :manpage:`open(2)` `` in RST, resolves when the tree has that page: a file named `cpupower.1` read as `man`, or a page whose NAME section lists `cpupower`. Sections compare without case, so `addch(3X)` resolves to `curs_addch.3x`. A call such as `attrset(0)` is not a reference, because no section is 0. A reference that resolves nowhere is a warning, which is printed but doesn't fail the check. Most references name pages from other projects, so `man.quiet` lists the ones that shouldn't warn. Each entry is one of:
 
 - a section, such as `"4"`, which also covers suffixed sections such as `4p`;
 - a page or a `name(section)` pattern where `*` matches anything, such as `"msr(4)"`;
