@@ -21,7 +21,7 @@ jobs:
       indexnow_payload: ${{ steps.indexnow.outputs.payload }}
     steps:
       # Harden-Runner: audit mode only — logs egress; block mode is follow-up (#179).
-      - uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+      - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: audit
 
@@ -70,7 +70,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       # Harden-Runner: audit mode only — logs egress; block mode is follow-up (#179).
-      - uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+      - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: audit
 
@@ -86,7 +86,7 @@ jobs:
     permissions: {}
     steps:
       # Harden-Runner: audit mode only — logs egress; block mode is follow-up (#179).
-      - uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+      - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: audit
 

@@ -12,7 +12,7 @@ pnpm skill:update
 
 (`pnpm skill:update` runs `pnpm skill:install`, and either name does the same task.)
 
-That runs `npx skills add .`, which installs the publishable skill, `skills/merlon-docs`, from this checkout under `.agents/skills/` and records it in `skills-lock.json`.
+That runs `npx skills add .`, which installs the publishable skill, `skills/merlon-docs`, from this checkout under `.agents/skills/` and records it in `skills-lock.json`. Run it from the repo root, so the lock records the skill's `source` as `"."`. `pnpm skill:validate` fails when a local skill's `source` is an absolute path, such as a cloud agent's checkout path.
 
 [Cloud agent sessions](./cloud-agent-environments.md) install the skill on their own. The Claude Code session-start hook (`.claude/hooks/session-start.sh`) and the Cursor environment (`.cursor/environment.json`) both run `pnpm skill:dev`, which installs this checkout's `skills/merlon-docs` for Claude Code and Cursor with telemetry off. An agent working here loads the skill from the branch it works on.
 
@@ -46,7 +46,7 @@ The [Agent Skill acceptance criteria](../features/agent-skill.md#agent-skill-acc
 
 | Command               | Purpose                                                                                                            |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `pnpm skill:validate` | Frontmatter fence lint + [skills-ref](https://agentskills.io/specification) validate on all skills under `skills/` |
+| `pnpm skill:validate` | Fence, carrier version, stray-file lint + [skills-ref](https://agentskills.io/specification) validate on `skills/` |
 | `pnpm docs:check`     | Docs compile + lint gate after shard edits                                                                         |
 
 `pnpm skill:validate` runs in local `pnpm check`, the land gate, PR CI, and during **`pnpm release:main`** after skill version sync (hard fail before the release commit / publish). It is not a [live skill eval](../glossary/live-skill-eval.md). [Live skill evals](./live-skill-evals.md) covers those evals, an optional local loop that grades agent runs with and without the skill.

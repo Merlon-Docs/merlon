@@ -2,8 +2,8 @@
 pnpm exec lint-staged
 node scripts/pre-commit-affected.mjs
 
-if command -v gitleaks >/dev/null 2>&1; then
-  gitleaks protect --staged --redact --verbose
+if command -v betterleaks >/dev/null 2>&1; then
+  betterleaks git --pre-commit --staged --config .betterleaks.toml --redact --no-banner --verbose
 else
-  echo "warning: gitleaks not installed, so staged secrets are not scanned" >&2
+  echo "warning: betterleaks not installed, so staged secrets are not scanned" >&2
 fi

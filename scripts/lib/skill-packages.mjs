@@ -81,6 +81,23 @@ export function setSkillMdVersion(skillPath, version) {
   return true;
 }
 
+/**
+ * Read the version field that setSkillMdVersion writes (metadata.version) from SKILL.md.
+ * @returns {string | null} the version, or null when the frontmatter has no version field
+ */
+export function readSkillMdVersion(skillPath) {
+  const content = readFileSync(skillPath, 'utf-8');
+  if (!content.startsWith('---\n')) {
+    throw new Error(`Broken YAML fence (missing newline after ---): ${skillPath}`);
+  }
+  const end = content.indexOf('\n---', 4);
+  if (end === -1) {
+    throw new Error(`No closing frontmatter fence: ${skillPath}`);
+  }
+  const match = /^\s*version:\s*(['"]?)([^'"\n]+)\1\s*$/m.exec(content.slice(4, end));
+  return match ? match[2].trim() : null;
+}
+
 export function readPackageVersion(packageJsonPath) {
   const json = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
   return json.version;

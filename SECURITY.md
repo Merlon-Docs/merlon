@@ -18,7 +18,7 @@ We follow coordinated disclosure: we will confirm receipt, work on a fix, and pu
 
 - npm account 2FA (auth-and-writes) for `@merlon-docs/merlon-docs-*` publishers
 - Trusted Publishing (OIDC) for releases — no long-lived publish tokens in CI
-- Gitleaks on commit and in CI
+- Betterleaks secret scanning on commit and in CI
 - `pnpm audit --audit-level=high` in CI
 - Frozen lockfile installs in CI
 

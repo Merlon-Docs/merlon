@@ -14,7 +14,8 @@
     "bench": "pnpm --filter @merlon-docs/merlon-docs-core run bench",
     "test:coverage": "pnpm --filter @merlon-docs/merlon-docs-core run test:coverage && pnpm --filter @merlon-docs/merlon-docs-cli run test:coverage",
     "typecheck": "pnpm -r run typecheck",
-    "lint": "eslint .",
+    "lint": "eslint . && pnpm run lint:node-floor",
+    "lint:node-floor": "node scripts/lint-node-floor.mjs",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -40,7 +41,7 @@
     "release:build": "node scripts/release-build.mjs",
     "sync:skill-versions": "node scripts/sync-skill-versions.mjs",
     "prepare": "husky",
-    "skill:validate": "node scripts/lint-skill-frontmatter.mjs && skills-ref validate ./skills/merlon-docs",
+    "skill:validate": "node scripts/lint-skill-frontmatter.mjs && node scripts/check-skills-lock.mjs && skills-ref validate ./skills/merlon-docs",
     "skill:install": "npx skills add .",
     "skill:update": "pnpm run skill:install",
     "skill:dev": "DISABLE_TELEMETRY=1 npx -y skills add . --skill merlon-docs --agent claude-code cursor --yes",
@@ -81,7 +82,7 @@
     "@commitlint/config-conventional": "^21.2.4",
     "@eslint/js": "^10.0.1",
     "astro-eslint-parser": "^3.2.0",
-    "eslint": "^10.13.0",
+    "eslint": "^10.14.0",
     "eslint-plugin-astro": "^3.2.1",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "gpt-tokenizer": "^4.1.0",
@@ -90,6 +91,6 @@
     "markdownlint-cli2": "^0.24.0",
     "prettier": "^3.9.10",
     "skills-ref": "^0.1.5",
-    "typescript-eslint": "^8.72.0"
+    "typescript-eslint": "^8.72.1"
   }
 }

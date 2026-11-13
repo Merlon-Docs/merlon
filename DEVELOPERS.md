@@ -111,36 +111,36 @@ Agents load tracker issues and delivery conventions from [Agent work-item tracki
 
 ### Daily commands
 
-| Command                  | Purpose                                                                                                              |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| `pnpm build`             | Build all packages (`merlon-docs-core`, `merlon-docs-cli`)                                                           |
-| `pnpm test`              | Run every package's tests, then the repo script tests under `scripts/`                                               |
-| `pnpm test:coverage`     | Vitest coverage for `merlon-docs-core` and `merlon-docs-cli` (HTML under `packages/*/coverage/`)                     |
-| `pnpm run typecheck`     | TypeScript across packages                                                                                           |
-| `pnpm run lint`          | ESLint on package sources and repo scripts, and on the site with its Astro accessibility rules                       |
-| `pnpm run format:check`  | Prettier check                                                                                                       |
-| `pnpm run check`         | Full gate including skill:validate and docs:check                                                                    |
-| `pnpm skill:update`      | Refresh the vendor-managed installs under `.agents/skills/` from `skills/`                                           |
-| `pnpm skill:dev`         | Install this checkout's `merlon-docs` skill for Claude Code and Cursor without prompts (cloud session setup runs it) |
-| `pnpm docs:compile:repo` | Regenerate every compiled output ([Guide directories](#guide-directories))                                           |
-| `pnpm docs:check`        | Validate repo docs + `examples/sample-guides`                                                                        |
-| `pnpm formal:check`      | Run the Alloy models under `formal/alloy/` (needs Java 17 or later)                                                  |
+| Command                  | Purpose                                                                                                                                            |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm build`             | Build all packages (`merlon-docs-core`, `merlon-docs-cli`)                                                                                         |
+| `pnpm test`              | Run every package's tests, then the repo script tests under `scripts/`                                                                             |
+| `pnpm test:coverage`     | Vitest coverage for `merlon-docs-core` and `merlon-docs-cli` (HTML under `packages/*/coverage/`)                                                   |
+| `pnpm run typecheck`     | TypeScript across packages                                                                                                                         |
+| `pnpm run lint`          | ESLint on package sources and repo scripts, and on the site with its Astro accessibility rules, then the [Node floor check](#ci-and-the-land-gate) |
+| `pnpm run format:check`  | Prettier check                                                                                                                                     |
+| `pnpm run check`         | Full gate including skill:validate and docs:check                                                                                                  |
+| `pnpm skill:update`      | Refresh the vendor-managed installs under `.agents/skills/` from `skills/`                                                                         |
+| `pnpm skill:dev`         | Install this checkout's `merlon-docs` skill for Claude Code and Cursor without prompts (cloud session setup runs it)                               |
+| `pnpm docs:compile:repo` | Regenerate every compiled output ([Guide directories](#guide-directories))                                                                         |
+| `pnpm docs:check`        | Validate repo docs + `examples/sample-guides`                                                                                                      |
+| `pnpm formal:check`      | Run the Alloy models under `formal/alloy/` (needs Java 17 or later)                                                                                |
 
 [Agent Skill development](#do-not-hand-edit-agentsskills) covers refreshing the vendor-managed installs and why nobody hand-edits them.
 
-Optional locally: `brew install gitleaks` (CI always scans).
+Optional locally: `brew install betterleaks` (CI always scans).
 
 ### Git hooks
 
 `pnpm install` sets up three hooks. The pre-commit hook is fast and works offline, so it never builds, runs tests or reaches the network. The pre-push hook runs the full gate and may take minutes.
 
-| Hook       | Step            | What runs                                                                            |
-| ---------- | --------------- | ------------------------------------------------------------------------------------ |
-| pre-commit | lint-staged     | Prettier and ESLint on staged files (including `.jsonc`)                             |
-| pre-commit | affected checks | `scripts/pre-commit-affected.mjs`, with the offline checks the staged paths call for |
-| pre-commit | gitleaks        | `gitleaks protect --staged` when gitleaks is on `PATH`, and a warning when it isn't  |
-| commit-msg | commitlint      | The Conventional Commits rules of `@commitlint/config-conventional`                  |
-| pre-push   | full gate       | `scripts/pre-push.mjs`, with the checks the [land gate](#ci-and-the-land-gate) runs  |
+| Hook       | Step            | What runs                                                                                          |
+| ---------- | --------------- | -------------------------------------------------------------------------------------------------- |
+| pre-commit | lint-staged     | Prettier and ESLint on staged files (including `.jsonc`)                                           |
+| pre-commit | affected checks | `scripts/pre-commit-affected.mjs`, with the offline checks the staged paths call for               |
+| pre-commit | betterleaks     | `betterleaks git --pre-commit --staged` when betterleaks is on `PATH`, and a warning when it isn't |
+| commit-msg | commitlint      | The Conventional Commits rules of `@commitlint/config-conventional`                                |
+| pre-push   | full gate       | `scripts/pre-push.mjs`, with the checks the [land gate](#ci-and-the-land-gate) runs                |
 
 The affected checks run by staged path:
 
@@ -156,11 +156,13 @@ CI doesn't rely on any hook, since a contributor may skip them or never install 
 
 ### CI and the land gate
 
-CI's Check job runs the steps of `pnpm run check`, except that it tests only merlon-docs-core, merlon-docs-cli and the repository scripts. The site's tests run in the Pages workflow. Before those steps it runs `pnpm run verify:peers`, which confirms that markdownlint-cli2 and Vale are on `PATH`, and the dependency audit `pnpm audit --audit-level=high`. A new high advisory, even on a devDependency, fails the audit, and the build and test steps after it don't run. [Overrides and the release-age gate](#overrides-and-the-release-age-gate) says how to resolve one. Before `docs:check` it runs `pnpm run prepare:docs`, which repeats the peer check and syncs the Vale styles. Last, it recompiles every guide and fails if `git diff` shows a change.
+CI's Check job runs the steps of `pnpm run check`, except that it tests only merlon-docs-core, merlon-docs-cli and the repository scripts. The site's tests run in the Pages workflow. Before those steps it runs `pnpm run verify:peers`, which confirms that markdownlint-cli2 and Vale are on `PATH`, and the dependency audit `pnpm audit --audit-level=high`. A new high advisory, even on a devDependency, fails the audit, and the build and test steps after it don't run. [Overrides and the release-age gate](#overrides-and-the-release-age-gate) says how to resolve one. Before `docs:check` it runs `pnpm run prepare:docs`, which repeats the peer check and syncs the Vale styles. After `docs:check` it recompiles every guide and fails if `git diff` shows a change. The Node floor steps come last.
 
 CI skips a draft pull request and runs when the PR is marked ready, as [Pull requests](#pull-requests) describes. The other CI jobs run beside Check. The Coverage job runs `pnpm test:coverage`, as [Test code coverage](#test-code-coverage) describes, and the Formal models job runs `pnpm formal:check`. On pull requests the Changeset job runs the changeset checks that [When to add a changeset](#when-to-add-a-changeset) describes, and the Benchmarks job runs `pnpm bench`, the [growth benchmarks](#growth-benchmarks) that `pnpm run check` and the git hooks leave out.
 
 Check and the land gate both end on the Node floor. They switch to Node 22.0.0, the oldest release `engines` allows, and run the built CLI's `compile` and `check --skip-vale` in `examples/sample-guides` with the lockfile's dependencies. So a Dependabot bump or a landing that needs a newer Node than `engines` says fails there. The pre-push hook leaves this step out, because it runs on your own Node.
+
+`pnpm run lint` keeps the floor in step with `engines`. Its last step, `scripts/lint-node-floor.mjs`, fails when a workflow step named `Set up the Node floor` sets a `node-version` other than the minimum of `engines.node`. It also fails when the `engines.node` ranges in the root and `packages/*` `package.json` files differ, or when one isn't written as `>=MAJOR.MINOR.PATCH`. To raise the floor, change every `engines.node` and both workflows in the same commit.
 
 The land gate's test step is the full `pnpm test`, so it also runs the site's tests. [Landing on `develop`](#landing-on-develop) says what else it runs and what it pushes.
 
@@ -186,7 +188,7 @@ On either host, work reaches `develop` by pushing a `claude/**` or `land/**` bra
 4. `pnpm build`
 5. `pnpm run skill:dev`, which installs this checkout's `merlon-docs` skill for the agent ([Agent Skill development](#agent-skill-development))
 
-The docs scripts and the `merlon` CLI work once the script finishes. The script installs neither gitleaks nor Java. Without gitleaks the pre-commit hook prints a warning in place of its scan, and `pnpm formal:check` needs Java 17 or later on `PATH`. `.gitignore` keeps everything under `.claude/` out of the repository except `.claude/settings.json` and `.claude/hooks/session-start.sh`.
+The docs scripts and the `merlon` CLI work once the script finishes. The script installs neither Betterleaks nor Java. Without Betterleaks the pre-commit hook prints a warning in place of its scan, and `pnpm formal:check` needs Java 17 or later on `PATH`. `.gitignore` keeps everything under `.claude/` out of the repository except `.claude/settings.json` and `.claude/hooks/session-start.sh`.
 
 ### Cursor
 
@@ -194,7 +196,7 @@ A fresh Cursor VM needs the same toolchain as [Local setup](#requirements), plus
 
 1. **Startup update script.** `.cursor/environment.json` holds the `install` command that runs on every VM start: it fetches remote refs and runs `pnpm install`, then `pnpm skill:dev` so the agent loads this checkout's `merlon-docs` skill ([Agent Skill development](#agent-skill-development)). That committed file is the source of truth and overrides any dashboard-saved environment. Keep it minimal: no service startup or build steps.
 2. **Vale peer binary.** Vale is a peer binary that `pnpm install` doesn't fetch. Install the version that [Requirements](#requirements) gives to `/usr/local/bin`, where it persists in the VM snapshot. The exact release command is in [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
-3. **gitleaks peer binary.** `pnpm install` doesn't fetch gitleaks either, and the pre-commit hook runs `gitleaks protect --staged` when it is on `PATH`. Install version 8.30.1 to `/usr/local/bin`, where it persists in the VM snapshot. If it goes missing, reinstall from the [gitleaks releases](https://github.com/gitleaks/gitleaks/releases): download `gitleaks_8.30.1_linux_x64.tar.gz` and extract the `gitleaks` binary into `/usr/local/bin` (same pattern as Vale). CI runs its own scan via `gitleaks-action`, so the local install is defense-in-depth.
+3. **Betterleaks peer binary.** `pnpm install` doesn't fetch Betterleaks either, and the pre-commit hook runs `betterleaks git --pre-commit --staged` when it is on `PATH`. Install the version that [`.github/workflows/betterleaks.yml`](.github/workflows/betterleaks.yml) pins to `/usr/local/bin`, where it persists in the VM snapshot. If it goes missing, reinstall from the [Betterleaks releases](https://github.com/betterleaks/betterleaks/releases): download `betterleaks_<version>_linux_x64.tar.gz` and extract the `betterleaks` binary into `/usr/local/bin` (same pattern as Vale). CI runs its own scan, so the local install is defense-in-depth.
 4. **Bootstrap.** The update script doesn't build `dist/` or sync the Vale styles. Run the rest of [First-time bootstrap](#first-time-bootstrap) on a new VM, and rebuild as that section says. The synced styles then persist in the snapshot.
 5. **Node version.** The VM runs Node 22, which satisfies the `engines` floor of Node 22, and CI uses Node 24. Do not switch Node unless a version-specific issue appears.
 
@@ -911,7 +913,7 @@ pnpm skill:update
 
 (`pnpm skill:update` runs `pnpm skill:install`, and either name does the same task.)
 
-That runs `npx skills add .`, which installs the publishable skill, `skills/merlon-docs`, from this checkout under `.agents/skills/` and records it in `skills-lock.json`.
+That runs `npx skills add .`, which installs the publishable skill, `skills/merlon-docs`, from this checkout under `.agents/skills/` and records it in `skills-lock.json`. Run it from the repo root, so the lock records the skill's `source` as `"."`. `pnpm skill:validate` fails when a local skill's `source` is an absolute path, such as a cloud agent's checkout path.
 
 [Cloud agent sessions](#cloud-agent-environments) install the skill on their own. The Claude Code session-start hook (`.claude/hooks/session-start.sh`) and the Cursor environment (`.cursor/environment.json`) both run `pnpm skill:dev`, which installs this checkout's `skills/merlon-docs` for Claude Code and Cursor with telemetry off. An agent working here loads the skill from the branch it works on.
 
@@ -945,7 +947,7 @@ The [Agent Skill acceptance criteria](docs/features/agent-skill.md#agent-skill-a
 
 | Command               | Purpose                                                                                                            |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `pnpm skill:validate` | Frontmatter fence lint + [skills-ref](https://agentskills.io/specification) validate on all skills under `skills/` |
+| `pnpm skill:validate` | Fence, carrier version, stray-file lint + [skills-ref](https://agentskills.io/specification) validate on `skills/` |
 | `pnpm docs:check`     | Docs compile + lint gate after shard edits                                                                         |
 
 `pnpm skill:validate` runs in local `pnpm check`, the land gate, PR CI, and during **`pnpm release:main`** after skill version sync (hard fail before the release commit / publish). It is not a [live skill eval](#live-skill-eval). [Live skill evals](#live-skill-evals) covers those evals, an optional local loop that grades agent runs with and without the skill.
@@ -1181,7 +1183,7 @@ Pushing to a branch named `claude/**` or `land/**` runs the [land workflow](.git
 - **Evidence lives with the work.** Put what was measured or verified in the commit message, or in a research record for larger results. The run summary lists the commits each landing brought in.
 - **A failed gate lands nothing.** Fix the branch and push again, and do the same when it conflicts with `develop`. Only one run waits behind the running one, so a newer landing or sync cancels the waiting run. When that happens, or when `develop` moved during the run, re-run all jobs of the workflow, or push a new commit to the branch. After `develop` moves, re-running only the failed job reuses the old `develop` and fails again. Pushing a branch whose tip hasn't changed doesn't start a run.
 - **Landings run one at a time**, and each one pushes only the tree that passed its gate. A clean sync from `main` goes through the same gate. Other paths move `develop` without the gate. A merged PR, from Dependabot or from the sync when `main` conflicts, does unless a branch rule makes PRs into `develop` up to date, and a maintainer can push directly unless a rule blocks it. When a PR's base changes from `main` to `develop`, CI runs again against `develop`. [Formal models](#landing-and-release) shows which guards close each of those paths.
-- **The gate doesn't wait for scans.** Gitleaks scans every `claude/**` and `land/**` push, in parallel with the land run, and every pull request that isn't a draft. A pull request whose head commit already passed its push scan, as a landing's commit does on the release PR, passes without scanning it again. The landing is pushed with the workflow's own `GITHUB_TOKEN`, and GitHub doesn't start workflows for such pushes. The scan's push trigger lists only `claude/**` and `land/**`, so the release commit's push to `main` and a push to a `hotfix/*` branch aren't scanned until they reach a pull request. The `Scan` check that `main`'s branch rule requires runs on the pull request. CodeQL and Zizmor first see landed work on the release PR. A finding from any of the three is fixed forward on `develop`.
+- **The gate doesn't wait for scans.** Betterleaks scans every `claude/**` and `land/**` push, in parallel with the land run, and every pull request that isn't a draft. A pull request whose head commit already passed its push scan, as a landing's commit does on the release PR, passes without scanning it again. The landing is pushed with the workflow's own `GITHUB_TOKEN`, and GitHub doesn't start workflows for such pushes. The scan's push trigger lists only `claude/**` and `land/**`, so the release commit's push to `main` and a push to a `hotfix/*` branch aren't scanned until they reach a pull request. The `Scan` check that `main`'s branch rule requires runs on the pull request. CodeQL and Zizmor first see landed work on the release PR. A finding from any of the three is fixed forward on `develop`.
 - **Stakeholder review happens on topic PRs.** A push to `claude/**` or `land/**` lands without review, so put a change that someone should review on a topic branch instead, as [Reviewing a change](#reviewing-a-change) says.
 
 Dependabot still opens PRs against `develop`, because its changes come from outside the project.
@@ -1194,7 +1196,7 @@ The release PR from `develop` to `main` then bundles changes that were already r
 
 #### Pull requests
 
-Open a pull request as a draft, and mark it ready once, when its work is done. CI, CodeQL, Zizmor and the gitleaks scan skip a draft, so a push to a draft runs only the Release source check. Marking the PR ready runs them, and each push after that runs them again. Editing a ready PR's title or body doesn't rerun CI's jobs when its latest run on that head passed. When a squash merge puts a PR's tested tree on `main`, CI's run on that push skips its jobs too. The release commit has no PR, so CI tests it. GitHub won't merge a draft, so the skipped runs can't let one merge. Moving a ready PR back to draft and marking it ready again repeats the full run, so leave a PR in draft until it is ready. Dependabot opens its PRs as ready, and CI runs on them at once.
+Open a pull request as a draft, and mark it ready once, when its work is done. CI, CodeQL, Zizmor and the Betterleaks scan skip a draft, so a push to a draft runs only the Release source check. Marking the PR ready runs them, and each push after that runs them again. Editing a ready PR's title or body doesn't rerun CI's jobs when its latest run on that head passed. When a squash merge puts a PR's tested tree on `main`, CI's run on that push skips its jobs too. The release commit has no PR, so CI tests it. GitHub won't merge a draft, so the skipped runs can't let one merge. Moving a ready PR back to draft and marking it ready again repeats the full run, so leave a PR in draft until it is ready. Dependabot opens its PRs as ready, and CI runs on them at once.
 
 CI doesn't assume that a contributor ran the [git hooks](#git-hooks). The pre-push hook runs the land gate's checks before a push, which catches a failure before CI spends a run on it.
 
@@ -1215,7 +1217,7 @@ There is **no calendar cadence** and **no Version Packages PR**. A release is a 
 
 On a run without pending changesets, the Release plan detects **missing** `name@version` git tags and GitHub Releases, and the release job **heals** them without bumping versions again (tag + `gh release create … --target` at the commit that last changed that package’s `package.json`). Heal restores tags and GitHub Releases, not npm packages. The audit runs after the push to `main`. When it fails on a new advisory, `main` holds versions that npm never received. [Dry run and manual fallback](#dry-run-and-manual-fallback) says how to publish them.
 
-**Skills** are under `skills/`, the directory that `npx skills add` installs from. Each skill versions through a private carrier package in `packages/skill-<id>/`, which holds its `package.json` and CHANGELOG. Keep both files out of `skills/`, because every install would copy them into agent context. `pnpm release:main` syncs the carrier version into `skills/<id>/SKILL.md` `metadata.version`, so never edit that field by hand.
+**Skills** are under `skills/`, the directory that `npx skills add` installs from. Each skill versions through a private carrier package in `packages/skill-<id>/`, which holds its `package.json` and CHANGELOG. Keep both files out of `skills/`, because every install would copy them into agent context. `pnpm release:main` syncs the carrier version into `skills/<id>/SKILL.md` `metadata.version`, so never edit that field by hand. `pnpm skill:validate` gates both rules: it fails when `skills/<id>/` holds a `package.json` or `CHANGELOG.md`, and when `metadata.version` differs from the carrier's `version`. The release runs it after the sync, and `pnpm sync:skill-versions` repairs a mismatch.
 
 ### Pre-1.0 policy (`0.x.y`)
 
@@ -1229,7 +1231,7 @@ Packages and skills are **pre-1.0** while on `0.x.y`. Until an item reaches **1.
 
 ### Prereleases
 
-While `.changeset/pre.json` says `"mode": "pre"`, the repository is in Changesets prerelease mode. Each release then versions the items it bumps as prereleases of the line's tag, such as `1.0.0-draft.N` for the `draft` line, publishes them under that npm dist-tag, and marks their GitHub Releases as prereleases. `changeset version` moves each changeset it consumes into `.changeset/pre/`; leave the files there, because the final release reads them to write each item's CHANGELOG entry. The changeset status check counts a moved changeset as consumed. `pnpm release:build` refuses a prerelease version.
+While `.changeset/pre.json` says `"mode": "pre"`, the repository is in Changesets prerelease mode. Each release then versions the items it bumps as prereleases of the line's tag, such as `1.0.0-draft.N` for the `draft` line, publishes them under that npm dist-tag, and marks their GitHub Releases as prereleases. `changeset version` moves each changeset it consumes into `.changeset/pre/`; leave the files there, because the final release reads them to write each item's CHANGELOG entry. The changeset status check counts a moved changeset as consumed. `pnpm release:build`, which bumps a version for a republish without an API change, keeps a prerelease and adds `-build.N` to it, so `1.0.0-draft.3` becomes `1.0.0-draft.3-build.1`.
 
 `pnpm changeset pre exit` ends a line by setting `"mode": "exit"`. The next release then versions each item the line drafted at its final version, publishes it under `latest`, and deletes `.changeset/pre/` and `pre.json`. The `draft` line ended this way at 1.0.0, so every package and skill carrier releases as `1.0.0`. `pnpm changeset pre enter <tag>` starts a new prerelease line.
 
@@ -1532,7 +1534,7 @@ Some controls in this repository live in its settings on the hosting platform, a
 
 | Setting                                             | Value                                                                                                                                                                                                                                                                                                   | Declared or set in                                                                 |
 | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Required checks on `main`                           | `Check` and `Changeset` from CI, and `Scan` from gitleaks, on a branch that is up to date with `main`                                                                                                                                                                                                   | `infra/github/protection.tf`                                                       |
+| Required checks on `main`                           | `Check` and `Changeset` from CI, and `Scan` from Betterleaks, on a branch that is up to date with `main`                                                                                                                                                                                                | `infra/github/protection.tf`                                                       |
 | Reviews on `main`                                   | [Code-owner review](#code-owner-review), with stale approvals dismissed and no minimum approval count                                                                                                                                                                                                   | `infra/github/protection.tf`                                                       |
 | Deletion of `develop`                               | Blocked by a ruleset, except for repository admins. Force-push to `develop` isn't blocked: the [sync's reset](#landing-and-release) of `develop` to `main` force-pushes with `GITHUB_TOKEN`, and a ruleset can only exempt apps the organization installed, which the built-in GitHub Actions app isn't | `infra/github/rulesets.tf`                                                         |
 | Force-push to `main`, and its deletion              | Blocked                                                                                                                                                                                                                                                                                                 | `infra/github/protection.tf`                                                       |
@@ -1655,7 +1657,7 @@ When a risk closes, update its row to `reviewed` or `not a concern` with the dat
 | Dependabot for Actions                  | `reviewed (2026-07-27)`      | Configured for weekly updates.                                                                                                                                                                                                                                                                                             |
 | Dependabot cooldown                     | `reviewed (2026-07-27)`      | Explicit 7-day cooldown on `npm` and `github-actions`.                                                                                                                                                                                                                                                                     |
 | Artifact / cache poisoning              | `reviewed (2026-10-05)`      | `release.yml`, `pages.yml` and `dependabot-changeset.yml` turn the dependency cache off, because they publish, deploy or push with a PAT. CI and the land workflow cache the pnpm store.                                                                                                                                   |
-| Secret scanning                         | `reviewed (2026-10-11)`      | Gitleaks scans every `claude/**` and `land/**` push and every pull request that isn't a draft, and `infra/github/protection.tf` declares its `Scan` job as a required check on `main`. [Landing on `develop`](#landing-on-develop) says which pushes it misses.                                                            |
+| Secret scanning                         | `reviewed (2026-10-11)`      | Betterleaks scans every `claude/**` and `land/**` push and every pull request that isn't a draft, and `infra/github/protection.tf` declares its `Scan` job as a required check on `main`. [Landing on `develop`](#landing-on-develop) says which pushes it misses.                                                         |
 | Static analysis (CodeQL/Zizmor)         | `reviewed (2026-10-05)`      | CodeQL (`javascript-typescript` + `actions`) and Zizmor run on every pull request that isn't a draft. Neither is a required check ([Required checks and scanners](#required-checks-and-scanners)).                                                                                                                         |
 | AI-in-CI                                | `not a concern (2026-07-27)` | No AI assistants used in CI.                                                                                                                                                                                                                                                                                               |
 | **Incident Response**                   |                              |                                                                                                                                                                                                                                                                                                                            |

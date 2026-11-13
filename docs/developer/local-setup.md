@@ -23,36 +23,36 @@ Agents load tracker issues and delivery conventions from [Agent work-item tracki
 
 ## Daily commands
 
-| Command                  | Purpose                                                                                                              |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| `pnpm build`             | Build all packages (`merlon-docs-core`, `merlon-docs-cli`)                                                           |
-| `pnpm test`              | Run every package's tests, then the repo script tests under `scripts/`                                               |
-| `pnpm test:coverage`     | Vitest coverage for `merlon-docs-core` and `merlon-docs-cli` (HTML under `packages/*/coverage/`)                     |
-| `pnpm run typecheck`     | TypeScript across packages                                                                                           |
-| `pnpm run lint`          | ESLint on package sources and repo scripts, and on the site with its Astro accessibility rules                       |
-| `pnpm run format:check`  | Prettier check                                                                                                       |
-| `pnpm run check`         | Full gate including skill:validate and docs:check                                                                    |
-| `pnpm skill:update`      | Refresh the vendor-managed installs under `.agents/skills/` from `skills/`                                           |
-| `pnpm skill:dev`         | Install this checkout's `merlon-docs` skill for Claude Code and Cursor without prompts (cloud session setup runs it) |
-| `pnpm docs:compile:repo` | Regenerate every compiled output ([Guide directories](./docs-dogfooding.md#guide-directories))                       |
-| `pnpm docs:check`        | Validate repo docs + `examples/sample-guides`                                                                        |
-| `pnpm formal:check`      | Run the Alloy models under `formal/alloy/` (needs Java 17 or later)                                                  |
+| Command                  | Purpose                                                                                                                                            |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm build`             | Build all packages (`merlon-docs-core`, `merlon-docs-cli`)                                                                                         |
+| `pnpm test`              | Run every package's tests, then the repo script tests under `scripts/`                                                                             |
+| `pnpm test:coverage`     | Vitest coverage for `merlon-docs-core` and `merlon-docs-cli` (HTML under `packages/*/coverage/`)                                                   |
+| `pnpm run typecheck`     | TypeScript across packages                                                                                                                         |
+| `pnpm run lint`          | ESLint on package sources and repo scripts, and on the site with its Astro accessibility rules, then the [Node floor check](#ci-and-the-land-gate) |
+| `pnpm run format:check`  | Prettier check                                                                                                                                     |
+| `pnpm run check`         | Full gate including skill:validate and docs:check                                                                                                  |
+| `pnpm skill:update`      | Refresh the vendor-managed installs under `.agents/skills/` from `skills/`                                                                         |
+| `pnpm skill:dev`         | Install this checkout's `merlon-docs` skill for Claude Code and Cursor without prompts (cloud session setup runs it)                               |
+| `pnpm docs:compile:repo` | Regenerate every compiled output ([Guide directories](./docs-dogfooding.md#guide-directories))                                                     |
+| `pnpm docs:check`        | Validate repo docs + `examples/sample-guides`                                                                                                      |
+| `pnpm formal:check`      | Run the Alloy models under `formal/alloy/` (needs Java 17 or later)                                                                                |
 
 [Agent Skill development](./agent-skill.md#do-not-hand-edit-agentsskills) covers refreshing the vendor-managed installs and why nobody hand-edits them.
 
-Optional locally: `brew install gitleaks` (CI always scans).
+Optional locally: `brew install betterleaks` (CI always scans).
 
 ## Git hooks
 
 `pnpm install` sets up three hooks. The pre-commit hook is fast and works offline, so it never builds, runs tests or reaches the network. The pre-push hook runs the full gate and may take minutes.
 
-| Hook       | Step            | What runs                                                                            |
-| ---------- | --------------- | ------------------------------------------------------------------------------------ |
-| pre-commit | lint-staged     | Prettier and ESLint on staged files (including `.jsonc`)                             |
-| pre-commit | affected checks | `scripts/pre-commit-affected.mjs`, with the offline checks the staged paths call for |
-| pre-commit | gitleaks        | `gitleaks protect --staged` when gitleaks is on `PATH`, and a warning when it isn't  |
-| commit-msg | commitlint      | The Conventional Commits rules of `@commitlint/config-conventional`                  |
-| pre-push   | full gate       | `scripts/pre-push.mjs`, with the checks the [land gate](#ci-and-the-land-gate) runs  |
+| Hook       | Step            | What runs                                                                                          |
+| ---------- | --------------- | -------------------------------------------------------------------------------------------------- |
+| pre-commit | lint-staged     | Prettier and ESLint on staged files (including `.jsonc`)                                           |
+| pre-commit | affected checks | `scripts/pre-commit-affected.mjs`, with the offline checks the staged paths call for               |
+| pre-commit | betterleaks     | `betterleaks git --pre-commit --staged` when betterleaks is on `PATH`, and a warning when it isn't |
+| commit-msg | commitlint      | The Conventional Commits rules of `@commitlint/config-conventional`                                |
+| pre-push   | full gate       | `scripts/pre-push.mjs`, with the checks the [land gate](#ci-and-the-land-gate) runs                |
 
 The affected checks run by staged path:
 
@@ -68,10 +68,12 @@ CI doesn't rely on any hook, since a contributor may skip them or never install 
 
 ## CI and the land gate
 
-CI's Check job runs the steps of `pnpm run check`, except that it tests only merlon-docs-core, merlon-docs-cli and the repository scripts. The site's tests run in the Pages workflow. Before those steps it runs `pnpm run verify:peers`, which confirms that markdownlint-cli2 and Vale are on `PATH`, and the dependency audit `pnpm audit --audit-level=high`. A new high advisory, even on a devDependency, fails the audit, and the build and test steps after it don't run. [Overrides and the release-age gate](./security-incident-triage.md#overrides-and-the-release-age-gate) says how to resolve one. Before `docs:check` it runs `pnpm run prepare:docs`, which repeats the peer check and syncs the Vale styles. Last, it recompiles every guide and fails if `git diff` shows a change.
+CI's Check job runs the steps of `pnpm run check`, except that it tests only merlon-docs-core, merlon-docs-cli and the repository scripts. The site's tests run in the Pages workflow. Before those steps it runs `pnpm run verify:peers`, which confirms that markdownlint-cli2 and Vale are on `PATH`, and the dependency audit `pnpm audit --audit-level=high`. A new high advisory, even on a devDependency, fails the audit, and the build and test steps after it don't run. [Overrides and the release-age gate](./security-incident-triage.md#overrides-and-the-release-age-gate) says how to resolve one. Before `docs:check` it runs `pnpm run prepare:docs`, which repeats the peer check and syncs the Vale styles. After `docs:check` it recompiles every guide and fails if `git diff` shows a change. The Node floor steps come last.
 
 CI skips a draft pull request and runs when the PR is marked ready, as [Pull requests](./versioning-and-releases.md#pull-requests) describes. The other CI jobs run beside Check. The Coverage job runs `pnpm test:coverage`, as [Test code coverage](./packages-and-tests.md#test-code-coverage) describes, and the Formal models job runs `pnpm formal:check`. On pull requests the Changeset job runs the changeset checks that [When to add a changeset](./versioning-and-releases.md#when-to-add-a-changeset) describes, and the Benchmarks job runs `pnpm bench`, the [growth benchmarks](./packages-and-tests.md#growth-benchmarks) that `pnpm run check` and the git hooks leave out.
 
 Check and the land gate both end on the Node floor. They switch to Node 22.0.0, the oldest release `engines` allows, and run the built CLI's `compile` and `check --skip-vale` in `examples/sample-guides` with the lockfile's dependencies. So a Dependabot bump or a landing that needs a newer Node than `engines` says fails there. The pre-push hook leaves this step out, because it runs on your own Node.
+
+`pnpm run lint` keeps the floor in step with `engines`. Its last step, `scripts/lint-node-floor.mjs`, fails when a workflow step named `Set up the Node floor` sets a `node-version` other than the minimum of `engines.node`. It also fails when the `engines.node` ranges in the root and `packages/*` `package.json` files differ, or when one isn't written as `>=MAJOR.MINOR.PATCH`. To raise the floor, change every `engines.node` and both workflows in the same commit.
 
 The land gate's test step is the full `pnpm test`, so it also runs the site's tests. [Landing on `develop`](./versioning-and-releases.md#landing-on-develop) says what else it runs and what it pushes.
