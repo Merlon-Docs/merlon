@@ -55,7 +55,7 @@ export interface SourceCheckOptions {
   docs: SourceDoc[];
   /** Absolute docs root: reported paths are relative to it, and root-absolute targets start here. */
   docsRoot: string;
-  /** Absolute paths of the entry documents. Without roots, no `orphan` issues are reported. */
+  /** Absolute paths of the entry documents. Without roots, `orphan` issues come only from documents that a never-orphan document (such as a man page) includes. */
   roots: string[];
   /** Absolute paths that count as reachable whatever links to them (a manifest hook's output). */
   extraReachable?: string[];
@@ -70,8 +70,8 @@ export interface SourceCheckOptions {
 
 /** The `name(section)` a man page file stands for (`cpupower.1` → `cpupower(1)`), else null. */
 function manPageName(path: string): { name: string; section: string } | null {
-  const m = /^(.+)\.(\d[a-z]*)$/.exec(basename(path));
-  return m ? { name: m[1], section: m[2] } : null;
+  const m = /^(.+)\.([1-9][a-z]*)$/i.exec(basename(path));
+  return m ? { name: m[1], section: m[2].toLowerCase() } : null;
 }
 
 function toPosix(p: string): string {
@@ -228,16 +228,23 @@ export function checkSourceDocs(options: SourceCheckOptions): SourceIssue[] {
   const manSections = new Map<string, string[]>();
   const manDocs = new Map<string, SourceDoc>();
   for (const doc of options.docs) {
-    if (doc.format !== 'man') continue;
+    // A fragment included with `.so` has no `.TH`, so it is not a page of its own.
+    if (doc.format !== 'man' || !doc.title) continue;
     const page = manPageName(doc.path);
     if (!page) continue;
-    manDocs.set(`${page.name}(${page.section})`, doc);
-    manSections.set(page.name, [...(manSections.get(page.name) ?? []), page.section]);
+    // A page answers to its file name and to every name its NAME section lists.
+    for (const name of new Set([page.name, ...(doc.aliases ?? [])])) {
+      if (manDocs.has(`${name}(${page.section})`)) continue;
+      manDocs.set(`${name}(${page.section})`, doc);
+      manSections.set(name, [...(manSections.get(name) ?? []), page.section]);
+    }
   }
   const quiet = (options.manPages?.quiet ?? []).flatMap(manQuietToRegExps);
 
   const checkManPage = (doc: SourceDoc, link: DocLink) => {
-    const hit = manDocs.get(link.target);
+    // Sections compare without case: `addch(3X)` names the file `curs_addch.3x`'s section.
+    const open = link.target.lastIndexOf('(');
+    const hit = manDocs.get(link.target.slice(0, open) + link.target.slice(open).toLowerCase());
     if (hit) {
       addEdge(doc, hit);
       return;
@@ -304,7 +311,10 @@ export function checkSourceDocs(options: SourceCheckOptions): SourceIssue[] {
   }
 
   // Orphans: documents no root reaches.
-  if (options.roots.length > 0) {
+  // A document that is never an orphan (a man page, an RST `:orphan:` page) still reaches what it
+  // includes, so a man page's `.so` fragments count as reached.
+  const standalone = options.docs.filter((d) => d.orphanOk && d.manifest.length > 0);
+  if (options.roots.length > 0 || standalone.length > 0) {
     const reached = new Set<SourceDoc>();
     const queue: SourceDoc[] = [];
     const visit = (doc: SourceDoc | undefined) => {
@@ -314,6 +324,7 @@ export function checkSourceDocs(options: SourceCheckOptions): SourceIssue[] {
       }
     };
     for (const r of options.roots) visit(byPath.get(resolve(r)));
+    for (const d of standalone) visit(d);
     for (const p of options.extraReachable ?? []) visit(byPath.get(resolve(p)));
     while (queue.length > 0) {
       for (const next of edges.get(queue.shift()!) ?? []) visit(next);

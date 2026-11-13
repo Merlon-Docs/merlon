@@ -12,6 +12,8 @@ interface ContractFixture {
   text: string;
   /** Link kinds the format spells the cross-document link with; [] for formats without links. */
   linkKinds: DocLinkKind[];
+  /** The title when the format names documents differently: a man page is its name and section. */
+  title?: string;
 }
 
 const CONTRACT: Record<string, ContractFixture> = {
@@ -98,6 +100,22 @@ const CONTRACT: Record<string, ContractFixture> = {
       '',
     ].join('\n'),
     linkKinds: [],
+    title: 'Install the tool(7)',
+  },
+  html: {
+    path: '/docs/install.html',
+    text: [
+      '<!DOCTYPE html>',
+      '<html><head><title>Install</title></head><body>',
+      '<h1>Install the tool</h1>',
+      '<h2>Before you start</h2>',
+      '<p>You need a recent <em>Node</em> release and a shell.</p>',
+      '<pre>npm install --global the-tool</pre>',
+      '<h2>Next steps</h2>',
+      '<p>Read the <a href="getting-started.html">getting started guide</a> next.</p>',
+      '</body></html>',
+    ].join('\n'),
+    linkKinds: ['file'],
   },
 };
 
@@ -124,14 +142,17 @@ describe.each(Object.entries(CONTRACT))('reader contract: %s', (id, fixture) => 
     expect(doc.path).toBe(fixture.path);
   });
 
+  const title = fixture.title ?? EXPECTED.title;
+
   it('reads the title', () => {
-    expect(doc.title?.plain).toBe(EXPECTED.title);
+    expect(doc.title?.plain).toBe(title);
   });
 
   it('reads the heading tree', () => {
-    expect(doc.headings.map((h) => ({ plain: h.plain, level: h.level }))).toEqual(
-      EXPECTED.headings,
-    );
+    expect(doc.headings.map((h) => ({ plain: h.plain, level: h.level }))).toEqual([
+      { plain: title, level: 1 },
+      ...EXPECTED.headings.slice(1),
+    ]);
   });
 
   it('reads prose paragraphs and leaves code out', () => {

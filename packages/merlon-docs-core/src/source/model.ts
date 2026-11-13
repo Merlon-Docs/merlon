@@ -86,4 +86,6 @@ export interface SourceDoc {
   manifest: ManifestEntry[];
   /** True when the document says it is intentionally unreachable (RST `:orphan:`). */
   orphanOk: boolean;
+  /** Other names the document answers to: the names a man page's NAME section lists. */
+  aliases?: string[];
 }

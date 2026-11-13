@@ -79,7 +79,7 @@ describe('man reader', () => {
       '.SS "Flags"',
     ]);
     expect(doc.headings.map((h) => [h.plain, h.level, h.line])).toEqual([
-      ['OPEN', 1, 1],
+      ['OPEN(2)', 1, 1],
       ['NAME', 2, 2],
       ['DESCRIPTION', 2, 5],
       ['Flags', 3, 6],
@@ -142,6 +142,51 @@ describe('man reader', () => {
     ]);
     expect(doc.links).toEqual([{ kind: 'manpage', target: 'msr(4)', line: 3 }]);
     expect(doc.paragraphs).toEqual([]);
+  });
+
+  it('titles a page by name and section', () => {
+    expect(man(['.TH term 5 2025-08-16 "ncurses 6.6" "File formats"']).title).toMatchObject({
+      plain: 'term(5)',
+      level: 1,
+    });
+    expect(man(['.TH term 7']).title?.plain).toBe('term(7)');
+  });
+
+  it('does not read a C call with a 0 argument as a page reference', () => {
+    const doc = man(['.TH curs_attr 3X', 'the same as \\fBattrset(0)\\fP, see attron(3X).']);
+    expect(doc.links.map((l) => l.target)).toEqual(['attron(3X)']);
+  });
+
+  it('reads .so as an include, grouped by the section above it, and a page with .TH as never an orphan', () => {
+    const doc = man(
+      ['.TH addch 3X', '.so addch/name.3x', '.SH DESCRIPTION', '.so common/return-value.3x'],
+      '/man/addch.3x',
+    );
+    expect(doc.manifest).toEqual([
+      { target: 'addch/name.3x', line: 2, group: 'before any .SH', kind: 'include' },
+      {
+        target: 'common/return-value.3x',
+        line: 4,
+        group: 'under .SH DESCRIPTION',
+        kind: 'include',
+      },
+    ]);
+    expect(doc.orphanOk).toBe(true);
+    expect(man(['.SH HISTORY', 'A fragment.'], '/man/addch/history.3x').orphanOk).toBe(false);
+  });
+
+  it('reads the names a NAME section lists as aliases', () => {
+    const doc = man([
+      '.TH curs_addch 3X',
+      '.SH NAME',
+      '\\fBaddch\\fP,',
+      '\\fBwaddch\\fP \\-',
+      'add a character',
+      '.SH DESCRIPTION',
+      'Text.',
+    ]);
+    expect(doc.aliases).toEqual(['addch', 'waddch']);
+    expect(man(['.TH x 1', '.SH DESCRIPTION', 'No NAME here.']).aliases).toEqual([]);
   });
 
   it('turns troff escapes into plain text', () => {

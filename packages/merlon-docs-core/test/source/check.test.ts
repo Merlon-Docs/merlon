@@ -104,6 +104,38 @@ describe('checkSourceDocs on man page references', () => {
         '.TH CPUPOWER-INFO 1\n.SH "SEE ALSO"\ncpupower(8), dmesg(1), open(2), ssl(3ssl)\n',
     });
 
+  it('follows .so includes from pages, and reports missing and unincluded fragments', () => {
+    const { root, docs } = pages({
+      'addch.3x':
+        '.TH addch 3X\n.so addch/name.3x\n.so common/return-value.3x\n.so addch/gone.3x\n',
+      'addch/name.3x': '.SH NAME\naddch \\- add a character\n',
+      'common/return-value.3x': '.SH "RETURN VALUE"\nThese functions return OK.\n',
+      'addch/stale.3x': '.SH HISTORY\nNo page includes this.\n',
+    });
+    expect(checkSourceDocs({ docs, docsRoot: root, roots: [] }).map(formatSourceIssue)).toEqual([
+      'broken-link: addch.3x:4: include names a missing file "addch/gone.3x"',
+      'orphan: addch/stale.3x: no table of contents, include or document link reaches this file',
+    ]);
+  });
+
+  it('does not count an included fragment as a page that references resolve to', () => {
+    const { root, docs } = pages({
+      'addch.3x': '.TH addch 3X\n.so addch/name.3x\n.SH "SEE ALSO"\nname(3x)\n',
+      'addch/name.3x': '.SH NAME\naddch \\- add a character\n',
+    });
+    const issues = checkSourceDocs({ docs, docsRoot: root, roots: [], manPages: { quiet: [] } });
+    expect(issues.map((i) => i.target)).toEqual(['name(3x)']);
+  });
+
+  it('resolves a reference to a name the NAME section lists, whatever the section case', () => {
+    const { root, docs } = pages({
+      'curs_addch.3x': '.TH curs_addch 3X\n.SH NAME\naddch, waddch \\- add a character\n',
+      'curs_attr.3x': '.TH curs_attr 3X\n.SH "SEE ALSO"\nwaddch(3X), curs_addch(3x), wattron(3X)\n',
+    });
+    const issues = checkSourceDocs({ docs, docsRoot: root, roots: [], manPages: { quiet: [] } });
+    expect(issues.map((i) => i.target)).toEqual(['wattron(3X)']);
+  });
+
   it('does not check man page references unless asked', () => {
     const { root, docs } = tree();
     expect(checkSourceDocs({ docs, docsRoot: root, roots: [] })).toEqual([]);
