@@ -69,7 +69,7 @@ A man page reference, such as `cpupower(1)` in a man page or `` :manpage:`open(2
 - a page or a `name(section)` pattern where `*` matches anything, such as `"msr(4)"`;
 - `"defaults"`, which stands for sections 1, 2, 3 and 8: user commands, system calls, library functions and administration commands.
 
-By default nothing is quiet. A reference to a name the tree has, in a section it doesn't have, such as `cpupower(8)` when the tree has `cpupower.1`, warns whatever `man.quiet` says.
+By default nothing is quiet. An autoconf placeholder such as `@TIC@(1)` names the program the build substitutes, so it checks as `tic(1)`. A reference to a name the tree has, in a section it doesn't have, such as `cpupower(8)` when the tree has `cpupower.1`, warns whatever `man.quiet` says.
 
 ```json
 { "man": { "quiet": ["defaults", "msr(4)"] } }

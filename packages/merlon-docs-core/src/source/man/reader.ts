@@ -23,34 +23,54 @@ export const MAN_GROUP_BEFORE_SECTIONS = 'before any .SH';
 const BREAKS = new Set(['PP', 'P', 'LP', 'IP', 'TP', 'HP', 'sp', 'br', 'RS', 'RE', 'TQ']);
 const FONT_MACROS = new Set(['B', 'I', 'SM', 'SB']);
 const ALTERNATING = new Set(['BR', 'RB', 'BI', 'IB', 'IR', 'RI']);
-const PAGE_REF = /([A-Za-z_][\w.+-]*)\(([1-9][a-zA-Z]*)\)/g;
+// A name may be an autoconf placeholder, `@TIC@(1)`, which the build replaces with the program's name.
+const PAGE_REF = /(@[A-Z_]+@|[A-Za-z_][\w.+-]*)\(([1-9][a-zA-Z]*)\)/g;
 
 /** Split a request's arguments, honouring double quotes. */
 function args(rest: string): string[] {
   const out: string[] = [];
-  const re = /"((?:[^"]|"")*)"|(\S+)/g;
+  // An escaped space (`\-T\ \c`) belongs to its argument.
+  const re = /"((?:[^"]|"")*)"|((?:\\ |\S)+)/g;
   for (const m of rest.matchAll(re)) out.push(m[1] !== undefined ? m[1].replace(/""/g, '"') : m[2]);
   return out;
 }
 
 /** troff escapes to plain text. */
 export function troffToPlain(text: string): string {
-  return text
-    .replace(/\\f(?:\[[^\]]*\]|\(..|.)/g, '')
-    .replace(/\\s[+-]?\d/g, '')
-    .replace(/\\\(em|\\\[em\]/g, '—')
-    .replace(/\\\(en|\\\[en\]/g, '–')
-    .replace(/\\\((?:lq|rq)|\\\[(?:lq|rq)\]/g, '"')
-    .replace(/\\-/g, '-')
-    .replace(/\\e/g, '\\')
-    .replace(/\\[&c%|^/,]/g, '')
-    .replace(/\\ /g, ' ')
-    .replace(/\\(.)/g, '$1');
+  return (
+    text
+      .replace(/\\f(?:\[[^\]]*\]|\(..|.)/g, '')
+      .replace(/\\s[+-]?\d/g, '')
+      .replace(/\\\(em|\\\[em\]/g, '—')
+      .replace(/\\\(en|\\\[en\]/g, '–')
+      .replace(/\\\((?:lq|rq|dq)|\\\[(?:lq|rq|dq)\]|\\\*\((?:lq|rq|``|'')|\\\*\[(?:lq|rq)\]/g, '"')
+      .replace(/\\\(aq|\\\[aq\]/g, "'")
+      .replace(/\\\(bu|\\\[bu\]/g, '•')
+      // Other strings and special characters: a string's value is set by `.ds`, so it is dropped.
+      .replace(/\\\*(?:\(..|\[[^\]]*\]|.)/g, '')
+      .replace(/\\\(..|\\\[[^\]]*\]/g, '')
+      .replace(/\\-/g, '-')
+      .replace(/\\e/g, '\\')
+      .replace(/\\[&c%|^/,:)]/g, '')
+      .replace(/\\ /g, ' ')
+      .replace(/\\(.)/g, '$1')
+  );
 }
 
 export const manReader: SourceReader = {
   read(text: string, context: ReadContext): SourceDoc {
-    const lines = text.split(/\r?\n/);
+    // A line ending in an unescaped backslash continues on the next; the join keeps the first line's number.
+    const raw = text.split(/\r?\n/);
+    const lines: string[] = [];
+    const lineNo: number[] = [];
+    for (let i = 0; i < raw.length; i++) {
+      let line = raw[i];
+      const start = i;
+      while (/(?:^|[^\\])(?:\\\\)*\\$/.test(line) && i + 1 < raw.length)
+        line = line.slice(0, -1) + raw[++i];
+      lines.push(line);
+      lineNo.push(start + 1);
+    }
     const headings: DocHeading[] = [];
     const links: DocLink[] = [];
     const units: { line: number; text: string }[] = [];
@@ -93,28 +113,29 @@ export const manReader: SourceReader = {
         if (done) skipUntil = null;
         // No-fill text is still rendered, and a SEE ALSO section is often set no-fill.
         // Sample output there can look like a reference (`CPUID(1):`), so a name needs a lowercase letter.
-        else if (skipUntil === 'fi') pageRefs(troffToPlain(line), i + 1, /[a-z]/);
+        else if (skipUntil === 'fi' || skipUntil === 'TE')
+          pageRefs(troffToPlain(line), lineNo[i], /[a-z]/);
         continue;
       }
       if (/^[.']\s*\\"/.test(line) || line.startsWith('\\"')) continue;
       const req = /^[.']\s*([A-Za-z]{1,3})(?:\s+(.*))?$/.exec(line);
       if (!req) {
         if (line.trim() === '' || line.trim() === '.') flush();
-        else addText(troffToPlain(line), i + 1);
+        else addText(troffToPlain(line), lineNo[i]);
         continue;
       }
       const [, name, rest = ''] = req;
       if (name === 'TH') {
         const a = args(rest);
         if (a[0]) {
-          heading(a[1] ? `${a[0]}(${a[1]})` : a[0], 1, i + 1);
+          heading(a[1] ? `${a[0]}(${a[1]})` : a[0], 1, lineNo[i]);
           hasTitle = true;
         }
       } else if (name === 'SH' || name === 'SS') {
         const level = name === 'SH' ? 2 : 3;
-        if (rest.trim()) heading(args(rest).join(' '), level, i + 1);
+        if (rest.trim()) heading(args(rest).join(' '), level, lineNo[i]);
         else if (i + 1 < lines.length) {
-          heading(lines[i + 1], level, i + 2);
+          heading(lines[i + 1], level, lineNo[i + 1]);
           i++;
         }
         const last = headings[headings.length - 1];
@@ -122,19 +143,19 @@ export const manReader: SourceReader = {
       } else if (name === 'so') {
         flush();
         const target = args(rest)[0];
-        if (target) manifest.push({ target, line: i + 1, group, kind: 'include' });
-      } else if (name === 'nf' || name === 'EX') {
+        if (target) manifest.push({ target, line: lineNo[i], group, kind: 'include' });
+      } else if (name === 'nf' || name === 'EX' || name === 'TS') {
         flush();
-        skipUntil = name === 'nf' ? 'fi' : 'EE';
+        skipUntil = name === 'nf' ? 'fi' : name === 'EX' ? 'EE' : 'TE';
       } else if (name === 'de') {
         flush();
         skipUntil = '..';
       } else if (BREAKS.has(name)) {
         flush();
       } else if (FONT_MACROS.has(name)) {
-        addText(troffToPlain(args(rest).join(' ')), i + 1);
+        addText(troffToPlain(args(rest).join(' ')), lineNo[i]);
       } else if (ALTERNATING.has(name)) {
-        addText(troffToPlain(args(rest).join('')), i + 1);
+        addText(troffToPlain(args(rest).join('')), lineNo[i]);
       }
     }
     flush();

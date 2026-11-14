@@ -189,8 +189,32 @@ describe('man reader', () => {
     expect(man(['.TH x 1', '.SH DESCRIPTION', 'No NAME here.']).aliases).toEqual([]);
   });
 
+  it('leaves out tbl tables but reads page references in their cells', () => {
+    const doc = man(['Before.', '.TS', 'Lf(BI) L.', 'tic(1M)\tCompile', '.TE', 'After.']);
+    expect(doc.paragraphs.map((p) => p.plain)).toEqual(['Before.', 'After.']);
+    expect(doc.links).toEqual([{ kind: 'manpage', target: 'tic(1M)', line: 4 }]);
+  });
+
+  it('joins a line that ends in a backslash with the next, keeping the first line number', () => {
+    const doc = man(['.PP', 'First half \\', 'second half.', 'Next line.']);
+    expect(doc.paragraphs).toEqual([{ line: 2, plain: 'First half second half. Next line.' }]);
+  });
+
+  it('keeps an escaped space inside a macro argument', () => {
+    expect(man(['.RB [ \\-T\\ \\c', '.IR type ]']).paragraphs[0].plain).toBe('[-T type]');
+  });
+
+  it('reads an autoconf placeholder as a page name', () => {
+    expect(man(['See \\fB@TIC@\\fP(1).']).links).toEqual([
+      { kind: 'manpage', target: '@TIC@(1)', line: 1 },
+    ]);
+  });
+
   it('turns troff escapes into plain text', () => {
     expect(troffToPlain('\\fBbold\\fR \\-\\-flag \\(em x\\&y')).toBe('bold --flag — xy');
+    expect(
+      troffToPlain("\\*(``clear\\*('' \\*(lqq\\*(rq \\(bu \\(aqa\\(aq \\(xx\\[yy]z ecma\\:.org"),
+    ).toBe('"clear" "q" • \'a\' z ecma.org');
     expect(troffToPlain('\\fIiasl\\fR\\|(8), a\\^b\\/c')).toBe('iasl(8), abc');
   });
 });

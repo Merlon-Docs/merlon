@@ -168,6 +168,17 @@ describe('checkSourceDocs on man page references', () => {
     ]);
   });
 
+  it('reads an autoconf placeholder as the program it names', () => {
+    const { root, docs } = pages({
+      'tic.1m': '.TH tic 1M\n.SH NAME\ntic \\- compile\n',
+      'term.5': '.TH term 5\n.SH "SEE ALSO"\n\\fB@TIC@\\fP(1M), \\fB@TIC@\\fP(1)\n',
+    });
+    const issues = checkSourceDocs({ docs, docsRoot: root, roots: [], manPages: { quiet: ['1'] } });
+    expect(issues.map(formatSourceIssue)).toEqual([
+      'unresolved-manpage (warning): term.5:3: no such page in the tree, which has tic(1m) "@TIC@(1)"',
+    ]);
+  });
+
   it('reads a quiet entry as a section, a pattern or the defaults', () => {
     const quiets = (entry: string, ref: string) =>
       manQuietToRegExps(entry).some((re) => re.test(ref));

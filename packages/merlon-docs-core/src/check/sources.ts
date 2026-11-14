@@ -243,13 +243,15 @@ export function checkSourceDocs(options: SourceCheckOptions): SourceIssue[] {
 
   const checkManPage = (doc: SourceDoc, link: DocLink) => {
     // Sections compare without case: `addch(3X)` names the file `curs_addch.3x`'s section.
+    // An autoconf placeholder, `@TIC@(1)`, names the program the build substitutes: `tic`.
     const open = link.target.lastIndexOf('(');
-    const hit = manDocs.get(link.target.slice(0, open) + link.target.slice(open).toLowerCase());
+    const written = link.target.slice(0, open);
+    const name = /^@([A-Z_]+)@$/.exec(written)?.[1].toLowerCase() ?? written;
+    const hit = manDocs.get(name + link.target.slice(open).toLowerCase());
     if (hit) {
       addEdge(doc, hit);
       return;
     }
-    const name = link.target.slice(0, link.target.lastIndexOf('('));
     const sections = manSections.get(name);
     if (sections) {
       const have = sections.map((sec) => `${name}(${sec})`).join(', ');
