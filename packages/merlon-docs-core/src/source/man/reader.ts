@@ -39,7 +39,7 @@ function args(rest: string): string[] {
 export function troffToPlain(text: string): string {
   return (
     text
-      .replace(/\\f(?:\[[^\]]*\]|\(..|.)/g, '')
+      .replace(/\\f(?:\[[^\]]{0,32}\]|\(..|.)/g, '')
       .replace(/\\s[+-]?\d/g, '')
       .replace(/\\\(em|\\\[em\]/g, '—')
       .replace(/\\\(en|\\\[en\]/g, '–')
@@ -47,13 +47,13 @@ export function troffToPlain(text: string): string {
       .replace(/\\\(aq|\\\[aq\]/g, "'")
       .replace(/\\\(bu|\\\[bu\]/g, '•')
       // Other strings and special characters: a string's value is set by `.ds`, so it is dropped.
-      .replace(/\\\*(?:\(..|\[[^\]]*\]|.)/g, '')
-      .replace(/\\\(..|\\\[[^\]]*\]/g, '')
+      .replace(/\\\*(?:\(..|\[[^\]]{0,32}\]|.)/g, '')
+      .replace(/\\\(..|\\\[[^\]]{0,32}\]/g, '')
       .replace(/\\-/g, '-')
-      .replace(/\\e/g, '\\')
       .replace(/\\[&c%|^/,:)]/g, '')
       .replace(/\\ /g, ' ')
-      .replace(/\\(.)/g, '$1')
+      // One pass, so the backslash `\e` stands for is not read as the start of another escape.
+      .replace(/\\(.)/g, (_, c: string) => (c === 'e' ? '\\' : c))
   );
 }
 
@@ -118,7 +118,7 @@ export const manReader: SourceReader = {
         continue;
       }
       if (/^[.']\s*\\"/.test(line) || line.startsWith('\\"')) continue;
-      const req = /^[.']\s*([A-Za-z]{1,3})(?:\s+(.*))?$/.exec(line);
+      const req = /^[.']\s*([A-Za-z]{1,3})(?:\s(.*))?$/.exec(line);
       if (!req) {
         if (line.trim() === '' || line.trim() === '.') flush();
         else addText(troffToPlain(line), lineNo[i]);

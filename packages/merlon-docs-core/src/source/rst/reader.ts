@@ -75,13 +75,13 @@ const OPAQUE_DIRECTIVES = new Set([
 ]);
 
 /** `.. name:: argument`, optionally as a list item (`* .. note::`). */
-const DIRECTIVE = /^(\s*)(?:[*+-]\s+)?\.\.\s+([A-Za-z0-9_][\w:+.-]*)::(?:\s+(.*))?$/;
+const DIRECTIVE = /^(\s*)(?:[*+-]\s+)?\.\.\s+([A-Za-z0-9_][\w:+.-]*)::(?:\s(.*))?$/;
 /** `.. _label:` with nothing after the colon; backquoted for labels holding colons or spaces. */
 const LABEL = /^(\s*)(?:[*+-]\s+)?\.\.\s+_(?:`([^`]+)`|([^:`][^:]*?)):\s*$/;
 /** Any explicit markup start: `..` then a space, or `..` alone. */
 const EXPLICIT = /^(\s*)(?:[*+-]\s+)?\.\.(?:\s|$)/;
-const OPTION = /^\s+:([\w-]+):(?:\s+(.*))?$/;
-const FIELD = /^:([\w -]+):(?:\s+.*)?$/;
+const OPTION = /^\s+:([\w-]+):(?:\s(.*))?$/;
+const FIELD = /^:([\w -]+):(?:\s.*)?$/;
 const ADORNMENT = /^([!-/:-@[-`{-~])\1{2,}\s*$/;
 const GRID_BORDER = /^\s*\+[-=+]+\+\s*$/;
 const SIMPLE_BORDER = /^\s*=+(?: +=+)+\s*$/;

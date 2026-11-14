@@ -210,6 +210,17 @@ describe('man reader', () => {
     ]);
   });
 
+  it('reads \\e as a literal backslash that starts no other escape', () => {
+    expect(troffToPlain('C-\\e(bu and \\e\\-')).toBe('C-\\(bu and \\-');
+  });
+
+  it('reads long runs of unclosed escapes and padded requests in linear time', () => {
+    const start = Date.now();
+    troffToPlain('\\f['.repeat(20000));
+    man(['.B' + ' '.repeat(20000) + 'x']);
+    expect(Date.now() - start).toBeLessThan(1000);
+  });
+
   it('turns troff escapes into plain text', () => {
     expect(troffToPlain('\\fBbold\\fR \\-\\-flag \\(em x\\&y')).toBe('bold --flag — xy');
     expect(
