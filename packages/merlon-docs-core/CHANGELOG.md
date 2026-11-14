@@ -1,5 +1,32 @@
 # @merlon-docs/merlon-docs-core
 
+## 1.2.0
+
+### Minor Changes
+
+- 39f43f4: Add the `html` reader (`htmlFormat`) for hand-written HTML docs, so `merlon check --no-compile` and `merlon review --no-compile` can read a tree such as ncurses' `doc/html`. Headings are `<h1>`–`<h6>`, the title is the first `<h1>` or else `<title>`, block-level elements split prose, and `<pre>`, `<script>`, `<style>` and comments are left out. `<a href>` links, `id` attributes and `<a name>` anchors are checked, and links to other HTML pages make them reachable from `roots`.
+- 39f43f4: `merlon check --no-compile` resolves man page references, such as `open(2)` in a man page or `` :manpage:`open(2)` `` in RST, against the pages in the tree. A reference that resolves nowhere is an `unresolved-manpage` warning, printed without failing the check. `man.quiet` lists references that shouldn't warn, by section (`"4"`), by page or pattern (`"msr(4)"`), or as `"defaults"` for sections 1, 2, 3 and 8. A name the tree has, in a section it lacks, always warns.
+- 39f43f4: The `man` reader follows `.so` includes, so a man page split into fragments is checked as one: a missing fragment is a broken link, and a fragment no page includes is an orphan, even without `roots`. A man page is titled by name and section, such as `term(5)`, so `term(5)` and `term(7)` no longer read as a title clash. Page references resolve to the names a page's NAME section lists, sections compare without case (`addch(3X)` resolves to `curs_addch.3x`), uppercase sections are read, and a call such as `attrset(0)` is no longer a reference. `SourceDoc` gains an optional `aliases` list.
+- 39f43f4: Add a format-neutral document model for review and check (ADR 0008). A format's reader turns source text into a `SourceDoc` (title, headings, prose paragraphs, links, anchors, manifest entries), and `reviewDocs` now reads only that model. The GFM reader is built in and exported as `gfmFormat`; `registerFormat`, `getFormat` and `listFormats` manage the registry. Review output for Markdown guides is unchanged. `checkSourceDocs` runs format-neutral checks over read documents: reachability from root documents (orphans), file and document links that resolve, fragments that name an anchor, and labels that are defined. A format can supply a `TargetLocator` for how it names files and a `RefResolver` for its labels.
+
+  Config gains `sources` (which files are docs and which format reads them, default `**/*.md` as `gfm`), `roots`, `manifestHook`, `sphinx`, and `review.guides` for per-guide thresholds. `compileOrder` may now be left out for a tree another tool builds; `merlon compile` and the commands that read compiled guides then fail with a message that points at `--no-compile`. An explicitly empty `compileOrder` is still rejected.
+
+  Add the `rst` reader (`rstFormat`): over- and underlined section titles, `toctree` entries (relative, `/absolute`, `:glob:`, `:caption:` as the index group), `include` and `literalinclude`, `.. _label:` targets (indented, in list items, backquoted) and `:name:` options, `:ref:` and `:doc:` roles whose text wraps lines, and `:orphan:`. Literal blocks, code and other non-prose directive bodies, comments and tables are left out of the prose.
+
+  Add the `text` reader for `README`s, `.txt` and extensionless prose (blank-line paragraphs, an underlined first line as the title, literal blocks indented past the document's own indent, files starting with `#!` read as empty), and the `man` reader for troff man pages (`.TH` title, `.SH`/`.SS` sections, no-fill and example blocks left out, page references such as `open(2)` as `manpage` links).
+
+  RST `:ref:` targets resolve the way a Sphinx build does (`sphinxRefs`, `rstFormatWithSphinx`): explicit labels, `:name:` options, Sphinx's built-in labels, `autosectionlabel` targets (with `prefixDocument` and `maxDepth`), `ignoreLabels` patterns for labels the build generates, and labels read from a built `objects.inv` (`readSphinxInventory`).
+
+  `merlon check --no-compile` and `merlon review --no-compile` run on the config's `sources` in any format, for a tree another tool builds. Check reports orphans (from `roots`, through table-of-contents entries, includes, `doc` links, a `manifestHook` module, and `:orphan:`), links and entries that name missing files, missing fragments and undefined labels; review reports the four sprawl signals with a `locations` list of file and line on each finding. A symlinked document is read once, under its target. `--config` can live outside the docs root: `manifestHook` and `sphinx.inventory` resolve against the config file's directory.
+
+### Patch Changes
+
+- 39f43f4: Correct two earlier release notes. The 1.0.0 entry says the `1.0.0-draft.N` prereleases stay on the npm `draft` tag and that the Agent Skills publish under npm `latest`. The `draft` tag no longer exists, and the skill ships through GitHub Releases, not npm. The Node.js 22 entry in core 1.1.0, presets 1.1.0 and the skill's 1.0.2 gives the CLI's reason: the `CustomEvent is not defined` failure is the CLI's. Core, the presets and the skill move to Node.js 22 to keep the family on one floor.
+- 39f43f4: Update runtime dependencies: `ignore` from ^7.0.12 to ^7.0.14.
+- 39f43f4: The man and RST readers run in linear time on long runs of unclosed escapes or padded lines, and the man reader reads `\e` as a literal backslash that starts no other escape.
+- 39f43f4: The man reader handles what the ncurses pages use: tbl tables (`.TS`…`.TE`) are left out of prose but their page references are read, a line ending in a backslash joins the next, `\*(..` strings and `\(..` special characters no longer leave residue such as `*(lq`, an escaped space stays inside a macro argument, and an autoconf placeholder such as `@TIC@(1)` is checked as `tic(1)`.
+- 39f43f4: Read real-world man pages and READMEs more faithfully: a `.nf` or `.EX` block that is never closed ends at the next `.SH` or `.SS` instead of hiding the rest of the page, page references inside no-fill blocks (often `SEE ALSO`) are read, troff spacing escapes such as `\|` are dropped, and a plain-text heading that follows prose is a section, not the document's title.
+
 ## 1.1.0
 
 ### Minor Changes

@@ -1,5 +1,17 @@
 # @merlon-docs/skill-merlon-docs
 
+## 1.1.0
+
+### Minor Changes
+
+- 39f43f4: Doc review now runs a five-step evidence check on every claim it makes about a doc, such as an error, a duplicate, or a mismatch with the code. For each claim, the agent records the claim as printed, the file or URL it opened (not the citation), a quote of what that source says, a verdict (matches, disagrees, missing, impossible, superseded, or can't tell) with its confidence, and what it would have concluded one step earlier. Only a claim that matches with high or moderate confidence leads to an edit. The record goes in the reply and in the commit message of the group that acts on it. The new `references/review/evidence-check.md` defines the check, the doc-review workflow runs it at the start of Step 3, the review lenses send each finding to it, and the two-level review principle in `SKILL.md` applies it to any review.
+- 39f43f4: The getting-started workflow gains a "brownfield, non-Markdown" branch for docs that Sphinx, MkDocs or Antora already builds: no `docs/` scaffold, an out-of-tree config with `sources`, a project-local extension skill, and `merlon check --no-compile` and `merlon review --no-compile` only.
+
+### Patch Changes
+
+- 39f43f4: Correct two earlier release notes. The 1.0.0 entry says the `1.0.0-draft.N` prereleases stay on the npm `draft` tag and that the Agent Skills publish under npm `latest`. The `draft` tag no longer exists, and the skill ships through GitHub Releases, not npm. The Node.js 22 entry in core 1.1.0, presets 1.1.0 and the skill's 1.0.2 gives the CLI's reason: the `CustomEvent is not defined` failure is the CLI's. Core, the presets and the skill move to Node.js 22 to keep the family on one floor.
+- 39f43f4: The `MerlonDocs` Vale style adds `MerlonDocs.UnformattedCode`, a warning-level rule that flags a code-shaped name outside backticks: a call such as `set_field_fore()`, a `snake_case` name such as `field_init`, or an `UPPER_SNAKE` constant such as `O_AUTOSKIP`. It skips names inside email addresses and emoji shortcodes. A warning doesn't fail `merlon check`, so set `MerlonDocs.UnformattedCode = error` in `.vale.ini` to enforce it. The skill's workflow references put intake names such as `WORK_ITEM` in backticks.
+
 ## 1.0.2
 
 ### Patch Changes
