@@ -16,7 +16,7 @@
   "devDependencies": {
     "@astrojs/starlight": "^0.42.6",
     "@merlon-docs/merlon-docs-core": "workspace:*",
-    "astro": "^7.4.2",
+    "astro": "^7.4.7",
     "axe-core": "^4.14.0",
     "github-slugger": "^2.0.0",
     "mermaid": "^12.2.0",
