@@ -14,6 +14,7 @@ Each term is its own shard under `docs/glossary/`. [Shared glossary](../client-c
 ## Skill practice
 
 - [atomic commit groups](./atomic-commit-groups.md)
+- [evidence check](./evidence-check.md)
 - [live skill eval](./live-skill-eval.md)
 
 ## Documentation structure

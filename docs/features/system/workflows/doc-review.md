@@ -20,6 +20,33 @@ runs `merlon review` at the end of a workflow when one of the
 `SKILL.md` matches. When the review reports findings, the skill offers this
 workflow without being asked.
 
+## Evidence check
+
+Every claim the review makes about a doc, such as an error, a duplicate, or a
+mismatch with the code, is checked against its source before the review acts on
+it or reports it. A finding from `merlon review`, a reviewer lens, an earlier
+report, or the agent's own notes is a claim, not a fact. The record for each
+claim has five parts:
+
+1. The claim, as printed, with the file and line it is about
+2. What the reviewer opened to test it: the file or URL, not the citation the
+   claim gives
+3. What that source says, quoted
+4. A verdict, one of matches, disagrees, missing, impossible, superseded, or
+   can't tell, and how confident the reviewer is
+5. What the reviewer would have concluded had they stopped one step earlier
+
+Only a claim that matches with high or moderate confidence leads to an edit. The
+others are dropped or reported as open. The record goes in the reply and in the
+commit message of the commit group that acts on the claim, not in a durable
+shard. The [evidence check reference](../../../../skills/merlon-docs/references/review/evidence-check.md)
+in the skill defines each verdict and gives an example record.
+
+Why: a finding read from a report or a heuristic is often wrong in ways that
+only opening the source shows. Parallel pages repeat a paragraph on purpose, a
+wrong reference has more copies than the finding counted, or the finding came
+from an older version of the tool.
+
 ## Weekly review routine
 
 For projects whose docs change in most weeks, the skill also recommends a
@@ -52,6 +79,7 @@ none.
 | ------------------------ | ----------------------------------------------------------------------------------------------------------------- |
 | Mechanical pass first    | Run `merlon compile`, `merlon check`, and `merlon review`; fix check failures before judging review findings      |
 | Reviewer lenses          | Read as product manager, staff engineer, technical writer, and designer                                           |
+| Evidence for each claim  | The five-step [evidence check](#evidence-check) before any decision; only a claim that matches leads to an edit   |
 | One decision per finding | Merge, split, move, reword, link, delete, or leave, with a one-line reason                                        |
 | Atomic commit groups     | One concern per group: moves, then merges and splits, then rewording, then index changes                          |
 | Links keep working       | Every move, merge, or split updates incoming links in the same commit; `merlon check` passes after each group     |
@@ -72,7 +100,7 @@ none.
 A successful review session typically:
 
 1. Reports each `merlon review` finding with the action taken or the reason it
-   stays
+   stays, and each claim about a doc with its five-step evidence record
 2. Leaves every guide index readable as a map, grouped under headings once it
    passes about a dozen entries
 3. States each rule in one shard, with other shards linking to it

@@ -9,6 +9,7 @@ Natural-language **static analysis** belongs with **[Vale](https://vale.sh/) sty
 - **GFM cross-refs** (`[label](./shard.md#slug)`) → **merlon-docs-core / CLI**. First-class [link validation](../link-validation.md) and [refs](../../glossary/refs.md). This is the compile/check job.
 - **Unlinked prose mentions** (en-US examples: "See Chapter…", bare `Ch. N`, "Section N" with no markdown link) → peer **Vale** style `MerlonDocs` in `@merlon-docs/merlon-docs-presets` (`vale/MerlonDocs`). Language-specific writing cues — not vocabulary of the Merlon Docs standard. Other languages need their own Vale styles.
 - **Dated claims** (en-US cues: `as of` or `until` before an ISO date) → peer **Vale** rule `MerlonDocs.DatedClaim` in the same `MerlonDocs` style. The cue words are Vale-style data, not locale-pack data: no compile code reads them, so they stay out of the locale pack.
+- **Code names outside backticks** (`set_field_fore()`, `field_init`, `O_AUTOSKIP` written as plain prose) → peer **Vale** rule `MerlonDocs.UnformattedCode` in the same `MerlonDocs` style, at warning level. Its patterns match code shapes, not English words, and markdownlint can't see them because the text is valid GFM.
 - **Pandoc IDs** (`{#…}` after a heading) → a peer **Vale** rule that the host adds, since the `MerlonDocs` style in `@merlon-docs/merlon-docs-presets` has none. [GFM scope](./gfm-scope.md#headings) states the rule against authoring them. Core may strip leftovers for cleanup, and that is not an authoring feature.
 - **GFM / Markdown shape** → peer **markdownlint**.
 - **Generated caption / marker copy** (`Table 1. …`, `BROKEN LINK`) → compile-time locale pack (default `en-US`).
@@ -21,6 +22,9 @@ See Chapter 2 for details.
 
 # Illustrative, Vale MerlonDocs.DatedClaim: a claim pinned to a date
 As of 2026-07-27 the cache is warm.
+
+# Illustrative, Vale MerlonDocs.UnformattedCode: code outside backticks
+Call field_init before set_field_fore().
 
 # Illustrative, a host Vale rule against Pandoc IDs (remove the ID):
 ## Details {#…}

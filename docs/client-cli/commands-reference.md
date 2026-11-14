@@ -72,8 +72,11 @@ Text output groups findings by signal and lists docs-root-relative paths. `--jso
 | `--json`         | Print findings as a JSON array                                                              |
 | `--strict`       | Exit 1 when there is at least one finding                                                   |
 | `--guide <name>` | Review one guide from `compileOrder`; keep findings that involve at least one of its shards |
+| `--no-compile`   | Review the config's `sources` in any format, with file and line on each finding             |
 
 With `--guide`, a duplicate paragraph is reported when any copy sits in that guide, so duplication across guides still shows up. The shard count covers that guide only. An unknown guide name exits 1 and lists the guide names.
+
+`--no-compile` reads the files that config `sources` lists, in any format, instead of the guides in `compileOrder`, and adds a `locations` list of `{ file, line }` to each finding. `merlon check --no-compile` is its gate counterpart. Both are for a tree another tool builds, as [Non-Markdown sources](./non-markdown-sources.md) describes.
 
 Without `--strict`, `merlon review` exits 0. Thresholds live under `review` in config, as [Review thresholds](./config-reference.md#review-thresholds) shows.
 

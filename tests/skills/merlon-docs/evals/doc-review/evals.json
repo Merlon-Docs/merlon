@@ -27,6 +27,10 @@
           "description": "The \"Previously, before the 1.3 release\" history narration is removed or rewritten as current behavior in docs/client/faq.md"
         },
         {
+          "name": "records_evidence_per_claim",
+          "description": "For each finding it acts on, the reply or the commit message records the claim as printed, the file it opened, a quote of what that file says, a verdict with a confidence, and what it would have concluded one step earlier"
+        },
+        {
           "name": "check_passes",
           "description": "merlon check (with --skip-vale allowed) passes after the edits"
         }

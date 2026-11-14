@@ -496,13 +496,4 @@ export function stripBlockMarkers(line: string): string {
   return marker > 0 ? t.slice(marker) : t;
 }
 
-const WORDISH = /[\p{L}\p{N}]/u;
-
-/** Whitespace-separated tokens that contain at least one letter or digit. */
-export function countWords(text: string): number {
-  let n = 0;
-  for (const token of text.split(/\s+/)) {
-    if (token && WORDISH.test(token)) n++;
-  }
-  return n;
-}
+export { countWords } from '../source/text.js';

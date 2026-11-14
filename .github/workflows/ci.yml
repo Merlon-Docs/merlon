@@ -49,7 +49,7 @@ jobs:
       skip: ${{ steps.match.outputs.skip }}
     steps:
       # Harden-Runner: audit mode only — logs egress; block mode is follow-up (#179).
-      - uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+      - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: audit
 
@@ -102,7 +102,7 @@ jobs:
       contents: read
     steps:
       # Harden-Runner: audit mode only — logs egress; block mode is follow-up (#179).
-      - uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+      - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: audit
 
@@ -158,9 +158,11 @@ jobs:
       - name: Ensure documentation outputs are up-to-date
         run: git diff --exit-code
 
-      # Run the built CLI on the oldest Node that engines.node allows. Keep in step with
-      # packages/*/package.json. Only the runtime changes; the dependencies stay the locked ones.
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      # Run the built CLI on the oldest Node that engines.node allows. Only the runtime changes;
+      # the dependencies stay the locked ones. `pnpm run lint` fails when this step's
+      # node-version differs from the minimum of engines.node (scripts/lint-node-floor.mjs).
+      - name: Set up the Node floor
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22.0.0
 
@@ -180,7 +182,7 @@ jobs:
       contents: read
     steps:
       # Harden-Runner: audit mode only — logs egress; block mode is follow-up (#179).
-      - uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+      - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: audit
 
@@ -245,7 +247,7 @@ jobs:
       contents: read
     steps:
       # Harden-Runner: audit mode only — logs egress; block mode is follow-up (#179).
-      - uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+      - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: audit
 
@@ -272,7 +274,7 @@ jobs:
       contents: read
     steps:
       # Harden-Runner: audit mode only — logs egress; block mode is follow-up (#179).
-      - uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+      - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: audit
 
@@ -307,7 +309,7 @@ jobs:
       contents: read
     steps:
       # Harden-Runner: audit mode only — logs egress; block mode is follow-up (#179).
-      - uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+      - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: audit
 

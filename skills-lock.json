@@ -2,9 +2,9 @@
   "version": 1,
   "skills": {
     "merlon-docs": {
-      "source": "/workspace",
+      "source": ".",
       "sourceType": "local",
-      "computedHash": "6b06e25dc48761ae41fbb1016da9866e276cacc36c57e314acafa85bff55c33e"
+      "computedHash": "9a6480c5842721eb6079df59db36a8066ba10cd51544adc5af1eba5c5f362486"
     },
     "skill-creator": {
       "source": "anthropics/skills",

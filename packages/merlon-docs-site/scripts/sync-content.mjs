@@ -740,6 +740,7 @@ export function syncContent(opts) {
       ['shard-responsibility.md', 'references/shard-responsibility', 'Shard single responsibility'],
       ['review/lenses.md', 'references/review-lenses', 'Review lenses'],
       ['review/consolidation.md', 'references/consolidation', 'Consolidation playbook'],
+      ['review/evidence-check.md', 'references/evidence-check', 'Evidence check'],
       ['acknowledgments.md', 'references/acknowledgments', 'Acknowledgments'],
     ];
     const refItems = [];

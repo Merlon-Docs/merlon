@@ -72,11 +72,12 @@ current docs only, [shard single responsibility](../glossary/shard-single-respon
 [idea mitosis](../glossary/idea-mitosis.md), two-level review, no code or
 temporary information in durable docs, and recording where plans live.
 
-Because every install gets its own copy of `SKILL.md`, the file also states four rules that these docs own:
+Because every install gets its own copy of `SKILL.md`, the file also states five rules that these docs own:
 the [plan obligation for atomic commit groups](./system/skill-workflows.md#atomic-commit-groups-plan-obligation),
 the [guide layout and placement test](./system/merlon-docs-1.0-spec.md#2-default-guide-layout-code-repository-archetype),
 the [concept removal obligation](./system/skill-workflows.md#concept-removal-obligation),
-and the [trigger and evidence of the weekly review routine](./system/workflows/doc-review.md#weekly-review-routine).
+the [trigger and evidence of the weekly review routine](./system/workflows/doc-review.md#weekly-review-routine),
+and the [evidence check for each claim a review makes](./system/workflows/doc-review.md#evidence-check).
 The workflow files inside the skill repeat or point to each one at the step where it applies.
 
 Depth on single responsibility, mitosis, and two-level review:

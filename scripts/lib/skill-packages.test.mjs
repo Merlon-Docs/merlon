@@ -8,6 +8,7 @@ import {
   skillIdFromPackageName,
   skillCarrierDirName,
   setSkillMdVersion,
+  readSkillMdVersion,
   listSkillDirs,
   listSkillCarrierIds,
   skillCarrierPackageJsonPath,
@@ -44,6 +45,17 @@ metadata:
     assert.match(next, /version: '0\.8\.1'/);
     assert.match(next, /internal: true/);
     assert.equal(setSkillMdVersion(skillPath, '0.8.1'), false);
+  });
+
+  it('reads metadata.version quoted or bare, and back after setSkillMdVersion', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'skill-read-'));
+    const skillPath = join(dir, 'SKILL.md');
+    writeFileSync(skillPath, '---\nname: demo\nmetadata:\n  version: 0.7.0\n---\n');
+    assert.equal(readSkillMdVersion(skillPath), '0.7.0');
+    setSkillMdVersion(skillPath, '0.8.1');
+    assert.equal(readSkillMdVersion(skillPath), '0.8.1');
+    writeFileSync(skillPath, '---\nname: demo\n---\n');
+    assert.equal(readSkillMdVersion(skillPath), null);
   });
 
   it('lists skill dirs and carrier packages separately', () => {

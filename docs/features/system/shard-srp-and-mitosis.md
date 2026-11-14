@@ -63,7 +63,7 @@ When a change touches documentation (or code whose behavior a guide documents):
 1. **In isolation** — each changed idea or shard is locally correct for its single responsibility.
 2. **Comprehensively** — against related shards and guides: duplication, better splits/merges/relocations, and agreement between what guides promise and what the change does.
 
-A review is complete only when the change and its guides agree. Guides record the intent behind the code, so a review of the diff alone can miss where they disagree. To review a whole docs root as a set, use the [doc-review workflow](./workflows/doc-review.md).
+A review is complete only when the change and its guides agree. Guides record the intent behind the code, so a review of the diff alone can miss where they disagree. Each claim a review makes about a doc, such as an error, a duplicate, or a mismatch, gets the five-step [evidence check](./workflows/doc-review.md#evidence-check) before the review acts on it. To review a whole docs root as a set, use the [doc-review workflow](./workflows/doc-review.md).
 
 ## Supporting maps (optional depth)
 

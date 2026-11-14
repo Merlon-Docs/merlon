@@ -30,10 +30,110 @@
       "type": "string"
     },
     "compileOrder": {
+      "default": [],
+      "description": "Guide directories to compile, in order. Leave it out for a tree another tool builds; merlon compile and a full merlon check then fail and point at --no-compile.",
       "minItems": 1,
       "type": "array",
       "items": {
         "type": "string"
+      }
+    },
+    "sources": {
+      "default": [
+        {
+          "glob": "**/*.md",
+          "format": "gfm"
+        }
+      ],
+      "description": "Which files are documentation and which format reads each. The first entry whose glob matches a file wins.",
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "glob": {
+            "type": "string",
+            "description": "Files this entry covers, relative to the docs root."
+          },
+          "format": {
+            "type": "string",
+            "description": "Format that reads them: gfm, rst, text or man, or a registered format id."
+          }
+        },
+        "required": [
+          "glob",
+          "format"
+        ]
+      }
+    },
+    "roots": {
+      "default": [],
+      "description": "Entry documents for --no-compile reachability, relative to the docs root (for example index.rst). A file no root reaches is an orphan.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "manifestHook": {
+      "description": "Module, relative to the config file, whose default export returns extra reachable docs-root-relative paths, for toctrees a build generates.",
+      "type": "string"
+    },
+    "sphinx": {
+      "description": "How :ref: and :doc: targets resolve in an RST tree that Sphinx builds.",
+      "type": "object",
+      "properties": {
+        "autosectionlabel": {
+          "description": "Set when conf.py loads sphinx.ext.autosectionlabel, so section titles count as labels.",
+          "type": "object",
+          "properties": {
+            "prefixDocument": {
+              "default": false,
+              "description": "Mirrors autosectionlabel_prefix_document: labels read docname:Section Title.",
+              "type": "boolean"
+            },
+            "maxDepth": {
+              "default": 0,
+              "description": "Mirrors autosectionlabel_maxdepth: deepest heading level labelled; 0 means every level.",
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "ignoreLabels": {
+          "default": [],
+          "description": "Regular expressions for labels the build generates (genindex, modindex, search, or a project prefix such as abi_.*).",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "inventory": {
+          "description": "Path to a built objects.inv, relative to the config file. Its std:label and std:doc entries count as defined.",
+          "type": "string"
+        }
+      }
+    },
+    "man": {
+      "description": "How --no-compile checks man page references such as open(2). A reference to a page that is neither in the tree nor quieted is a warning, which does not fail the check.",
+      "type": "object",
+      "properties": {
+        "quiet": {
+          "description": "Man page references that resolve outside the tree, so they do not warn: a section such as \"8\" (also covers 8p), a page or name(section) pattern where * matches anything such as \"msr(4)\", or \"defaults\" for sections 1, 2, 3 and 8.",
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            ]
+          }
+        }
       }
     },
     "banner": {
@@ -493,6 +593,33 @@
           "type": "integer",
           "exclusiveMinimum": 0,
           "maximum": 9007199254740991
+        },
+        "guides": {
+          "description": "Per-guide threshold overrides, keyed by compileOrder name or, without compileOrder, by top-level directory of the docs root. Reference pages that are long on purpose get a higher maxShardWords here.",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "maxIndexEntries": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "maxShardWords": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "minDuplicateWords": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              }
+            }
+          }
         }
       }
     },
@@ -521,8 +648,7 @@
     }
   },
   "required": [
-    "configVersion",
-    "compileOrder"
+    "configVersion"
   ],
   "title": "Merlon Docs configuration",
   "description": "Configuration schema for merlon.config.json, the Merlon Docs config file"

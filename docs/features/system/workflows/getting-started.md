@@ -33,7 +33,7 @@ before handing off to normal delivery.
 | Experience-adaptive depth   | Novice: tutorial shards and concept pauses; expert: concise FEATURE starters only                                                    |
 | Validate                    | Run `merlon compile` / `merlon check` until clean; with Vale installed and no prose linting asked for, add a placeholder `.vale.ini` |
 | First-feature tutorial      | After bootstrap, offer walkthrough (default yes for novice); resolve `EXAMPLE_MODE`; run workflow phases in order                    |
-| EXAMPLE_MODE                | **recommended** (`hello-greeting`) or **bring-your-own** (user FEATURE / PERSONA; one small slice)                                   |
+| `EXAMPLE_MODE`              | **recommended** (`hello-greeting`) or **bring-your-own** (user FEATURE / PERSONA; one small slice)                                   |
 | Hand off when tutorial skip | State next steps for feature-level, doc-only, design-architecture, or UX                                                             |
 
 ## What this workflow is not
