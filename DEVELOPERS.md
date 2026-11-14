@@ -37,6 +37,7 @@ Each term is its own shard under `docs/glossary/`. [Shared glossary](./packages/
 ### Skill practice
 
 - [atomic commit groups](#atomic-commit-groups)
+- [evidence check](#evidence-check)
 - [live skill eval](#live-skill-eval)
 
 ### Documentation structure
@@ -1730,6 +1731,16 @@ A plan section of numbered groups that splits coding or multi-concern work into 
 [Atomic commit groups (plan obligation)](docs/features/system/skill-workflows.md#atomic-commit-groups-plan-obligation) lists the fields of each group and the workflows that require the section.
 
 <!-- merlon-shard: end docs/glossary/atomic-commit-groups.md -->
+
+<!-- merlon-shard: start docs/glossary/evidence-check.md -->
+
+## evidence check
+
+The five-step record a review keeps for each claim it makes about a doc, such as an error, a duplicate, or a mismatch with the code: the claim as printed, what the reviewer opened, what that source says, a verdict with a confidence, and what the reviewer would have concluded one step earlier. A claim leads to an edit only when its verdict is that it matches.
+
+[Evidence check](docs/features/system/workflows/doc-review.md#evidence-check) in the doc-review workflow spec lists the verdicts and where the record goes.
+
+<!-- merlon-shard: end docs/glossary/evidence-check.md -->
 
 <!-- merlon-shard: start docs/glossary/live-skill-eval.md -->
 
