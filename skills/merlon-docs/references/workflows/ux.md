@@ -19,15 +19,15 @@ flows.
 
 Take these values from the request and the repo first. Ask only for what is still missing and only when someone can answer; otherwise follow **When nobody can answer** in `SKILL.md`.
 
-1. **WORK_ITEM** — What issue, ticket URL, or task should this session cover?
-2. **WORK_ITEM_LOOKUP** — Where should you load scope and delivery conventions? (Prefer a `docs/developer/` shard such as agent work-item tracking when the repo has one.)
+1. `WORK_ITEM` — What issue, ticket URL, or task should this session cover?
+2. `WORK_ITEM_LOOKUP` — Where should you load scope and delivery conventions? (Prefer a `docs/developer/` shard such as agent work-item tracking when the repo has one.)
 
 ## Inputs
 
 Collect these via intake (or from the conversation if already stated):
 
-- **WORK_ITEM**: The issue, ticket, or task description.
-- **WORK_ITEM_LOOKUP**: Shard path or plain location (e.g. GitHub) for scope and delivery conventions.
+- `WORK_ITEM`: The issue, ticket, or task description.
+- `WORK_ITEM_LOOKUP`: Shard path or plain location (e.g. GitHub) for scope and delivery conventions.
 
 ## Process
 

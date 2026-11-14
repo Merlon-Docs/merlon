@@ -46,7 +46,7 @@ Landing=push the branch; put "Closes #N" in the commit message
 
 ## Workflow best practices
 
-1. **Load scope and stay focused**: the [Required intake](../features/system/skill-workflows.md#required-intake) rules have an agent load the WORK_ITEM before it edits, with one WORK_ITEM per branch. Treat the acceptance criteria as the boundary unless the WORK_ITEM explicitly expands scope.
+1. **Load scope and stay focused**: the [Required intake](../features/system/skill-workflows.md#required-intake) rules have an agent load the `WORK_ITEM` before it edits, with one `WORK_ITEM` per branch. Treat the acceptance criteria as the boundary unless the `WORK_ITEM` explicitly expands scope.
 2. **Branch first**: follow [Git and delivery](#git-and-delivery).
 3. **Plan atomic commit groups**: list them in a coding or multi-concern plan before review, as [Atomic commit groups (plan obligation)](../features/system/skill-workflows.md#atomic-commit-groups-plan-obligation) requires. After approval, commit one group at a time.
 4. **Docs describe now**: update shards to match as-built behavior, and keep consumer notices out of durable shards ([Durable docs vs pending changesets](./versioning-and-releases.md#durable-docs-vs-pending-changesets)).

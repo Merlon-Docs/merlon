@@ -24,7 +24,7 @@ Ask only for what you cannot discover:
 1. **SCOPE**: the whole docs root (default), one guide, or the shards a recent
    change touched. For one guide, run `merlon review --guide <name>` in Step 1
    and read that guide in Step 2. Its duplicates with other guides still count.
-2. **WORK_ITEM_LOOKUP**: where delivery conventions live (branching, review),
+2. `WORK_ITEM_LOOKUP`: where delivery conventions live (branching, review),
    when you will commit changes.
 
 ## Process

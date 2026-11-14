@@ -1,0 +1,10 @@
+extends: existence
+message: "'%s' looks like code. Wrap it in backticks."
+link: https://github.com/Merlon-Docs/merlon/blob/main/packages/merlon-docs-presets/README.md#vale-style-merlondocs
+level: warning
+scope: text
+nonword: true
+tokens:
+  - '(?<![:@.\w])(?:[A-Za-z_]\w*\.)*[A-Za-z_]\w*\(\)'
+  - '(?<![:@.\w])(?:[A-Za-z_]\w*\.)*[a-z]+_[a-z0-9_]+\b(?![:@])'
+  - '(?<![:@.\w])(?:[A-Za-z_]\w*\.)*[A-Z]+_[A-Z0-9_]+\b(?![:@])'

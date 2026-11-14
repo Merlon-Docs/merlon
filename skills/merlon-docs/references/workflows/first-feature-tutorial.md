@@ -4,13 +4,13 @@ Run this **after** bootstrap (`merlon compile` / `merlon check` clean). Same
 session; do not invent a parallel workflow — **load and follow** each workflow’s
 Process contract.
 
-## Offer and EXAMPLE_MODE
+## Offer and `EXAMPLE_MODE`
 
 1. Ask whether to run the **First feature tutorial**.
    - **novice** — default **yes**
    - **expert** — may skip
 2. If **skip**: brief handoff to the day-to-day workflows.
-3. If **yes**, ask **EXAMPLE_MODE**:
+3. If **yes**, ask `EXAMPLE_MODE`:
    - **recommended** — use [`hello-greeting`](#recommended-example-hello-greeting)
    - **bring-your-own** — user names FEATURE (and PERSONA if different); keep
      one small shippable slice

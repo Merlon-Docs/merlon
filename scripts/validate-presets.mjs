@@ -18,6 +18,7 @@ const valeFiles = [
   'vale/MerlonDocs/BareSectionRef.yml',
   'vale/MerlonDocs/UnlinkedSeeSection.yml',
   'vale/MerlonDocs/DatedClaim.yml',
+  'vale/MerlonDocs/UnformattedCode.yml',
   'vale/merlon.vale.ini',
   'vale/package/.vale.ini',
   'vale/package/styles/MerlonDocs/meta.json',
@@ -26,6 +27,7 @@ const valeFiles = [
   'vale/package/styles/MerlonDocs/BareSectionRef.yml',
   'vale/package/styles/MerlonDocs/UnlinkedSeeSection.yml',
   'vale/package/styles/MerlonDocs/DatedClaim.yml',
+  'vale/package/styles/MerlonDocs/UnformattedCode.yml',
 ];
 
 function stripJsoncComments(text) {

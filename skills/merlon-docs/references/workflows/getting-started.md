@@ -30,8 +30,8 @@ Ask only for values the request does not give, and only when someone can answer;
 After bootstrap succeeds, ask tutorial intake (see
 [first-feature-tutorial.md](first-feature-tutorial.md)):
 
-4. **RUN_FIRST_FEATURE_TUTORIAL** — yes/skip (default **yes** for novice)
-5. **EXAMPLE_MODE** — **recommended** (`hello-greeting`) or **bring-your-own**
+4. `RUN_FIRST_FEATURE_TUTORIAL` — yes/skip (default **yes** for novice)
+5. `EXAMPLE_MODE` — **recommended** (`hello-greeting`) or **bring-your-own**
 
 ## Process
 

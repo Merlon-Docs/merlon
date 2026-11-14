@@ -673,7 +673,7 @@ Install **Vale** separately so `vale` is on your `PATH`, using one of the method
 
 `lint.markdownlint.shardsConfig` names the markdownlint-cli2 config file for the shard pass, and `lint.markdownlint.compiledConfig` names the one for the compiled pass. `merlon lint` and `merlon check` run each pass only when its key is set, and [Check gate stages](../../docs/features/check-gate.md#check-gate-stages) lists both passes in the check. A relative path is read from the docs root, so a `docs/` root next to `node_modules` uses `../node_modules/@merlon-docs/merlon-docs-presets/...`, as step 1 of [Quick start](#quick-start) shows.
 
-A [locale pack](#locale-pack) is Merlon Docs’ compile-time wording, not a Vale style. The **`MerlonDocs` Vale style** in `@merlon-docs/merlon-docs-presets` (`vale/MerlonDocs/`) holds the en-US prose cues. Its rules flag a numbered heading mention with no link, and `MerlonDocs.DatedClaim` flags `as of` or `until` before an ISO date. See [Locale and language boundary](../../docs/features/design-constraints/locale-and-language.md).
+A [locale pack](#locale-pack) is Merlon Docs’ compile-time wording, not a Vale style. The **`MerlonDocs` Vale style** in `@merlon-docs/merlon-docs-presets` (`vale/MerlonDocs/`) holds the en-US prose cues. Its rules flag a numbered heading mention with no link, `MerlonDocs.DatedClaim` flags `as of` or `until` before an ISO date, and the warning-level `MerlonDocs.UnformattedCode` flags a code-shaped name, such as `field_init` or `set_field_fore()`, outside backticks. See [Locale and language boundary](../../docs/features/design-constraints/locale-and-language.md).
 
 ### Vale alert level
 

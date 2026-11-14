@@ -40,7 +40,7 @@ npm install -D @merlon-docs/merlon-docs-presets markdownlint-cli2 @merlon-docs/m
 
 ## Vale style (`MerlonDocs`)
 
-English (en-US) prose cues when docs **mention** a numbered heading (`Chapter` / `Section` / `Ch.` / `Sec.`) without a GFM markdown link, or pin a claim to a date. Merlon Docs itself only models headings and links. This style is language-specific static analysis. Leave compile and structural validation, including link targets, to [merlon-docs-core](https://www.npmjs.com/package/@merlon-docs/merlon-docs-core). See [Locale and language boundary](../../docs/features/design-constraints/locale-and-language.md).
+English (en-US) prose cues when docs **mention** a numbered heading (`Chapter` / `Section` / `Ch.` / `Sec.`) without a GFM markdown link, pin a claim to a date, or name code without backticks. Merlon Docs itself only models headings and links. This style is language-specific static analysis. Leave compile and structural validation, including link targets, to [merlon-docs-core](https://www.npmjs.com/package/@merlon-docs/merlon-docs-core). See [Locale and language boundary](../../docs/features/design-constraints/locale-and-language.md).
 
 | Path                   | Role                                            |
 | ---------------------- | ----------------------------------------------- |
@@ -48,17 +48,20 @@ English (en-US) prose cues when docs **mention** a numbered heading (`Chapter` /
 | `vale/MerlonDocs/`     | Source Vale style rules                         |
 | `vale/merlon.vale.ini` | Sample `.vale.ini` snippet for consumers        |
 
-| Rule                            | Flags                                                                                |
-| ------------------------------- | ------------------------------------------------------------------------------------ |
-| `MerlonDocs.BareChapterRef`     | `Chapter 2`, `Ch. 2` or `Chapters 2 and 3` with no link                              |
-| `MerlonDocs.BareSectionRef`     | `Section 2`, `Sec. 2` or `Sections 2 and 3` with no link                             |
-| `MerlonDocs.UnlinkedSeeChapter` | `See Chapter 2` with no link                                                         |
-| `MerlonDocs.UnlinkedSeeSection` | `See Section 2` with no link                                                         |
-| `MerlonDocs.DatedClaim`         | `as of` or `until` before an ISO date, such as `as of 2026-07-27`, headings included |
+| Rule                            | Flags                                                                                       |
+| ------------------------------- | ------------------------------------------------------------------------------------------- |
+| `MerlonDocs.BareChapterRef`     | `Chapter 2`, `Ch. 2` or `Chapters 2 and 3` with no link                                     |
+| `MerlonDocs.BareSectionRef`     | `Section 2`, `Sec. 2` or `Sections 2 and 3` with no link                                    |
+| `MerlonDocs.UnlinkedSeeChapter` | `See Chapter 2` with no link                                                                |
+| `MerlonDocs.UnlinkedSeeSection` | `See Section 2` with no link                                                                |
+| `MerlonDocs.DatedClaim`         | `as of` or `until` before an ISO date, such as `as of 2026-07-27`, headings included        |
+| `MerlonDocs.UnformattedCode`    | a call, `snake_case` name or `UPPER_SNAKE` constant outside backticks, such as `field_init` |
 
-Every rule is error level, so `merlon check --require-vale` fails on it. `MerlonDocs.DatedClaim` asks for what is true now. The history behind a rule that still holds moves to an ADR that the doc links, and a temporary note moves to the tracker. Text that only describes removed behavior is deleted, and the release notes give its notice. An ADR keeps the rule on and writes each date on its own, without `as of` or `until`. The rule flags every dated claim whatever its age, because a Vale rule can't compare a date with today.
+Every rule except `MerlonDocs.UnformattedCode` is error level, so `merlon check --require-vale` fails on it. `MerlonDocs.UnformattedCode` is a warning, so a plain `merlon prose` shows it and `merlon check` passes. Set `MerlonDocs.UnformattedCode = error` in `.vale.ini` to make it fail the check. `MerlonDocs.DatedClaim` asks for what is true now. The history behind a rule that still holds moves to an ADR that the doc links, and a temporary note moves to the tracker. Text that only describes removed behavior is deleted, and the release notes give its notice. An ADR keeps the rule on and writes each date on its own, without `as of` or `until`. The rule flags every dated claim whatever its age, because a Vale rule can't compare a date with today.
 
 The `TokenIgnores` pattern skips each inline link from its label to its closing parenthesis, so a dated label such as `[as of 2026-07-27](./snapshot.md)` passes. A label may contain one level of brackets, as in `[Chapter 2 [draft]](./draft.md)`. A backslash-escaped bracket in a label counts as text. The rule still flags a reference-style label such as `[as of 2026-07-27][ref]`. It can miss a claim split by emphasis markers, such as `as of **2026-07-27**`.
+
+`MerlonDocs.UnformattedCode` flags three shapes in prose, tables and headings: a name followed by `()`, such as `set_field_fore()` or `form.post()`; a lowercase name with an underscore, such as `field_init`; and an uppercase name with an underscore, such as `O_AUTOSKIP`. A dotted prefix joins the match, so `pkg.some_name` is reported whole. Vale already skips code spans, code blocks and URLs, and the rule skips a name inside an email address (`first_last@example.com`) or an emoji shortcode (`:white_check_mark:`). It does not flag `camelCase`, single words or file names without an underscore, so it misses some code. Wrap the name in backticks to fix the alert. When a word with an underscore is not code, turn the rule off around it with `<!-- vale MerlonDocs.UnformattedCode = NO -->`.
 
 ### Enable with Vale Packages
 
@@ -94,7 +97,7 @@ BasedOnStyles = Microsoft, MerlonDocs
 TokenIgnores = \[(?:\\.|[^\[\]\\]|\[(?:\\.|[^\[\]\\])*\])*\]\([^)]*\)
 ```
 
-The heading-mention rules use `scope: ~heading` so ATX heading titles (which may contain the words Chapter/Section) are not matched. `MerlonDocs.DatedClaim` keeps the default scope, so a dated heading is flagged too. The Merlon Docs repository's local `MerlonDocs-PandocId` style uses `scope: heading` for Pandoc IDs (`{#…}`).
+The heading-mention rules use `scope: ~heading` so ATX heading titles (which may contain the words Chapter/Section) are not matched. `MerlonDocs.DatedClaim` and `MerlonDocs.UnformattedCode` keep the default scope, so a heading is checked too. The Merlon Docs repository's local `MerlonDocs-PandocId` style uses `scope: heading` for Pandoc IDs (`{#…}`).
 
 Run prose checks with:
 
