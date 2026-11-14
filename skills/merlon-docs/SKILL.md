@@ -153,7 +153,12 @@ These habits keep product documentation accurate and current while the product k
   better splits/merges/relocations, and drift between what guides promise and
   what the change does. When a change touches a guide (a shard, a skill, or
   code whose behavior a guide documents), the review is complete only when the
-  change and its guides agree.
+  change and its guides agree. Each claim a review makes about a doc, such as
+  an error, a duplicate, or a mismatch with the code, gets the five-step
+  [evidence check](references/review/evidence-check.md) before you act on it
+  or report it: the claim as printed, what you opened, what it says, the
+  verdict with your confidence, and what you would have concluded one step
+  earlier.
 - **No code in docs:** Put intent, contracts, and acceptance criteria in
   shards — not implementation. Code samples and internals drift; the codebase
   is the source of truth for how something is built. This matches

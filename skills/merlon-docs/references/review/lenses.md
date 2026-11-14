@@ -1,7 +1,8 @@
 # Review lenses
 
 Four reviewers, one pass. Each list is what that reviewer checks; a "no" is a
-finding for the [doc-review workflow](../workflows/doc-review.md).
+finding for the [doc-review workflow](../workflows/doc-review.md), and it gets
+the [evidence check](evidence-check.md) before any decision.
 
 ## Product manager
 

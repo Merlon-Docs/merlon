@@ -65,6 +65,14 @@ sample the rest. The checklists are in [review lenses](../review/lenses.md).
 
 ### Step 3: Decide each finding
 
+Each finding is a claim about a doc, whether `merlon review`, a lens, a report,
+or your own notes made it. Before you decide it, run the five-step
+[evidence check](../review/evidence-check.md) and record the claim as printed,
+what you opened, what it says, the verdict with your confidence, and what you
+would have concluded one step earlier. Only a claim that **matches** with high
+or moderate confidence gets an action other than **Leave**. Drop the rest, or
+report them as open, as the check says.
+
 Pick one action per finding and record why in one line:
 
 | Action | When                                                                   |
@@ -117,3 +125,4 @@ contributor docs must state about the trigger and evidence of each run.
 - Leave a superseded paragraph beside its replacement.
 - Put tickets, dated status, or backlogs in a durable shard.
 - Rename an identifier in code to match a prose term. Code keeps its names.
+- Act on a finding, or report one as an error, without its evidence check.
