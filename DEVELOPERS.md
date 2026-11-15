@@ -859,7 +859,7 @@ Find a shard under `docs/` with host search and read that one shard, as [refs](#
 ### Linting docs
 
 - **markdownlint**: the shard preset on the shards, then the repo's own compiled config, [`docs/compiled-lint.markdownlint-cli2.jsonc`](docs/compiled-lint.markdownlint-cli2.jsonc), on the monolith, `DEVELOPERS.md` and the published READMEs. That config turns off fewer rules than the compiled preset in `@merlon-docs/merlon-docs-presets`, which the examples use.
-- **Vale**: prose lint on the `vale.scanGlobs` directories in the config, which are `glossary/`, `features/`, `developer/`, `client-cli/`, `client-core/` and `repo-readme/`, plus every `standaloneGuides` file. `docs/.vale.ini` opts `CODE_OF_CONDUCT.md` out, because its text is the vendored Contributor Covenant. Vale is not an npm dependency, so install it on `PATH` as [Local setup](#requirements) describes.
+- **Vale**: prose lint on the `vale.scanGlobs` directories in the config, which are `glossary/`, `features/`, `case-studies/`, `developer/`, `client-cli/`, `client-core/` and `repo-readme/`, plus every `standaloneGuides` file. `docs/.vale.ini` opts `CODE_OF_CONDUCT.md` out, because its text is the vendored Contributor Covenant. Vale is not an npm dependency, so install it on `PATH` as [Local setup](#requirements) describes.
 - **Vale `MerlonDocs` / `MerlonDocs-PandocId`**: peer prose rules for unlinked heading mentions and dated claims, plus this repo's local rule against [Pandoc IDs](#headings-and-links). They run in the peer Vale stage of `merlon check`, and `--require-vale` makes a missing Vale fail the run.
 - **link lint**: built-in validation runs on every `docs:check` at the default `"error"` severity. Each publish guide lists `features` in `compile.crossGuideLinks.ignoreGuides`. A cross-guide link to a features shard then keeps its `docs/features/` path, rebased for the output's location, as [Publish-only link policy](docs/features/link-validation.md#publish-only-link-policy) says. A link to a shard that the guide stitches can take an in-document anchor instead ([Same compiled output preference](docs/features/compile-pipeline/cross-guide-links.md#same-compiled-output-preference)).
 
@@ -1089,13 +1089,14 @@ The public docs site at <https://merlon-docs.github.io/merlon/> is an [Astro Sta
 
 The landing page (`packages/merlon-docs-site/src/content/docs/index.mdx`) and the Learn page (`packages/merlon-docs-site/src/content/docs/learn.mdx`) are hand-authored, apart from two sections the build measures, which [Measured on each build](#measured-on-each-build) describes. The other pages are generated at build time by [`packages/merlon-docs-site/scripts/sync-content.mjs`](packages/merlon-docs-site/scripts/sync-content.mjs) from these guides:
 
-| Shards              | Site section | Route            |
-| ------------------- | ------------ | ---------------- |
-| `docs/client-cli/`  | User guide   | `/guide/`        |
-| `docs/features/`    | Concepts     | `/concepts/`     |
-| `docs/client-core/` | Library API  | `/api/`          |
-| `docs/glossary/`    | Glossary     | `/glossary/`     |
-| `docs/developer/`   | Contributing | `/contributing/` |
+| Shards               | Site section | Route            |
+| -------------------- | ------------ | ---------------- |
+| `docs/client-cli/`   | User guide   | `/guide/`        |
+| `docs/features/`     | Concepts     | `/concepts/`     |
+| `docs/client-core/`  | Library API  | `/api/`          |
+| `docs/case-studies/` | Case studies | `/case-studies/` |
+| `docs/glossary/`     | Glossary     | `/glossary/`     |
+| `docs/developer/`    | Contributing | `/contributing/` |
 
 The sync script reads `docs/merlon.config.json` and each guide's `index.md` for sidebar order, and uses each shard's first `#` heading as the page title. These manifest entries become sidebar groups:
 

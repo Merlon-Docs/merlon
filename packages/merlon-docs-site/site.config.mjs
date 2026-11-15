@@ -23,6 +23,7 @@ export const PUBLISHED_GUIDES = [
   { name: 'client-cli', route: 'guide', label: 'Part 3: CLI (merlon)' },
   { name: 'features', route: 'concepts', label: 'Concepts' },
   { name: 'client-core', route: 'api', label: 'Library API' },
+  { name: 'case-studies', route: 'case-studies', label: 'Case studies' },
   { name: 'glossary', route: 'glossary', label: 'Glossary' },
   { name: 'developer', route: 'contributing', label: 'Contributing' },
 ];

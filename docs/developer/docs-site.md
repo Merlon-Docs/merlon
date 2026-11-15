@@ -6,13 +6,14 @@ The public docs site at <https://merlon-docs.github.io/merlon/> is an [Astro Sta
 
 The landing page (`packages/merlon-docs-site/src/content/docs/index.mdx`) and the Learn page (`packages/merlon-docs-site/src/content/docs/learn.mdx`) are hand-authored, apart from two sections the build measures, which [Measured on each build](#measured-on-each-build) describes. The other pages are generated at build time by [`packages/merlon-docs-site/scripts/sync-content.mjs`](../../packages/merlon-docs-site/scripts/sync-content.mjs) from these guides:
 
-| Shards              | Site section | Route            |
-| ------------------- | ------------ | ---------------- |
-| `docs/client-cli/`  | User guide   | `/guide/`        |
-| `docs/features/`    | Concepts     | `/concepts/`     |
-| `docs/client-core/` | Library API  | `/api/`          |
-| `docs/glossary/`    | Glossary     | `/glossary/`     |
-| `docs/developer/`   | Contributing | `/contributing/` |
+| Shards               | Site section | Route            |
+| -------------------- | ------------ | ---------------- |
+| `docs/client-cli/`   | User guide   | `/guide/`        |
+| `docs/features/`     | Concepts     | `/concepts/`     |
+| `docs/client-core/`  | Library API  | `/api/`          |
+| `docs/case-studies/` | Case studies | `/case-studies/` |
+| `docs/glossary/`     | Glossary     | `/glossary/`     |
+| `docs/developer/`    | Contributing | `/contributing/` |
 
 The sync script reads `docs/merlon.config.json` and each guide's `index.md` for sidebar order, and uses each shard's first `#` heading as the page title. These manifest entries become sidebar groups:
 
