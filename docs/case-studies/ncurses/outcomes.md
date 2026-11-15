@@ -1,25 +1,27 @@
-# What the ncurses migration produced
+# What the ncurses migration has produced so far
 
 <!-- merlon-paths: illustrative -->
 
-## A published edition with every change recorded
+> **Status: in progress.** The ncurses migration is still under way. Every figure here is an interim reading, taken on 2026-11-15 from the ncurses repository at commit `568319e`, and will change as the work goes on. Nothing on this page is a final result.
 
-The site at <https://betsalel-williamson.github.io/ncurses/> carries all 133 manual pages, 15 guides, the 4 contributor documents, a glossary and the appendix. [`docs/appendix/errata.csv`](https://github.com/betsalel-williamson/ncurses/blob/568319e5809ad365ba195ebbd100946c53b42cb4/docs/appendix/errata.csv) lists 302 changes:
+## An edition in progress, with every change recorded
 
-| Category         | Rows | What it means                                         |
-| ---------------- | ---- | ----------------------------------------------------- |
-| `original-error` | 159  | An error in the original documentation, now corrected |
-| `structure`      | 44   | Text moved, merged or split                           |
-| `addition`       | 43   | New material                                          |
-| `formatting`     | 37   | Formatting only                                       |
-| `edition-error`  | 15   | An error this edition introduced, then fixed          |
-| `rejected`       | 4    | A reported error that the evidence didn't bear out    |
+The site at <https://betsalel-williamson.github.io/ncurses/> carries all 133 manual pages, not yet reviewed, 15 guides, the 4 contributor documents, a glossary and the appendix. [`docs/appendix/errata.csv`](https://github.com/betsalel-williamson/ncurses/blob/568319e5809ad365ba195ebbd100946c53b42cb4/docs/appendix/errata.csv) lists 302 changes so far:
+
+| Category         | Rows | What it means                                                     |
+| ---------------- | ---- | ----------------------------------------------------------------- |
+| `original-error` | 159  | An error in the original documentation, corrected in this edition |
+| `structure`      | 44   | Text moved, merged or split                                       |
+| `addition`       | 43   | New material                                                      |
+| `formatting`     | 37   | Formatting only                                                   |
+| `edition-error`  | 15   | An error this edition introduced, then fixed                      |
+| `rejected`       | 4    | A reported error that the evidence didn't bear out                |
 
 Each of the 178 rows that claims an error carries the five-step evidence check. 158 of them are rated high confidence and 20 medium.
 
 ## Progress the site can show from git
 
-The front page's progress bar counts each guide, manual page and contributor document twice: once when it's sharded and once when it's reviewed. All 152 units are sharded, and 19 are reviewed, which gives 56%. The 133 manual pages make up most of the remainder, because they haven't had an editorial review. `site/scripts/migration-history.mjs verify` recomputes every row of the history from the merge commits, and CI runs it.
+The front page's progress bar counts each guide, manual page and contributor document twice: once when it's sharded and once when it's reviewed. All 152 units are sharded, and 19 are reviewed, which gives 56%. The 133 manual pages make up most of the remainder, because their editorial review hasn't started. `site/scripts/migration-history.mjs verify` recomputes every row of the history from the merge commits, and CI runs it.
 
 ## Checks that stay with the repository
 
@@ -30,7 +32,7 @@ Each mistake recorded in the lessons-learned appendix left a check behind, so th
 - [`site/scripts/check-listings.mjs`](https://github.com/betsalel-williamson/ncurses/blob/568319e5809ad365ba195ebbd100946c53b42cb4/site/scripts/check-listings.mjs) fails on a listing line longer than 77 columns.
 - The example build compiles and runs every complete C program in the guides, and flags any that doesn't exit cleanly.
 
-## What it cost
+## What it has cost so far
 
 The agent's own usage report, kept in [`site/data/migration.json`](https://github.com/betsalel-williamson/ncurses/blob/568319e5809ad365ba195ebbd100946c53b42cb4/site/data/migration.json), covers the session from the survey on 2026-11-12 through pull request #45 on 2026-11-15. The pull requests merged after it, including the review batches, aren't counted, so the totals understate the whole migration.
 
@@ -46,7 +48,7 @@ These figures come from the agent's report and can't be recomputed from the repo
 
 ## Changes back in Merlon Docs
 
-The trial found gaps in Merlon Docs itself, and Merlon Docs 1.2.0 shipped the fixes:
+So far the trial has found gaps in Merlon Docs itself, and Merlon Docs 1.2.0 shipped these changes for them:
 
 - The `html` reader, so `merlon check --no-compile` and `merlon review --no-compile` can read hand-written HTML such as ncurses' `doc/html`.
 - `.so` includes in the `man` reader, so a manual page split into fragments is checked as one page.

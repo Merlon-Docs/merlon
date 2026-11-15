@@ -1,12 +1,14 @@
-# How the ncurses migration ran
+# How the ncurses migration is running
 
 <!-- merlon-paths: illustrative -->
 
-The migration ran in five stages. Each stage merged as its own pull requests, and each pull request was reviewed by the maintainer before it merged.
+> **Status: in progress.** The ncurses migration is still under way. Every figure here is an interim reading, taken on 2026-11-15 from the ncurses repository at commit `568319e`, and will change as the work goes on. Nothing on this page is a final result.
+
+The migration has run in five stages so far. Each stage merged as its own pull requests, and the maintainer reviewed each pull request before it merged. The editorial review of the manual pages is the next stage, and hasn't started.
 
 ## Survey the existing docs
 
-Before any file moved, a survey listed every documentation file in the tree, its format, and whether it was source or generated. Many files are build output: the HTML manual pages come from troff by `man2html`, and the text dumps in `doc/` come from the HTML. Only the sources moved. The survey also ran `merlon check --no-compile` and `merlon review --no-compile` on the untouched tree, which [What the ncurses trial explored](./exploratory-results.md) describes.
+Before any file moved, a survey listed every documentation file in the tree, its format, and whether it was source or generated. Many files are build output: the HTML manual pages come from troff by `man2html`, and the text dumps in `doc/` come from the HTML. Only the sources moved. The survey also ran `merlon check --no-compile` and `merlon review --no-compile` on the untouched tree, which [What the ncurses trial has explored so far](./exploratory-results.md) describes.
 
 ## Shard the docs
 
@@ -36,6 +38,6 @@ The site is Astro Starlight, generated from the shards. Beyond the pages themsel
 
 ## Review each guide against the source
 
-Once everything was sharded, a full review pass checked each guide and contributor document against the library's headers, its source and its manual pages, in five batches: pull requests #54, #55, #56, #57 and #59. The batches corrected 28 errors, recorded as errata rows: 22 in the original text and 6 that this edition had introduced. Phone layout work ran alongside the review: the load flash and the copy button (#51), the header (#47, #48), the search dialog (#58), code hints that open on tap, and a search field that rotates example searches (#60).
+Once everything was sharded, a review pass checked each guide and contributor document against the library's headers, its source and its manual pages, in five batches: pull requests #54, #55, #56, #57 and #59. So far the batches have corrected 28 errors, recorded as errata rows: 22 in the original text and 6 that this edition had introduced. Phone layout work ran alongside the review: the load flash and the copy button (#51), the header (#47, #48), the search dialog (#58), code hints that open on tap, and a search field that rotates example searches (#60).
 
 Each mistake in the migration itself went into the [lessons learned](https://github.com/betsalel-williamson/ncurses/blob/master/docs/appendix/lessons-learned.md) appendix, with its cause and the check that now catches it.

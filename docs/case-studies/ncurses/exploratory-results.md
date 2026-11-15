@@ -1,8 +1,10 @@
-# What the ncurses trial explored
+# What the ncurses trial has explored so far
 
 <!-- merlon-paths: illustrative -->
 
-Some of the work was exploratory: running Merlon Docs on a tree it had never read, and checking the checks. This page records what those runs found, including the ones that didn't work.
+> **Status: in progress.** The ncurses migration is still under way. Every figure here is an interim reading, taken on 2026-11-15 from the ncurses repository at commit `568319e`, and will change as the work goes on. Nothing on this page is a final result.
+
+Some of the work was exploratory: running Merlon Docs on a tree it had never read, and checking the checks. This page records what those runs have found so far, including the ones that didn't work.
 
 ## Checking the man pages before any change
 
@@ -16,7 +18,7 @@ When the migration checked every page reference by hand, it found seven wrong se
 
 ## Reading the HTML guides
 
-No HTML reader existed when the survey started, so one was built on a branch and tried on the six hand-written pages in `doc/html`. Check found no orphans or broken links. Review, with Merlon Docs' defaults, reported 34 findings: 4 pages over 2,500 words, and 30 paragraphs repeated between the HOWTO's forms chapter and the forms section of _Writing Programs with NCURSES_. That finding is why the migration merged the two into one forms guide. The reader shipped in 1.2.0.
+No HTML reader existed when the survey started, so one was built on a branch and tried on the six hand-written pages in `doc/html`. Check found no orphans or broken links. Review, with Merlon Docs' defaults, reported 34 findings: 4 pages over 2,500 words, and 30 paragraphs repeated between the HOWTO's forms chapter and the forms section of _Writing Programs with NCURSES_. That finding led the migration to merge the two into one forms guide. The reader shipped in 1.2.0.
 
 ## Checking the sharded tree
 
@@ -26,7 +28,7 @@ On the migrated tree at commit `568319e`, this command reads 1,343 documents, Ma
 merlon check --no-compile --config docs/merlon.config.json --docs-root docs --skip-vale
 ```
 
-It reports 55 warnings, 49 of them for `terminfo(5)` again, and one issue. The issue is an include in a fragment two directories deep, `.so common/no-size-restrictions.1m`. troff resolves that path from the `man/` directory and finds the file. Merlon Docs looks next to the including file, under the docs root, and in the parent directory, and none of those holds it. That's a gap in the reader, not in the docs.
+It reports 55 warnings, 49 of them for `terminfo(5)` again, and one issue. The issue is an include in a fragment two directories deep, `.so common/no-size-restrictions.1m`. troff resolves that path from the `man/` directory and finds the file. Merlon Docs looks next to the including file, under the docs root, and in the parent directory, and none of those holds it. It looks like a gap in the reader rather than in the docs, but that hasn't been confirmed or fixed in Merlon Docs yet.
 
 ## Survey findings are claims too
 
@@ -34,4 +36,4 @@ The survey's `merlon review --no-compile` run reported repeated paragraphs and a
 
 ## Verifying the errata from outside
 
-To test whether the errata's own verdicts hold, the 178 error claims were split into six batches and sent to an outside system, three independent runs a batch, with no access to the errata or to each other's answers. The first attempt didn't produce a result: safety-filter stops ended all but 1 of the 18 runs. A second attempt is pending, and this page will be superseded when it reports.
+To test whether the errata's own verdicts hold, the 178 error claims were split into six batches and sent to an outside system, three independent runs a batch, with no access to the errata or to each other's answers. The first attempt didn't produce a result: safety-filter stops ended all but 1 of the 18 runs. A second attempt is pending, and there are no results to report yet.
