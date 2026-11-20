@@ -29,6 +29,14 @@ Each term is its own shard under `docs/glossary/`. [Shared glossary](../client-c
 - [shard single responsibility](./shard-single-responsibility.md)
 - [domain glossary](./domain-glossary.md)
 
+## Review outcomes
+
+- [review outcome matrix (confusion matrix)](./review-outcome-matrix.md)
+- [true positive](./true-positive.md)
+- [true negative](./true-negative.md)
+- [false positive (type I error)](./false-positive.md)
+- [false negative (type II error)](./false-negative.md)
+
 ## Compile outputs and links
 
 - [compiled guide](./compiled-guide.md)

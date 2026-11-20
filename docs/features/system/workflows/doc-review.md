@@ -47,6 +47,26 @@ only opening the source shows. Parallel pages repeat a paragraph on purpose, a
 wrong reference has more copies than the finding counted, or the finding came
 from an older version of the tool.
 
+## Review outcomes
+
+Each doc a review looks at ends in one of four outcomes. Two questions decide
+which: did the doc need to change, and did the review change it? A
+**positive** means the review flagged or changed the doc, and a **negative**
+means it left the doc as it was. **True** means the review was right, and
+**false** means it was wrong.
+
+| Did the doc need to change? | Review changed it                                                                     | Review left it                                                                          |
+| --------------------------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Yes                         | [True positive](../../../glossary/true-positive.md): a needed fix was made            | [False negative](../../../glossary/false-negative.md) (type II error): a fix was missed |
+| No                          | [False positive](../../../glossary/false-positive.md) (type I error): a needless edit | [True negative](../../../glossary/true-negative.md): a correct doc was left alone       |
+
+The [evidence check](#evidence-check) guards against false positives, because a
+claim edits a doc only when its verdict is that it matches. A claim that the
+check drops is a true negative when the doc was right, and a false negative when
+the doc did need the change. A false negative leaves no trace in the review
+itself. A later review, a reader, or a bug report finds it, so a review reports
+the claims it dropped as well as the edits it made.
+
 ## Weekly review routine
 
 For projects whose docs change in most weeks, the skill also recommends a

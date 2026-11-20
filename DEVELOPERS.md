@@ -52,6 +52,14 @@ Each term is its own shard under `docs/glossary/`. [Shared glossary](./packages/
 - [shard single responsibility](#shard-single-responsibility)
 - [domain glossary](#domain-glossary)
 
+### Review outcomes
+
+- [review outcome matrix (confusion matrix)](#review-outcome-matrix)
+- [true positive](#true-positive)
+- [true negative](#true-negative)
+- [false positive (type I error)](#false-positive-type-i-error)
+- [false negative (type II error)](#false-negative-type-ii-error)
+
 ### Compile outputs and links
 
 - [compiled guide](#compiled-guide)
@@ -1737,7 +1745,7 @@ A plan section of numbered groups that splits coding or multi-concern work into 
 
 ## evidence check
 
-The five-step record a review keeps for each claim it makes about a doc, such as an error, a duplicate, or a mismatch with the code: the claim as printed, what the reviewer opened, what that source says, a verdict with a confidence, and what the reviewer would have concluded one step earlier. A claim leads to an edit only when its verdict is that it matches.
+The five-step record a review keeps for each claim it makes about a doc, such as an error, a duplicate, or a mismatch with the code: the claim as printed, what the reviewer opened, what that source says, a verdict with a confidence, and what the reviewer would have concluded one step earlier. A claim leads to an edit only when its verdict is that it matches, which guards against a [false positive](#false-positive-type-i-error).
 
 [Evidence check](docs/features/system/workflows/doc-review.md#evidence-check) in the doc-review workflow spec lists the verdicts and where the record goes.
 
@@ -1834,6 +1842,58 @@ See [Shard single responsibility and idea mitosis](docs/features/system/shard-sr
 See [Shard single responsibility and idea mitosis](docs/features/system/shard-srp-and-mitosis.md) and [idea mitosis](#idea-mitosis).
 
 <!-- merlon-shard: end docs/glossary/shard-single-responsibility.md -->
+
+<!-- merlon-shard: start docs/glossary/review-outcome-matrix.md -->
+
+## review outcome matrix
+
+The two-by-two table that sorts what a doc review did with each doc, also called a **confusion matrix**. One axis asks whether the doc needed to change, and the other asks whether the review changed it. Its four cells are the [true positive](#true-positive), [false negative](#false-negative-type-ii-error), [false positive](#false-positive-type-i-error), and [true negative](#true-negative).
+
+In these terms, **positive** means the review flagged or changed the doc, and **negative** means the review left it as it was. **True** and **false** say whether the review was right. A false positive is a **type I error** and a false negative is a **type II error**.
+
+[Review outcomes](docs/features/system/workflows/doc-review.md#review-outcomes) in the doc-review workflow spec shows the table.
+
+<!-- merlon-shard: end docs/glossary/review-outcome-matrix.md -->
+
+<!-- merlon-shard: start docs/glossary/true-positive.md -->
+
+## true positive
+
+A [review outcome](#review-outcome-matrix) where the doc needed to change and the review changed it. The review flagged a real problem, such as an error, a duplicate, or a mismatch with the code, and fixed it.
+
+[Review outcomes](docs/features/system/workflows/doc-review.md#review-outcomes) in the doc-review workflow spec shows all four outcomes.
+
+<!-- merlon-shard: end docs/glossary/true-positive.md -->
+
+<!-- merlon-shard: start docs/glossary/true-negative.md -->
+
+## true negative
+
+A [review outcome](#review-outcome-matrix) where the doc didn't need to change and the review left it as it was. The doc was correct, and the review made no change to it.
+
+[Review outcomes](docs/features/system/workflows/doc-review.md#review-outcomes) in the doc-review workflow spec shows all four outcomes.
+
+<!-- merlon-shard: end docs/glossary/true-negative.md -->
+
+<!-- merlon-shard: start docs/glossary/false-positive.md -->
+
+## false positive (type I error)
+
+A [review outcome](#review-outcome-matrix) where the doc didn't need to change but the review changed it. The review flagged a problem that wasn't there, so the edit was needless and can introduce an error into a correct doc. Statistics calls this a **type I error**.
+
+The [evidence check](#evidence-check) guards against it: a claim edits a doc only when the source it was checked against matches the claim. [Review outcomes](docs/features/system/workflows/doc-review.md#review-outcomes) in the doc-review workflow spec shows all four outcomes.
+
+<!-- merlon-shard: end docs/glossary/false-positive.md -->
+
+<!-- merlon-shard: start docs/glossary/false-negative.md -->
+
+## false negative (type II error)
+
+A [review outcome](#review-outcome-matrix) where the doc needed to change but the review left it as it was. The review missed a real problem, or dropped a claim about it, so the error stays in the doc. Statistics calls this a **type II error**.
+
+A false negative leaves no edit behind, so a later review, a reader, or a bug report finds it. [Review outcomes](docs/features/system/workflows/doc-review.md#review-outcomes) in the doc-review workflow spec shows all four outcomes.
+
+<!-- merlon-shard: end docs/glossary/false-negative.md -->
 
 <!-- merlon-shard: start docs/glossary/compiled-guide.md -->
 
